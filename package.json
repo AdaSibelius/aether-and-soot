@@ -1,0 +1,29 @@
+{
+  "name": "aether-and-soot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Victorian Steampunk 2D Emergent Roguelike (CDDA Simulation Depth + Caves of Qud Glyph/Shader Aesthetics)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test:sim": "vitest run",
+    "test:watch": "vitest",
+    "validate:data": "tsx tests/scripts/validate-data.ts",
+    "check:boundaries": "tsx tests/scripts/check-boundaries.ts",
+    "verify": "npm run typecheck && npm run check:boundaries && npm run validate:data && npm run test:sim"
+  },
+  "dependencies": {
+    "pixi.js": "^8.6.6",
+    "preact": "^10.25.4",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  }
+}

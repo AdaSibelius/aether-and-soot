@@ -1,0 +1,40 @@
+[
+  {
+    "id": "prosthetic_pneumatic_leg_mk1",
+    "name": "Gilded Pneumatic Strider Leg Mk.I",
+    "description": "A heavy brass-and-leather femoral chassis driven by twin high-pressure steam cylinders.",
+    "targetLimbSlot": "LEFT_LEG",
+    "socketType": "ACTUATOR",
+    "massGrams": 4200,
+    "volumeMl": 3100,
+    "steamConsumptionPerTurn": 1.5,
+    "moveApModifier": -15,
+    "pressureRatingKpa": 320,
+    "visual": {
+      "glyph": "L",
+      "fgPrimary": "#D4AF37",
+      "fgSecondary": "#8B4513",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["PULSE_STEAM"]
+    }
+  },
+  {
+    "id": "prosthetic_clockwork_ocular_lens",
+    "name": "Aetheric Turret Monocle",
+    "description": "Multi-aperture quartz lenses mounted on a phosphor-bronze iris ring for piercing smog.",
+    "targetLimbSlot": "OCULAR_MOUNT",
+    "socketType": "OPTIC_SENSOR",
+    "massGrams": 450,
+    "volumeMl": 300,
+    "steamConsumptionPerTurn": 0,
+    "moveApModifier": 0,
+    "pressureRatingKpa": 120,
+    "visual": {
+      "glyph": "o",
+      "fgPrimary": "#5DADE2",
+      "fgSecondary": "#D4AF37",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
+  }
+]

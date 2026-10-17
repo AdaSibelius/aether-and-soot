@@ -1,0 +1,36 @@
+[
+  {
+    "id": "commodity_anthracite_briquette",
+    "name": "Compressed Anthracite Briquette",
+    "category": "FUEL",
+    "basePricePence": 24,
+    "volatility": 0.35,
+    "massGrams": 1000,
+    "volumeMl": 750,
+    "flammability": 0.85,
+    "visual": {
+      "glyph": "*",
+      "fgPrimary": "#2C3E50",
+      "fgSecondary": "#E67E22",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "commodity_phosphor_bronze_ingot",
+    "name": "Phosphor-Bronze Ingot",
+    "category": "METALLURGY",
+    "basePricePence": 110,
+    "volatility": 0.2,
+    "massGrams": 2500,
+    "volumeMl": 400,
+    "flammability": 0,
+    "visual": {
+      "glyph": "=",
+      "fgPrimary": "#CD7F32",
+      "fgSecondary": "#F39C12",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
+  }
+]
