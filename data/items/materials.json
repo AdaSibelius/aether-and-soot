@@ -1,0 +1,118 @@
+[
+  {
+    "id": "mat_brass_gears",
+    "name": "Tarnished Brass Gear Cluster",
+    "description": "A fistful of interlocking brass cogs salvaged from a seized clockwork mechanism.",
+    "category": "MATERIAL",
+    "massGrams": 180,
+    "volumeMl": 120,
+    "stackable": true,
+    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnWeight": 30,
+    "spawnQuantityMax": 4,
+    "visual": {
+      "glyph": "%",
+      "fgPrimary": "#D4AF37",
+      "fgSecondary": "#8B6914",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
+  },
+  {
+    "id": "mat_vulcanized_rubber",
+    "name": "Vulcanized Rubber Gasket",
+    "description": "A sulphur-cured rubber seal rated for high-pressure steam couplings.",
+    "category": "MATERIAL",
+    "massGrams": 90,
+    "volumeMl": 150,
+    "stackable": true,
+    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnWeight": 25,
+    "spawnQuantityMax": 3,
+    "visual": {
+      "glyph": "o",
+      "fgPrimary": "#4D5656",
+      "fgSecondary": "#1C2833",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "mat_aether_salt",
+    "name": "Crystallised Aether Salt",
+    "description": "Faintly luminous blue crystals precipitated from aetheric condensers.",
+    "category": "MATERIAL",
+    "massGrams": 40,
+    "volumeMl": 30,
+    "stackable": true,
+    "spawnStrata": ["UNDERCROFT", "SPIRE"],
+    "spawnWeight": 15,
+    "spawnQuantityMax": 5,
+    "visual": {
+      "glyph": "*",
+      "fgPrimary": "#5DADE2",
+      "fgSecondary": "#AED6F1",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
+  },
+  {
+    "id": "mat_cast_iron_plate",
+    "name": "Cast-Iron Plate Offcut",
+    "description": "A heavy slab of foundry-grade cast iron, scorched along one edge.",
+    "category": "MATERIAL",
+    "massGrams": 1200,
+    "volumeMl": 400,
+    "stackable": true,
+    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnWeight": 20,
+    "spawnQuantityMax": 2,
+    "visual": {
+      "glyph": "]",
+      "fgPrimary": "#7F8C8D",
+      "fgSecondary": "#515A5A",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "item_coagulant_tonic",
+    "name": "Dr. Halloway's Coagulant Tonic",
+    "description": "A bitter iron-and-laudanum draught that thickens the blood and staunches bleeding.",
+    "category": "CONSUMABLE",
+    "massGrams": 250,
+    "volumeMl": 200,
+    "stackable": true,
+    "useEffect": { "kind": "RESTORE_BLOOD", "magnitude": 25 },
+    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "spawnWeight": 12,
+    "spawnQuantityMax": 2,
+    "visual": {
+      "glyph": "!",
+      "fgPrimary": "#C0392B",
+      "fgSecondary": "#F1948A",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "item_pressurized_steam_canister",
+    "name": "Pressurized Steam Canister",
+    "description": "A riveted copper cylinder charged with superheated steam for field re-pressurisation.",
+    "category": "CONSUMABLE",
+    "massGrams": 800,
+    "volumeMl": 900,
+    "stackable": true,
+    "useEffect": { "kind": "RESTORE_STEAM", "magnitude": 40 },
+    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "spawnWeight": 10,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "!",
+      "fgPrimary": "#E5E8E8",
+      "fgSecondary": "#CD7F32",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["PULSE_STEAM"]
+    }
+  }
+]

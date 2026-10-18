@@ -3,6 +3,7 @@ import {
   CommodityIdSchema,
   EntityIdSchema,
   FactionIdSchema,
+  ItemUseEffectSchema,
   LimbSlotIdSchema,
   Point3DSchema,
   StratumIdSchema,
@@ -165,6 +166,59 @@ export const MacroTickCompletedEventSchema = z.object({
   macroTickIndex: z.number().int().positive(),
 });
 
+export const ItemPickedUpEventSchema = z.object({
+  type: z.literal('ITEM_PICKED_UP'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+  itemName: z.string().min(1),
+  quantity: z.number().int().positive(),
+  stackedIntoEntityId: EntityIdSchema.optional(),
+});
+
+export const ItemDroppedEventSchema = z.object({
+  type: z.literal('ITEM_DROPPED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+  itemName: z.string().min(1),
+  quantity: z.number().int().positive(),
+  at: Point3DSchema,
+});
+
+export const ItemUsedEventSchema = z.object({
+  type: z.literal('ITEM_USED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+  itemName: z.string().min(1),
+  effect: ItemUseEffectSchema.shape.kind,
+  amountRestored: z.number().nonnegative(),
+  remainingQuantity: z.number().int().nonnegative(),
+});
+
+export const InventoryActionFailedEventSchema = z.object({
+  type: z.literal('INVENTORY_ACTION_FAILED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  action: z.enum(['PICK_UP', 'DROP', 'USE']),
+  itemEntityId: EntityIdSchema.optional(),
+  reason: z.enum([
+    'NO_INVENTORY',
+    'MISSING_ANATOMY',
+    'NO_ITEM_HERE',
+    'ITEM_NOT_FOUND',
+    'NOT_ON_TILE',
+    'NOT_IN_INVENTORY',
+    'NOT_CARRYABLE',
+    'VOLUME_EXCEEDED',
+    'MASS_EXCEEDED',
+    'ITEM_INSTALLED',
+    'NOT_CONSUMABLE',
+    'INVALID_QUANTITY',
+  ]),
+});
+
 export const SimEventSchema = z.discriminatedUnion('type', [
   EntityMovedEventSchema,
   MovementBlockedEventSchema,
@@ -185,5 +239,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   SupplyShockTriggeredEventSchema,
   StorefrontSaleCompletedEventSchema,
   MacroTickCompletedEventSchema,
+  ItemPickedUpEventSchema,
+  ItemDroppedEventSchema,
+  ItemUsedEventSchema,
+  InventoryActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

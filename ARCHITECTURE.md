@@ -77,11 +77,11 @@ Use this lookup table to locate existing logic before writing any code.
 ### A. Schemas & Contracts (`src/schemas/`)
 | File | Exports & Responsibility |
 | :--- | :--- |
-| `src/schemas/primitives.schema.ts` | `EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema` (`UNDERCROFT` \| `STREET` \| `SPIRE`), `FactionIdSchema`, `CommodityIdSchema`, `HexColorSchema`, `ShaderFlagSchema`, `Point2DSchema`, `Point3DSchema`, `VisualGlyphSpecSchema`, `LimbSlotIdSchema`, `SocketTypeSchema` |
-| `src/schemas/blueprint.schema.ts` | Declarative JSON schemas: `ProstheticBlueprintSchema`, `CommodityBlueprintSchema`, `GasFluidBlueprintSchema`, `DistrictBlueprintSchema` |
-| `src/schemas/components.schema.ts` | ECS components on `EntityRecord`: `position`, `actor`, `portal`, `anatomy` (`limbs`, `bloodVolumePct`, `steamReserveKpa`), `inventory`, `prostheticSpec`, `pressureVessel` |
-| `src/schemas/commands.schema.ts` | `GameCommandSchema` discriminated union (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`, `VENT_STEAM`, `DAMAGE_LIMB`, `INSTALL_PROSTHETIC`, `REMOVE_PROSTHETIC`, `REFILL_STEAM`, `PRESSURIZE_VESSEL`, `EMIT_SPARK`, `STOCK_PEDESTAL`, `TRIGGER_SUPPLY_SHOCK`) |
-| `src/schemas/events.schema.ts` | `SimEventSchema` discriminated union (all 18 event types emitted by systems and formatted in `HudLayout.tsx`) |
+| `src/schemas/primitives.schema.ts` | `EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema` (`UNDERCROFT` \| `STREET` \| `SPIRE`), `FactionIdSchema`, `CommodityIdSchema`, `ItemCategorySchema`, `ItemUseEffectSchema`, `HexColorSchema`, `ShaderFlagSchema`, `Point2DSchema`, `Point3DSchema`, `VisualGlyphSpecSchema`, `LimbSlotIdSchema`, `SocketTypeSchema` |
+| `src/schemas/blueprint.schema.ts` | Declarative JSON schemas: `ProstheticBlueprintSchema`, `CommodityBlueprintSchema`, `GasFluidBlueprintSchema`, `DistrictBlueprintSchema`, `ItemBlueprintSchema` |
+| `src/schemas/components.schema.ts` | ECS components on `EntityRecord`: `position`, `actor`, `portal`, `anatomy` (`limbs`, `bloodVolumePct`, `steamReserveKpa`), `inventory`, `prostheticSpec`, `pressureVessel`, `item` |
+| `src/schemas/commands.schema.ts` | `GameCommandSchema` discriminated union (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`, `VENT_STEAM`, `DAMAGE_LIMB`, `INSTALL_PROSTHETIC`, `REMOVE_PROSTHETIC`, `REFILL_STEAM`, `PRESSURIZE_VESSEL`, `EMIT_SPARK`, `STOCK_PEDESTAL`, `TRIGGER_SUPPLY_SHOCK`, `PICK_UP_ITEM`, `DROP_ITEM`, `USE_ITEM`) |
+| `src/schemas/events.schema.ts` | `SimEventSchema` discriminated union (all 22 event types emitted by systems and formatted in `HudLayout.tsx`) |
 
 ### B. Headless Simulation Core (`src/sim/`)
 | File | Current Lines | Exports & Responsibility |
@@ -89,11 +89,15 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/sim/core/rng.ts` | 76 | `SeededRNG` (`nextUint32`, `nextFloat`, `nextInt`, `getState`), `RNGStateSchema` |
 | `src/sim/core/world.ts` | 232 | `WorldStateSchema`, `createInitialWorld`, `serializeWorld`, `deserializeWorld` |
 | `src/sim/core/scheduler.ts` | 64 | `STANDARD_ACTION_AP` (100), `MACRO_TICK_INTERVAL` (100), `advanceTurnSchedule` |
-| `src/sim/core/engine.ts` | 184 | `dispatchCommand(currentState, rawCommand)` — central command router |
+| `src/sim/core/engine.ts` | 206 | `dispatchCommand(currentState, rawCommand)` — central command router |
 | `src/sim/spatial/grid.ts` | 98 | `TileCellSchema`, `StratumGridSchema`, `createStratumGrid`, `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, `findBlockingEntityAtPoint` |
 | `src/sim/spatial/portals.ts` | 14 | `findPortalAtPoint(entities, point)` |
 | `src/sim/spatial/fov.ts` | 115 | `computeVisibleTiles(grid, originX, originY, radius)`, `isPointVisible`, `pointKey` |
 | `src/sim/spatial/generator.ts` | **285 (Near Cap)** | `generateVictorianDistrict(state)`, `hasWalkablePath(grid, start, goal)` |
+| `src/sim/data/item-catalog.ts` | 49 | `ITEM_CATALOG`, `getItemBlueprint`, `createItemEntity` |
+| `src/sim/systems/inventory-utils.ts` | 126 | `getCarryProfile`, `computeCarriedVolumeMl`, `isInstalledOnActor`, `findMergeableStack`, `allocateSplitId`, `createInventoryFailureResult`, `MAX_OVERLOAD_RATIO` |
+| `src/sim/systems/inventory.system.ts` | 245 | `resolvePickupItem`, `resolveDropItem`, `resolveUseItem` |
+| `src/sim/systems/item-spawner.ts` | 71 | `spawnDistrictItems` — deterministic seeded ground-item scatterer |
 | `src/sim/systems/movement.system.ts` | 256 | `computeMovementMechanics`, `resolveMoveStep`, `resolveUsePortal` |
 | `src/sim/systems/anatomy.system.ts` | **293 (Near Cap)** | `computeProstheticFovBonus`, `resolveDamageLimb`, `resolveInstallProsthetic`, `resolveRemoveProsthetic`, `resolveRefillSteam` |
 | `src/sim/systems/thermo.system.ts` | 168 | `advanceThermodynamicsTick`, `SCALD_PRESSURE_THRESHOLD_KPA` |
@@ -107,9 +111,10 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/client/renderer/glyph-stage.ts` | `GlyphStageRenderer` — PixiJS v8 canvas renderer with dual-color glyph pulsing and steam overlay |
 | `src/client/renderer/crt-filter.ts` | `createCrtPostFilter()` — GLSL scanlines, chromatic aberration, and vignette filter |
 | `src/client/ui/HudLayout.tsx` | Main Preact sidebar, `formatEventMessage(ev: SimEvent)`, and tactical/tinkering buttons |
+| `src/client/ui/SatchelPanel.tsx` | Artificer's Satchel panel: carried items volume, Use, Drop, and ground Take actions |
 | `src/client/ui/AnatomyDoll.tsx` | Limb HP/amputation/prosthetic paperdoll and steam/sanguine telemetry |
 | `src/client/ui/MarketLedger.tsx` | Commodity ticker, faction standing table, and storefront controls |
-| `src/client/main.tsx` | Client bootstrap, keyboard listener, and `window.__DEBUG_SIM__` inspection bridge |
+| `src/client/main.tsx` | Client bootstrap, keyboard listener (wasd/arrows, portals, wait, pickup [G]), and `window.__DEBUG_SIM__` |
 
 ---
 

@@ -8,6 +8,7 @@ import {
   resolveRemoveProsthetic,
 } from '../systems/anatomy.system.js';
 import { resolveStockPedestal, resolveTriggerSupplyShock } from '../systems/economy.system.js';
+import { resolveDropItem, resolvePickupItem, resolveUseItem } from '../systems/inventory.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
@@ -165,6 +166,27 @@ export function dispatchCommand(
         command.factionAffected,
         command.reputationDelta,
       );
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'PICK_UP_ITEM': {
+      const res = resolvePickupItem(nextState, command.actorId, command.itemEntityId);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'DROP_ITEM': {
+      const res = resolveDropItem(nextState, command.actorId, command.itemEntityId, command.quantity);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'USE_ITEM': {
+      const res = resolveUseItem(nextState, command.actorId, command.itemEntityId);
       nextState = res.state;
       systemEvents = res.events;
       apSpent = res.apSpent;

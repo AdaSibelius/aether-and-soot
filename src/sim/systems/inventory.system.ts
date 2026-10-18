@@ -1,0 +1,245 @@
+import { EntityRecord, PositionComponent } from '../../schemas/components.schema.js';
+import { SimEvent } from '../../schemas/events.schema.js';
+import { EntityId, Point3D } from '../../schemas/primitives.schema.js';
+import { STANDARD_ACTION_AP } from '../core/scheduler.js';
+import { WorldState } from '../core/world.js';
+import { findEntitiesAtPoint } from '../spatial/grid.js';
+import {
+  allocateSplitId,
+  computeCarriedVolumeMl,
+  createInventoryFailureResult,
+  findMergeableStack,
+  getCarryProfile,
+  isInstalledOnActor,
+  MAX_OVERLOAD_RATIO,
+  sortEntitiesById,
+  withoutEntity,
+  withoutPosition,
+} from './inventory-utils.js';
+
+export const PICKUP_AP = STANDARD_ACTION_AP;
+export const DROP_AP = 50;
+export const USE_ITEM_AP = STANDARD_ACTION_AP;
+
+export interface SystemInventoryResult {
+  readonly state: WorldState;
+  readonly events: SimEvent[];
+  readonly apSpent: number;
+}
+
+/** Picks up a carryable entity on the actor's tile, merging into an existing stack when possible. */
+export function resolvePickupItem(
+  state: WorldState,
+  actorId: EntityId,
+  itemEntityId?: EntityId,
+): SystemInventoryResult {
+  const actor = state.entities[actorId];
+  if (!actor?.inventory || !actor.position) {
+    return createInventoryFailureResult(state, actorId, 'PICK_UP', 'NO_INVENTORY', itemEntityId);
+  }
+  const here: Point3D = { x: actor.position.x, y: actor.position.y, stratum: actor.position.stratum };
+  const candidates = findEntitiesAtPoint(state.entities, here)
+    .filter((e) => e.id !== actorId && getCarryProfile(e) !== undefined)
+    .sort(sortEntitiesById);
+
+  const target = itemEntityId ? candidates.find((e) => e.id === itemEntityId) : candidates[0];
+  if (!target) {
+    if (!itemEntityId) return createInventoryFailureResult(state, actorId, 'PICK_UP', 'NO_ITEM_HERE');
+    const existing = state.entities[itemEntityId];
+    const reason = !existing ? 'ITEM_NOT_FOUND' : getCarryProfile(existing) ? 'NOT_ON_TILE' : 'NOT_CARRYABLE';
+    return createInventoryFailureResult(state, actorId, 'PICK_UP', reason, itemEntityId);
+  }
+
+  const profile = getCarryProfile(target);
+  if (!profile) return createInventoryFailureResult(state, actorId, 'PICK_UP', 'NOT_CARRYABLE', target.id);
+
+  const inv = actor.inventory;
+  if (computeCarriedVolumeMl(state, inv) + profile.volumeMl > inv.maxVolumeMl) {
+    return createInventoryFailureResult(state, actorId, 'PICK_UP', 'VOLUME_EXCEEDED', target.id);
+  }
+  const nextMass = inv.currentMassGrams + profile.massGrams;
+  if (nextMass > inv.maxMassGrams * MAX_OVERLOAD_RATIO) {
+    return createInventoryFailureResult(state, actorId, 'PICK_UP', 'MASS_EXCEEDED', target.id);
+  }
+
+  const quantity = target.item?.quantity ?? 1;
+  const stack = findMergeableStack(state, inv, target);
+  let entities: Record<string, EntityRecord>;
+  let containedEntityIds = inv.containedEntityIds;
+  if (stack?.item) {
+    entities = withoutEntity(state.entities, target.id);
+    entities[stack.id] = { ...stack, item: { ...stack.item, quantity: stack.item.quantity + quantity } };
+  } else {
+    entities = { ...state.entities, [target.id]: withoutPosition(target) };
+    containedEntityIds = [...containedEntityIds, target.id];
+  }
+  entities[actorId] = {
+    ...actor,
+    inventory: { ...inv, containedEntityIds, currentMassGrams: nextMass },
+  };
+
+  return {
+    state: { ...state, entities },
+    apSpent: PICKUP_AP,
+    events: [
+      {
+        type: 'ITEM_PICKED_UP',
+        turn: state.turnCount + 1,
+        actorId,
+        itemEntityId: target.id,
+        itemName: target.name,
+        quantity,
+        stackedIntoEntityId: stack?.id,
+      },
+    ],
+  };
+}
+
+/** Drops a held item (or part of a stack) onto the actor's current tile. */
+export function resolveDropItem(
+  state: WorldState,
+  actorId: EntityId,
+  itemEntityId: EntityId,
+  quantity?: number,
+): SystemInventoryResult {
+  const actor = state.entities[actorId];
+  if (!actor?.inventory || !actor.position) {
+    return createInventoryFailureResult(state, actorId, 'DROP', 'NO_INVENTORY', itemEntityId);
+  }
+  const inv = actor.inventory;
+  if (!inv.containedEntityIds.includes(itemEntityId)) {
+    return createInventoryFailureResult(state, actorId, 'DROP', 'NOT_IN_INVENTORY', itemEntityId);
+  }
+  const item = state.entities[itemEntityId];
+  if (!item) return createInventoryFailureResult(state, actorId, 'DROP', 'ITEM_NOT_FOUND', itemEntityId);
+  if (isInstalledOnActor(actor, itemEntityId)) {
+    return createInventoryFailureResult(state, actorId, 'DROP', 'ITEM_INSTALLED', itemEntityId);
+  }
+  const profile = getCarryProfile(item);
+  if (!profile) return createInventoryFailureResult(state, actorId, 'DROP', 'NOT_CARRYABLE', itemEntityId);
+
+  const stackQty = item.item?.quantity ?? 1;
+  const dropQty = quantity ?? stackQty;
+  if (dropQty < 1 || dropQty > stackQty) {
+    return createInventoryFailureResult(state, actorId, 'DROP', 'INVALID_QUANTITY', itemEntityId);
+  }
+
+  const at: Point3D = { x: actor.position.x, y: actor.position.y, stratum: actor.position.stratum };
+  const groundPos: PositionComponent = { ...at, blocksMovement: false, blocksSight: false };
+  const droppedMass = item.item ? item.item.massGrams * dropQty : profile.massGrams;
+  const entities: Record<string, EntityRecord> = { ...state.entities };
+  let droppedId = itemEntityId;
+  let containedEntityIds = inv.containedEntityIds;
+
+  if (item.item && dropQty < stackQty) {
+    droppedId = allocateSplitId(state, itemEntityId);
+    entities[itemEntityId] = { ...item, item: { ...item.item, quantity: stackQty - dropQty } };
+    entities[droppedId] = {
+      ...item,
+      id: droppedId,
+      position: groundPos,
+      item: { ...item.item, quantity: dropQty },
+    };
+  } else {
+    entities[itemEntityId] = { ...item, position: groundPos };
+    containedEntityIds = containedEntityIds.filter((id) => id !== itemEntityId);
+  }
+  entities[actorId] = {
+    ...actor,
+    inventory: {
+      ...inv,
+      containedEntityIds,
+      currentMassGrams: Math.max(0, inv.currentMassGrams - droppedMass),
+    },
+  };
+
+  return {
+    state: { ...state, entities },
+    apSpent: DROP_AP,
+    events: [
+      {
+        type: 'ITEM_DROPPED',
+        turn: state.turnCount + 1,
+        actorId,
+        itemEntityId: droppedId,
+        itemName: item.name,
+        quantity: dropQty,
+        at,
+      },
+    ],
+  };
+}
+
+/** Consumes one unit of a held consumable and applies its declarative `useEffect`. */
+export function resolveUseItem(
+  state: WorldState,
+  actorId: EntityId,
+  itemEntityId: EntityId,
+): SystemInventoryResult {
+  const actor = state.entities[actorId];
+  if (!actor?.inventory) return createInventoryFailureResult(state, actorId, 'USE', 'NO_INVENTORY', itemEntityId);
+  if (!actor.anatomy) return createInventoryFailureResult(state, actorId, 'USE', 'MISSING_ANATOMY', itemEntityId);
+  const inv = actor.inventory;
+  if (!inv.containedEntityIds.includes(itemEntityId)) {
+    return createInventoryFailureResult(state, actorId, 'USE', 'NOT_IN_INVENTORY', itemEntityId);
+  }
+  const item = state.entities[itemEntityId];
+  if (!item) return createInventoryFailureResult(state, actorId, 'USE', 'ITEM_NOT_FOUND', itemEntityId);
+  const itemComp = item.item;
+  const effect = itemComp?.useEffect;
+  if (!itemComp || !effect) return createInventoryFailureResult(state, actorId, 'USE', 'NOT_CONSUMABLE', itemEntityId);
+
+  const anatomy = actor.anatomy;
+  let nextAnatomy = anatomy;
+  let amountRestored = 0;
+  switch (effect.kind) {
+    case 'RESTORE_BLOOD': {
+      const next = Math.min(100, anatomy.bloodVolumePct + effect.magnitude);
+      amountRestored = next - anatomy.bloodVolumePct;
+      nextAnatomy = { ...anatomy, bloodVolumePct: next };
+      break;
+    }
+    case 'RESTORE_STEAM': {
+      const next = Math.min(anatomy.maxSteamReserveKpa, anatomy.steamReserveKpa + effect.magnitude);
+      amountRestored = next - anatomy.steamReserveKpa;
+      nextAnatomy = { ...anatomy, steamReserveKpa: next };
+      break;
+    }
+  }
+
+  const remainingQuantity = itemComp.quantity - 1;
+  const entities: Record<string, EntityRecord> =
+    remainingQuantity > 0
+      ? { ...state.entities, [itemEntityId]: { ...item, item: { ...itemComp, quantity: remainingQuantity } } }
+      : withoutEntity(state.entities, itemEntityId);
+  const containedEntityIds =
+    remainingQuantity > 0
+      ? inv.containedEntityIds
+      : inv.containedEntityIds.filter((id) => id !== itemEntityId);
+  entities[actorId] = {
+    ...actor,
+    anatomy: nextAnatomy,
+    inventory: {
+      ...inv,
+      containedEntityIds,
+      currentMassGrams: Math.max(0, inv.currentMassGrams - itemComp.massGrams),
+    },
+  };
+
+  return {
+    state: { ...state, entities },
+    apSpent: USE_ITEM_AP,
+    events: [
+      {
+        type: 'ITEM_USED',
+        turn: state.turnCount + 1,
+        actorId,
+        itemEntityId,
+        itemName: item.name,
+        effect: effect.kind,
+        amountRestored,
+        remainingQuantity,
+      },
+    ],
+  };
+}
