@@ -23,6 +23,18 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Artificer holds position and checks pressure gauges.`;
     case 'STEAM_VENTED':
       return `[T${ev.turn}] Vented ${ev.pressureReleasedKpa} kPa superheated steam!`;
+    case 'LIMB_DAMAGED':
+      return `[T${ev.turn}] ${ev.slot} took ${ev.damage} dmg (${ev.remainingHp} HP left)`;
+    case 'LIMB_AMPUTATED':
+      return `[T${ev.turn}] CRITICAL: ${ev.slot} severed!`;
+    case 'PROSTHETIC_INSTALLED':
+      return `[T${ev.turn}] Installed prosthetic into ${ev.slot} socket.`;
+    case 'PROSTHETIC_REMOVED':
+      return `[T${ev.turn}] Detached prosthetic from ${ev.slot} socket.`;
+    case 'PROSTHETIC_ACTION_FAILED':
+      return `[T${ev.turn}] Tinkering failed on ${ev.slot}: ${ev.reason}`;
+    case 'STEAM_REFILLED':
+      return `[T${ev.turn}] Boiler re-pressurized to ${ev.newReserveKpa} kPa.`;
     case 'MACRO_TICK_COMPLETED':
       return `[T${ev.turn}] === District Macro-Tick #${ev.macroTickIndex} Processed ===`;
   }
@@ -30,6 +42,8 @@ function formatEventMessage(ev: SimEvent): string {
 
 export function HudLayout({ state, onCommand }: HudLayoutProps) {
   const playerId = EntityIdSchema.parse('actor_player');
+  const striderLegId = EntityIdSchema.parse('item_pneumatic_strider_leg');
+  const monocleId = EntityIdSchema.parse('item_aetheric_monocle');
   const player = state.entities[playerId];
   const recentEvents = state.eventLog.slice(-8).reverse();
 
@@ -54,15 +68,17 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
           </span>
         </div>
         <div class="stat-row">
-          <span>Actor Energy:</span>
-          <span>{player?.actor?.energy ?? 0} AP</span>
+          <span>Encumbrance:</span>
+          <span>
+            {player?.inventory?.currentMassGrams ?? 0} / {player?.inventory?.maxMassGrams ?? 25000} g
+          </span>
         </div>
       </div>
 
       <AnatomyDoll anatomy={player?.anatomy} />
 
       <div class="panel-box">
-        <div class="panel-header">TACTICAL CONTROLS</div>
+        <div class="panel-header">TACTICAL &amp; TINKERING BENCH</div>
         <div class="button-grid">
           <button
             type="button"
@@ -72,9 +88,41 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
           </button>
           <button
             type="button"
-            onClick={() => onCommand({ type: 'WAIT_TURN', actorId: playerId })}
+            onClick={() =>
+              onCommand({
+                type: 'INSTALL_PROSTHETIC',
+                actorId: playerId,
+                prostheticEntityId: striderLegId,
+                slot: 'LEFT_LEG',
+              })
+            }
           >
-            [.] Wait Turn
+            [1] Socket Pneumatic Strider (L.Leg)
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onCommand({
+                type: 'INSTALL_PROSTHETIC',
+                actorId: playerId,
+                prostheticEntityId: monocleId,
+                slot: 'OCULAR_MOUNT',
+              })
+            }
+          >
+            [2] Socket Aetheric Monocle (Ocular)
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onCommand({
+                type: 'REFILL_STEAM',
+                actorId: playerId,
+                pressureAddedKpa: 50,
+              })
+            }
+          >
+            [R] Stoker Boiler (+50 kPa Steam)
           </button>
           <button
             type="button"

@@ -1,6 +1,12 @@
 import { GameCommand, GameCommandSchema } from '../../schemas/commands.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { setTileCell } from '../spatial/grid.js';
+import {
+  resolveDamageLimb,
+  resolveInstallProsthetic,
+  resolveRefillSteam,
+  resolveRemoveProsthetic,
+} from '../systems/anatomy.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
@@ -42,7 +48,6 @@ export function dispatchCommand(
       break;
     }
     case 'WAIT_TURN': {
-      // Advance PRNG once on wait to maintain deterministic entropy progression
       rng.nextUint32();
       systemEvents = [
         {
@@ -83,6 +88,39 @@ export function dispatchCommand(
           pressureReleasedKpa: command.pressureReleasedKpa,
         },
       ];
+      break;
+    }
+    case 'DAMAGE_LIMB': {
+      const res = resolveDamageLimb(nextState, command.targetId, command.slot, command.damage);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'INSTALL_PROSTHETIC': {
+      const res = resolveInstallProsthetic(
+        nextState,
+        command.actorId,
+        command.prostheticEntityId,
+        command.slot,
+      );
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'REMOVE_PROSTHETIC': {
+      const res = resolveRemoveProsthetic(nextState, command.actorId, command.slot);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'REFILL_STEAM': {
+      const res = resolveRefillSteam(nextState, command.actorId, command.pressureAddedKpa);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
       break;
     }
   }
