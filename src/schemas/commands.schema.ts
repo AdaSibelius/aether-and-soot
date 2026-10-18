@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  BlueprintIdSchema,
   CommodityIdSchema,
   EntityIdSchema,
   FactionIdSchema,
@@ -109,6 +110,18 @@ export const UseItemCommandSchema = z.object({
   itemEntityId: EntityIdSchema,
 });
 
+export const ToggleDoorCommandSchema = z.object({
+  type: z.literal('TOGGLE_DOOR'),
+  actorId: EntityIdSchema,
+  target: Point3DSchema,
+});
+
+export const TravelDistrictCommandSchema = z.object({
+  type: z.literal('TRAVEL_DISTRICT'),
+  actorId: EntityIdSchema,
+  targetDistrictId: BlueprintIdSchema,
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -125,5 +138,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   PickUpItemCommandSchema,
   DropItemCommandSchema,
   UseItemCommandSchema,
+  ToggleDoorCommandSchema,
+  TravelDistrictCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

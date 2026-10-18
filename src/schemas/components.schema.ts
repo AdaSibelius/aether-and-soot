@@ -91,6 +91,14 @@ export const ItemComponentSchema = z.object({
 });
 export type ItemComponent = z.infer<typeof ItemComponentSchema>;
 
+/** District gate linking this map position to another district in data/districts/. */
+export const DistrictGateComponentSchema = z.object({
+  targetDistrictId: BlueprintIdSchema,
+  gateLabel: z.string().min(1),
+  apCost: z.number().int().positive().default(100),
+});
+export type DistrictGateComponent = z.infer<typeof DistrictGateComponentSchema>;
+
 export const EntityComponentsSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1),
@@ -103,5 +111,6 @@ export const EntityComponentsSchema = z.object({
   prostheticSpec: ProstheticSpecComponentSchema.optional(),
   pressureVessel: PressureVesselComponentSchema.optional(),
   item: ItemComponentSchema.optional(),
+  districtGate: DistrictGateComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;

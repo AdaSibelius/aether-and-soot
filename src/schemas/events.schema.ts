@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  BlueprintIdSchema,
   CommodityIdSchema,
   EntityIdSchema,
   FactionIdSchema,
@@ -219,6 +220,37 @@ export const InventoryActionFailedEventSchema = z.object({
   ]),
 });
 
+export const DoorToggledEventSchema = z.object({
+  type: z.literal('DOOR_TOGGLED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  at: Point3DSchema,
+  newState: z.enum(['OPEN', 'CLOSED']),
+});
+
+export const DistrictTraveledEventSchema = z.object({
+  type: z.literal('DISTRICT_TRAVELED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  fromDistrictId: BlueprintIdSchema,
+  toDistrictId: BlueprintIdSchema,
+});
+
+export const TransitActionFailedEventSchema = z.object({
+  type: z.literal('TRANSIT_ACTION_FAILED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  action: z.enum(['TOGGLE_DOOR', 'TRAVEL_DISTRICT']),
+  reason: z.enum([
+    'NOT_A_DOOR',
+    'OUT_OF_RANGE',
+    'BLOCKED_BY_ENTITY',
+    'UNKNOWN_DISTRICT',
+    'ALREADY_IN_DISTRICT',
+    'NO_GATE_AT_POSITION',
+  ]),
+});
+
 export const SimEventSchema = z.discriminatedUnion('type', [
   EntityMovedEventSchema,
   MovementBlockedEventSchema,
@@ -243,5 +275,8 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ItemDroppedEventSchema,
   ItemUsedEventSchema,
   InventoryActionFailedEventSchema,
+  DoorToggledEventSchema,
+  DistrictTraveledEventSchema,
+  TransitActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

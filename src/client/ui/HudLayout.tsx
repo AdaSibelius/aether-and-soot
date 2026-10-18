@@ -59,6 +59,12 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Used ${ev.itemName}: +${Math.round(ev.amountRestored)} ${ev.effect === 'RESTORE_BLOOD' ? '% blood' : 'kPa steam'} (${ev.remainingQuantity} left).`;
     case 'INVENTORY_ACTION_FAILED':
       return `[T${ev.turn}] ${ev.action} failed: ${ev.reason}`;
+    case 'DOOR_TOGGLED':
+      return `[T${ev.turn}] ${ev.newState === 'OPEN' ? 'Opened' : 'Closed'} door at (${ev.at.x}, ${ev.at.y}).`;
+    case 'DISTRICT_TRAVELED':
+      return `[T${ev.turn}] Traveled to ${ev.toDistrictId}!`;
+    case 'TRANSIT_ACTION_FAILED':
+      return `[T${ev.turn}] Transit (${ev.action}) failed: ${ev.reason}`;
   }
 }
 

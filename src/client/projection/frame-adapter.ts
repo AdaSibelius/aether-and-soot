@@ -61,23 +61,49 @@ export function projectWorldToVisualFrame(
       const tile = grid.cells[y * grid.width + x];
       const isVisible = visibleSet.has(pointKey(x, y));
 
-      const baseVisual: VisualGlyphSpec =
-        tile?.terrainType === 'SOOT_BRICK_WALL'
-          ? {
-              glyph: '#',
-              fgPrimary: isVisible ? '#99A3A4' : '#34495E',
-              fgSecondary: '#BA4A00',
-              bgColor: '#17202A',
-              shaderFlags: ['SOOT_OCCLUSION'],
-            }
-          : {
-              glyph: '·',
-              fgPrimary: isVisible ? '#5D6D7E' : '#1C2833',
-              fgSecondary: '#2C3E50',
-              bgColor: '#0A0D0E',
-              shaderFlags:
-                (tile?.steamPressureKpa ?? 0) > 0 ? ['PULSE_STEAM', 'HEAT_SHIMMER'] : [],
-            };
+      let baseVisual: VisualGlyphSpec;
+      if (tile?.terrainType === 'SOOT_BRICK_WALL') {
+        baseVisual = {
+          glyph: '#',
+          fgPrimary: isVisible ? '#99A3A4' : '#34495E',
+          fgSecondary: '#BA4A00',
+          bgColor: '#17202A',
+          shaderFlags: ['SOOT_OCCLUSION'],
+        };
+      } else if (tile?.terrainType === 'WOODEN_DOOR_CLOSED') {
+        baseVisual = {
+          glyph: '+',
+          fgPrimary: isVisible ? '#E67E22' : '#7E5109',
+          fgSecondary: '#BA4A00',
+          bgColor: '#1C130C',
+          shaderFlags: [],
+        };
+      } else if (tile?.terrainType === 'WOODEN_DOOR_OPEN') {
+        baseVisual = {
+          glyph: '/',
+          fgPrimary: isVisible ? '#F39C12' : '#7D6608',
+          fgSecondary: '#D35400',
+          bgColor: '#0A0D0E',
+          shaderFlags: [],
+        };
+      } else if (tile?.terrainType === 'DISTRICT_GATE') {
+        baseVisual = {
+          glyph: 'Ω',
+          fgPrimary: isVisible ? '#F4D03F' : '#7D6608',
+          fgSecondary: '#F39C12',
+          bgColor: '#1A1105',
+          shaderFlags: ['SPARK_GLINT'],
+        };
+      } else {
+        baseVisual = {
+          glyph: tile?.terrainType === 'BRASS_CATWALK' ? '=' : tile?.terrainType === 'IRON_GRATE' ? '≈' : '·',
+          fgPrimary: isVisible ? '#5D6D7E' : '#1C2833',
+          fgSecondary: '#2C3E50',
+          bgColor: '#0A0D0E',
+          shaderFlags:
+            (tile?.steamPressureKpa ?? 0) > 0 ? ['PULSE_STEAM', 'HEAT_SHIMMER'] : [],
+        };
+      }
 
       cells.push({
         x,

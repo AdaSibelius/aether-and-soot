@@ -20,6 +20,9 @@ export const WorldStateSchema = z.object({
   rngState: RNGStateSchema,
   turnCount: z.number().int().nonnegative(),
   macroTickCount: z.number().int().nonnegative(),
+  currentDistrictId: BlueprintIdSchema.default(
+    'district_spitalfields_soot_works' as z.infer<typeof BlueprintIdSchema>,
+  ),
   strata: z.record(StratumIdSchema, StratumGridSchema),
   entities: z.record(z.string(), EntityComponentsSchema),
   economy: DistrictEconomyLedgerSchema,
@@ -209,6 +212,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     rngState: rng.getState(),
     turnCount: 0,
     macroTickCount: 0,
+    currentDistrictId: BlueprintIdSchema.parse('district_spitalfields_soot_works'),
     strata,
     entities: {
       [playerId]: playerEntity,
