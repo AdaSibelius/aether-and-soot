@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import {
+  BlueprintIdSchema,
   EntityIdSchema,
   LimbSlotIdSchema,
-  Point3DSchema,
+  SocketTypeSchema,
   VisualGlyphSpecSchema,
 } from './primitives.schema.js';
+import { Point3DSchema } from './primitives.schema.js';
 
 export const PositionComponentSchema = Point3DSchema.extend({
   blocksMovement: z.boolean().default(true),
@@ -27,6 +29,19 @@ export const PortalComponentSchema = z.object({
   portalLabel: z.string().min(1),
 });
 export type PortalComponent = z.infer<typeof PortalComponentSchema>;
+
+export const ProstheticSpecComponentSchema = z.object({
+  blueprintId: BlueprintIdSchema,
+  targetLimbSlot: LimbSlotIdSchema,
+  socketType: SocketTypeSchema,
+  massGrams: z.number().int().positive(),
+  volumeMl: z.number().int().positive(),
+  steamConsumptionPerTurn: z.number().nonnegative().default(0),
+  moveApModifier: z.number().int().default(0),
+  fovRadiusBonus: z.number().int().default(0),
+  pressureRatingKpa: z.number().positive(),
+});
+export type ProstheticSpecComponent = z.infer<typeof ProstheticSpecComponentSchema>;
 
 export const LimbStatusSchema = z.object({
   slot: LimbSlotIdSchema,
@@ -62,5 +77,6 @@ export const EntityComponentsSchema = z.object({
   portal: PortalComponentSchema.optional(),
   anatomy: AnatomyComponentSchema.optional(),
   inventory: InventoryComponentSchema.optional(),
+  prostheticSpec: ProstheticSpecComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;

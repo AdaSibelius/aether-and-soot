@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { EntityIdSchema, Point3DSchema, StratumIdSchema } from './primitives.schema.js';
+import {
+  EntityIdSchema,
+  LimbSlotIdSchema,
+  Point3DSchema,
+  StratumIdSchema,
+} from './primitives.schema.js';
 
 export const EntityMovedEventSchema = z.object({
   type: z.literal('ENTITY_MOVED'),
@@ -51,6 +56,59 @@ export const SteamVentedEventSchema = z.object({
   pressureReleasedKpa: z.number().positive(),
 });
 
+export const LimbDamagedEventSchema = z.object({
+  type: z.literal('LIMB_DAMAGED'),
+  turn: z.number().int().nonnegative(),
+  targetId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+  damage: z.number().int().positive(),
+  remainingHp: z.number().int().nonnegative(),
+});
+
+export const LimbAmputatedEventSchema = z.object({
+  type: z.literal('LIMB_AMPUTATED'),
+  turn: z.number().int().nonnegative(),
+  targetId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+});
+
+export const ProstheticInstalledEventSchema = z.object({
+  type: z.literal('PROSTHETIC_INSTALLED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  prostheticEntityId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+});
+
+export const ProstheticRemovedEventSchema = z.object({
+  type: z.literal('PROSTHETIC_REMOVED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  prostheticEntityId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+});
+
+export const ProstheticActionFailedEventSchema = z.object({
+  type: z.literal('PROSTHETIC_ACTION_FAILED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+  reason: z.enum([
+    'MISSING_ANATOMY',
+    'PROSTHETIC_NOT_FOUND',
+    'SLOT_MISMATCH',
+    'SLOT_ALREADY_OCCUPIED',
+    'NO_PROSTHETIC_INSTALLED',
+  ]),
+});
+
+export const SteamRefilledEventSchema = z.object({
+  type: z.literal('STEAM_REFILLED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  newReserveKpa: z.number().nonnegative(),
+});
+
 export const MacroTickCompletedEventSchema = z.object({
   type: z.literal('MACRO_TICK_COMPLETED'),
   turn: z.number().int().nonnegative(),
@@ -64,6 +122,12 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   PortalFailedEventSchema,
   ActorWaitedEventSchema,
   SteamVentedEventSchema,
+  LimbDamagedEventSchema,
+  LimbAmputatedEventSchema,
+  ProstheticInstalledEventSchema,
+  ProstheticRemovedEventSchema,
+  ProstheticActionFailedEventSchema,
+  SteamRefilledEventSchema,
   MacroTickCompletedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
