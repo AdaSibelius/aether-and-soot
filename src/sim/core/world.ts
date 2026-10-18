@@ -107,6 +107,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     },
     inventory: {
       containedEntityIds: [striderLegId, ocularMonocleId],
+      equippedSlots: {},
       maxMassGrams: 25000,
       maxVolumeMl: 30000,
       currentMassGrams: 4650,

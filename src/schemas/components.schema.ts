@@ -11,6 +11,7 @@ import {
   SocketTypeSchema,
   VisualGlyphSpecSchema,
 } from './primitives.schema.js';
+import { EquipmentSlotSchema, EquipmentSpecSchema } from './equipment.schema.js';
 
 export const PositionComponentSchema = Point3DSchema.extend({
   blocksMovement: z.boolean().default(true),
@@ -74,6 +75,7 @@ export type AnatomyComponent = z.infer<typeof AnatomyComponentSchema>;
 
 export const InventoryComponentSchema = z.object({
   containedEntityIds: z.array(EntityIdSchema).default([]),
+  equippedSlots: z.record(EquipmentSlotSchema, EntityIdSchema).optional(),
   maxMassGrams: z.number().int().positive().default(25000),
   maxVolumeMl: z.number().int().positive().default(30000),
   currentMassGrams: z.number().int().nonnegative().default(0),
@@ -91,6 +93,7 @@ export const ItemComponentSchema = z.object({
   commodityId: CommodityIdSchema.optional(),
   useEffect: ItemUseEffectSchema.optional(),
   unlocksRecipeId: BlueprintIdSchema.optional(),
+  equipmentSpec: EquipmentSpecSchema.optional(),
 });
 export type ItemComponent = z.infer<typeof ItemComponentSchema>;
 
@@ -148,6 +151,7 @@ export const EntityComponentsSchema = z.object({
   prostheticSpec: ProstheticSpecComponentSchema.optional(),
   pressureVessel: PressureVesselComponentSchema.optional(),
   item: ItemComponentSchema.optional(),
+  equipmentSpec: EquipmentSpecSchema.optional(),
   districtGate: DistrictGateComponentSchema.optional(),
   workbench: WorkbenchComponentSchema.optional(),
   aiController: AiControllerComponentSchema.optional(),

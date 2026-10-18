@@ -82,7 +82,9 @@ export function createItemEntity(
       commodityId: blueprint.commodityId,
       useEffect: blueprint.useEffect,
       unlocksRecipeId: blueprint.unlocksRecipeId,
+      ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),
     },
+    ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),
   };
   if (!position) return base;
   return {

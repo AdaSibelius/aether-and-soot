@@ -5,6 +5,7 @@ import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { findEntitiesAtPoint } from '../../sim/spatial/grid.js';
 import { computeCarriedVolumeMl, getCarryProfile } from '../../sim/systems/inventory-utils.js';
+import { EquippedGearPanel } from './EquippedGearPanel.js';
 import { ItemDossierCard } from './ItemDossierCard.js';
 
 export interface InventoryWindowProps {
@@ -85,6 +86,9 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
           prostheticEntityId: selectedItem.id,
           slot: selectedItem.prostheticSpec.targetLimbSlot,
         });
+      } else if (key === 'e' && selectedItem.item?.equipmentSpec) {
+        e.preventDefault();
+        onCommand({ type: 'EQUIP_ITEM', actorId, itemEntityId: selectedItem.id });
       } else if (key === 's') {
         e.preventDefault();
         onCommand({ type: 'SALVAGE_ITEM', actorId, itemEntityId: selectedItem.id });
@@ -101,6 +105,7 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', flex: 1 }}>
       {/* Left Column: Categorized List & Encumbrance Meters */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <EquippedGearPanel state={state} actorId={actorId} onCommand={onCommand} />
         {/* Encumbrance Gauges */}
         <div class="panel-box">
           <div class="panel-header">SATCHEL CAPACITY &amp; LOAD</div>

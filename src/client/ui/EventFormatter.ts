@@ -95,5 +95,15 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Chirurgeon treated wounds: +${ev.hpRestored} HP, +${ev.bloodRestoredPct}% blood (-${ev.feePence}d).`;
     case 'DIALOGUE_ACTION_FAILED':
       return `[T${ev.turn}] Dialogue action (${ev.action}) failed: ${ev.reason}`;
+    case 'ITEM_EQUIPPED':
+      return `[T${ev.turn}] Equipped ${ev.itemName} to ${ev.slot}.`;
+    case 'ITEM_UNEQUIPPED':
+      return `[T${ev.turn}] Unequipped ${ev.itemName} from ${ev.slot}.`;
+    case 'RANGED_ATTACK_RESOLVED':
+      return ev.hit
+        ? `[T${ev.turn}] ${ev.attackerId} shot ${ev.targetId}'s ${ev.targetSlot} with ${ev.weaponName} for ${ev.damageDealt} dmg (-${ev.steamSpentKpa} kPa steam)!`
+        : `[T${ev.turn}] ${ev.attackerId}'s shot with ${ev.weaponName} missed ${ev.targetId} (-${ev.steamSpentKpa} kPa steam)!`;
+    case 'EQUIPMENT_ACTION_FAILED':
+      return `[T${ev.turn}] Equipment action failed: ${ev.reason}`;
   }
 }

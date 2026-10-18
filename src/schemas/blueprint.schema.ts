@@ -9,6 +9,7 @@ import {
   StratumIdSchema,
   VisualGlyphSpecSchema,
 } from './primitives.schema.js';
+import { EquipmentSpecSchema } from './equipment.schema.js';
 
 export const ProstheticBlueprintSchema = z.object({
   id: BlueprintIdSchema,
@@ -76,6 +77,7 @@ export const ItemBlueprintSchema = z
     commodityId: CommodityIdSchema.optional(),
     useEffect: ItemUseEffectSchema.optional(),
     unlocksRecipeId: BlueprintIdSchema.optional(),
+    equipment: EquipmentSpecSchema.optional(),
     spawnStrata: z.array(StratumIdSchema).default([]),
     spawnWeight: z.number().int().nonnegative().default(0),
     spawnQuantityMax: z.number().int().positive().default(1),

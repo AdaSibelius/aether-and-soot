@@ -19,6 +19,8 @@ import { resolveToggleDoor, resolveTravelDistrict } from '../systems/transit.sys
 import {
   resolveAcceptContract, resolveCompleteContract, resolveHireCompanion, resolvePayChirurgeonHeal,
 } from '../systems/dialogue-quest.system.js';
+import { resolveEquipItem, resolveUnequipItem } from '../systems/equipment.system.js';
+import { resolveFireRangedWeapon } from '../systems/ballistics.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -71,45 +73,22 @@ export function dispatchCommand(
       const targetStratum = nextState.strata[command.target.stratum];
       if (targetStratum) {
         const updatedGrid = setTileCell(
-          targetStratum,
-          command.target.x,
-          command.target.y,
-          (cell) => ({
-            ...cell,
-            steamPressureKpa: cell.steamPressureKpa + command.pressureReleasedKpa,
-          }),
+          targetStratum, command.target.x, command.target.y,
+          (cell) => ({ ...cell, steamPressureKpa: cell.steamPressureKpa + command.pressureReleasedKpa }),
         );
-        nextState = {
-          ...nextState,
-          strata: {
-            ...nextState.strata,
-            [command.target.stratum]: updatedGrid,
-          },
-        };
+        nextState = { ...nextState, strata: { ...nextState.strata, [command.target.stratum]: updatedGrid } };
       }
-      systemEvents = [
-        {
-          type: 'STEAM_VENTED',
-          turn: nextState.turnCount + 1,
-          actorId: command.actorId,
-          origin: command.target,
-          pressureReleasedKpa: command.pressureReleasedKpa,
-        },
-      ];
+      systemEvents = [{
+        type: 'STEAM_VENTED', turn: nextState.turnCount + 1,
+        actorId: command.actorId, origin: command.target, pressureReleasedKpa: command.pressureReleasedKpa,
+      }];
       break;
     }
     case 'DAMAGE_LIMB':
       apply(resolveDamageLimb(nextState, command.targetId, command.slot, command.damage));
       break;
     case 'INSTALL_PROSTHETIC':
-      apply(
-        resolveInstallProsthetic(
-          nextState,
-          command.actorId,
-          command.prostheticEntityId,
-          command.slot,
-        ),
-      );
+      apply(resolveInstallProsthetic(nextState, command.actorId, command.prostheticEntityId, command.slot));
       break;
     case 'REMOVE_PROSTHETIC':
       apply(resolveRemoveProsthetic(nextState, command.actorId, command.slot));
@@ -118,23 +97,13 @@ export function dispatchCommand(
       apply(resolveRefillSteam(nextState, command.actorId, command.pressureAddedKpa));
       break;
     case 'PRESSURIZE_VESSEL':
-      apply(
-        resolvePressurizeVessel(nextState, command.vesselEntityId, command.pressureAddedKpa),
-      );
+      apply(resolvePressurizeVessel(nextState, command.vesselEntityId, command.pressureAddedKpa));
       break;
     case 'EMIT_SPARK':
       apply(resolveEmitSpark(nextState, command.target));
       break;
     case 'STOCK_PEDESTAL':
-      apply(
-        resolveStockPedestal(
-          nextState,
-          command.commodity,
-          command.quantity,
-          command.askingPriceMarkupPct,
-          command.actorId,
-        ),
-      );
+      apply(resolveStockPedestal(nextState, command.commodity, command.quantity, command.askingPriceMarkupPct, command.actorId));
       break;
     case 'BUY_FROM_MERCHANT':
       apply(resolveBuyFromMerchant(nextState, command.actorId, command.merchantId, command.itemEntityId, command.quantity));
@@ -143,15 +112,7 @@ export function dispatchCommand(
       apply(resolveSellToMerchant(nextState, command.actorId, command.merchantId, command.itemEntityId, command.quantity));
       break;
     case 'TRIGGER_SUPPLY_SHOCK':
-      apply(
-        resolveTriggerSupplyShock(
-          nextState,
-          command.commodity,
-          command.supplyDelta,
-          command.factionAffected,
-          command.reputationDelta,
-        ),
-      );
+      apply(resolveTriggerSupplyShock(nextState, command.commodity, command.supplyDelta, command.factionAffected, command.reputationDelta));
       break;
     case 'PICK_UP_ITEM':
       apply(resolvePickupItem(nextState, command.actorId, command.itemEntityId));
@@ -178,15 +139,7 @@ export function dispatchCommand(
       apply(resolveRepairLimb(nextState, command.actorId, command.slot));
       break;
     case 'ATTACK_ACTOR':
-      apply(
-        resolveAttackActor(
-          nextState,
-          command.attackerId,
-          command.targetId,
-          command.targetSlot,
-          rng,
-        ),
-      );
+      apply(resolveAttackActor(nextState, command.attackerId, command.targetId, command.targetSlot, rng));
       break;
     case 'SMASH_TERRAIN':
       apply(resolveSmashTerrain(nextState, command.actorId, command.target));
@@ -205,6 +158,15 @@ export function dispatchCommand(
       break;
     case 'PAY_CHIRURGEON_HEAL':
       apply(resolvePayChirurgeonHeal(nextState, command.actorId, command.chirurgeonId));
+      break;
+    case 'EQUIP_ITEM':
+      apply(resolveEquipItem(nextState, command.actorId, command.itemEntityId));
+      break;
+    case 'UNEQUIP_ITEM':
+      apply(resolveUnequipItem(nextState, command.actorId, command.slot));
+      break;
+    case 'FIRE_RANGED_WEAPON':
+      apply(resolveFireRangedWeapon(nextState, command.actorId, command.targetId, command.targetSlot, rng));
       break;
   }
 
@@ -232,8 +194,5 @@ export function dispatchCommand(
     }
   }
 
-  return {
-    state: finalState,
-    events: scheduled.allEvents,
-  };
+  return { state: finalState, events: scheduled.allEvents };
 }

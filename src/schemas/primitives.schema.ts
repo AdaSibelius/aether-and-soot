@@ -72,7 +72,7 @@ export type LimbSlotId = z.infer<typeof LimbSlotIdSchema>;
 export const SocketTypeSchema = z.enum(['POWER_SOURCE', 'ACTUATOR', 'OPTIC_SENSOR']);
 export type SocketType = z.infer<typeof SocketTypeSchema>;
 
-export const ItemCategorySchema = z.enum(['MATERIAL', 'CONSUMABLE', 'PROSTHETIC', 'COMMODITY']);
+export const ItemCategorySchema = z.enum(['MATERIAL', 'CONSUMABLE', 'PROSTHETIC', 'COMMODITY', 'EQUIPMENT']);
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 export const ItemUseEffectSchema = z.object({

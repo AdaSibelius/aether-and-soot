@@ -177,6 +177,16 @@ export function ItemDossierCard({ state, actorId, item, onCommand }: ItemDossier
           </button>
         )}
 
+        {item.item?.equipmentSpec && (
+          <button
+            type="button"
+            onClick={() => onCommand({ type: 'EQUIP_ITEM', actorId, itemEntityId: item.id })}
+            style={{ padding: '4px 10px', fontSize: '11px', color: 'var(--brass-gold)' }}
+          >
+            [E] Equip ({item.item.equipmentSpec.equipSlot})
+          </button>
+        )}
+
         {item.prostheticSpec && (
           <button
             type="button"

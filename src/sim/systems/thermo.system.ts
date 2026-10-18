@@ -3,6 +3,7 @@ import { StratumId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../core/world.js';
 import { getTileCell, isWithinBounds, setTileCell, StratumGrid, TileCell } from '../spatial/grid.js';
 import { resolveDamageLimb } from './anatomy.system.js';
+import { computeEquippedBonuses } from './equipment.system.js';
 
 export const SCALD_PRESSURE_THRESHOLD_KPA = 25;
 const STEAM_DIFFUSION_SHARE = 0.4;
@@ -147,7 +148,9 @@ export function advanceThermodynamicsTick(state: WorldState): {
     if (!entity.actor || !entity.position || !entity.anatomy) continue;
     const grid = workingState.strata[entity.position.stratum];
     const cell = grid ? getTileCell(grid, entity.position.x, entity.position.y) : undefined;
-    if (!cell || cell.steamPressureKpa < SCALD_PRESSURE_THRESHOLD_KPA) continue;
+    const equipped = computeEquippedBonuses(workingState, entity);
+    const threshold = SCALD_PRESSURE_THRESHOLD_KPA + (equipped.steamResistanceKpa ?? 0);
+    if (!cell || cell.steamPressureKpa < threshold) continue;
 
     const scaldDmg = Math.max(2, Math.floor(cell.steamPressureKpa / 12));
     scaldEvents.push({

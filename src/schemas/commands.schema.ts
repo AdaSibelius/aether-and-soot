@@ -7,6 +7,17 @@ import {
   LimbSlotIdSchema,
   Point3DSchema,
 } from './primitives.schema.js';
+import {
+  EquipItemCommandSchema,
+  UnequipItemCommandSchema,
+  FireRangedWeaponCommandSchema,
+} from './equipment.schema.js';
+
+export {
+  EquipItemCommandSchema,
+  UnequipItemCommandSchema,
+  FireRangedWeaponCommandSchema,
+};
 
 export const MoveStepCommandSchema = z.object({
   type: z.literal('MOVE_STEP'),
@@ -228,6 +239,9 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   CompleteContractCommandSchema,
   HireCompanionCommandSchema,
   PayChirurgeonHealCommandSchema,
+  EquipItemCommandSchema,
+  UnequipItemCommandSchema,
+  FireRangedWeaponCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
 

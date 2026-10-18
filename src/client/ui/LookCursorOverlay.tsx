@@ -16,12 +16,9 @@ export interface LookCursorOverlayProps {
 }
 
 const LIMB_TARGETS: readonly { slot: LimbSlotId; key: string; label: string }[] = [
-  { slot: 'HEAD', key: '1', label: 'Head [1]' },
-  { slot: 'TORSO', key: '2', label: 'Torso [2]' },
-  { slot: 'LEFT_ARM', key: '3', label: 'L-Arm [3]' },
-  { slot: 'RIGHT_ARM', key: '4', label: 'R-Arm [4]' },
-  { slot: 'LEFT_LEG', key: '5', label: 'L-Leg [5]' },
-  { slot: 'RIGHT_LEG', key: '6', label: 'R-Leg [6]' },
+  { slot: 'HEAD', key: '1', label: 'Head [1]' }, { slot: 'TORSO', key: '2', label: 'Torso [2]' },
+  { slot: 'LEFT_ARM', key: '3', label: 'L-Arm [3]' }, { slot: 'RIGHT_ARM', key: '4', label: 'R-Arm [4]' },
+  { slot: 'LEFT_LEG', key: '5', label: 'L-Leg [5]' }, { slot: 'RIGHT_LEG', key: '6', label: 'R-Leg [6]' },
 ];
 
 export function LookCursorOverlay({
@@ -46,9 +43,13 @@ export function LookCursorOverlay({
   const isSmashedWindow = cell?.terrainType === 'SMASHED_WINDOW_FRAME';
   const furnitureEntity = entitiesOnTile.find((e) => e.furniture !== undefined);
 
-  const isAdjacent = player?.position
-    ? Math.max(Math.abs(player.position.x - cursor.x), Math.abs(player.position.y - cursor.y)) <= 1
-    : false;
+  const dist = player?.position ? Math.max(Math.abs(player.position.x - cursor.x), Math.abs(player.position.y - cursor.y)) : 0;
+  const isAdjacent = dist <= 1;
+
+  const wieldedId = player?.inventory?.equippedSlots?.WIELD;
+  const wieldedItem = wieldedId ? state.entities[wieldedId] : undefined;
+  const wieldedSpec = wieldedItem?.item?.equipmentSpec ?? wieldedItem?.equipmentSpec;
+  const canRangedShoot = !isAdjacent && !!wieldedSpec && wieldedSpec.rangedRange > 0 && dist <= wieldedSpec.rangedRange;
 
   const camX = cameraOrigin?.x ?? 0;
   const camY = cameraOrigin?.y ?? 0;
@@ -148,9 +149,34 @@ export function LookCursorOverlay({
                     </button>
                   )}
                 </>
+              ) : canRangedShoot ? (
+                <>
+                  <div style={{ color: '#e67e22', fontSize: '9px', marginTop: '2px' }}>
+                    Fire ({dist} tiles | {wieldedSpec?.rangedSteamCostKpa}kPa):
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', marginTop: '2px' }}>
+                    {LIMB_TARGETS.map((t) => (
+                      <button
+                        key={t.slot}
+                        type="button"
+                        onClick={() =>
+                          onCommand({
+                            type: 'FIRE_RANGED_WEAPON',
+                            actorId,
+                            targetId: targetActor.id,
+                            targetSlot: t.slot,
+                          })
+                        }
+                        style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', color: '#e67e22' }}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div style={{ color: '#7f8c8d', fontSize: '9px' }}>
-                  Step adjacent to strike limbs in melee.
+                  {wieldedSpec?.rangedRange ? `Out of range (${dist}/${wieldedSpec.rangedRange})` : 'Step adjacent to strike limbs.'}
                 </div>
               )}
             </div>

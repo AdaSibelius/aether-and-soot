@@ -116,7 +116,11 @@ async function bootstrapClient(): Promise<void> {
     const target = Object.values(worldState.entities).find(
       (e) => e.id !== playerId && e.actor && e.position && e.position.stratum === p.stratum && e.position.x === lookCursor?.x && e.position.y === lookCursor?.y,
     );
-    if (target) handleCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot });
+    if (!target) return;
+    const isAdj = Math.max(Math.abs(p.x - lookCursor.x), Math.abs(p.y - lookCursor.y)) <= 1;
+    handleCommand(isAdj
+      ? { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot }
+      : { type: 'FIRE_RANGED_WEAPON', actorId: playerId, targetId: target.id, targetSlot: slot });
   };
 
   const lookInteract = (): void => {
