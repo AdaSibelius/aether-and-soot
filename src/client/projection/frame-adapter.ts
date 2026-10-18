@@ -1,6 +1,7 @@
 import { StratumId, VisualGlyphSpec } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { computeVisibleTiles, pointKey } from '../../sim/spatial/fov.js';
+import { computeProstheticFovBonus } from '../../sim/systems/anatomy.system.js';
 
 export const DEFAULT_FOV_RADIUS = 10;
 
@@ -19,6 +20,7 @@ export interface VisualGridFrame {
   readonly activeStratum: StratumId;
   readonly width: number;
   readonly height: number;
+  readonly effectiveFovRadius: number;
   readonly playerOrigin: { readonly x: number; readonly y: number };
   readonly cells: readonly RenderCellFrame[];
 }
@@ -30,7 +32,7 @@ export interface VisualGridFrame {
 export function projectWorldToVisualFrame(
   state: Readonly<WorldState>,
   focusActorId = 'actor_player',
-  fovRadius = DEFAULT_FOV_RADIUS,
+  baseFovRadius = DEFAULT_FOV_RADIUS,
 ): VisualGridFrame {
   const focusActor = state.entities[focusActorId];
   const activeStratum: StratumId = focusActor?.position?.stratum ?? 'STREET';
@@ -41,7 +43,9 @@ export function projectWorldToVisualFrame(
 
   const originX = focusActor?.position?.x ?? Math.floor(grid.width / 2);
   const originY = focusActor?.position?.y ?? Math.floor(grid.height / 2);
-  const visibleSet = computeVisibleTiles(grid, originX, originY, fovRadius);
+  const fovBonus = focusActor ? computeProstheticFovBonus(state, focusActor) : 0;
+  const effectiveFovRadius = Math.max(2, baseFovRadius + fovBonus);
+  const visibleSet = computeVisibleTiles(grid, originX, originY, effectiveFovRadius);
 
   const cells: RenderCellFrame[] = [];
   for (let y = 0; y < grid.height; y++) {
@@ -98,6 +102,7 @@ export function projectWorldToVisualFrame(
     activeStratum,
     width: grid.width,
     height: grid.height,
+    effectiveFovRadius,
     playerOrigin: { x: originX, y: originY },
     cells,
   };

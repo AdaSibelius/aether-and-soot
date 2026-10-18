@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { EntityComponentsSchema, EntityRecord } from '../../schemas/components.schema.js';
 import { SimEventSchema } from '../../schemas/events.schema.js';
-import { EntityIdSchema, StratumId, StratumIdSchema } from '../../schemas/primitives.schema.js';
+import {
+  BlueprintIdSchema,
+  EntityIdSchema,
+  StratumId,
+  StratumIdSchema,
+} from '../../schemas/primitives.schema.js';
 import { createStratumGrid, StratumGridSchema } from '../spatial/grid.js';
 import { RNGStateSchema, SeededRNG } from './rng.js';
 
@@ -38,6 +43,8 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
   const playerId = EntityIdSchema.parse('actor_player');
   const manholeDownId = EntityIdSchema.parse('portal_manhole_down');
   const ladderUpId = EntityIdSchema.parse('portal_ladder_up');
+  const striderLegId = EntityIdSchema.parse('item_pneumatic_strider_leg');
+  const ocularMonocleId = EntityIdSchema.parse('item_aetheric_monocle');
 
   const centerX = Math.floor(width / 2);
   const centerY = Math.floor(height / 2);
@@ -80,10 +87,56 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       maxSteamReserveKpa: 100,
     },
     inventory: {
-      containedEntityIds: [],
+      containedEntityIds: [striderLegId, ocularMonocleId],
       maxMassGrams: 25000,
       maxVolumeMl: 30000,
-      currentMassGrams: 0,
+      currentMassGrams: 4650,
+    },
+  };
+
+  const striderLegEntity: EntityRecord = {
+    id: striderLegId,
+    name: 'Gilded Pneumatic Strider Leg Mk.I',
+    visual: {
+      glyph: 'L',
+      fgPrimary: '#D4AF37',
+      fgSecondary: '#8B4513',
+      bgColor: '#0A0D0E',
+      shaderFlags: ['PULSE_STEAM'],
+    },
+    prostheticSpec: {
+      blueprintId: BlueprintIdSchema.parse('prosthetic_pneumatic_leg_mk1'),
+      targetLimbSlot: 'LEFT_LEG',
+      socketType: 'ACTUATOR',
+      massGrams: 4200,
+      volumeMl: 3100,
+      steamConsumptionPerTurn: 2,
+      moveApModifier: -15,
+      fovRadiusBonus: 0,
+      pressureRatingKpa: 320,
+    },
+  };
+
+  const ocularMonocleEntity: EntityRecord = {
+    id: ocularMonocleId,
+    name: 'Aetheric Turret Monocle',
+    visual: {
+      glyph: 'o',
+      fgPrimary: '#5DADE2',
+      fgSecondary: '#D4AF37',
+      bgColor: '#0A0D0E',
+      shaderFlags: ['SPARK_GLINT'],
+    },
+    prostheticSpec: {
+      blueprintId: BlueprintIdSchema.parse('prosthetic_clockwork_ocular_lens'),
+      targetLimbSlot: 'OCULAR_MOUNT',
+      socketType: 'OPTIC_SENSOR',
+      massGrams: 450,
+      volumeMl: 300,
+      steamConsumptionPerTurn: 0,
+      moveApModifier: 0,
+      fovRadiusBonus: 4,
+      pressureRatingKpa: 120,
     },
   };
 
@@ -154,6 +207,8 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     strata,
     entities: {
       [playerId]: playerEntity,
+      [striderLegId]: striderLegEntity,
+      [ocularMonocleId]: ocularMonocleEntity,
       [manholeDownId]: manholeEntity,
       [ladderUpId]: ladderEntity,
     },
