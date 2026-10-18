@@ -14,11 +14,16 @@ import {
   resolveRepairLimb,
   resolveSalvageItem,
 } from '../systems/crafting.system.js';
-import { resolveStockPedestal, resolveTriggerSupplyShock } from '../systems/economy.system.js';
+import { resolveTriggerSupplyShock } from '../systems/economy.system.js';
 import { resolveDropItem, resolvePickupItem, resolveUseItem } from '../systems/inventory.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
+import {
+  resolveBuyFromMerchant,
+  resolveSellToMerchant,
+  resolveStockPedestal,
+} from '../systems/trade.system.js';
 import { resolveToggleDoor, resolveTravelDistrict } from '../systems/transit.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
@@ -45,9 +50,9 @@ export function dispatchCommand(
   let systemEvents: SimEvent[] = [];
   let apSpent = STANDARD_ACTION_AP;
 
-  const apply = (res: { state: WorldState; events: SimEvent[]; apSpent: number }): void => {
+  const apply = (res: { state: WorldState; events: SimEvent[]; apSpent: number }) => {
     nextState = res.state;
-    systemEvents = res.events;
+    systemEvents = [...systemEvents, ...res.events];
     apSpent = res.apSpent;
   };
 
@@ -59,49 +64,88 @@ export function dispatchCommand(
       apply(resolveUsePortal(nextState, command.actorId));
       break;
     case 'WAIT_TURN':
-      rng.nextUint32();
-      systemEvents = [
-        {
-          type: 'ACTOR_WAITED',
-          turn: nextState.turnCount + 1,
-          actorId: command.actorId,
-          apSpent: STANDARD_ACTION_AP,
-        },
-      ];
+      apply({
+        state: nextState,
+        events: [{ type: 'ACTOR_WAITED', turn: nextState.turnCount + 1, actorId: command.actorId }],
+        apSpent: STANDARD_ACTION_AP,
+      });
       break;
     case 'VENT_STEAM': {
-      const targetStratum = nextState.strata[command.target.stratum];
-      if (targetStratum) {
-        const updatedGrid = setTileCell(
-          targetStratum,
-          command.target.x,
-          command.target.y,
-          (cell) => ({
-            ...cell,
-            steamPressureKpa: cell.steamPressureKpa + command.pressureReleasedKpa,
-          }),
-        );
-        nextState = {
-          ...nextState,
-          strata: {
-            ...nextState.strata,
-            [command.target.stratum]: updatedGrid,
-          },
-        };
+      const actor = nextState.entities[command.actorId];
+      if (!actor?.anatomy) {
+        break;
       }
-      systemEvents = [
+      const prevPressure = actor.anatomy.steamReserveKpa;
+      const vented = Math.min(command.pressureVentedKpa, prevPressure);
+      const remaining = prevPressure - vented;
+
+      // Incur slight scald danger if venting huge bursts
+      const scaldDamage = vented > 40 ? Math.floor((vented - 40) / 10) : 0;
+      let nextAnatomy = { ...actor.anatomy, steamReserveKpa: remaining };
+      const ventEvents: SimEvent[] = [
         {
           type: 'STEAM_VENTED',
           turn: nextState.turnCount + 1,
           actorId: command.actorId,
-          origin: command.target,
-          pressureReleasedKpa: command.pressureReleasedKpa,
+          pressureReleasedKpa: vented,
+          remainingPressureKpa: remaining,
         },
       ];
+
+      if (scaldDamage > 0) {
+        const torso = nextAnatomy.limbs.TORSO;
+        if (torso && !torso.amputated) {
+          const newTorsoHp = Math.max(0, torso.hp - scaldDamage);
+          nextAnatomy = {
+            ...nextAnatomy,
+            limbs: {
+              ...nextAnatomy.limbs,
+              TORSO: { ...torso, hp: newTorsoHp, amputated: newTorsoHp === 0 },
+            },
+          };
+          ventEvents.push({
+            type: 'THERMAL_SCALD',
+            turn: nextState.turnCount + 1,
+            actorId: command.actorId,
+            slot: 'TORSO',
+            steamPressureKpa: vented,
+            damage: scaldDamage,
+          });
+        }
+      }
+
+      // Disperse vented steam directly into current tile
+      const pos = actor.position;
+      let nextStrata = nextState.strata;
+      if (pos) {
+        const grid = nextStrata[pos.stratum];
+        nextStrata = {
+          ...nextStrata,
+          [pos.stratum]: setTileCell(grid, pos.x, pos.y, {
+            steamPressureKpa: Math.min(100, (grid.cells[pos.y * grid.width + pos.x]?.steamPressureKpa ?? 0) + vented * 0.4),
+          }),
+        };
+      }
+
+      apply({
+        state: {
+          ...nextState,
+          strata: nextStrata,
+          entities: {
+            ...nextState.entities,
+            [command.actorId]: {
+              ...actor,
+              anatomy: nextAnatomy,
+            },
+          },
+        },
+        events: ventEvents,
+        apSpent: STANDARD_ACTION_AP,
+      });
       break;
     }
     case 'DAMAGE_LIMB':
-      apply(resolveDamageLimb(nextState, command.targetId, command.slot, command.damage));
+      apply(resolveDamageLimb(nextState, command.actorId, command.slot, command.damage));
       break;
     case 'INSTALL_PROSTHETIC':
       apply(
@@ -134,6 +178,29 @@ export function dispatchCommand(
           command.commodity,
           command.quantity,
           command.askingPriceMarkupPct,
+          command.actorId,
+        ),
+      );
+      break;
+    case 'BUY_FROM_MERCHANT':
+      apply(
+        resolveBuyFromMerchant(
+          nextState,
+          command.actorId,
+          command.merchantId,
+          command.itemEntityId,
+          command.quantity,
+        ),
+      );
+      break;
+    case 'SELL_TO_MERCHANT':
+      apply(
+        resolveSellToMerchant(
+          nextState,
+          command.actorId,
+          command.merchantId,
+          command.itemEntityId,
+          command.quantity,
         ),
       );
       break;

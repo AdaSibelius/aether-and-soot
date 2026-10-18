@@ -1,42 +1,42 @@
-import { GameCommand } from '../../schemas/commands.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityIdSchema } from '../../schemas/primitives.schema.js';
+import { GameCommand } from '../../schemas/commands.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { AnatomyDoll } from './AnatomyDoll.js';
 import { MarketLedger } from './MarketLedger.js';
 import { SatchelPanel } from './SatchelPanel.js';
 
 export interface HudLayoutProps {
-  readonly state: Readonly<WorldState>;
-  readonly onCommand: (cmd: GameCommand) => void;
+  readonly state: WorldState;
+  readonly onCommand: (command: GameCommand) => void;
 }
 
-function formatEventMessage(ev: SimEvent): string {
+export function formatEventMessage(ev: SimEvent): string {
   switch (ev.type) {
     case 'ENTITY_MOVED':
-      return `[T${ev.turn}] Stepped to (${ev.to.x}, ${ev.to.y}) on ${ev.to.stratum} [${ev.apSpent} AP]`;
+      return `[T${ev.turn}] ${ev.actorId} walked to (${ev.to.x}, ${ev.to.y}, ${ev.to.stratum}).`;
     case 'MOVEMENT_BLOCKED':
-      return `[T${ev.turn}] Movement blocked (${ev.reason}) at (${ev.target.x}, ${ev.target.y})`;
+      return `[T${ev.turn}] Passage blocked at (${ev.attemptedPoint.x}, ${ev.attemptedPoint.y}) [${ev.reason}]!`;
     case 'STRATUM_CHANGED':
-      return `[T${ev.turn}] Traversed portal: ${ev.fromStratum} -> ${ev.toStratum}`;
+      return `[T${ev.turn}] Traversed portal from ${ev.fromStratum} to ${ev.toStratum}!`;
     case 'PORTAL_FAILED':
-      return `[T${ev.turn}] Portal traversal failed: ${ev.reason}`;
+      return `[T${ev.turn}] Portal malfunction: ${ev.reason}`;
     case 'ACTOR_WAITED':
-      return `[T${ev.turn}] Artificer holds position and checks pressure gauges.`;
+      return `[T${ev.turn}] Standing ground. Steam accumulator cycling.`;
     case 'STEAM_VENTED':
-      return `[T${ev.turn}] Vented ${ev.pressureReleasedKpa} kPa superheated steam!`;
+      return `[T${ev.turn}] Pressure valve released: -${ev.pressureReleasedKpa} kPa steam vented.`;
     case 'LIMB_DAMAGED':
-      return `[T${ev.turn}] ${ev.slot} took ${ev.damage} dmg (${ev.remainingHp} HP left)`;
+      return `[T${ev.turn}] IMPACT! ${ev.slot} sustained ${ev.damage} damage (${ev.remainingHp}/${ev.maxHp} HP).`;
     case 'LIMB_AMPUTATED':
-      return `[T${ev.turn}] CRITICAL: ${ev.slot} severed!`;
+      return `[T${ev.turn}] CATASTROPHIC FAILURE! ${ev.slot} severed! Hemorrhaging initiated.`;
     case 'PROSTHETIC_INSTALLED':
-      return `[T${ev.turn}] Installed prosthetic into ${ev.slot} socket.`;
+      return `[T${ev.turn}] Fitted ${ev.prostheticBlueprintId} to ${ev.slot}.`;
     case 'PROSTHETIC_REMOVED':
-      return `[T${ev.turn}] Detached prosthetic from ${ev.slot} socket.`;
+      return `[T${ev.turn}] Unseated prosthetic from ${ev.slot}.`;
     case 'PROSTHETIC_ACTION_FAILED':
-      return `[T${ev.turn}] Tinkering failed on ${ev.slot}: ${ev.reason}`;
+      return `[T${ev.turn}] Surgery failed: ${ev.reason}`;
     case 'STEAM_REFILLED':
-      return `[T${ev.turn}] Boiler re-pressurized to ${ev.newReserveKpa} kPa.`;
+      return `[T${ev.turn}] Steam pressurized: +${ev.pressureAddedKpa} kPa (Current: ${ev.currentPressureKpa} kPa).`;
     case 'VESSEL_RUPTURED':
       return `[T${ev.turn}] BOILER RUPTURE! ${ev.releasedPressureKpa} kPa blasted at (${ev.origin.x}, ${ev.origin.y})!`;
     case 'COAL_DUST_IGNITED':
@@ -81,6 +81,10 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] DEFEATED! ${ev.actorName} collapsed (${ev.droppedEntityIds.length} items dropped)!`;
     case 'COMBAT_ACTION_FAILED':
       return `[T${ev.turn}] Attack failed: ${ev.reason}`;
+    case 'MERCHANT_TRADE_COMPLETED':
+      return `[T${ev.turn}] Trade (${ev.tradeType}): ${ev.quantity}x ${ev.itemName} for ${ev.totalPence}d (Treasury: ${ev.playerTreasuryAfter}d).`;
+    case 'TRADE_ACTION_FAILED':
+      return `[T${ev.turn}] Trade (${ev.action}) failed: ${ev.reason}`;
   }
 }
 
@@ -108,14 +112,20 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
         <div class="stat-row">
           <span>Chronometer:</span>
           <span>
-            Turn {state.turnCount} | Macro #{state.macroTickCount}
+            Turn {state.turnCount} (Tick #{state.macroTickCount})
           </span>
         </div>
         <div class="stat-row">
-          <span>Encumbrance:</span>
-          <span>
-            {player?.inventory?.currentMassGrams ?? 0} / {player?.inventory?.maxMassGrams ?? 25000} g
-          </span>
+          <span>Sanguine Volume:</span>
+          <span>{player?.anatomy?.bloodVolumePct ?? 0}%</span>
+        </div>
+        <div class="stat-row">
+          <span>Steam Pressure:</span>
+          <span>{player?.anatomy?.steamReserveKpa ?? 0} kPa</span>
+        </div>
+        <div class="stat-row">
+          <span>Treasury:</span>
+          <span class="brass-text">{state.economy.playerTreasuryPence}d</span>
         </div>
       </div>
 
@@ -170,40 +180,39 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
               })
             }
           >
-            [R] Stoker Boiler (+50 kPa Steam)
+            [R] Refill Boiler (+50 kPa)
           </button>
           <button
             type="button"
-            onClick={() => {
-              if (!player?.position) return;
+            onClick={() =>
               onCommand({
                 type: 'VENT_STEAM',
                 actorId: playerId,
-                target: {
-                  x: player.position.x,
-                  y: player.position.y,
-                  stratum: player.position.stratum,
-                },
-                pressureReleasedKpa: 45,
-              });
-            }}
+                pressureVentedKpa: 25,
+              })
+            }
           >
-            [V] Vent Boiler Steam
+            [V] Emergency Vent (25 kPa)
+          </button>
+          <button
+            type="button"
+            onClick={() => onCommand({ type: 'WAIT_TURN', actorId: playerId })}
+          >
+            [Space] Wait 1 Turn
           </button>
         </div>
       </div>
 
-      <div class="panel-box log-box">
-        <div class="panel-header">CHRONICLE LOG</div>
-        {recentEvents.length === 0 ? (
-          <div class="log-entry muted">Awaiting pneumatic actuation...</div>
-        ) : (
-          recentEvents.map((ev, idx) => (
-            <div key={`${ev.turn}-${idx}`} class="log-entry">
+      <div class="panel-box">
+        <div class="panel-header">TELEMETRY &amp; ACTION CHRONICLE</div>
+        <div class="event-log">
+          {recentEvents.length === 0 && <div class="event-item">Awaiting boiler ignition...</div>}
+          {recentEvents.map((ev, idx) => (
+            <div key={`${ev.type}-${ev.turn}-${idx}`} class="event-item">
               {formatEventMessage(ev)}
             </div>
-          ))
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );

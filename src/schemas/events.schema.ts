@@ -13,6 +13,8 @@ import {
   ItemSalvagedEventSchema,
   ItemUsedEventSchema,
   LimbRepairedEventSchema,
+  MerchantTradeCompletedEventSchema,
+  TradeActionFailedEventSchema,
   TransitActionFailedEventSchema,
 } from './domain-events.schema.js';
 import {
@@ -38,8 +40,11 @@ export {
   ItemSalvagedEventSchema,
   ItemUsedEventSchema,
   LimbRepairedEventSchema,
+  MerchantTradeCompletedEventSchema,
+  TradeActionFailedEventSchema,
   TransitActionFailedEventSchema,
 };
+
 
 export const EntityMovedEventSchema = z.object({
   type: z.literal('ENTITY_MOVED'),
@@ -47,63 +52,60 @@ export const EntityMovedEventSchema = z.object({
   actorId: EntityIdSchema,
   from: Point3DSchema,
   to: Point3DSchema,
-  apSpent: z.number().int().positive(),
 });
 
 export const MovementBlockedEventSchema = z.object({
   type: z.literal('MOVEMENT_BLOCKED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  target: Point3DSchema,
-  reason: z.enum(['OUT_OF_BOUNDS', 'SOLID_TILE', 'OCCUPIED_BY_ENTITY']),
-  blockerEntityId: EntityIdSchema.optional(),
+  attemptedPoint: Point3DSchema,
+  reason: z.enum(['OUT_OF_BOUNDS', 'IMPASSABLE_TERRAIN', 'OCCUPIED_BY_BLOCKING_ENTITY']),
 });
 
 export const StratumChangedEventSchema = z.object({
   type: z.literal('STRATUM_CHANGED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  portalEntityId: EntityIdSchema,
   fromStratum: StratumIdSchema,
   toStratum: StratumIdSchema,
-  destination: Point3DSchema,
+  portalId: EntityIdSchema,
 });
 
 export const PortalFailedEventSchema = z.object({
   type: z.literal('PORTAL_FAILED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  reason: z.enum(['NO_PORTAL_AT_POSITION', 'DESTINATION_BLOCKED']),
+  reason: z.enum(['NO_PORTAL_ON_TILE', 'DESTINATION_BLOCKED']),
 });
 
 export const ActorWaitedEventSchema = z.object({
   type: z.literal('ACTOR_WAITED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  apSpent: z.number().int().positive(),
 });
 
 export const SteamVentedEventSchema = z.object({
   type: z.literal('STEAM_VENTED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  origin: Point3DSchema,
   pressureReleasedKpa: z.number().positive(),
+  remainingPressureKpa: z.number().nonnegative(),
 });
 
 export const LimbDamagedEventSchema = z.object({
   type: z.literal('LIMB_DAMAGED'),
   turn: z.number().int().nonnegative(),
-  targetId: EntityIdSchema,
+  actorId: EntityIdSchema,
   slot: LimbSlotIdSchema,
   damage: z.number().int().positive(),
   remainingHp: z.number().int().nonnegative(),
+  maxHp: z.number().int().positive(),
 });
 
 export const LimbAmputatedEventSchema = z.object({
   type: z.literal('LIMB_AMPUTATED'),
   turn: z.number().int().nonnegative(),
-  targetId: EntityIdSchema,
+  actorId: EntityIdSchema,
   slot: LimbSlotIdSchema,
 });
 
@@ -112,6 +114,7 @@ export const ProstheticInstalledEventSchema = z.object({
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
   prostheticEntityId: EntityIdSchema,
+  prostheticBlueprintId: z.string().min(1),
   slot: LimbSlotIdSchema,
 });
 
@@ -127,13 +130,14 @@ export const ProstheticActionFailedEventSchema = z.object({
   type: z.literal('PROSTHETIC_ACTION_FAILED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  slot: LimbSlotIdSchema,
+  action: z.enum(['INSTALL', 'REMOVE']),
   reason: z.enum([
-    'MISSING_ANATOMY',
-    'PROSTHETIC_NOT_FOUND',
-    'SLOT_MISMATCH',
-    'SLOT_ALREADY_OCCUPIED',
+    'LIMB_NOT_FOUND',
+    'LIMB_ALREADY_AMPUTATED',
+    'SLOT_OCCUPIED',
     'NO_PROSTHETIC_INSTALLED',
+    'PROSTHETIC_NOT_IN_INVENTORY',
+    'INCOMPATIBLE_SOCKET',
   ]),
 });
 
@@ -141,7 +145,8 @@ export const SteamRefilledEventSchema = z.object({
   type: z.literal('STEAM_REFILLED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  newReserveKpa: z.number().nonnegative(),
+  pressureAddedKpa: z.number().positive(),
+  currentPressureKpa: z.number().positive(),
 });
 
 export const VesselRupturedEventSchema = z.object({
@@ -155,14 +160,14 @@ export const VesselRupturedEventSchema = z.object({
 export const CoalDustIgnitedEventSchema = z.object({
   type: z.literal('COAL_DUST_IGNITED'),
   turn: z.number().int().nonnegative(),
-  epicenter: Point3DSchema,
+  origin: Point3DSchema,
   ignitedTileCount: z.number().int().positive(),
 });
 
 export const ThermalScaldEventSchema = z.object({
   type: z.literal('THERMAL_SCALD'),
   turn: z.number().int().nonnegative(),
-  targetId: EntityIdSchema,
+  actorId: EntityIdSchema,
   slot: LimbSlotIdSchema,
   steamPressureKpa: z.number().positive(),
   damage: z.number().int().positive(),
@@ -232,5 +237,7 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   CombatAttackResolvedEventSchema,
   ActorDefeatedEventSchema,
   CombatActionFailedEventSchema,
+  MerchantTradeCompletedEventSchema,
+  TradeActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

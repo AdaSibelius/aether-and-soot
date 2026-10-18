@@ -82,12 +82,11 @@ export const TransitActionFailedEventSchema = z.object({
   actorId: EntityIdSchema,
   action: z.enum(['TOGGLE_DOOR', 'TRAVEL_DISTRICT']),
   reason: z.enum([
-    'NOT_A_DOOR',
+    'NO_DOOR_AT_TARGET',
     'OUT_OF_RANGE',
-    'BLOCKED_BY_ENTITY',
-    'UNKNOWN_DISTRICT',
-    'ALREADY_IN_DISTRICT',
-    'NO_GATE_AT_POSITION',
+    'DOOR_BLOCKED_BY_ENTITY',
+    'NO_GATE_HERE',
+    'INVALID_TARGET_DISTRICT',
   ]),
 });
 
@@ -174,5 +173,39 @@ export const CombatActionFailedEventSchema = z.object({
     'OUT_OF_RANGE',
     'BOTH_ARMS_AMPUTATED',
     'INVALID_TARGET_SLOT',
+  ]),
+});
+
+export const MerchantTradeCompletedEventSchema = z.object({
+  type: z.literal('MERCHANT_TRADE_COMPLETED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  merchantId: EntityIdSchema,
+  tradeType: z.enum(['BUY', 'SELL']),
+  itemEntityId: EntityIdSchema,
+  itemName: z.string().min(1),
+  quantity: z.number().int().positive(),
+  totalPence: z.number().int().nonnegative(),
+  playerTreasuryAfter: z.number().int().nonnegative(),
+});
+
+export const TradeActionFailedEventSchema = z.object({
+  type: z.literal('TRADE_ACTION_FAILED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  merchantId: EntityIdSchema.optional(),
+  action: z.enum(['BUY', 'SELL', 'STOCK_PEDESTAL']),
+  reason: z.enum([
+    'NO_INVENTORY',
+    'MERCHANT_NOT_FOUND',
+    'NOT_A_MERCHANT',
+    'MERCHANT_HOSTILE',
+    'OUT_OF_RANGE',
+    'ITEM_NOT_FOUND',
+    'ITEM_INSTALLED',
+    'INSUFFICIENT_FUNDS',
+    'VOLUME_EXCEEDED',
+    'MASS_EXCEEDED',
+    'INSUFFICIENT_COMMODITY',
   ]),
 });

@@ -28,14 +28,12 @@ export const WaitTurnCommandSchema = z.object({
 export const VentSteamCommandSchema = z.object({
   type: z.literal('VENT_STEAM'),
   actorId: EntityIdSchema,
-  target: Point3DSchema,
-  pressureReleasedKpa: z.number().positive(),
+  pressureVentedKpa: z.number().positive(),
 });
 
 export const DamageLimbCommandSchema = z.object({
   type: z.literal('DAMAGE_LIMB'),
   actorId: EntityIdSchema,
-  targetId: EntityIdSchema,
   slot: LimbSlotIdSchema,
   damage: z.number().int().positive(),
 });
@@ -147,6 +145,22 @@ export const AttackActorCommandSchema = z.object({
   targetSlot: LimbSlotIdSchema.default('TORSO'),
 });
 
+export const BuyFromMerchantCommandSchema = z.object({
+  type: z.literal('BUY_FROM_MERCHANT'),
+  actorId: EntityIdSchema,
+  merchantId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+  quantity: z.number().int().positive().optional(),
+});
+
+export const SellToMerchantCommandSchema = z.object({
+  type: z.literal('SELL_TO_MERCHANT'),
+  actorId: EntityIdSchema,
+  merchantId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+  quantity: z.number().int().positive().optional(),
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -169,5 +183,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   SalvageItemCommandSchema,
   RepairLimbCommandSchema,
   AttackActorCommandSchema,
+  BuyFromMerchantCommandSchema,
+  SellToMerchantCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
