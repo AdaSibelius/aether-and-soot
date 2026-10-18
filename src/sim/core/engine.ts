@@ -7,6 +7,11 @@ import {
   resolveRefillSteam,
   resolveRemoveProsthetic,
 } from '../systems/anatomy.system.js';
+import {
+  resolveCraftRecipe,
+  resolveRepairLimb,
+  resolveSalvageItem,
+} from '../systems/crafting.system.js';
 import { resolveStockPedestal, resolveTriggerSupplyShock } from '../systems/economy.system.js';
 import { resolveDropItem, resolvePickupItem, resolveUseItem } from '../systems/inventory.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
@@ -202,6 +207,27 @@ export function dispatchCommand(
     }
     case 'TRAVEL_DISTRICT': {
       const res = resolveTravelDistrict(nextState, command.actorId, command.targetDistrictId);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'CRAFT_RECIPE': {
+      const res = resolveCraftRecipe(nextState, command.actorId, command.recipeId);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'SALVAGE_ITEM': {
+      const res = resolveSalvageItem(nextState, command.actorId, command.itemEntityId);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'REPAIR_LIMB': {
+      const res = resolveRepairLimb(nextState, command.actorId, command.slot);
       nextState = res.state;
       systemEvents = res.events;
       apSpent = res.apSpent;
