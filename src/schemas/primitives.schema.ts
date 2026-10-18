@@ -9,6 +9,22 @@ export type BlueprintId = z.infer<typeof BlueprintIdSchema>;
 export const StratumIdSchema = z.enum(['UNDERCROFT', 'STREET', 'SPIRE']);
 export type StratumId = z.infer<typeof StratumIdSchema>;
 
+export const FactionIdSchema = z.enum([
+  'IRONMONGERS_CARTEL',
+  'CLOCKWORK_GUILD',
+  'UNDERCROFT_SYNDICATE',
+  'CROWN_CONSTABULARY',
+]);
+export type FactionId = z.infer<typeof FactionIdSchema>;
+
+export const CommodityIdSchema = z.enum([
+  'ANTHRACITE_COAL',
+  'PHOSPHOR_BRONZE',
+  'AETHER_VIAL',
+  'CLOCKWORK_MAINSPRING',
+]);
+export type CommodityId = z.infer<typeof CommodityIdSchema>;
+
 export const HexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
 export type HexColor = z.infer<typeof HexColorSchema>;
 

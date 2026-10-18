@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import {
+  CommodityIdSchema,
   EntityIdSchema,
+  FactionIdSchema,
   LimbSlotIdSchema,
   Point3DSchema,
   StratumIdSchema,
@@ -133,6 +135,30 @@ export const ThermalScaldEventSchema = z.object({
   damage: z.number().int().positive(),
 });
 
+export const PedestalStockedEventSchema = z.object({
+  type: z.literal('PEDESTAL_STOCKED'),
+  turn: z.number().int().nonnegative(),
+  commodity: CommodityIdSchema,
+  quantity: z.number().int().positive(),
+});
+
+export const SupplyShockTriggeredEventSchema = z.object({
+  type: z.literal('SUPPLY_SHOCK_TRIGGERED'),
+  turn: z.number().int().nonnegative(),
+  commodity: CommodityIdSchema,
+  newPricePence: z.number().int().positive(),
+  factionAffected: FactionIdSchema,
+  newReputation: z.number().int(),
+});
+
+export const StorefrontSaleCompletedEventSchema = z.object({
+  type: z.literal('STOREFRONT_SALE_COMPLETED'),
+  turn: z.number().int().nonnegative(),
+  commodity: CommodityIdSchema,
+  unitsSold: z.number().int().positive(),
+  revenuePence: z.number().int().positive(),
+});
+
 export const MacroTickCompletedEventSchema = z.object({
   type: z.literal('MACRO_TICK_COMPLETED'),
   turn: z.number().int().nonnegative(),
@@ -155,6 +181,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   VesselRupturedEventSchema,
   CoalDustIgnitedEventSchema,
   ThermalScaldEventSchema,
+  PedestalStockedEventSchema,
+  SupplyShockTriggeredEventSchema,
+  StorefrontSaleCompletedEventSchema,
   MacroTickCompletedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { EntityIdSchema, LimbSlotIdSchema, Point3DSchema } from './primitives.schema.js';
+import {
+  CommodityIdSchema,
+  EntityIdSchema,
+  FactionIdSchema,
+  LimbSlotIdSchema,
+  Point3DSchema,
+} from './primitives.schema.js';
 
 export const MoveStepCommandSchema = z.object({
   type: z.literal('MOVE_STEP'),
@@ -65,6 +71,23 @@ export const EmitSparkCommandSchema = z.object({
   target: Point3DSchema,
 });
 
+export const StockPedestalCommandSchema = z.object({
+  type: z.literal('STOCK_PEDESTAL'),
+  actorId: EntityIdSchema,
+  commodity: CommodityIdSchema,
+  quantity: z.number().int().positive(),
+  askingPriceMarkupPct: z.number().min(-50).max(100).default(0),
+});
+
+export const TriggerSupplyShockCommandSchema = z.object({
+  type: z.literal('TRIGGER_SUPPLY_SHOCK'),
+  actorId: EntityIdSchema,
+  commodity: CommodityIdSchema,
+  supplyDelta: z.number().int(),
+  factionAffected: FactionIdSchema,
+  reputationDelta: z.number().int(),
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -76,5 +99,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   RefillSteamCommandSchema,
   PressurizeVesselCommandSchema,
   EmitSparkCommandSchema,
+  StockPedestalCommandSchema,
+  TriggerSupplyShockCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
