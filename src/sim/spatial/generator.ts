@@ -19,6 +19,7 @@ export interface GeneratedDistrictResult {
     readonly spireLift: Point2D;
     readonly foundryBoiler: Point2D;
     readonly workshopDoor: Point2D;
+    readonly artificerWorkbench: Point2D;
     readonly marketDoor: Point2D;
     readonly westGate: Point2D;
     readonly eastGate: Point2D;
@@ -27,7 +28,7 @@ export interface GeneratedDistrictResult {
 
 /**
  * Deterministically generates a multi-building Victorian district (Undercroft, Street, Spire)
- * with Workshop, Market Hall, Boiler House, openable doors, and District Transit Gates.
+ * with Workshop, Market Hall, Boiler Hall, openable doors, and District Transit Gates.
  */
 export function generateVictorianDistrict(state: WorldState): GeneratedDistrictResult {
   const rng = new SeededRNG(state.rngState);
@@ -67,8 +68,9 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const eastGatePos: Point2D = { x: width - 2, y: center.y };
   street = carveCorridor(street, westGatePos, eastGatePos, 'COBBLESTONE_FLOOR');
 
-  // Building 1: Artificer Workshop (top-left) with closed door
+  // Building 1: Artificer Workshop (top-left) with closed door and workbench
   const workshopDoor: Point2D = { x: 4, y: 7 };
+  const artificerWorkbench: Point2D = { x: 4, y: 4 };
   street = carveCorridor(street, { x: workshopDoor.x, y: workshopDoor.y + 1 }, { x: workshopDoor.x, y: center.y }, 'COBBLESTONE_FLOOR');
   street = carveBuildingWithDoor(street, 2, 2, 6, 7, 'COBBLESTONE_FLOOR', workshopDoor, 'CLOSED', 0.05);
 
@@ -100,6 +102,7 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const liftDownId = EntityIdSchema.parse('portal_spire_lift_down');
   const liftUpId = EntityIdSchema.parse('portal_street_lift_up');
   const boilerId = EntityIdSchema.parse('vessel_district_boiler');
+  const workbenchId = EntityIdSchema.parse('station_artificer_workbench');
   const westGateId = EntityIdSchema.parse('gate_transit_west');
   const eastGateId = EntityIdSchema.parse('gate_transit_east');
 
@@ -134,6 +137,13 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
       position: { x: boilerPos.x, y: boilerPos.y, stratum: 'STREET', blocksMovement: false, blocksSight: false },
       pressureVessel: { currentPressureKpa: 180, maxPressureKpa: 300, ruptured: false },
     },
+    [workbenchId]: {
+      id: workbenchId,
+      name: 'Spitalfields Pneumatic Artificer Workbench',
+      visual: { glyph: 'T', fgPrimary: '#D4AF37', fgSecondary: '#CD7F32', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
+      position: { x: artificerWorkbench.x, y: artificerWorkbench.y, stratum: 'STREET', blocksMovement: false, blocksSight: false },
+      workbench: { stationType: 'ARTIFICER_BENCH', bonusEfficiencyPct: 20 },
+    },
     [westGateId]: {
       id: westGateId,
       name: `West Transit Gate (To ${westTarget})`,
@@ -164,6 +174,7 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
       spireLift: liftPos,
       foundryBoiler: boilerPos,
       workshopDoor,
+      artificerWorkbench,
       marketDoor,
       westGate: westGatePos,
       eastGate: eastGatePos,

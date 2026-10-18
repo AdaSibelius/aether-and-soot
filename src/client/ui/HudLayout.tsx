@@ -65,6 +65,14 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Traveled to ${ev.toDistrictId}!`;
     case 'TRANSIT_ACTION_FAILED':
       return `[T${ev.turn}] Transit (${ev.action}) failed: ${ev.reason}`;
+    case 'ITEM_CRAFTED':
+      return `[T${ev.turn}] Crafted ${ev.quantity}x ${ev.outputName} (-${ev.steamSpentKpa} kPa steam).`;
+    case 'ITEM_SALVAGED':
+      return `[T${ev.turn}] Salvaged ${ev.salvagedItemName} -> ${ev.recoveredQuantity}x ${ev.recoveredMaterialBlueprintId}.`;
+    case 'LIMB_REPAIRED':
+      return `[T${ev.turn}] Repaired ${ev.slot} (+${ev.hpRestored} HP, now ${ev.newHp} HP).`;
+    case 'CRAFTING_FAILED':
+      return `[T${ev.turn}] Artificer ${ev.action} failed: ${ev.reason}`;
   }
 }
 

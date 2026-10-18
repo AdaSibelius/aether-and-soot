@@ -3,6 +3,7 @@ import path from 'node:path';
 import { z } from 'zod';
 import {
   CommodityBlueprintSchema,
+  CraftingRecipeBlueprintSchema,
   DistrictBlueprintSchema,
   GasFluidBlueprintSchema,
   ItemBlueprintSchema,
@@ -44,8 +45,37 @@ function runDataValidation(): void {
     throw new Error('[validate:data] Duplicate item blueprint ids in data/items/materials.json');
   }
 
+  const recipes = validateJsonFile(
+    'data/items/recipes.json',
+    z.array(CraftingRecipeBlueprintSchema).min(1),
+  );
+  const recipeIds = new Set(recipes.map((r) => r.id));
+  if (recipeIds.size !== recipes.length) {
+    throw new Error('[validate:data] Duplicate recipe ids in data/items/recipes.json');
+  }
+
+  const allCraftableOutputs = new Set([
+    ...materials.map((m) => m.id),
+    ...prosthetics.map((p) => p.id),
+    ...commodities.map((c) => c.id),
+  ]);
+  for (const recipe of recipes) {
+    if (!allCraftableOutputs.has(recipe.outputBlueprintId)) {
+      throw new Error(
+        `[validate:data] Recipe ${recipe.id} references unknown outputBlueprintId: ${recipe.outputBlueprintId}`,
+      );
+    }
+    for (const ing of recipe.ingredients) {
+      if (!materialIds.has(ing.blueprintId)) {
+        throw new Error(
+          `[validate:data] Recipe ${recipe.id} references unknown ingredient blueprintId: ${ing.blueprintId}`,
+        );
+      }
+    }
+  }
+
   console.log(
-    `[validate:data] OK — Validated ${prosthetics.length} prosthetics, ${commodities.length} commodities, ${materials.length} materials/consumables, ${gases.length} gases/fluids, ${districts.length} districts.`,
+    `[validate:data] OK — Validated ${prosthetics.length} prosthetics, ${commodities.length} commodities, ${materials.length} materials/consumables, ${recipes.length} recipes, ${gases.length} gases/fluids, ${districts.length} districts.`,
   );
 }
 
