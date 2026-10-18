@@ -3,10 +3,10 @@ import {
   BlueprintIdSchema,
   EntityIdSchema,
   LimbSlotIdSchema,
+  Point3DSchema,
   SocketTypeSchema,
   VisualGlyphSpecSchema,
 } from './primitives.schema.js';
-import { Point3DSchema } from './primitives.schema.js';
 
 export const PositionComponentSchema = Point3DSchema.extend({
   blocksMovement: z.boolean().default(true),
@@ -43,6 +43,13 @@ export const ProstheticSpecComponentSchema = z.object({
 });
 export type ProstheticSpecComponent = z.infer<typeof ProstheticSpecComponentSchema>;
 
+export const PressureVesselComponentSchema = z.object({
+  currentPressureKpa: z.number().nonnegative(),
+  maxPressureKpa: z.number().positive(),
+  ruptured: z.boolean().default(false),
+});
+export type PressureVesselComponent = z.infer<typeof PressureVesselComponentSchema>;
+
 export const LimbStatusSchema = z.object({
   slot: LimbSlotIdSchema,
   hp: z.number().int().nonnegative(),
@@ -78,5 +85,6 @@ export const EntityComponentsSchema = z.object({
   anatomy: AnatomyComponentSchema.optional(),
   inventory: InventoryComponentSchema.optional(),
   prostheticSpec: ProstheticSpecComponentSchema.optional(),
+  pressureVessel: PressureVesselComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;

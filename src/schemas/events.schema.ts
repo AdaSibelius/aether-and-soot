@@ -109,6 +109,30 @@ export const SteamRefilledEventSchema = z.object({
   newReserveKpa: z.number().nonnegative(),
 });
 
+export const VesselRupturedEventSchema = z.object({
+  type: z.literal('VESSEL_RUPTURED'),
+  turn: z.number().int().nonnegative(),
+  vesselEntityId: EntityIdSchema,
+  origin: Point3DSchema,
+  releasedPressureKpa: z.number().positive(),
+});
+
+export const CoalDustIgnitedEventSchema = z.object({
+  type: z.literal('COAL_DUST_IGNITED'),
+  turn: z.number().int().nonnegative(),
+  epicenter: Point3DSchema,
+  ignitedTileCount: z.number().int().positive(),
+});
+
+export const ThermalScaldEventSchema = z.object({
+  type: z.literal('THERMAL_SCALD'),
+  turn: z.number().int().nonnegative(),
+  targetId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+  steamPressureKpa: z.number().positive(),
+  damage: z.number().int().positive(),
+});
+
 export const MacroTickCompletedEventSchema = z.object({
   type: z.literal('MACRO_TICK_COMPLETED'),
   turn: z.number().int().nonnegative(),
@@ -128,6 +152,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ProstheticRemovedEventSchema,
   ProstheticActionFailedEventSchema,
   SteamRefilledEventSchema,
+  VesselRupturedEventSchema,
+  CoalDustIgnitedEventSchema,
+  ThermalScaldEventSchema,
   MacroTickCompletedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
