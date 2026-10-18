@@ -35,19 +35,21 @@
 
 ---
 
-### Phase 24: Grounded Trade, Storefront Stalls & Dialogue-to-Market Wiring (Issue #29)
-- **Goal**: Ground the trading and cartel economy in the physical world by connecting Merchant NPC dialogue directly to the Market Exchange (`[M]`), requiring real inventory commodities to stock Trade Pedestals, and replacing magic UI debug buttons with in-world economic interactions.
+### Phase 24: Grounded Trade, Live Chirurgeon/Fixer/Contract Spawns & Dialogue-to-Market Wiring (Issue #29)
+- **Goal**: Ground the trading, dialogue, and cartel contract economy in the physical world by spawning live `CHIRURGEON` and `FIXER` NPCs and seeding procedural `FactionContract` quests during district generation (fixing the Phase 20 world-gen gap), connecting Merchant NPC dialogue directly to the Market Exchange (`[M]`), requiring real inventory commodities to stock Trade Pedestals, and replacing magic UI debug buttons with in-world economic interactions.
 - **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines).
 - **Files to Create / Modify**:
-  - **Modify** `src/sim/systems/dialogue-quest.system.ts` & `src/client/ui/DialogueModal.tsx`:
+  - **Modify** `src/sim/systems/ai.system.ts`, `src/sim/systems/dialogue-quest.system.ts`, & `src/client/ui/DialogueModal.tsx`:
+    - In `spawnDistrictNpcs`, spawn a live `CHIRURGEON` inside the Apothecary and a `FIXER` inside the Tenement/Public House, and seed 3 procedural `FactionContract` quests (`DELIVER_ITEM`, `SLAY_HOSTILE`, `PRESSURIZE_BOILER`) into `state.contracts`.
+    - Add `PRESSURIZE_BOILER` completion verification in `resolveCompleteContract` and `DialogueModal.tsx`.
     - Restrict `resolveHireCompanion` so only combat/street roles (`GUARD`, `SCAVENGER`, `CITIZEN`) can be hired as followers; reject stationary service roles (`MERCHANT`, `CHIRURGEON`, `FIXER`).
     - In `DialogueModal.tsx`, render `[Open Exchange Ledger (M)]` when speaking to a `MERCHANT` so players can transition directly from dialogue to trading.
   - **Modify** `src/sim/systems/trade-pedestal.ts` & `src/client/ui/CartelLedgerView.tsx`:
     - Enforce inventory consumption in `resolveStockPedestal` (`strict = true` default) so stocking a pedestal consumes matching commodity items from `actor_player.inventory`.
     - Replace the hardcoded cheat buttons in `CartelLedgerView.tsx` (`[+] List 3x Anthracite` and `[!] Sabotage Coal Convoy`) with an inventory-driven commodity listing selector, and trigger `resolveTriggerSupplyShock` in-world when a Foundry Boiler ruptures (`PRESSURE_VESSEL_RUPTURED`).
-  - **Create** `tests/sim/grounded-economy.test.ts`: Deterministic tests for strict inventory-backed pedestal stocking, role-restricted companion hiring, and boiler-rupture supply shocks.
+  - **Create** `tests/sim/grounded-economy.test.ts`: Deterministic tests for live Chirurgeon/Fixer/Contract spawning, `PRESSURIZE_BOILER` contract completion, strict inventory-backed pedestal stocking, and role-restricted companion hiring.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 24). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 24: Grounded Trade, Storefront Stalls & Dialogue-to-Market Wiring (Issue #29)** and add deterministic tests in `tests/sim/grounded-economy.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 24). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 24: Grounded Trade, Live Chirurgeon/Fixer/Contract Spawns & Dialogue-to-Market Wiring (Issue #29)** and add deterministic tests in `tests/sim/grounded-economy.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
@@ -98,20 +100,22 @@
 
 ---
 
-### Phase 28: Unified Mortality, Bleeding, Morgue Screen & Expanded Cybernetics (Issue #33)
-- **Goal**: Unify actor mortality across all damage sources (melee, ranged ballistics, steam scalds, and boiler explosions), add a Victorian Morgue / Obituary screen when the player dies, and expand the prosthetic cybernetics catalog with surgical context bonuses.
+### Phase 28: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (Issue #33)
+- **Goal**: Unify actor mortality across all damage sources (melee, ranged ballistics, steam scalds, and boiler explosions), fix equipped-item drop/salvage stat leaks, add a Victorian Morgue / Obituary screen when the player dies, and expand the prosthetic cybernetics catalog with surgical context bonuses.
 - **Architectural Constraint**: Create `src/sim/systems/mortality.system.ts` and `src/client/ui/MorgueModal.tsx` (all files **<= 250 lines**).
 - **Files to Create / Modify**:
   - **Create** `src/sim/systems/mortality.system.ts` & wire into `combat.system.ts`, `ballistics.system.ts`, `thermo.system.ts`, and `pressure.system.ts`:
-    - Implement `resolveActorDefeatIfFatal(state, targetId, attackerId?)`: when `TORSO.hp <= 0 || HEAD.hp <= 0 || bloodVolumePct <= 0`, emit `ACTOR_DEFEATED`, drop NPC inventory + loot + Crown Pence pouch, advance active `SLAY_HOSTILE` contracts, and remove defeated NPCs while preserving `actor_player` in `state.entities` so the Morgue screen can inspect the player's final state.
+    - Implement `resolveActorDefeatIfFatal(state, targetId, attackerId?)`: when `TORSO.hp <= 0 || HEAD.hp <= 0 || bloodVolumePct <= 0`, emit `ACTOR_DEFEATED`, drop NPC inventory + loot + Crown Pence pouch, and remove defeated NPCs while preserving `actor_player` in `state.entities` so the Morgue screen can inspect the player's final state.
+  - **Modify** `src/sim/systems/inventory.system.ts` & `src/sim/systems/crafting.system.ts`:
+    - When `resolveDropItem` or `resolveSalvageItem` is called on an `itemEntityId` currently equipped in `actor.inventory.equippedSlots`, automatically unequip it first via `resolveUnequipItem` (removing its slot entry and subtracting its `storageVolumeBonusMl`, `meleeDamageBonus`, and `armorBonus`) so actors never retain ghost stat bonuses.
   - **Modify** `data/items/prosthetics.json`, `data/items/recipes.json`, & `src/sim/systems/anatomy.system.ts`:
-    - Add `item_pneumatic_piledriver_arm`, `item_boiler_core_furnace`, and `item_clockwork_gyrostabilizer_leg` plus crafting recipes.
-    - Standing adjacent to a `SURGICAL_TABLE` (or having the `DISGRACED_CHIRURGEON` profession) prevents the `-15%` blood-loss shock penalty during `AMPUTATE_LIMB`.
+    - Add `prosthetic_pneumatic_piledriver_arm`, `prosthetic_boiler_core_furnace`, and `prosthetic_clockwork_gyrostabilizer_leg` plus crafting recipes.
+    - Standing adjacent to a `SURGICAL_TABLE` (or having the `DISGRACED_CHIRURGEON` profession) prevents blood-loss shock during `INSTALL_PROSTHETIC` / `REMOVE_PROSTHETIC`.
   - **Create** `src/client/ui/MorgueModal.tsx` & wire into `src/client/ui/HudLayout.tsx`:
     - Display a Victorian Coroner's Inquest / Obituary when `actor_player` is defeated, with a `[New Character / Re-Embark (N)]` button.
-  - **Create** `tests/sim/mortality-cybernetics.test.ts`: Deterministic tests for lethal ranged/explosion kills dropping loot and completing contracts, player defeat preservation, and new prosthetic crafting/installation.
+  - **Create** `tests/sim/mortality-cybernetics.test.ts`: Deterministic tests for lethal ranged/explosion kills dropping loot and completing contracts, equipped-item drop/salvage stat reversal, player defeat preservation, and new prosthetic crafting/installation.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 28). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 28: Unified Mortality, Bleeding, Morgue Screen & Expanded Cybernetics (Issue #33)** by creating `src/sim/systems/mortality.system.ts`, `src/client/ui/MorgueModal.tsx`, and `tests/sim/mortality-cybernetics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 28). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 28: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (Issue #33)** by creating `src/sim/systems/mortality.system.ts`, `src/client/ui/MorgueModal.tsx`, and `tests/sim/mortality-cybernetics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
