@@ -68,6 +68,7 @@ export const AnatomyComponentSchema = z.object({
   bloodVolumePct: z.number().min(0).max(100).default(100),
   steamReserveKpa: z.number().nonnegative().default(100),
   maxSteamReserveKpa: z.number().positive().default(100),
+  unlockedRecipeIds: z.array(BlueprintIdSchema).default([]),
 });
 export type AnatomyComponent = z.infer<typeof AnatomyComponentSchema>;
 
@@ -89,6 +90,7 @@ export const ItemComponentSchema = z.object({
   stackable: z.boolean().default(true),
   commodityId: CommodityIdSchema.optional(),
   useEffect: ItemUseEffectSchema.optional(),
+  unlocksRecipeId: BlueprintIdSchema.optional(),
 });
 export type ItemComponent = z.infer<typeof ItemComponentSchema>;
 
@@ -123,6 +125,13 @@ export const CombatStatsComponentSchema = z.object({
 });
 export type CombatStatsComponent = z.infer<typeof CombatStatsComponentSchema>;
 
+/** Interactive furniture fixture (e.g. Bed, Surgical Table, Locker, Crate). */
+export const FurnitureComponentSchema = z.object({
+  kind: z.enum(['BED', 'SURGICAL_TABLE', 'LOCKER', 'CRATE', 'BOOKSHELF']),
+  label: z.string().min(1),
+});
+export type FurnitureComponent = z.infer<typeof FurnitureComponentSchema>;
+
 export const EntityComponentsSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1),
@@ -139,6 +148,7 @@ export const EntityComponentsSchema = z.object({
   workbench: WorkbenchComponentSchema.optional(),
   aiController: AiControllerComponentSchema.optional(),
   combatStats: CombatStatsComponentSchema.optional(),
+  furniture: FurnitureComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
 

@@ -11,6 +11,8 @@ export const TileCellSchema = z.object({
     'WOODEN_DOOR_CLOSED',
     'WOODEN_DOOR_OPEN',
     'DISTRICT_GATE',
+    'GLASS_WINDOW',
+    'SMASHED_WINDOW_FRAME',
   ]),
   blocksMovement: z.boolean(),
   blocksSight: z.boolean(),

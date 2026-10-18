@@ -75,13 +75,14 @@ export const ItemBlueprintSchema = z
     stackable: z.boolean().default(true),
     commodityId: CommodityIdSchema.optional(),
     useEffect: ItemUseEffectSchema.optional(),
+    unlocksRecipeId: BlueprintIdSchema.optional(),
     spawnStrata: z.array(StratumIdSchema).default([]),
     spawnWeight: z.number().int().nonnegative().default(0),
     spawnQuantityMax: z.number().int().positive().default(1),
     visual: VisualGlyphSpecSchema,
   })
-  .refine((bp) => bp.category !== 'CONSUMABLE' || bp.useEffect !== undefined, {
-    message: 'CONSUMABLE items must declare a useEffect',
+  .refine((bp) => bp.category !== 'CONSUMABLE' || bp.useEffect !== undefined || bp.unlocksRecipeId !== undefined, {
+    message: 'CONSUMABLE items must declare a useEffect or unlocksRecipeId',
   });
 export type ItemBlueprint = z.infer<typeof ItemBlueprintSchema>;
 
@@ -100,6 +101,7 @@ export const CraftingRecipeBlueprintSchema = z.object({
   ingredients: z.array(RecipeIngredientSchema).min(1),
   steamCostKpa: z.number().nonnegative().default(0),
   requiresWorkbench: z.boolean().default(true),
+  requiresManual: z.boolean().default(false),
   stationType: z.enum(['ARTIFICER_BENCH', 'ALCHEMICAL_STILL']).optional(),
   apCost: z.number().int().positive().default(100),
 });

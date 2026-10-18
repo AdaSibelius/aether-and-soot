@@ -8,6 +8,7 @@ import {
   carveCorridor,
   carveRoom,
 } from './district-layout.js';
+import { populateDistrictArchetypes } from './building-prefabs.js';
 import { getTileCell, isWithinBounds, setTileCell, StratumGrid } from './grid.js';
 
 export interface GeneratedDistrictResult {
@@ -160,12 +161,16 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
     },
   };
 
+  const archetypes = populateDistrictArchetypes(street, newEntities, width, height);
+  street = archetypes.grid;
+  const finalEntities = archetypes.entities;
+
   return {
     state: {
       ...state,
       rngState: rng.getState(),
       strata: { UNDERCROFT: undercroft, STREET: street, SPIRE: spire },
-      entities: newEntities,
+      entities: finalEntities,
     },
     landmarks: {
       undercroftLadder: center,

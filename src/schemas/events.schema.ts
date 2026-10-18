@@ -1,48 +1,25 @@
 import { z } from 'zod';
 import {
-  ActorDefeatedEventSchema,
-  CombatActionFailedEventSchema,
-  CombatAttackResolvedEventSchema,
-  CraftingFailedEventSchema,
-  DistrictTraveledEventSchema,
-  DoorToggledEventSchema,
-  InventoryActionFailedEventSchema,
-  ItemCraftedEventSchema,
-  ItemDroppedEventSchema,
-  ItemPickedUpEventSchema,
-  ItemSalvagedEventSchema,
-  ItemUsedEventSchema,
-  LimbRepairedEventSchema,
-  MerchantTradeCompletedEventSchema,
-  TradeActionFailedEventSchema,
-  TransitActionFailedEventSchema,
+  ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
+  CombatAttackResolvedEventSchema, CraftingFailedEventSchema, DistrictTraveledEventSchema,
+  DoorToggledEventSchema, FurnitureActionFailedEventSchema, InventoryActionFailedEventSchema,
+  ItemCraftedEventSchema, ItemDroppedEventSchema, ItemPickedUpEventSchema,
+  ItemSalvagedEventSchema, ItemUsedEventSchema, LimbRepairedEventSchema,
+  MerchantTradeCompletedEventSchema, RecipeUnlockedEventSchema, TerrainSmashedEventSchema,
+  TradeActionFailedEventSchema, TransitActionFailedEventSchema,
 } from './domain-events.schema.js';
 import {
-  CommodityIdSchema,
-  EntityIdSchema,
-  FactionIdSchema,
-  LimbSlotIdSchema,
-  Point3DSchema,
-  StratumIdSchema,
+  CommodityIdSchema, EntityIdSchema, FactionIdSchema, LimbSlotIdSchema, Point3DSchema, StratumIdSchema,
 } from './primitives.schema.js';
 
 export {
-  ActorDefeatedEventSchema,
-  CombatActionFailedEventSchema,
-  CombatAttackResolvedEventSchema,
-  CraftingFailedEventSchema,
-  DistrictTraveledEventSchema,
-  DoorToggledEventSchema,
-  InventoryActionFailedEventSchema,
-  ItemCraftedEventSchema,
-  ItemDroppedEventSchema,
-  ItemPickedUpEventSchema,
-  ItemSalvagedEventSchema,
-  ItemUsedEventSchema,
-  LimbRepairedEventSchema,
-  MerchantTradeCompletedEventSchema,
-  TradeActionFailedEventSchema,
-  TransitActionFailedEventSchema,
+  ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
+  CombatAttackResolvedEventSchema, CraftingFailedEventSchema, DistrictTraveledEventSchema,
+  DoorToggledEventSchema, FurnitureActionFailedEventSchema, InventoryActionFailedEventSchema,
+  ItemCraftedEventSchema, ItemDroppedEventSchema, ItemPickedUpEventSchema,
+  ItemSalvagedEventSchema, ItemUsedEventSchema, LimbRepairedEventSchema,
+  MerchantTradeCompletedEventSchema, RecipeUnlockedEventSchema, TerrainSmashedEventSchema,
+  TradeActionFailedEventSchema, TransitActionFailedEventSchema,
 };
 
 
@@ -239,6 +216,10 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   CombatActionFailedEventSchema,
   MerchantTradeCompletedEventSchema,
   TradeActionFailedEventSchema,
+  TerrainSmashedEventSchema,
+  ActorRestedEventSchema,
+  RecipeUnlockedEventSchema,
+  FurnitureActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
 

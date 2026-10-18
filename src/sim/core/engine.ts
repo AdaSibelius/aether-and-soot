@@ -20,6 +20,7 @@ import { resolveTriggerSupplyShock } from '../systems/economy.system.js';
 import { resolveDropItem, resolvePickupItem, resolveUseItem } from '../systems/inventory.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
+import { resolveRestAtBed, resolveSmashTerrain } from '../systems/furniture.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
 import {
   resolveBuyFromMerchant,
@@ -196,6 +197,12 @@ export function dispatchCommand(
           rng,
         ),
       );
+      break;
+    case 'SMASH_TERRAIN':
+      apply(resolveSmashTerrain(nextState, command.actorId, command.target));
+      break;
+    case 'REST_AT_BED':
+      apply(resolveRestAtBed(nextState, command.actorId));
       break;
   }
 

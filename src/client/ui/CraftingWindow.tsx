@@ -54,12 +54,13 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
       }
 
       if (e.key.toLowerCase() === 'c' && selectedRecipe) {
+        const isUnlocked = !selectedRecipe.requiresManual || (actor?.anatomy?.unlockedRecipeIds ?? []).includes(selectedRecipe.id);
         const hasSteam = currentSteam >= selectedRecipe.steamCostKpa;
         const benchOk = !selectedRecipe.requiresWorkbench || Boolean(nearbyBench);
         const hasIngredients = selectedRecipe.ingredients.every(
           (ing) => (ingredientCounts[ing.blueprintId] ?? 0) >= ing.count,
         );
-        if (hasSteam && benchOk && hasIngredients) {
+        if (isUnlocked && hasSteam && benchOk && hasIngredients) {
           e.preventDefault();
           onCommand({ type: 'CRAFT_RECIPE', actorId, recipeId: selectedRecipe.id });
         }
@@ -68,16 +69,17 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedRecipe, currentSteam, nearbyBench, ingredientCounts, actorId, onCommand]);
+  }, [selectedRecipe, currentSteam, nearbyBench, ingredientCounts, actorId, onCommand, actor?.anatomy?.unlockedRecipeIds]);
 
   if (!actor || !pos || !inv || !selectedRecipe) return null;
 
+  const isSelectedUnlocked = !selectedRecipe.requiresManual || (actor.anatomy?.unlockedRecipeIds ?? []).includes(selectedRecipe.id);
   const hasSteam = currentSteam >= selectedRecipe.steamCostKpa;
   const benchOk = !selectedRecipe.requiresWorkbench || Boolean(nearbyBench);
   const hasIngredients = selectedRecipe.ingredients.every(
     (ing) => (ingredientCounts[ing.blueprintId] ?? 0) >= ing.count,
   );
-  const canCraft = hasSteam && benchOk && hasIngredients;
+  const canCraft = isSelectedUnlocked && hasSteam && benchOk && hasIngredients;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', flex: 1 }}>
@@ -91,20 +93,23 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', flex: 1 }}>
           {RECIPE_CATALOG.map((recipe, idx) => {
             const isSelected = idx === selectedIdx;
+            const isUnlocked = !recipe.requiresManual || (actor.anatomy?.unlockedRecipeIds ?? []).includes(recipe.id);
             const rSteam = currentSteam >= recipe.steamCostKpa;
             const rBench = !recipe.requiresWorkbench || Boolean(nearbyBench);
             const rIng = recipe.ingredients.every(
               (ing) => (ingredientCounts[ing.blueprintId] ?? 0) >= ing.count,
             );
-            const rReady = rSteam && rBench && rIng;
+            const rReady = isUnlocked && rSteam && rBench && rIng;
 
-            const badge = rReady
-              ? { text: 'READY', color: 'var(--ok-green)' }
-              : !rBench
-                ? { text: 'NEEDS BENCH', color: 'var(--brass-gold)' }
-                : !rSteam
-                  ? { text: 'LOW STEAM', color: 'var(--oxidized-copper)' }
-                  : { text: 'MISSING PARTS', color: 'var(--warn-red)' };
+            const badge = !isUnlocked
+              ? { text: 'SCHEMATIC REQ', color: '#af7ac5' }
+              : rReady
+                ? { text: 'READY', color: 'var(--ok-green)' }
+                : !rBench
+                  ? { text: 'NEEDS BENCH', color: 'var(--brass-gold)' }
+                  : !rSteam
+                    ? { text: 'LOW STEAM', color: 'var(--oxidized-copper)' }
+                    : { text: 'MISSING PARTS', color: 'var(--warn-red)' };
 
             return (
               <div
@@ -192,7 +197,7 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
               cursor: canCraft ? 'pointer' : 'not-allowed',
             }}
           >
-            [C] Forge Blueprint ({selectedRecipe.steamCostKpa} kPa)
+            [C] {isSelectedUnlocked ? `Forge Blueprint (${selectedRecipe.steamCostKpa} kPa)` : 'Locked (Schematic Manual Required)'}
           </button>
         </div>
 

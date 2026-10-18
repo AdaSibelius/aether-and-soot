@@ -117,6 +117,22 @@ export function projectWorldToVisualFrame(
           bgColor: '#1A1105',
           shaderFlags: isVisible ? ['SPARK_GLINT'] : [],
         };
+      } else if (tile?.terrainType === 'GLASS_WINDOW') {
+        baseVisual = {
+          glyph: '⊞',
+          fgPrimary: isVisible ? '#A9CCE3' : '#5D6D7E',
+          fgSecondary: '#5499C7',
+          bgColor: '#0A0D0E',
+          shaderFlags: isVisible ? ['SPARK_GLINT'] : [],
+        };
+      } else if (tile?.terrainType === 'SMASHED_WINDOW_FRAME') {
+        baseVisual = {
+          glyph: '%',
+          fgPrimary: isVisible ? '#BDC3C7' : '#566573',
+          fgSecondary: '#7F8C8D',
+          bgColor: '#0A0D0E',
+          shaderFlags: [],
+        };
       } else {
         baseVisual = {
           glyph: tile?.terrainType === 'BRASS_CATWALK' ? '=' : tile?.terrainType === 'IRON_GRATE' ? '≈' : '·',

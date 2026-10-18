@@ -41,6 +41,7 @@
     ],
     "steamCostKpa": 45,
     "requiresWorkbench": true,
+    "requiresManual": true,
     "stationType": "ARTIFICER_BENCH",
     "apCost": 150
   },
@@ -56,6 +57,7 @@
     ],
     "steamCostKpa": 25,
     "requiresWorkbench": true,
+    "requiresManual": true,
     "stationType": "ARTIFICER_BENCH",
     "apCost": 120
   },

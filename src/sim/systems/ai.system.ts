@@ -41,6 +41,7 @@ export function createDefaultNpcAnatomy(torsoHp = 45, limbHp = 25): AnatomyCompo
       LEFT_LEG: { slot: 'LEFT_LEG', hp: limbHp, maxHp: limbHp, amputated: false },
       RIGHT_LEG: { slot: 'RIGHT_LEG', hp: limbHp, maxHp: limbHp, amputated: false },
     },
+    unlockedRecipeIds: [],
   };
 }
 

@@ -77,5 +77,13 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Trade (${ev.tradeType}): ${ev.quantity}x ${ev.itemName} for ${ev.totalPence}d (Treasury: ${ev.playerTreasuryAfter}d).`;
     case 'TRADE_ACTION_FAILED':
       return `[T${ev.turn}] Trade (${ev.action}) failed: ${ev.reason}`;
+    case 'TERRAIN_SMASHED':
+      return `[T${ev.turn}] Shattered window at (${ev.target.x}, ${ev.target.y})!`;
+    case 'ACTOR_RESTED':
+      return `[T${ev.turn}] Rested and recuperated: +${ev.hpRestored} HP, +${ev.bloodRestoredPct}% blood.`;
+    case 'RECIPE_UNLOCKED':
+      return `[T${ev.turn}] Studied schematic: unlocked recipe "${ev.recipeId}".`;
+    case 'FURNITURE_ACTION_FAILED':
+      return `[T${ev.turn}] Furniture action (${ev.action}) failed: ${ev.reason}`;
   }
 }

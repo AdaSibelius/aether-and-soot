@@ -104,6 +104,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       bloodVolumePct: 100,
       steamReserveKpa: 100,
       maxSteamReserveKpa: 100,
+      unlockedRecipeIds: [],
     },
     inventory: {
       containedEntityIds: [striderLegId, ocularMonocleId],

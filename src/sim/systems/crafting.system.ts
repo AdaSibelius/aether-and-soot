@@ -22,16 +22,9 @@ export const REPAIR_HP_RESTORED = 15;
 type CraftingFailureEvent = Extract<SimEvent, { type: 'CRAFTING_FAILED' }>;
 
 function failCrafting(
-  state: WorldState,
-  actorId: EntityId,
-  action: CraftingFailureEvent['action'],
-  reason: CraftingFailureEvent['reason'],
+  state: WorldState, actorId: EntityId, action: CraftingFailureEvent['action'], reason: CraftingFailureEvent['reason'],
 ): SystemInventoryResult {
-  return {
-    state,
-    apSpent: STANDARD_ACTION_AP,
-    events: [{ type: 'CRAFTING_FAILED', turn: state.turnCount + 1, actorId, action, reason }],
-  };
+  return { state, apSpent: STANDARD_ACTION_AP, events: [{ type: 'CRAFTING_FAILED', turn: state.turnCount + 1, actorId, action, reason }] };
 }
 
 function findAdjacentWorkbench(
@@ -100,6 +93,10 @@ export function resolveCraftRecipe(state: WorldState, actorId: EntityId, recipeI
   const actor = state.entities[actorId];
   if (!actor?.inventory) return failCrafting(state, actorId, 'CRAFT_RECIPE', 'NO_INVENTORY');
   if (!actor.anatomy) return failCrafting(state, actorId, 'CRAFT_RECIPE', 'MISSING_ANATOMY');
+
+  if (recipe.requiresManual && !actor.anatomy.unlockedRecipeIds.includes(recipeId)) {
+    return failCrafting(state, actorId, 'CRAFT_RECIPE', 'RECIPE_LOCKED');
+  }
 
   const bench = findAdjacentWorkbench(state, actor, recipe.stationType);
   if (recipe.requiresWorkbench && !bench) {

@@ -163,6 +163,17 @@ export const SellToMerchantCommandSchema = z.object({
   quantity: z.number().int().positive().optional(),
 });
 
+export const SmashTerrainCommandSchema = z.object({
+  type: z.literal('SMASH_TERRAIN'),
+  actorId: EntityIdSchema,
+  target: Point3DSchema,
+});
+
+export const RestAtBedCommandSchema = z.object({
+  type: z.literal('REST_AT_BED'),
+  actorId: EntityIdSchema,
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -187,6 +198,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   AttackActorCommandSchema,
   BuyFromMerchantCommandSchema,
   SellToMerchantCommandSchema,
+  SmashTerrainCommandSchema,
+  RestAtBedCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
 

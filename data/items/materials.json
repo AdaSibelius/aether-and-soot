@@ -114,5 +114,45 @@
       "bgColor": "#0A0D0E",
       "shaderFlags": ["PULSE_STEAM"]
     }
+  },
+  {
+    "id": "book_pneumatic_schematic",
+    "name": "Technical Folio: Pneumatic Actuators",
+    "description": "A stamped brass-bound workshop manual detailing femoral valve tolerances for pneumatic strider limbs.",
+    "category": "CONSUMABLE",
+    "massGrams": 500,
+    "volumeMl": 600,
+    "stackable": false,
+    "unlocksRecipeId": "recipe_pneumatic_leg_mk1",
+    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnWeight": 8,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "?",
+      "fgPrimary": "#F4D03F",
+      "fgSecondary": "#D4AC0D",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "book_ocular_schematic",
+    "name": "Artificer's Tract: Aetheric Refraction",
+    "description": "An annotated treatise on grinding quartz crystals for multi-aperture turret monocles.",
+    "category": "CONSUMABLE",
+    "massGrams": 400,
+    "volumeMl": 500,
+    "stackable": false,
+    "unlocksRecipeId": "recipe_clockwork_ocular_lens",
+    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnWeight": 8,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "?",
+      "fgPrimary": "#5DADE2",
+      "fgSecondary": "#2E86C1",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
   }
 ]

@@ -81,6 +81,7 @@ export function createItemEntity(
       stackable: blueprint.stackable,
       commodityId: blueprint.commodityId,
       useEffect: blueprint.useEffect,
+      unlocksRecipeId: blueprint.unlocksRecipeId,
     },
   };
   if (!position) return base;

@@ -16,6 +16,7 @@ import {
   withoutEntity,
   withoutPosition,
 } from './inventory-utils.js';
+import { resolveUseManual } from './furniture.system.js';
 
 export const PICKUP_AP = STANDARD_ACTION_AP;
 export const DROP_AP = 50;
@@ -186,8 +187,10 @@ export function resolveUseItem(
   const item = state.entities[itemEntityId];
   if (!item) return createInventoryFailureResult(state, actorId, 'USE', 'ITEM_NOT_FOUND', itemEntityId);
   const itemComp = item.item;
-  const effect = itemComp?.useEffect;
-  if (!itemComp || !effect) return createInventoryFailureResult(state, actorId, 'USE', 'NOT_CONSUMABLE', itemEntityId);
+  if (!itemComp) return createInventoryFailureResult(state, actorId, 'USE', 'NOT_CONSUMABLE', itemEntityId);
+  if (itemComp.unlocksRecipeId) return resolveUseManual(state, actorId, itemEntityId);
+  const effect = itemComp.useEffect;
+  if (!effect) return createInventoryFailureResult(state, actorId, 'USE', 'NOT_CONSUMABLE', itemEntityId);
 
   const anatomy = actor.anatomy;
   let nextAnatomy = anatomy;

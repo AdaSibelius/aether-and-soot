@@ -47,6 +47,9 @@ export function LookCursorOverlay({
   const targetActor = entitiesOnTile.find((e) => e.id !== actorId && e.actor);
   const cell = grid ? getTileCell(grid, cursor.x, cursor.y) : undefined;
   const isDoor = cell?.terrainType === 'WOODEN_DOOR_CLOSED' || cell?.terrainType === 'WOODEN_DOOR_OPEN';
+  const isGlassWindow = cell?.terrainType === 'GLASS_WINDOW';
+  const isSmashedWindow = cell?.terrainType === 'SMASHED_WINDOW_FRAME';
+  const furnitureEntity = entitiesOnTile.find((e) => e.furniture !== undefined);
 
   const isAdjacent = player?.position
     ? Math.max(Math.abs(player.position.x - cursor.x), Math.abs(player.position.y - cursor.y)) <= 1
@@ -62,36 +65,14 @@ export function LookCursorOverlay({
   const topPx = screenY * CELL_HEIGHT_PX;
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none',
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', overflow: 'hidden' }}>
       {/* Top HUD Status Bar */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '6px',
-          left: '8px',
-          right: '8px',
-          background: 'rgba(7, 10, 12, 0.92)',
-          border: '1px solid var(--brass-gold)',
-          padding: '4px 8px',
-          fontSize: '11px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 50,
-          pointerEvents: 'auto',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.8)',
-        }}
-      >
+      <div style={{
+        position: 'absolute', top: '6px', left: '8px', right: '8px',
+        background: 'rgba(7, 10, 12, 0.92)', border: '1px solid var(--brass-gold)',
+        padding: '4px 8px', fontSize: '11px', display: 'flex', justifyContent: 'space-between',
+        alignItems: 'center', zIndex: 50, pointerEvents: 'auto', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.8)',
+      }}>
         <div>
           <span style={{ color: 'var(--brass-gold)', fontWeight: 'bold' }}>[LOOK MODE]</span>{' '}
           <span>Cursor: ({cursor.x}, {cursor.y}) [{stratum}]</span>
@@ -110,38 +91,24 @@ export function LookCursorOverlay({
 
       {/* Brass Reticle Box */}
       {isCursorOnScreen && (
-        <div
-          style={{
-            position: 'absolute',
-            left: `${leftPx}px`,
-            top: `${topPx}px`,
-            width: `${CELL_WIDTH_PX}px`,
-            height: `${CELL_HEIGHT_PX}px`,
-            border: '2px solid var(--brass-gold)',
-            boxShadow: '0 0 12px rgba(212, 175, 55, 0.95), inset 0 0 6px rgba(212, 175, 55, 0.4)',
-            boxSizing: 'border-box',
-            zIndex: 40,
-          }}
-        />
+        <div style={{
+          position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`,
+          width: `${CELL_WIDTH_PX}px`, height: `${CELL_HEIGHT_PX}px`,
+          border: '2px solid var(--brass-gold)',
+          boxShadow: '0 0 12px rgba(212, 175, 55, 0.95), inset 0 0 6px rgba(212, 175, 55, 0.4)',
+          boxSizing: 'border-box', zIndex: 40,
+        }} />
       )}
 
       {/* Floating Target Dossier Badge */}
-      {isCursorOnScreen && (targetActor || isDoor || entitiesOnTile.length > 0) && (
-        <div
-          style={{
-            position: 'absolute',
-            left: `${Math.min(Math.max(8, leftPx - 40), 24 * CELL_WIDTH_PX - 220)}px`,
-            top: `${topPx > 200 ? topPx - 80 : topPx + CELL_HEIGHT_PX + 6}px`,
-            width: '200px',
-            background: 'rgba(9, 14, 17, 0.95)',
-            border: '1px solid var(--brass-gold)',
-            padding: '6px 8px',
-            fontSize: '10px',
-            zIndex: 45,
-            pointerEvents: 'auto',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.9)',
-          }}
-        >
+      {isCursorOnScreen && (targetActor || isDoor || isGlassWindow || isSmashedWindow || furnitureEntity || entitiesOnTile.length > 0) && (
+        <div style={{
+          position: 'absolute', left: `${Math.min(Math.max(8, leftPx - 40), 24 * CELL_WIDTH_PX - 220)}px`,
+          top: `${topPx > 200 ? topPx - 80 : topPx + CELL_HEIGHT_PX + 6}px`, width: '200px',
+          background: 'rgba(9, 14, 17, 0.95)', border: '1px solid var(--brass-gold)',
+          padding: '6px 8px', fontSize: '10px', zIndex: 45, pointerEvents: 'auto',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.9)',
+        }}>
           {targetActor ? (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
@@ -190,10 +157,53 @@ export function LookCursorOverlay({
                 {isAdjacent ? 'Press [Enter] to toggle door' : 'Step adjacent to open/close'}
               </div>
             </div>
+          ) : isGlassWindow ? (
+            <div>
+              <div class="brass-text" style={{ fontWeight: 'bold' }}>⊞ Glass Window</div>
+              <div style={{ color: '#7f8c8d', margin: '2px 0 6px 0' }}>Blocks movement, allows line of sight.</div>
+              {isAdjacent && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onCommand({
+                      type: 'SMASH_TERRAIN',
+                      actorId,
+                      target: { x: cursor.x, y: cursor.y, stratum },
+                    })
+                  }
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#3b2219', border: '1px solid #e67e22', color: '#e67e22', cursor: 'pointer', width: '100%' }}
+                >
+                  [Smash Window]
+                </button>
+              )}
+            </div>
+          ) : isSmashedWindow ? (
+            <div>
+              <div class="muted" style={{ fontWeight: 'bold' }}>% Smashed Window Frame</div>
+              <div style={{ color: '#7f8c8d', marginTop: '2px' }}>Shattered glass. Walkable aperture.</div>
+            </div>
+          ) : furnitureEntity ? (
+            <div>
+              <div class="brass-text" style={{ fontWeight: 'bold' }}>
+                {furnitureEntity.visual.glyph} {furnitureEntity.name}
+              </div>
+              <div style={{ color: '#7f8c8d', margin: '2px 0 6px 0' }}>
+                Type: {furnitureEntity.furniture?.kind}
+              </div>
+              {(furnitureEntity.furniture?.kind === 'BED' || furnitureEntity.furniture?.kind === 'SURGICAL_TABLE') && isAdjacent && (
+                <button
+                  type="button"
+                  onClick={() => onCommand({ type: 'REST_AT_BED', actorId })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}
+                >
+                  [Rest / Recuperate]
+                </button>
+              )}
+            </div>
           ) : (
             <div>
               <div class="brass-text" style={{ fontWeight: 'bold' }}>
-                {entitiesOnTile[0]?.visual.glyph} {entitiesOnTile[0]?.name}
+                {entitiesOnTile[0]?.visual.glyph ?? '.'} {entitiesOnTile[0]?.name ?? cell?.terrainType ?? 'Empty Space'}
               </div>
               <div style={{ color: '#7f8c8d', marginTop: '2px' }}>
                 {entitiesOnTile[0]?.portal ? 'Press [Enter] to traverse portal' : 'Objects on tile'}
