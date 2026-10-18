@@ -73,6 +73,14 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Repaired ${ev.slot} (+${ev.hpRestored} HP, now ${ev.newHp} HP).`;
     case 'CRAFTING_FAILED':
       return `[T${ev.turn}] Artificer ${ev.action} failed: ${ev.reason}`;
+    case 'COMBAT_ATTACK_RESOLVED':
+      return ev.hit
+        ? `[T${ev.turn}] ${ev.attackerId} struck ${ev.targetId}'s ${ev.targetSlot} for ${ev.damageDealt} dmg!`
+        : `[T${ev.turn}] ${ev.attackerId}'s strike at ${ev.targetId}'s ${ev.targetSlot} missed!`;
+    case 'ACTOR_DEFEATED':
+      return `[T${ev.turn}] DEFEATED! ${ev.actorName} collapsed (${ev.droppedEntityIds.length} items dropped)!`;
+    case 'COMBAT_ACTION_FAILED':
+      return `[T${ev.turn}] Attack failed: ${ev.reason}`;
   }
 }
 

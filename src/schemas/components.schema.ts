@@ -3,6 +3,7 @@ import {
   BlueprintIdSchema,
   CommodityIdSchema,
   EntityIdSchema,
+  FactionIdSchema,
   ItemCategorySchema,
   ItemUseEffectSchema,
   LimbSlotIdSchema,
@@ -106,6 +107,22 @@ export const WorkbenchComponentSchema = z.object({
 });
 export type WorkbenchComponent = z.infer<typeof WorkbenchComponentSchema>;
 
+/** Autonomous NPC behavior and faction affiliation controller. */
+export const AiControllerComponentSchema = z.object({
+  factionId: FactionIdSchema,
+  role: z.enum(['GUARD', 'SCAVENGER', 'MERCHANT', 'CITIZEN']),
+  hostile: z.boolean().default(false),
+});
+export type AiControllerComponent = z.infer<typeof AiControllerComponentSchema>;
+
+/** Melee combat parameters for targeted limb attacks. */
+export const CombatStatsComponentSchema = z.object({
+  meleeDamage: z.number().int().positive().default(12),
+  accuracyPct: z.number().int().min(5).max(100).default(85),
+  armorReduction: z.number().int().nonnegative().default(0),
+});
+export type CombatStatsComponent = z.infer<typeof CombatStatsComponentSchema>;
+
 export const EntityComponentsSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1),
@@ -120,6 +137,8 @@ export const EntityComponentsSchema = z.object({
   item: ItemComponentSchema.optional(),
   districtGate: DistrictGateComponentSchema.optional(),
   workbench: WorkbenchComponentSchema.optional(),
+  aiController: AiControllerComponentSchema.optional(),
+  combatStats: CombatStatsComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
 

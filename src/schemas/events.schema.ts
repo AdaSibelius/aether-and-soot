@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import {
+  ActorDefeatedEventSchema,
+  CombatActionFailedEventSchema,
+  CombatAttackResolvedEventSchema,
   CraftingFailedEventSchema,
   DistrictTraveledEventSchema,
   DoorToggledEventSchema,
@@ -22,6 +25,9 @@ import {
 } from './primitives.schema.js';
 
 export {
+  ActorDefeatedEventSchema,
+  CombatActionFailedEventSchema,
+  CombatAttackResolvedEventSchema,
   CraftingFailedEventSchema,
   DistrictTraveledEventSchema,
   DoorToggledEventSchema,
@@ -224,6 +230,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ItemSalvagedEventSchema,
   LimbRepairedEventSchema,
   CraftingFailedEventSchema,
+  CombatAttackResolvedEventSchema,
+  ActorDefeatedEventSchema,
+  CombatActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
 
