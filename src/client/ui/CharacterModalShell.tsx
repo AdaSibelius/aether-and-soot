@@ -3,7 +3,7 @@ import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { AnatomyDoll } from './AnatomyDoll.js';
 import { CraftingPanel } from './CraftingPanel.js';
-import { InventoryPanel } from './InventoryPanel.js';
+import { InventoryWindow } from './InventoryWindow.js';
 import { MarketLedger } from './MarketLedger.js';
 
 export type ModalWindowId = 'INVENTORY' | 'ANATOMY' | 'WORKBENCH' | 'EXCHANGE' | 'ATLAS';
@@ -136,7 +136,7 @@ export function CharacterModalShell({
           }}
         >
           {activeWindow === 'INVENTORY' && (
-            <InventoryPanel state={state} actorId={actorId} onCommand={onCommand} />
+            <InventoryWindow state={state} actorId={actorId} onCommand={onCommand} />
           )}
 
           {activeWindow === 'ANATOMY' && (
