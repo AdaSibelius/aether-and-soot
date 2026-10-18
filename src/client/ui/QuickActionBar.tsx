@@ -6,6 +6,8 @@ import { ModalWindowId } from './CharacterModalShell.js';
 export interface QuickActionBarProps {
   readonly state: Readonly<WorldState>;
   readonly actorId: EntityId;
+  readonly isLookModeActive?: boolean;
+  readonly onToggleLookMode?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
   readonly onOpenModal: (window: ModalWindowId) => void;
   readonly onOpenSystemMenu: () => void;
@@ -14,6 +16,8 @@ export interface QuickActionBarProps {
 export function QuickActionBar({
   state,
   actorId,
+  isLookModeActive = false,
+  onToggleLookMode,
   onCommand,
   onOpenModal,
   onOpenSystemMenu,
@@ -91,6 +95,21 @@ export function QuickActionBar({
         >
           [V] Vent
         </button>
+        {onToggleLookMode && (
+          <button
+            type="button"
+            onClick={onToggleLookMode}
+            style={{
+              padding: '3px 6px',
+              fontSize: '10px',
+              color: isLookModeActive ? 'var(--brass-gold)' : undefined,
+              borderColor: isLookModeActive ? 'var(--brass-gold)' : undefined,
+            }}
+            title="Toggle Keyboard Look / Target Mode [L]"
+          >
+            {isLookModeActive ? '[L] Looking...' : '[L] Look'}
+          </button>
+        )}
       </div>
 
       <div style={{ color: '#2e4053' }}>|</div>

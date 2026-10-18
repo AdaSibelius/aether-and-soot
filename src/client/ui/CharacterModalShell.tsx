@@ -2,6 +2,7 @@ import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { AnatomyWindow } from './AnatomyWindow.js';
+import { AtlasWindow } from './AtlasWindow.js';
 import { CraftingWindow } from './CraftingWindow.js';
 import { InventoryWindow } from './InventoryWindow.js';
 import { TradeWindow } from './TradeWindow.js';
@@ -34,8 +35,6 @@ export function CharacterModalShell({
   onCommand,
 }: CharacterModalShellProps) {
   if (!activeWindow) return null;
-
-  const player = state.entities[actorId];
 
   return (
     <div
@@ -152,30 +151,7 @@ export function CharacterModalShell({
           )}
 
           {activeWindow === 'ATLAS' && (
-            <div class="panel-box" style={{ flex: 1 }}>
-              <div class="panel-header">
-                DISTRICT CARTOGRAPHY &amp; 3-STRATA CROSS-SECTION [W]
-              </div>
-              <div style={{ padding: '8px 0', lineHeight: '1.6' }}>
-                <div class="stat-row">
-                  <span>Current District:</span>
-                  <span class="brass-text">
-                    {state.currentDistrictId ?? 'district_spitalfields_sootworks'}
-                  </span>
-                </div>
-                <div class="stat-row">
-                  <span>Current Stratum:</span>
-                  <span class="copper-text">{player?.position?.stratum ?? 'STREET'}</span>
-                </div>
-                <div class="stat-row">
-                  <span>Vertical Architecture:</span>
-                  <span>SPIRE (Catwalks) &gt; STREET (Cobblestone) &gt; UNDERCROFT (Sewers)</span>
-                </div>
-              </div>
-              <div class="log-entry muted" style={{ marginTop: '16px' }}>
-                Traverse district transit gates and vertical portals (&gt; / &lt;) to expand map coverage. Full interactive overworld map expands in Phase 17.
-              </div>
-            </div>
+            <AtlasWindow state={state} actorId={actorId} onCommand={onCommand} />
           )}
         </div>
 
