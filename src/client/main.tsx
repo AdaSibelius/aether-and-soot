@@ -3,7 +3,7 @@ import { GameCommand } from '../schemas/commands.schema.js';
 import { EntityIdSchema } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
-import { setTileCell } from '../sim/spatial/grid.js';
+import { generateVictorianDistrict } from '../sim/spatial/generator.js';
 import { projectWorldToVisualFrame, VisualGridFrame } from './projection/frame-adapter.js';
 import { GlyphStageRenderer } from './renderer/glyph-stage.js';
 import { HudLayout } from './ui/HudLayout.js';
@@ -21,38 +21,6 @@ declare global {
   }
 }
 
-function seedFoundryPillars(world: WorldState): WorldState {
-  const streetGrid = world.strata.STREET;
-  if (!streetGrid) {
-    return world;
-  }
-  let updatedStreet = streetGrid;
-  const pillars = [
-    { x: 8, y: 8 },
-    { x: 15, y: 8 },
-    { x: 8, y: 15 },
-    { x: 15, y: 15 },
-  ];
-
-  for (const p of pillars) {
-    updatedStreet = setTileCell(updatedStreet, p.x, p.y, () => ({
-      terrainType: 'SOOT_BRICK_WALL',
-      blocksMovement: true,
-      blocksSight: true,
-      steamPressureKpa: 0,
-      coalDustDensity: 0.4,
-    }));
-  }
-
-  return {
-    ...world,
-    strata: {
-      ...world.strata,
-      STREET: updatedStreet,
-    },
-  };
-}
-
 async function bootstrapClient(): Promise<void> {
   const canvasHost = document.getElementById('canvas-stage');
   const hudHost = document.getElementById('hud-root');
@@ -60,7 +28,8 @@ async function bootstrapClient(): Promise<void> {
     throw new Error('Missing #canvas-stage or #hud-root mount elements');
   }
 
-  let worldState = seedFoundryPillars(createInitialWorld({ seed: 0xcafebabe, width: 24, height: 20 }));
+  const baseWorld = createInitialWorld({ seed: 0xcafebabe, width: 24, height: 20 });
+  let worldState = generateVictorianDistrict(baseWorld).state;
   const stageRenderer = await GlyphStageRenderer.create(canvasHost, 24, 20);
   const playerId = EntityIdSchema.parse('actor_player');
 
