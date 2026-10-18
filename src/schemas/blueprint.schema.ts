@@ -20,6 +20,7 @@ export const ProstheticBlueprintSchema = z.object({
   volumeMl: z.number().int().positive(),
   steamConsumptionPerTurn: z.number().nonnegative().default(0),
   moveApModifier: z.number().int().default(0),
+  fovRadiusBonus: z.number().int().default(0),
   pressureRatingKpa: z.number().positive(),
   visual: VisualGlyphSpecSchema,
 });
@@ -83,3 +84,23 @@ export const ItemBlueprintSchema = z
     message: 'CONSUMABLE items must declare a useEffect',
   });
 export type ItemBlueprint = z.infer<typeof ItemBlueprintSchema>;
+
+export const RecipeIngredientSchema = z.object({
+  blueprintId: BlueprintIdSchema,
+  count: z.number().int().positive(),
+});
+export type RecipeIngredient = z.infer<typeof RecipeIngredientSchema>;
+
+export const CraftingRecipeBlueprintSchema = z.object({
+  id: BlueprintIdSchema,
+  name: z.string().min(1),
+  description: z.string().min(1),
+  outputBlueprintId: BlueprintIdSchema,
+  outputQuantity: z.number().int().positive().default(1),
+  ingredients: z.array(RecipeIngredientSchema).min(1),
+  steamCostKpa: z.number().nonnegative().default(0),
+  requiresWorkbench: z.boolean().default(true),
+  stationType: z.enum(['ARTIFICER_BENCH', 'ALCHEMICAL_STILL']).optional(),
+  apCost: z.number().int().positive().default(100),
+});
+export type CraftingRecipeBlueprint = z.infer<typeof CraftingRecipeBlueprintSchema>;

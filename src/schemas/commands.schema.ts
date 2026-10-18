@@ -122,6 +122,24 @@ export const TravelDistrictCommandSchema = z.object({
   targetDistrictId: BlueprintIdSchema,
 });
 
+export const CraftRecipeCommandSchema = z.object({
+  type: z.literal('CRAFT_RECIPE'),
+  actorId: EntityIdSchema,
+  recipeId: BlueprintIdSchema,
+});
+
+export const SalvageItemCommandSchema = z.object({
+  type: z.literal('SALVAGE_ITEM'),
+  actorId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+});
+
+export const RepairLimbCommandSchema = z.object({
+  type: z.literal('REPAIR_LIMB'),
+  actorId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -140,5 +158,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   UseItemCommandSchema,
   ToggleDoorCommandSchema,
   TravelDistrictCommandSchema,
+  CraftRecipeCommandSchema,
+  SalvageItemCommandSchema,
+  RepairLimbCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

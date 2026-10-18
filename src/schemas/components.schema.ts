@@ -99,6 +99,13 @@ export const DistrictGateComponentSchema = z.object({
 });
 export type DistrictGateComponent = z.infer<typeof DistrictGateComponentSchema>;
 
+/** Stationary crafting station (Artificer Bench or Alchemical Still) reducing steam cost. */
+export const WorkbenchComponentSchema = z.object({
+  stationType: z.enum(['ARTIFICER_BENCH', 'ALCHEMICAL_STILL']),
+  bonusEfficiencyPct: z.number().min(0).max(90).default(0),
+});
+export type WorkbenchComponent = z.infer<typeof WorkbenchComponentSchema>;
+
 export const EntityComponentsSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1),
@@ -112,5 +119,6 @@ export const EntityComponentsSchema = z.object({
   pressureVessel: PressureVesselComponentSchema.optional(),
   item: ItemComponentSchema.optional(),
   districtGate: DistrictGateComponentSchema.optional(),
+  workbench: WorkbenchComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;

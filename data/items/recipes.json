@@ -1,0 +1,78 @@
+[
+  {
+    "id": "recipe_coagulant_tonic",
+    "name": "Brew Dr. Halloway's Coagulant Tonic",
+    "description": "Distill crystallised aether salt with vulcanized rubber resin into a field-grade haemostatic tonic.",
+    "outputBlueprintId": "item_coagulant_tonic",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_aether_salt", "count": 2 },
+      { "blueprintId": "mat_vulcanized_rubber", "count": 1 }
+    ],
+    "steamCostKpa": 10,
+    "requiresWorkbench": false,
+    "apCost": 100
+  },
+  {
+    "id": "recipe_steam_canister",
+    "name": "Pressurize Copper Steam Canister",
+    "description": "Rivet a cast-iron cylinder with twin vulcanized rubber gaskets and charge it from the artificer's boiler.",
+    "outputBlueprintId": "item_pressurized_steam_canister",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_cast_iron_plate", "count": 1 },
+      { "blueprintId": "mat_vulcanized_rubber", "count": 2 }
+    ],
+    "steamCostKpa": 30,
+    "requiresWorkbench": true,
+    "stationType": "ARTIFICER_BENCH",
+    "apCost": 100
+  },
+  {
+    "id": "recipe_pneumatic_leg_mk1",
+    "name": "Assemble Gilded Pneumatic Strider Leg Mk.I",
+    "description": "Machine a femoral actuator assembly on the steam lathe from brass gear clusters, cast-iron plates, and rubber seals.",
+    "outputBlueprintId": "prosthetic_pneumatic_leg_mk1",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_brass_gears", "count": 3 },
+      { "blueprintId": "mat_cast_iron_plate", "count": 2 },
+      { "blueprintId": "mat_vulcanized_rubber", "count": 2 }
+    ],
+    "steamCostKpa": 45,
+    "requiresWorkbench": true,
+    "stationType": "ARTIFICER_BENCH",
+    "apCost": 150
+  },
+  {
+    "id": "recipe_clockwork_ocular_lens",
+    "name": "Calibrate Aetheric Turret Monocle",
+    "description": "Grind aetheric salt crystals into multi-aperture quartz lenses mounted inside a phosphor-bronze iris ring.",
+    "outputBlueprintId": "prosthetic_clockwork_ocular_lens",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_brass_gears", "count": 2 },
+      { "blueprintId": "mat_aether_salt", "count": 2 }
+    ],
+    "steamCostKpa": 25,
+    "requiresWorkbench": true,
+    "stationType": "ARTIFICER_BENCH",
+    "apCost": 120
+  },
+  {
+    "id": "recipe_phosphor_bronze_ingot",
+    "name": "Smelt Phosphor-Bronze Ingot",
+    "description": "Alloy salvaged brass gear clusters and cast-iron offcuts with aether salt flux under high-pressure steam.",
+    "outputBlueprintId": "commodity_phosphor_bronze_ingot",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_brass_gears", "count": 2 },
+      { "blueprintId": "mat_cast_iron_plate", "count": 1 },
+      { "blueprintId": "mat_aether_salt", "count": 1 }
+    ],
+    "steamCostKpa": 35,
+    "requiresWorkbench": true,
+    "stationType": "ARTIFICER_BENCH",
+    "apCost": 120
+  }
+]
