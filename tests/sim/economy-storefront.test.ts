@@ -5,6 +5,8 @@ import { SeededRNG } from '../../src/sim/core/rng.js';
 import { createInitialWorld } from '../../src/sim/core/world.js';
 import { advanceDistrictEconomyMacroTick } from '../../src/sim/systems/economy.system.js';
 
+import { createEntityFromBlueprint } from '../../src/sim/data/item-catalog.js';
+
 describe('Phase 6: Factions, Macro-Tick Commodity Economy & Player Storefront', () => {
   const playerId = EntityIdSchema.parse('actor_player');
 
@@ -53,6 +55,26 @@ describe('Phase 6: Factions, Macro-Tick Commodity Economy & Player Storefront', 
   it('executes storefront display pedestal sales during the 100-turn Macro-Tick and credits player treasury', () => {
     let world = createInitialWorld({ seed: 6062, width: 16, height: 16 });
     const initialTreasury = world.economy.playerTreasuryPence;
+
+    // Seed player with 4 units of PHOSPHOR_BRONZE
+    const bronzeEid = EntityIdSchema.parse('item_bronze_stock');
+    const bronzeItem = createEntityFromBlueprint('commodity_phosphor_bronze_ingot', bronzeEid, 4)!;
+    const player = world.entities[playerId]!;
+    world = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [bronzeEid]: bronzeItem,
+        [playerId]: {
+          ...player,
+          inventory: {
+            ...player.inventory!,
+            containedEntityIds: [bronzeEid],
+            currentMassGrams: bronzeItem.item!.massGrams * 4,
+          },
+        },
+      },
+    };
 
     // Stock 4 units of PHOSPHOR_BRONZE at a 10% markup on Turn 1
     const stockRes = dispatchCommand(world, {

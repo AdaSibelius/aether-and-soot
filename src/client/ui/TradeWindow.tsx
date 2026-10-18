@@ -240,7 +240,7 @@ export function TradeWindow({ state, actorId, onCommand }: TradeWindowProps) {
 
       {/* Sub-Tab 2: Victorian Cartel & Commodity Ledger */}
       {activeSubTab === 'LEDGER' && (
-        <CartelLedgerView economy={state.economy} actorId={actorId} onCommand={onCommand} />
+        <CartelLedgerView economy={state.economy} actorId={actorId} entities={state.entities} onCommand={onCommand} />
       )}
     </div>
   );

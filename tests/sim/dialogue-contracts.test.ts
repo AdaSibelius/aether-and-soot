@@ -35,7 +35,7 @@ describe('Phase 20: Interactive NPC Dialogue, Procedural Faction Contracts, Chir
     let state = createInitialWorld({ seed: 42 });
     const pPos = state.entities[playerId]!.position!;
 
-    const fixer = makeNpcRecord(npcId, 'Fixer Jasper', 'FIXER', false, pPos.x + 1, pPos.y);
+    const fixer = makeNpcRecord(npcId, 'Warden Jasper', 'GUARD', false, pPos.x + 1, pPos.y);
     const chirurgeon = makeNpcRecord(chirurgeonId, 'Chirurgeon Vane', 'CHIRURGEON', false, pPos.x, pPos.y + 1);
 
     state = {

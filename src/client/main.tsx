@@ -178,6 +178,7 @@ async function bootstrapClient(): Promise<void> {
           <DialogueModal
             state={worldState} actorId={playerId} targetNpcId={activeDialogueNpcId}
             onCommand={handleCommand} onClose={() => { activeDialogueNpcId = null; syncPresentation(); }}
+            onOpenModal={(w) => { activeDialogueNpcId = null; activeModal = w; syncPresentation(); }}
           />
         )}
         <SystemMenuModal

@@ -10,9 +10,10 @@ export interface DialogueModalProps {
   readonly targetNpcId: EntityId;
   readonly onCommand: (cmd: GameCommand) => void;
   readonly onClose: () => void;
+  readonly onOpenModal?: (windowId: 'INVENTORY' | 'ANATOMY' | 'WORKBENCH' | 'EXCHANGE' | 'ATLAS') => void;
 }
 
-export function DialogueModal({ state, actorId, targetNpcId, onCommand, onClose }: DialogueModalProps) {
+export function DialogueModal({ state, actorId, targetNpcId, onCommand, onClose, onOpenModal }: DialogueModalProps) {
   const npc = state.entities[targetNpcId];
   const player = state.entities[actorId];
   const treasury = state.economy.playerTreasuryPence;
@@ -34,6 +35,7 @@ export function DialogueModal({ state, actorId, targetNpcId, onCommand, onClose 
 
   const factionRep = state.economy.factionReputation[ai.factionId] ?? 0;
   const contracts = state.contracts.filter((c) => c.issuerNpcId === npc.id || c.factionId === ai.factionId);
+  const isHireableRole = ai.role === 'GUARD' || ai.role === 'SCAVENGER' || ai.role === 'CITIZEN';
 
   const getGreeting = () => {
     if (isCompanion) return '"At your side, artificer. Point the way and I shall strike."';
@@ -108,7 +110,24 @@ export function DialogueModal({ state, actorId, targetNpcId, onCommand, onClose 
             </button>
           )}
 
-          {!isCompanion && ai.role !== 'CHIRURGEON' && (
+          {ai.role === 'MERCHANT' && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenModal?.('EXCHANGE');
+              }}
+              style={{
+                flex: 1, padding: '8px', fontSize: '11px', fontWeight: 'bold',
+                color: 'var(--brass-gold)', border: '1px solid var(--brass-gold)',
+                background: '#1c2833', cursor: 'pointer',
+              }}
+            >
+              [Open Exchange Ledger (M)]
+            </button>
+          )}
+
+          {!isCompanion && isHireableRole && (
             <button
               type="button"
               disabled={treasury < COMPANION_HIRE_FEE_PENCE}
@@ -140,7 +159,10 @@ export function DialogueModal({ state, actorId, targetNpcId, onCommand, onClose 
               );
               const targetEntity = state.entities[c.targetBlueprintOrEntityId];
               const isTargetDead = c.kind === 'SLAY_HOSTILE' && (!targetEntity || targetEntity.anatomy?.limbs.TORSO?.amputated);
-              const canComplete = isActive && (hasItem || isTargetDead);
+              const isBoilerPressurized = c.kind === 'PRESSURIZE_BOILER' && Boolean(
+                targetEntity?.pressureVessel?.ruptured || (targetEntity?.pressureVessel?.currentPressureKpa ?? 0) >= 260,
+              );
+              const canComplete = isActive && (hasItem || isTargetDead || isBoilerPressurized);
 
               return (
                 <div key={c.id} style={{ background: '#0e1418', border: '1px solid #1c2833', padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>

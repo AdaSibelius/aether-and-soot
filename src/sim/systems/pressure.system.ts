@@ -4,6 +4,7 @@ import { EntityId, Point3D } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { getTileCell, isWithinBounds, setTileCell } from '../spatial/grid.js';
+import { resolveTriggerSupplyShock } from './economy.system.js';
 
 export const COAL_DUST_IGNITION_THRESHOLD = 0.25;
 
@@ -88,12 +89,22 @@ export function resolvePressurizeVessel(
     },
   };
 
+  const rupturedState: WorldState = {
+    ...state,
+    strata: updatedGrid ? { ...state.strata, [origin.stratum]: updatedGrid } : state.strata,
+    entities: { ...state.entities, [vesselEntityId]: rupturedVessel },
+  };
+
+  const shockRes = resolveTriggerSupplyShock(
+    rupturedState,
+    'ANTHRACITE_COAL',
+    -60,
+    'IRONMONGERS_CARTEL',
+    -15,
+  );
+
   return {
-    state: {
-      ...state,
-      strata: updatedGrid ? { ...state.strata, [origin.stratum]: updatedGrid } : state.strata,
-      entities: { ...state.entities, [vesselEntityId]: rupturedVessel },
-    },
+    state: shockRes.state,
     apSpent: STANDARD_ACTION_AP,
     events: [
       {
@@ -103,6 +114,7 @@ export function resolvePressurizeVessel(
         origin: { x: origin.x, y: origin.y, stratum: origin.stratum },
         releasedPressureKpa: nextPressure,
       },
+      ...shockRes.events,
     ],
   };
 }

@@ -1,10 +1,14 @@
+import { useState } from 'preact/hooks';
 import { GameCommand } from '../../schemas/commands.schema.js';
+import { EntityRecord } from '../../schemas/components.schema.js';
 import { CommodityId, EntityId, FactionId } from '../../schemas/primitives.schema.js';
 import { DistrictEconomyLedger } from '../../sim/systems/economy.system.js';
+import { matchesCommodity } from '../../sim/systems/trade-pricing.js';
 
 export interface CartelLedgerViewProps {
   readonly economy: Readonly<DistrictEconomyLedger>;
   readonly actorId: EntityId;
+  readonly entities?: Record<string, EntityRecord>;
   readonly onCommand: (cmd: GameCommand) => void;
 }
 
@@ -26,7 +30,29 @@ const FACTION_DESCRIPTIONS: ReadonlyArray<{
   { id: 'CROWN_CONSTABULARY', name: 'Crown Constabulary', role: 'District law enforcement & guards' },
 ];
 
-export function CartelLedgerView({ economy, actorId, onCommand }: CartelLedgerViewProps) {
+export function CartelLedgerView({ economy, actorId, entities, onCommand }: CartelLedgerViewProps) {
+  const actor = entities?.[actorId];
+  const playerItems = (actor?.inventory?.containedEntityIds ?? [])
+    .map((id) => entities?.[id])
+    .filter((e): e is EntityRecord => Boolean(e?.item));
+
+  const availableCommodities: Array<{ id: CommodityId; label: string; count: number }> = [];
+  for (const { id, label } of COMMODITY_LABELS) {
+    let count = 0;
+    for (const it of playerItems) {
+      if (matchesCommodity(it, id)) count += it.item?.quantity ?? 1;
+    }
+    if (count > 0) availableCommodities.push({ id, label, count });
+  }
+
+  const [selectedCommodity, setSelectedCommodity] = useState<CommodityId>(
+    availableCommodities[0]?.id ?? 'ANTHRACITE_COAL',
+  );
+  const [markupPct, setMarkupPct] = useState<number>(25);
+
+  const activeEntry = availableCommodities.find((c) => c.id === selectedCommodity);
+  const canStock = Boolean(activeEntry && activeEntry.count > 0);
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', flex: 1 }}>
       {/* Left Column: Cartel Standing & Storefront Pedestals */}
@@ -45,21 +71,12 @@ export function CartelLedgerView({ economy, actorId, onCommand }: CartelLedgerVi
                     : '0 (Neutral)';
 
               return (
-                <div
-                  key={fac.id}
-                  style={{
-                    padding: '6px 8px',
-                    background: '#0d1316',
-                    border: '1px solid #1c2833',
-                  }}
-                >
+                <div key={fac.id} style={{ padding: '6px 8px', background: '#0d1316', border: '1px solid #1c2833' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
                     <span class="brass-text" style={{ fontWeight: 'bold' }}>{fac.name}</span>
                     <span style={{ color: repColor, fontWeight: 'bold' }}>{discountText}</span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#7f8c8d', marginTop: '2px' }}>
-                    {fac.role}
-                  </div>
+                  <div style={{ fontSize: '10px', color: '#7f8c8d', marginTop: '2px' }}>{fac.role}</div>
                 </div>
               );
             })}
@@ -70,15 +87,11 @@ export function CartelLedgerView({ economy, actorId, onCommand }: CartelLedgerVi
         <div class="panel-box" style={{ flex: 1 }}>
           <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>ACTIVE STOREFRONT PEDESTALS</span>
-            <span class="brass-text" style={{ fontSize: '11px' }}>
-              Treasury: {economy.playerTreasuryPence}d
-            </span>
+            <span class="brass-text" style={{ fontSize: '11px' }}>Treasury: {economy.playerTreasuryPence}d</span>
           </div>
 
           {economy.storefrontListings.length === 0 ? (
-            <div class="log-entry muted" style={{ fontSize: '11px' }}>
-              No items currently exhibited on market pedestals.
-            </div>
+            <div class="log-entry muted" style={{ fontSize: '11px' }}>No items currently exhibited on market pedestals.</div>
           ) : (
             economy.storefrontListings.map((listing, idx) => (
               <div key={`${listing.commodity}-${idx}`} class="stat-row" style={{ fontSize: '11px' }}>
@@ -90,27 +103,74 @@ export function CartelLedgerView({ economy, actorId, onCommand }: CartelLedgerVi
             ))
           )}
 
-          <div style={{ marginTop: '12px', display: 'flex', gap: '6px' }}>
-            <button
-              type="button"
-              onClick={() =>
-                onCommand({
-                  type: 'STOCK_PEDESTAL',
-                  actorId,
-                  commodity: 'ANTHRACITE_COAL',
-                  quantity: 3,
-                  askingPriceMarkupPct: 15,
-                })
-              }
-              style={{ fontSize: '10px', padding: '4px 8px' }}
-            >
-              [+] List 3x Anthracite (+15% Markup)
-            </button>
+          {/* Inventory-Driven Pedestal Stocking Selector */}
+          <div style={{ marginTop: '12px', padding: '8px', background: '#0e1418', border: '1px solid #1c2833' }}>
+            <div style={{ fontSize: '11px', color: 'var(--brass-gold)', fontWeight: 'bold', marginBottom: '6px' }}>
+              STOCK PEDESTAL FROM SATCHEL
+            </div>
+            {availableCommodities.length === 0 ? (
+              <div class="muted" style={{ fontSize: '10px' }}>No raw trade commodities in satchel to exhibit on pedestals.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <select
+                    value={selectedCommodity}
+                    onChange={(e) => setSelectedCommodity((e.target as HTMLSelectElement).value as CommodityId)}
+                    style={{ flex: 1, padding: '4px', fontSize: '11px', background: '#0a0d0e', color: '#d5dbdb', border: '1px solid #2c3e50' }}
+                  >
+                    {availableCommodities.map((c) => (
+                      <option key={c.id} value={c.id}>{c.label} ({c.count} in satchel)</option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[0, 25, 50].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMarkupPct(m)}
+                        style={{
+                          padding: '3px 6px', fontSize: '10px',
+                          background: markupPct === m ? 'var(--brass-gold)' : '#1c2833',
+                          color: markupPct === m ? '#0a0d0e' : '#d5dbdb',
+                          border: '1px solid var(--brass-gold)',
+                        }}
+                      >
+                        +{m}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={!canStock}
+                  onClick={() => {
+                    if (canStock) {
+                      onCommand({
+                        type: 'STOCK_PEDESTAL',
+                        actorId,
+                        commodity: selectedCommodity,
+                        quantity: 1,
+                        askingPriceMarkupPct: markupPct,
+                      });
+                    }
+                  }}
+                  style={{
+                    padding: '5px', fontSize: '10px', fontWeight: 'bold',
+                    background: canStock ? '#1c2833' : '#0d1316',
+                    color: canStock ? 'var(--brass-gold)' : '#7f8c8d',
+                    border: '1px solid var(--brass-gold)',
+                    cursor: canStock ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  [+] Exhibit 1x {activeEntry?.label ?? selectedCommodity} (+{markupPct}% Markup)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Right Column: Commodity Market Quotes & Supply Shocks */}
+      {/* Right Column: Commodity Market Quotes & In-World Sabotage Info */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div class="panel-box">
           <div class="panel-header">DISTRICT COMMODITY TICKER (S/D)</div>
@@ -121,19 +181,10 @@ export function CartelLedgerView({ economy, actorId, onCommand }: CartelLedgerVi
               const isHigh = quote.currentPricePence > quote.basePricePence;
 
               return (
-                <div
-                  key={id}
-                  style={{
-                    padding: '6px 8px',
-                    background: '#0d1316',
-                    border: '1px solid #1c2833',
-                  }}
-                >
+                <div key={id} style={{ padding: '6px 8px', background: '#0d1316', border: '1px solid #1c2833' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
                     <span style={{ color: '#d5dbdb' }}>{label}</span>
-                    <span class={isHigh ? 'warn-text' : 'ok-text'} style={{ fontWeight: 'bold' }}>
-                      {quote.currentPricePence}d
-                    </span>
+                    <span class={isHigh ? 'warn-text' : 'ok-text'} style={{ fontWeight: 'bold' }}>{quote.currentPricePence}d</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#7f8c8d', marginTop: '2px' }}>
                     <span>Base: {quote.basePricePence}d</span>
@@ -145,28 +196,14 @@ export function CartelLedgerView({ economy, actorId, onCommand }: CartelLedgerVi
           </div>
         </div>
 
-        {/* Economic Sabotage */}
+        {/* In-World Economic Sabotage Information */}
         <div class="panel-box" style={{ background: '#0d1316', border: '1px solid #4a1515' }}>
-          <div class="panel-header" style={{ color: '#ec7063' }}>ECONOMIC SABOTAGE &amp; INTERVENTION</div>
-          <div style={{ fontSize: '10px', color: '#d5dbdb', marginBottom: '8px' }}>
-            Disrupt supply lines to trigger commodity price spikes at the expense of cartel reputation.
+          <div class="panel-header" style={{ color: '#ec7063' }}>IN-WORLD ECONOMIC INTERVENTION</div>
+          <div style={{ fontSize: '10px', color: '#d5dbdb', lineHeight: '1.4' }}>
+            District commodity supplies and market prices respond dynamically to physical events in the world.
+            <br /><br />
+            <span style={{ color: '#ec7063', fontWeight: 'bold' }}>Foundry Boiler Sabotage:</span> Overpressurizing or detonating a Foundry Boiler beyond its maximum capacity (300 kPa) violently releases scalding steam and disrupts fuel transport lines, triggering an in-world market supply shock (-60 Coal Supply, -15 Ironmongers Rep).
           </div>
-          <button
-            type="button"
-            onClick={() =>
-              onCommand({
-                type: 'TRIGGER_SUPPLY_SHOCK',
-                actorId,
-                commodity: 'ANTHRACITE_COAL',
-                supplyDelta: -60,
-                factionAffected: 'IRONMONGERS_CARTEL',
-                reputationDelta: -15,
-              })
-            }
-            style={{ width: '100%', padding: '5px', fontSize: '11px', color: '#ec7063', background: '#2c1515', border: '1px solid #ec7063' }}
-          >
-            [!] Sabotage Coal Convoy (-60 Coal Supply, -15 Ironmongers Rep)
-          </button>
         </div>
       </div>
     </div>

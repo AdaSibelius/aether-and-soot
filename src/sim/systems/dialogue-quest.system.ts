@@ -101,6 +101,14 @@ export function resolveCompleteContract(
     if (target && target.actor && !target.anatomy?.limbs.TORSO?.amputated) {
       return failDialogue(state, actorId, 'COMPLETE_CONTRACT', 'TARGET_STILL_ALIVE');
     }
+  } else if (contract.kind === 'PRESSURIZE_BOILER') {
+    const target = nextEntities[contract.targetBlueprintOrEntityId];
+    const isPressurized = Boolean(
+      target?.pressureVessel?.ruptured || (target?.pressureVessel?.currentPressureKpa ?? 0) >= 260,
+    );
+    if (!isPressurized) {
+      return failDialogue(state, actorId, 'COMPLETE_CONTRACT', 'BOILER_NOT_PRESSURIZED');
+    }
   }
 
   const currentRep = state.economy.factionReputation[contract.factionId] ?? 0;
@@ -140,6 +148,10 @@ export function resolveHireCompanion(
 
   const npc = state.entities[npcId];
   if (!npc?.actor || !npc.aiController) return failDialogue(state, actorId, 'HIRE_COMPANION', 'INVALID_TARGET');
+  const hireableRoles = ['GUARD', 'SCAVENGER', 'CITIZEN'];
+  if (!hireableRoles.includes(npc.aiController.role)) {
+    return failDialogue(state, actorId, 'HIRE_COMPANION', 'ROLE_NOT_HIREABLE');
+  }
   if (npc.aiController.companionOfActorId === actorId) {
     return failDialogue(state, actorId, 'HIRE_COMPANION', 'ALREADY_COMPANION');
   }
@@ -148,33 +160,18 @@ export function resolveHireCompanion(
     return failDialogue(state, actorId, 'HIRE_COMPANION', 'INSUFFICIENT_FUNDS');
   }
 
-  const updatedNpc = {
-    ...npc,
-    aiController: {
-      ...npc.aiController,
-      companionOfActorId: actorId,
-      hostile: false,
-    },
-  };
-
+  const updatedNpc = { ...npc, aiController: { ...npc.aiController, companionOfActorId: actorId, hostile: false } };
   const nextState: WorldState = {
     ...state,
     entities: { ...state.entities, [npcId]: updatedNpc },
-    economy: {
-      ...state.economy,
-      playerTreasuryPence: state.economy.playerTreasuryPence - COMPANION_HIRE_FEE_PENCE,
-    },
+    economy: { ...state.economy, playerTreasuryPence: state.economy.playerTreasuryPence - COMPANION_HIRE_FEE_PENCE },
   };
 
   return {
     state: nextState,
     events: [{
-      type: 'COMPANION_RECRUITED',
-      turn: state.turnCount + 1,
-      actorId,
-      companionId: npcId,
-      companionName: npc.name,
-      feePence: COMPANION_HIRE_FEE_PENCE,
+      type: 'COMPANION_RECRUITED', turn: state.turnCount + 1, actorId,
+      companionId: npcId, companionName: npc.name, feePence: COMPANION_HIRE_FEE_PENCE,
     }],
     apSpent: STANDARD_ACTION_AP,
   };
@@ -221,22 +218,14 @@ export function resolvePayChirurgeonHeal(
   const nextState: WorldState = {
     ...state,
     entities: { ...state.entities, [actorId]: updatedActor },
-    economy: {
-      ...state.economy,
-      playerTreasuryPence: state.economy.playerTreasuryPence - CHIRURGEON_FEE_PENCE,
-    },
+    economy: { ...state.economy, playerTreasuryPence: state.economy.playerTreasuryPence - CHIRURGEON_FEE_PENCE },
   };
 
   return {
     state: nextState,
     events: [{
-      type: 'CHIRURGEON_HEAL_COMPLETED',
-      turn: state.turnCount + 1,
-      actorId,
-      chirurgeonId,
-      feePence: CHIRURGEON_FEE_PENCE,
-      hpRestored: totalHpRestored,
-      bloodRestoredPct: bloodGain,
+      type: 'CHIRURGEON_HEAL_COMPLETED', turn: state.turnCount + 1, actorId, chirurgeonId,
+      feePence: CHIRURGEON_FEE_PENCE, hpRestored: totalHpRestored, bloodRestoredPct: bloodGain,
     }],
     apSpent: STANDARD_ACTION_AP,
   };

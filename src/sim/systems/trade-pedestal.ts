@@ -10,9 +10,13 @@ export function resolveStockPedestal(
   quantity: number,
   askingPriceMarkupPct: number,
   actorId: EntityId = EntityIdSchema.parse('actor_player'),
-  strict = false,
+  strict = true,
 ): { state: WorldState; events: SimEvent[]; apSpent: number } {
   const actor = state.entities[actorId];
+  if (strict && (!actor?.inventory || quantity <= 0)) {
+    return createTradeFailure(state, actorId, 'STOCK_PEDESTAL', 'INSUFFICIENT_COMMODITY');
+  }
+
   const nextEntities = { ...state.entities };
   let consumedUnits = 0;
 
@@ -21,6 +25,15 @@ export function resolveStockPedestal(
       const e = nextEntities[id];
       return e && matchesCommodity(e, commodity);
     });
+
+    const totalAvailable = matchingIds.reduce((sum, id) => {
+      const e = nextEntities[id];
+      return sum + (e?.item?.quantity ?? 0);
+    }, 0);
+
+    if (strict && totalAvailable < quantity) {
+      return createTradeFailure(state, actorId, 'STOCK_PEDESTAL', 'INSUFFICIENT_COMMODITY');
+    }
 
     let remainingNeeded = quantity;
     let nextContained = [...actor.inventory.containedEntityIds];
