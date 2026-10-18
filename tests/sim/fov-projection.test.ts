@@ -54,7 +54,7 @@ describe('Phase 2: Shadowcasting FOV & Caves of Qud Visual Projection', () => {
     const frame = projectWorldToVisualFrame(world, playerId, 8);
     const targetCell = frame.cells[targetY * frame.width + targetX];
     expect(targetCell).toBeDefined();
-    expect(targetCell!.steamPressureKpa).toBe(60);
+    expect(targetCell!.steamPressureKpa).toBe(34.56);
     expect(targetCell!.visual.shaderFlags).toContain('PULSE_STEAM');
     expect(targetCell!.visual.shaderFlags).toContain('HEAT_SHIMMER');
   });

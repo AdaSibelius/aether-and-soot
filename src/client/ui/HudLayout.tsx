@@ -35,6 +35,12 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Tinkering failed on ${ev.slot}: ${ev.reason}`;
     case 'STEAM_REFILLED':
       return `[T${ev.turn}] Boiler re-pressurized to ${ev.newReserveKpa} kPa.`;
+    case 'VESSEL_RUPTURED':
+      return `[T${ev.turn}] BOILER RUPTURE! ${ev.releasedPressureKpa} kPa blasted at (${ev.origin.x}, ${ev.origin.y})!`;
+    case 'COAL_DUST_IGNITED':
+      return `[T${ev.turn}] FLASH FIRE! ${ev.ignitedTileCount} coal dust tiles ignited!`;
+    case 'THERMAL_SCALD':
+      return `[T${ev.turn}] SCALD! Superheated steam (${ev.steamPressureKpa} kPa) burns ${ev.slot}!`;
     case 'MACRO_TICK_COMPLETED':
       return `[T${ev.turn}] === District Macro-Tick #${ev.macroTickIndex} Processed ===`;
   }

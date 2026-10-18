@@ -52,6 +52,19 @@ export const RefillSteamCommandSchema = z.object({
   pressureAddedKpa: z.number().positive(),
 });
 
+export const PressurizeVesselCommandSchema = z.object({
+  type: z.literal('PRESSURIZE_VESSEL'),
+  actorId: EntityIdSchema,
+  vesselEntityId: EntityIdSchema,
+  pressureAddedKpa: z.number().positive(),
+});
+
+export const EmitSparkCommandSchema = z.object({
+  type: z.literal('EMIT_SPARK'),
+  actorId: EntityIdSchema,
+  target: Point3DSchema,
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -61,5 +74,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   InstallProstheticCommandSchema,
   RemoveProstheticCommandSchema,
   RefillSteamCommandSchema,
+  PressurizeVesselCommandSchema,
+  EmitSparkCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
