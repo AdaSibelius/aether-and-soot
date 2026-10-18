@@ -1,0 +1,171 @@
+import { z } from 'zod';
+import { EntityComponentsSchema, EntityRecord } from '../../schemas/components.schema.js';
+import { SimEventSchema } from '../../schemas/events.schema.js';
+import { EntityIdSchema, StratumId, StratumIdSchema } from '../../schemas/primitives.schema.js';
+import { createStratumGrid, StratumGridSchema } from '../spatial/grid.js';
+import { RNGStateSchema, SeededRNG } from './rng.js';
+
+export const WorldStateSchema = z.object({
+  version: z.literal(1),
+  seed: z.number().int(),
+  rngState: RNGStateSchema,
+  turnCount: z.number().int().nonnegative(),
+  macroTickCount: z.number().int().nonnegative(),
+  strata: z.record(StratumIdSchema, StratumGridSchema),
+  entities: z.record(z.string(), EntityComponentsSchema),
+  eventLog: z.array(SimEventSchema),
+});
+export type WorldState = z.infer<typeof WorldStateSchema>;
+
+export interface CreateWorldConfig {
+  seed: number;
+  width?: number;
+  height?: number;
+}
+
+export function createInitialWorld(config: CreateWorldConfig): WorldState {
+  const width = config.width ?? 24;
+  const height = config.height ?? 24;
+  const rng = new SeededRNG(config.seed);
+
+  const strataNames: StratumId[] = ['UNDERCROFT', 'STREET', 'SPIRE'];
+  const strata: Record<StratumId, z.infer<typeof StratumGridSchema>> = {
+    UNDERCROFT: createStratumGrid('UNDERCROFT', width, height),
+    STREET: createStratumGrid('STREET', width, height),
+    SPIRE: createStratumGrid('SPIRE', width, height),
+  };
+
+  const playerId = EntityIdSchema.parse('actor_player');
+  const manholeDownId = EntityIdSchema.parse('portal_manhole_down');
+  const ladderUpId = EntityIdSchema.parse('portal_ladder_up');
+
+  const centerX = Math.floor(width / 2);
+  const centerY = Math.floor(height / 2);
+
+  const playerEntity: EntityRecord = {
+    id: playerId,
+    name: 'Chief Artificer',
+    visual: {
+      glyph: '@',
+      fgPrimary: '#F4D03F',
+      fgSecondary: '#B7950B',
+      bgColor: '#0A0D0E',
+      shaderFlags: [],
+    },
+    position: {
+      x: centerX,
+      y: centerY,
+      stratum: 'STREET',
+      blocksMovement: true,
+      blocksSight: false,
+    },
+    actor: {
+      energy: 100,
+      speed: 100,
+      isPlayer: true,
+    },
+    anatomy: {
+      limbs: {
+        HEAD: { slot: 'HEAD', hp: 20, maxHp: 20, amputated: false },
+        TORSO: { slot: 'TORSO', hp: 40, maxHp: 40, amputated: false },
+        LEFT_ARM: { slot: 'LEFT_ARM', hp: 25, maxHp: 25, amputated: false },
+        RIGHT_ARM: { slot: 'RIGHT_ARM', hp: 25, maxHp: 25, amputated: false },
+        LEFT_LEG: { slot: 'LEFT_LEG', hp: 30, maxHp: 30, amputated: false },
+        RIGHT_LEG: { slot: 'RIGHT_LEG', hp: 30, maxHp: 30, amputated: false },
+        OCULAR_MOUNT: { slot: 'OCULAR_MOUNT', hp: 10, maxHp: 10, amputated: false },
+        CHASSIS_CORE: { slot: 'CHASSIS_CORE', hp: 50, maxHp: 50, amputated: false },
+      },
+      bloodVolumePct: 100,
+      steamReserveKpa: 100,
+      maxSteamReserveKpa: 100,
+    },
+    inventory: {
+      containedEntityIds: [],
+      maxMassGrams: 25000,
+      maxVolumeMl: 30000,
+      currentMassGrams: 0,
+    },
+  };
+
+  const manholeEntity: EntityRecord = {
+    id: manholeDownId,
+    name: 'Iron Manhole to Undercroft',
+    visual: {
+      glyph: '>',
+      fgPrimary: '#D4AF37',
+      fgSecondary: '#5D6D7E',
+      bgColor: '#0A0D0E',
+      shaderFlags: ['PULSE_STEAM'],
+    },
+    position: {
+      x: centerX,
+      y: centerY,
+      stratum: 'STREET',
+      blocksMovement: false,
+      blocksSight: false,
+    },
+    portal: {
+      target: { x: centerX, y: centerY, stratum: 'UNDERCROFT' },
+      bidirectional: true,
+      conductsGas: true,
+      apCost: 100,
+      portalLabel: 'Descend into the Soot-Sewers',
+    },
+  };
+
+  const ladderEntity: EntityRecord = {
+    id: ladderUpId,
+    name: 'Rusted Iron Ladder to Street',
+    visual: {
+      glyph: '<',
+      fgPrimary: '#D4AF37',
+      fgSecondary: '#5D6D7E',
+      bgColor: '#0A0D0E',
+      shaderFlags: [],
+    },
+    position: {
+      x: centerX,
+      y: centerY,
+      stratum: 'UNDERCROFT',
+      blocksMovement: false,
+      blocksSight: false,
+    },
+    portal: {
+      target: { x: centerX, y: centerY, stratum: 'STREET' },
+      bidirectional: true,
+      conductsGas: true,
+      apCost: 100,
+      portalLabel: 'Climb to Cobblestone Street',
+    },
+  };
+
+  for (const s of strataNames) {
+    if (!strata[s]) {
+      throw new Error(`Missing stratum initialization: ${s}`);
+    }
+  }
+
+  return {
+    version: 1,
+    seed: config.seed,
+    rngState: rng.getState(),
+    turnCount: 0,
+    macroTickCount: 0,
+    strata,
+    entities: {
+      [playerId]: playerEntity,
+      [manholeDownId]: manholeEntity,
+      [ladderUpId]: ladderEntity,
+    },
+    eventLog: [],
+  };
+}
+
+export function serializeWorld(state: WorldState): string {
+  return JSON.stringify(state);
+}
+
+export function deserializeWorld(json: string): WorldState {
+  const parsed: unknown = JSON.parse(json);
+  return WorldStateSchema.parse(parsed);
+}
