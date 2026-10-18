@@ -8,6 +8,10 @@ import {
   StratumIdSchema,
 } from '../../schemas/primitives.schema.js';
 import { createStratumGrid, StratumGridSchema } from '../spatial/grid.js';
+import {
+  createInitialEconomyLedger,
+  DistrictEconomyLedgerSchema,
+} from '../systems/economy.system.js';
 import { RNGStateSchema, SeededRNG } from './rng.js';
 
 export const WorldStateSchema = z.object({
@@ -18,6 +22,7 @@ export const WorldStateSchema = z.object({
   macroTickCount: z.number().int().nonnegative(),
   strata: z.record(StratumIdSchema, StratumGridSchema),
   entities: z.record(z.string(), EntityComponentsSchema),
+  economy: DistrictEconomyLedgerSchema,
   eventLog: z.array(SimEventSchema),
 });
 export type WorldState = z.infer<typeof WorldStateSchema>;
@@ -212,6 +217,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       [manholeDownId]: manholeEntity,
       [ladderUpId]: ladderEntity,
     },
+    economy: createInitialEconomyLedger(),
     eventLog: [],
   };
 }

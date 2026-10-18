@@ -3,6 +3,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { AnatomyDoll } from './AnatomyDoll.js';
+import { MarketLedger } from './MarketLedger.js';
 
 export interface HudLayoutProps {
   readonly state: Readonly<WorldState>;
@@ -41,6 +42,12 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] FLASH FIRE! ${ev.ignitedTileCount} coal dust tiles ignited!`;
     case 'THERMAL_SCALD':
       return `[T${ev.turn}] SCALD! Superheated steam (${ev.steamPressureKpa} kPa) burns ${ev.slot}!`;
+    case 'PEDESTAL_STOCKED':
+      return `[T${ev.turn}] Stocked ${ev.quantity}x ${ev.commodity} on display pedestal.`;
+    case 'SUPPLY_SHOCK_TRIGGERED':
+      return `[T${ev.turn}] SUPPLY SHOCK! ${ev.commodity} -> ${ev.newPricePence}d (${ev.factionAffected} rep: ${ev.newReputation})`;
+    case 'STOREFRONT_SALE_COMPLETED':
+      return `[T${ev.turn}] SALE! Sold ${ev.unitsSold}x ${ev.commodity} for ${ev.revenuePence}d!`;
     case 'MACRO_TICK_COMPLETED':
       return `[T${ev.turn}] === District Macro-Tick #${ev.macroTickIndex} Processed ===`;
   }
@@ -51,7 +58,7 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
   const striderLegId = EntityIdSchema.parse('item_pneumatic_strider_leg');
   const monocleId = EntityIdSchema.parse('item_aetheric_monocle');
   const player = state.entities[playerId];
-  const recentEvents = state.eventLog.slice(-8).reverse();
+  const recentEvents = state.eventLog.slice(-6).reverse();
 
   return (
     <div class="hud-sidebar">
@@ -82,6 +89,8 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
       </div>
 
       <AnatomyDoll anatomy={player?.anatomy} />
+
+      <MarketLedger economy={state.economy} onCommand={onCommand} />
 
       <div class="panel-box">
         <div class="panel-header">TACTICAL &amp; TINKERING BENCH</div>
