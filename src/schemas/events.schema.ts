@@ -13,6 +13,8 @@ import {
   ItemSalvagedEventSchema,
   ItemUsedEventSchema,
   LimbRepairedEventSchema,
+  MerchantTradeCompletedEventSchema,
+  TradeActionFailedEventSchema,
   TransitActionFailedEventSchema,
 } from './domain-events.schema.js';
 import {
@@ -38,6 +40,8 @@ export {
   ItemSalvagedEventSchema,
   ItemUsedEventSchema,
   LimbRepairedEventSchema,
+  MerchantTradeCompletedEventSchema,
+  TradeActionFailedEventSchema,
   TransitActionFailedEventSchema,
 };
 
@@ -233,6 +237,8 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   CombatAttackResolvedEventSchema,
   ActorDefeatedEventSchema,
   CombatActionFailedEventSchema,
+  MerchantTradeCompletedEventSchema,
+  TradeActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
 

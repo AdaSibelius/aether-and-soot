@@ -80,9 +80,9 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/schemas/primitives.schema.ts` | `EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema` (`UNDERCROFT` \| `STREET` \| `SPIRE`), `FactionIdSchema`, `CommodityIdSchema`, `ItemCategorySchema`, `ItemUseEffectSchema`, `HexColorSchema`, `ShaderFlagSchema`, `Point2DSchema`, `Point3DSchema`, `VisualGlyphSpecSchema`, `LimbSlotIdSchema`, `SocketTypeSchema` |
 | `src/schemas/blueprint.schema.ts` | Declarative JSON schemas: `ProstheticBlueprintSchema`, `CommodityBlueprintSchema`, `GasFluidBlueprintSchema`, `DistrictBlueprintSchema`, `ItemBlueprintSchema`, `CraftingRecipeBlueprintSchema` |
 | `src/schemas/components.schema.ts` | ECS components on `EntityRecord`: `position`, `actor`, `portal`, `anatomy` (`limbs`, `bloodVolumePct`, `steamReserveKpa`), `inventory`, `prostheticSpec`, `pressureVessel`, `item`, `districtGate`, `workbench`, `aiController`, `combatStats` |
-| `src/schemas/commands.schema.ts` | `GameCommandSchema` discriminated union (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`, `VENT_STEAM`, `DAMAGE_LIMB`, `INSTALL_PROSTHETIC`, `REMOVE_PROSTHETIC`, `REFILL_STEAM`, `PRESSURIZE_VESSEL`, `EMIT_SPARK`, `STOCK_PEDESTAL`, `TRIGGER_SUPPLY_SHOCK`, `PICK_UP_ITEM`, `DROP_ITEM`, `USE_ITEM`, `TOGGLE_DOOR`, `TRAVEL_DISTRICT`, `CRAFT_RECIPE`, `SALVAGE_ITEM`, `REPAIR_LIMB`, `ATTACK_ACTOR`) |
-| `src/schemas/domain-events.schema.ts` | Extracted domain event schemas for inventory, district transit, crafting, salvage, limb repair, and combat |
-| `src/schemas/events.schema.ts` | `SimEventSchema` discriminated union (all 32 event types emitted by systems and formatted in `HudLayout.tsx`) |
+| `src/schemas/commands.schema.ts` | `GameCommandSchema` discriminated union (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`, `VENT_STEAM`, `DAMAGE_LIMB`, `INSTALL_PROSTHETIC`, `REMOVE_PROSTHETIC`, `REFILL_STEAM`, `PRESSURIZE_VESSEL`, `EMIT_SPARK`, `STOCK_PEDESTAL`, `TRIGGER_SUPPLY_SHOCK`, `PICK_UP_ITEM`, `DROP_ITEM`, `USE_ITEM`, `TOGGLE_DOOR`, `TRAVEL_DISTRICT`, `CRAFT_RECIPE`, `SALVAGE_ITEM`, `REPAIR_LIMB`, `ATTACK_ACTOR`, `BUY_FROM_MERCHANT`, `SELL_TO_MERCHANT`) |
+| `src/schemas/domain-events.schema.ts` | Extracted domain event schemas for inventory, district transit, crafting, salvage, limb repair, combat, and merchant trading |
+| `src/schemas/events.schema.ts` | `SimEventSchema` discriminated union (all 34 event types emitted by systems and formatted in `HudLayout.tsx`) |
 
 ### B. Headless Simulation Core (`src/sim/`)
 | File | Current Lines | Exports & Responsibility |
@@ -90,7 +90,7 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/sim/core/rng.ts` | 76 | `SeededRNG` (`nextUint32`, `nextFloat`, `nextInt`, `getState`), `RNGStateSchema` |
 | `src/sim/core/world.ts` | 236 | `WorldStateSchema`, `createInitialWorld`, `serializeWorld`, `deserializeWorld` |
 | `src/sim/core/scheduler.ts` | 64 | `STANDARD_ACTION_AP` (100), `MACRO_TICK_INTERVAL` (100), `advanceTurnSchedule` |
-| `src/sim/core/engine.ts` | 200 | `dispatchCommand(currentState, rawCommand)` — central command router |
+| `src/sim/core/engine.ts` | 230 | `dispatchCommand(currentState, rawCommand)` — central command router |
 | `src/sim/spatial/grid.ts` | 106 | `TileCellSchema`, `StratumGridSchema`, `createStratumGrid`, `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, `findBlockingEntityAtPoint` |
 | `src/sim/spatial/portals.ts` | 14 | `findPortalAtPoint(entities, point)` |
 | `src/sim/spatial/fov.ts` | 115 | `computeVisibleTiles(grid, originX, originY, radius)`, `isPointVisible`, `pointKey` |
@@ -105,10 +105,11 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/sim/systems/ai.system.ts` | 222 | `createDefaultNpcAnatomy`, `spawnDistrictNpcs`, `advanceNpcTurns` |
 | `src/sim/systems/movement.system.ts` | 256 | `computeMovementMechanics`, `resolveMoveStep`, `resolveUsePortal` |
 | `src/sim/systems/transit.system.ts` | 179 | `resolveToggleDoor`, `resolveTravelDistrict`, `VALID_DISTRICT_IDS` |
+| `src/sim/systems/trade.system.ts` | 9 | `resolveBuyFromMerchant`, `resolveSellToMerchant`, `resolveStockPedestal` |
 | `src/sim/systems/anatomy.system.ts` | **293 (Near Cap)** | `computeProstheticFovBonus`, `resolveDamageLimb`, `resolveInstallProsthetic`, `resolveRemoveProsthetic`, `resolveRefillSteam` |
 | `src/sim/systems/thermo.system.ts` | 168 | `advanceThermodynamicsTick`, `SCALD_PRESSURE_THRESHOLD_KPA` |
 | `src/sim/systems/pressure.system.ts` | 174 | `resolvePressurizeVessel`, `resolveEmitSpark`, `COAL_DUST_IGNITION_THRESHOLD` |
-| `src/sim/systems/economy.system.ts` | **283 (Near Cap)** | `createInitialEconomyLedger`, `computeBoundedPricePence`, `resolveStockPedestal`, `resolveTriggerSupplyShock`, `advanceDistrictEconomyMacroTick` |
+| `src/sim/systems/economy.system.ts` | **283 (Near Cap)** | `createInitialEconomyLedger`, `computeBoundedPricePence`, `resolveTriggerSupplyShock`, `advanceDistrictEconomyMacroTick` |
 
 ### C. Presentation & UI Shell (`src/client/`)
 | File | Exports & Responsibility |

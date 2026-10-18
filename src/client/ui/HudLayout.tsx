@@ -81,6 +81,10 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] DEFEATED! ${ev.actorName} collapsed (${ev.droppedEntityIds.length} items dropped)!`;
     case 'COMBAT_ACTION_FAILED':
       return `[T${ev.turn}] Attack failed: ${ev.reason}`;
+    case 'MERCHANT_TRADE_COMPLETED':
+      return `[T${ev.turn}] Trade (${ev.tradeType}): ${ev.quantity}x ${ev.itemName} for ${ev.totalPence}d (Treasury: ${ev.playerTreasuryAfter}d).`;
+    case 'TRADE_ACTION_FAILED':
+      return `[T${ev.turn}] Trade (${ev.action}) failed: ${ev.reason}`;
   }
 }
 

@@ -14,11 +14,16 @@ import {
   resolveRepairLimb,
   resolveSalvageItem,
 } from '../systems/crafting.system.js';
-import { resolveStockPedestal, resolveTriggerSupplyShock } from '../systems/economy.system.js';
+import { resolveTriggerSupplyShock } from '../systems/economy.system.js';
 import { resolveDropItem, resolvePickupItem, resolveUseItem } from '../systems/inventory.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
+import {
+  resolveBuyFromMerchant,
+  resolveSellToMerchant,
+  resolveStockPedestal,
+} from '../systems/trade.system.js';
 import { resolveToggleDoor, resolveTravelDistrict } from '../systems/transit.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
@@ -134,6 +139,29 @@ export function dispatchCommand(
           command.commodity,
           command.quantity,
           command.askingPriceMarkupPct,
+          command.actorId,
+        ),
+      );
+      break;
+    case 'BUY_FROM_MERCHANT':
+      apply(
+        resolveBuyFromMerchant(
+          nextState,
+          command.actorId,
+          command.merchantId,
+          command.itemEntityId,
+          command.quantity,
+        ),
+      );
+      break;
+    case 'SELL_TO_MERCHANT':
+      apply(
+        resolveSellToMerchant(
+          nextState,
+          command.actorId,
+          command.merchantId,
+          command.itemEntityId,
+          command.quantity,
         ),
       );
       break;
