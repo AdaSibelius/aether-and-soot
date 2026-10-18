@@ -4,7 +4,7 @@ import { WorldState } from '../../sim/core/world.js';
 import { AnatomyWindow } from './AnatomyWindow.js';
 import { CraftingWindow } from './CraftingWindow.js';
 import { InventoryWindow } from './InventoryWindow.js';
-import { MarketLedger } from './MarketLedger.js';
+import { TradeWindow } from './TradeWindow.js';
 
 export type ModalWindowId = 'INVENTORY' | 'ANATOMY' | 'WORKBENCH' | 'EXCHANGE' | 'ATLAS';
 
@@ -148,7 +148,7 @@ export function CharacterModalShell({
           )}
 
           {activeWindow === 'EXCHANGE' && (
-            <MarketLedger economy={state.economy} onCommand={onCommand} />
+            <TradeWindow state={state} actorId={actorId} onCommand={onCommand} />
           )}
 
           {activeWindow === 'ATLAS' && (
