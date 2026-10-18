@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import {
   BlueprintIdSchema,
+  CommodityIdSchema,
+  ItemCategorySchema,
+  ItemUseEffectSchema,
   LimbSlotIdSchema,
   SocketTypeSchema,
   StratumIdSchema,
@@ -59,3 +62,24 @@ export const DistrictBlueprintSchema = z.object({
   wallVisual: VisualGlyphSpecSchema,
 });
 export type DistrictBlueprint = z.infer<typeof DistrictBlueprintSchema>;
+
+export const ItemBlueprintSchema = z
+  .object({
+    id: BlueprintIdSchema,
+    name: z.string().min(1),
+    description: z.string().min(1),
+    category: ItemCategorySchema,
+    massGrams: z.number().int().positive(),
+    volumeMl: z.number().int().positive(),
+    stackable: z.boolean().default(true),
+    commodityId: CommodityIdSchema.optional(),
+    useEffect: ItemUseEffectSchema.optional(),
+    spawnStrata: z.array(StratumIdSchema).default([]),
+    spawnWeight: z.number().int().nonnegative().default(0),
+    spawnQuantityMax: z.number().int().positive().default(1),
+    visual: VisualGlyphSpecSchema,
+  })
+  .refine((bp) => bp.category !== 'CONSUMABLE' || bp.useEffect !== undefined, {
+    message: 'CONSUMABLE items must declare a useEffect',
+  });
+export type ItemBlueprint = z.infer<typeof ItemBlueprintSchema>;

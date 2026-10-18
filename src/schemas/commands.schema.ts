@@ -88,6 +88,27 @@ export const TriggerSupplyShockCommandSchema = z.object({
   reputationDelta: z.number().int(),
 });
 
+/** Omit `itemEntityId` to pick up the first carryable item on the actor's tile (sorted by id). */
+export const PickUpItemCommandSchema = z.object({
+  type: z.literal('PICK_UP_ITEM'),
+  actorId: EntityIdSchema,
+  itemEntityId: EntityIdSchema.optional(),
+});
+
+/** Omit `quantity` to drop the entire stack. */
+export const DropItemCommandSchema = z.object({
+  type: z.literal('DROP_ITEM'),
+  actorId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+  quantity: z.number().int().positive().optional(),
+});
+
+export const UseItemCommandSchema = z.object({
+  type: z.literal('USE_ITEM'),
+  actorId: EntityIdSchema,
+  itemEntityId: EntityIdSchema,
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -101,5 +122,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   EmitSparkCommandSchema,
   StockPedestalCommandSchema,
   TriggerSupplyShockCommandSchema,
+  PickUpItemCommandSchema,
+  DropItemCommandSchema,
+  UseItemCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

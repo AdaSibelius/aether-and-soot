@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import {
   BlueprintIdSchema,
+  CommodityIdSchema,
   EntityIdSchema,
+  ItemCategorySchema,
+  ItemUseEffectSchema,
   LimbSlotIdSchema,
   Point3DSchema,
   SocketTypeSchema,
@@ -75,6 +78,19 @@ export const InventoryComponentSchema = z.object({
 });
 export type InventoryComponent = z.infer<typeof InventoryComponentSchema>;
 
+/** Physical carryable item. `massGrams` and `volumeMl` are PER UNIT (multiply by `quantity`). */
+export const ItemComponentSchema = z.object({
+  blueprintId: BlueprintIdSchema,
+  category: ItemCategorySchema,
+  massGrams: z.number().int().positive(),
+  volumeMl: z.number().int().positive(),
+  quantity: z.number().int().positive().default(1),
+  stackable: z.boolean().default(true),
+  commodityId: CommodityIdSchema.optional(),
+  useEffect: ItemUseEffectSchema.optional(),
+});
+export type ItemComponent = z.infer<typeof ItemComponentSchema>;
+
 export const EntityComponentsSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1),
@@ -86,5 +102,6 @@ export const EntityComponentsSchema = z.object({
   inventory: InventoryComponentSchema.optional(),
   prostheticSpec: ProstheticSpecComponentSchema.optional(),
   pressureVessel: PressureVesselComponentSchema.optional(),
+  item: ItemComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
