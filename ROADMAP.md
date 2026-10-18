@@ -4,36 +4,14 @@
 > - **Phases 1–6 (Completed)**: Established the deterministic headless core (`src/sim/`), 3-strata verticality, anatomy/prosthetics, thermodynamics, macro-economy, and the PixiJS/Preact presentation shell.
 > - **Phases 7–12 (Completed — Issues #12–#17)**: Built world items & encumbrance, multi-building districts & inter-district transit, steam-powered crafting & salvage, autonomous NPC AI & targeted limb combat, physical merchant trading, and the initial UI inspector/system menu.
 > - **Phases 13–17 (Completed — Issues #18–#22)**: Delivered the *Caves of Qud* full-window modal UI shell (`[I]` Satchel, `[A]` Vitruvian Anatomy & Grafts, `[C]` Artificer Schematic Bench, `[M]` Dual-Column Exchange & Factions, `[W]` Multi-Stratum World Atlas) and keyboard `[L]` Look/Target cursor mode.
-> - **Phases 18–22 (Completed — Issues #23–#27)**: Expanded the world into large scrolling districts (`48x36`) with persistent Fog-of-War memory and cached district states, 5 procedural building archetypes with smashable glass windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, a CDDA-style Character Creation screen, and wielded melee/ranged weapons with wearable pocketed armor.
-> - **Phases 23–28 (Active — Issues #28–#33 — Deep Interconnected World & Systems Cohesion)**: Connects every standalone mechanic into an interlocking Victorian survival simulation: lootable furniture containers & physical currency pouches, grounded inventory-backed trade stalls & Merchant dialogue wiring, fuel-driven boiler stoking & tactical pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
+> - **Phases 18–23 (Completed — Issues #23–#28)**: Expanded the world into large scrolling districts (`48x36`), procedural building archetypes with smashable windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, CDDA-style Character Creation, wielded weapons & wearable pocketed armor, and interactive containers (`LOCKER`, `CRATE`, `BOOKSHELF`) with tangible currency pouches (`Crown Pence Pouch`).
+> - **Phases 24–28 (Active — Issues #29–#33 — Deep Interconnected World & Systems Cohesion)**: Connects every standalone mechanic into an interlocking Victorian survival simulation: grounded inventory-backed trade stalls & Merchant dialogue wiring, fuel-driven boiler stoking & tactical pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
 >
 > Every phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
 
 ---
 
-## 1. Active Implementation Plan: Phases 23–28 (World Scale & Systems Cohesion)
-
-### Phase 23: Interactive Containers (`LOCKER`, `CRATE`, `BOOKSHELF`) & Tangible Currency / Loot Tables (Issue #28)
-- **Goal**: Connect existing furniture containers (`LOCKER`, `CRATE`, `BOOKSHELF`) and the hidden currency system (`playerTreasuryPence`) into a tangible scavenging and loot economy.
-- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines). Create `src/sim/systems/container.system.ts`.
-- **Files to Create / Modify**:
-  - **Modify** `src/schemas/commands.schema.ts`, `src/schemas/domain-events.schema.ts`, & `src/schemas/components.schema.ts`:
-    - Add `LootContainerCommandSchema` (`type: 'LOOT_CONTAINER'`, `actorId`, `containerId`, `itemId?: EntityId`).
-    - Add `ContainerLootedEventSchema` (`type: 'CONTAINER_LOOTED'`, `actorId`, `containerId`, `containerName`, `itemIds`, `penceGained`).
-    - Add `penceValue: z.number().int().nonnegative().optional()` to `ItemBlueprintSchema` & `ItemComponentSchema`.
-  - **Modify** `data/items/materials.json` & `src/sim/spatial/building-prefabs.ts`:
-    - Add `item_crown_pence_pouch` (*Crown Pence Pouch*, `penceValue: 18`, glyph `$`).
-    - Seed deterministic starting inventories (`inventory: EntityId[]`) into spawned `LOCKER`, `CRATE`, and `BOOKSHELF` furniture entities in Apothecary, Armoury, Foundry, and Tavern buildings.
-    - Drop a `Crown Pence Pouch` when NPCs are defeated.
-  - **Create** `src/sim/systems/container.system.ts` & wire in `src/sim/core/engine.ts` and `src/sim/systems/inventory.system.ts`:
-    - Implement `resolveLootContainer` (requires Chebyshev distance `<= 1` to a `LOCKER`, `CRATE`, or `BOOKSHELF`) and credit `penceValue` items directly into `state.economy.playerTreasuryPence` upon pickup or container looting.
-  - **Modify** `src/client/ui/InventoryWindow.tsx`, `src/client/ui/CharacterCreatorModal.tsx`, `src/client/ui/LookCursorOverlay.tsx`, & `src/client/ui/TileInspectorPanel.tsx`:
-    - Display `playerTreasuryPence` (`Treasury: Xd`) in Satchel and Character Creator, and add `[Loot Container]` buttons when inspecting adjacent containers.
-  - **Create** `tests/sim/containers-currency.test.ts`: Deterministic tests for container seeding, `LOOT_CONTAINER`, range validation, and `Crown Pence Pouch` treasury crediting.
-- **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 23). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 23: Interactive Containers (LOCKER, CRATE, BOOKSHELF) & Tangible Currency / Loot Tables (Issue #28)** by creating `src/sim/systems/container.system.ts` and `tests/sim/containers-currency.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
-
----
+## 1. Active Implementation Plan: Phases 24–28 (World Scale & Systems Cohesion)
 
 ### Phase 24: Grounded Trade, Live Chirurgeon/Fixer/Contract Spawns & Dialogue-to-Market Wiring (Issue #29)
 - **Goal**: Ground the trading, dialogue, and cartel contract economy in the physical world by spawning live `CHIRURGEON` and `FIXER` NPCs and seeding procedural `FactionContract` quests during district generation (fixing the Phase 20 world-gen gap), connecting Merchant NPC dialogue directly to the Market Exchange (`[M]`), requiring real inventory commodities to stock Trade Pedestals, and replacing magic UI debug buttons with in-world economic interactions.
@@ -119,7 +97,7 @@
 
 ---
 
-## 2. Archive: Completed Phases (Phases 7–22)
+## 2. Archive: Completed Phases (Phases 7–23)
 - **Phase 7 (Issue #12 — Completed)**: World Items, Ground Spawning & True Inventory Management (`src/sim/systems/inventory.system.ts`, `src/sim/systems/item-spawner.ts`).
 - **Phase 8 (Issue #13 — Completed)**: Multi-Building District ProcGen, Doors & Inter-District Transit (`src/sim/spatial/district-layout.ts`, `src/sim/systems/transit.system.ts`).
 - **Phase 9 (Issue #14 — Completed)**: Artificer Crafting, Salvage & Steam Workbenches (`src/sim/systems/crafting.system.ts`, `data/items/recipes.json`).
@@ -136,3 +114,4 @@
 - **Phase 20 (Issue #25 — Completed)**: Interactive NPC Dialogue, Procedural Faction Contracts, Chirurgeon Services & Companions (`src/sim/systems/dialogue-quest.system.ts`, `src/client/ui/DialogueModal.tsx`).
 - **Phase 21 (Issue #26 — Completed)**: CDDA-Style Character Creation Modal — Professions, Traits & Starting Scenarios (`src/sim/systems/character-archetypes.ts`, `src/client/ui/CharacterCreatorModal.tsx`).
 - **Phase 22 (Issue #27 — Completed)**: Wielded Weapons, Wearable Armor/Pocket Gear & Ranged Pneumatic Ballistics (`src/sim/systems/equipment.system.ts`, `src/sim/systems/ballistics.system.ts`).
+- **Phase 23 (Issue #28 — Completed)**: Interactive Containers (`LOCKER`, `CRATE`, `BOOKSHELF`) & Tangible Currency / Loot Tables (`src/sim/systems/container.system.ts`, `data/items/materials.json`, `tests/sim/containers-currency.test.ts`).
