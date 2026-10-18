@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aether &amp; Soot — Victorian Steampunk Roguelike</title>
+    <style>
+      :root {
+        --bg-soot: #0a0d0e;
+        --panel-bg: #11171a;
+        --brass-gold: #d4af37;
+        --oxidized-copper: #cd7f32;
+        --parchment: #d5dbdb;
+        --muted-slate: #7f8c8d;
+        --ok-green: #58d68d;
+        --warn-red: #ec7063;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background-color: var(--bg-soot);
+        color: var(--parchment);
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 16px;
+      }
+      .app-frame {
+        display: grid;
+        grid-template-columns: auto 340px;
+        gap: 16px;
+        border: 2px solid var(--brass-gold);
+        background: #07090a;
+        padding: 14px;
+        box-shadow: 0 0 28px rgba(212, 175, 55, 0.15);
+      }
+      #canvas-stage {
+        border: 1px solid #2c3e50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .hud-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .panel-box {
+        background: var(--panel-bg);
+        border: 1px solid #2e4053;
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+      .panel-header {
+        color: var(--brass-gold);
+        font-weight: bold;
+        letter-spacing: 0.08em;
+        border-bottom: 1px solid #2e4053;
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+      }
+      .stat-row,
+      .limb-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+      }
+      .brass-text {
+        color: var(--brass-gold);
+      }
+      .copper-text {
+        color: var(--oxidized-copper);
+      }
+      .ok-text {
+        color: var(--ok-green);
+      }
+      .warn-text {
+        color: var(--warn-red);
+      }
+      .button-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      button {
+        background: #17202a;
+        color: var(--brass-gold);
+        border: 1px solid var(--brass-gold);
+        padding: 6px 8px;
+        font-family: inherit;
+        font-size: 11px;
+        cursor: pointer;
+        text-align: left;
+      }
+      button:hover {
+        background: #212f3d;
+      }
+      .log-box {
+        flex: 1;
+        min-height: 140px;
+      }
+      .log-entry {
+        font-size: 11px;
+        line-height: 1.4;
+        padding: 2px 0;
+        border-bottom: 1px dashed #1c2833;
+      }
+      .muted {
+        color: var(--muted-slate);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-frame">
+      <div id="canvas-stage"></div>
+      <div id="hud-root"></div>
+    </div>
+    <script type="module" src="/src/client/main.tsx"></script>
+  </body>
+</html>
