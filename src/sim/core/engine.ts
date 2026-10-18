@@ -4,30 +4,21 @@ import { markExploredTiles, setTileCell } from '../spatial/grid.js';
 import { computeVisibleTiles } from '../spatial/fov.js';
 import { advanceNpcTurns } from '../systems/ai.system.js';
 import {
-  computeProstheticFovBonus,
-  resolveDamageLimb,
-  resolveInstallProsthetic,
-  resolveRefillSteam,
-  resolveRemoveProsthetic,
+  computeProstheticFovBonus, resolveDamageLimb, resolveInstallProsthetic, resolveRefillSteam, resolveRemoveProsthetic,
 } from '../systems/anatomy.system.js';
 import { resolveAttackActor } from '../systems/combat.system.js';
-import {
-  resolveCraftRecipe,
-  resolveRepairLimb,
-  resolveSalvageItem,
-} from '../systems/crafting.system.js';
+import { resolveCraftRecipe, resolveRepairLimb, resolveSalvageItem } from '../systems/crafting.system.js';
 import { resolveTriggerSupplyShock } from '../systems/economy.system.js';
 import { resolveDropItem, resolvePickupItem, resolveUseItem } from '../systems/inventory.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
 import { resolveRestAtBed, resolveSmashTerrain } from '../systems/furniture.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
-import {
-  resolveBuyFromMerchant,
-  resolveSellToMerchant,
-  resolveStockPedestal,
-} from '../systems/trade.system.js';
+import { resolveBuyFromMerchant, resolveSellToMerchant, resolveStockPedestal } from '../systems/trade.system.js';
 import { resolveToggleDoor, resolveTravelDistrict } from '../systems/transit.system.js';
+import {
+  resolveAcceptContract, resolveCompleteContract, resolveHireCompanion, resolvePayChirurgeonHeal,
+} from '../systems/dialogue-quest.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -203,6 +194,18 @@ export function dispatchCommand(
       break;
     case 'REST_AT_BED':
       apply(resolveRestAtBed(nextState, command.actorId));
+      break;
+    case 'ACCEPT_CONTRACT':
+      apply(resolveAcceptContract(nextState, command.actorId, command.contractId));
+      break;
+    case 'COMPLETE_CONTRACT':
+      apply(resolveCompleteContract(nextState, command.actorId, command.contractId));
+      break;
+    case 'HIRE_COMPANION':
+      apply(resolveHireCompanion(nextState, command.actorId, command.npcId));
+      break;
+    case 'PAY_CHIRURGEON_HEAL':
+      apply(resolvePayChirurgeonHeal(nextState, command.actorId, command.chirurgeonId));
       break;
   }
 

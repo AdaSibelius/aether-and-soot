@@ -85,5 +85,15 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Studied schematic: unlocked recipe "${ev.recipeId}".`;
     case 'FURNITURE_ACTION_FAILED':
       return `[T${ev.turn}] Furniture action (${ev.action}) failed: ${ev.reason}`;
+    case 'CONTRACT_ACCEPTED':
+      return `[T${ev.turn}] Contract signed: "${ev.title}".`;
+    case 'CONTRACT_COMPLETED':
+      return `[T${ev.turn}] Contract completed: "${ev.title}" (+${ev.rewardPence}d, +${ev.rewardReputation} rep).`;
+    case 'COMPANION_RECRUITED':
+      return `[T${ev.turn}] Hired companion: ${ev.companionName} for ${ev.feePence}d.`;
+    case 'CHIRURGEON_HEAL_COMPLETED':
+      return `[T${ev.turn}] Chirurgeon treated wounds: +${ev.hpRestored} HP, +${ev.bloodRestoredPct}% blood (-${ev.feePence}d).`;
+    case 'DIALOGUE_ACTION_FAILED':
+      return `[T${ev.turn}] Dialogue action (${ev.action}) failed: ${ev.reason}`;
   }
 }

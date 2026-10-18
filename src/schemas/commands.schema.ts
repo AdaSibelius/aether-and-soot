@@ -174,6 +174,30 @@ export const RestAtBedCommandSchema = z.object({
   actorId: EntityIdSchema,
 });
 
+export const AcceptContractCommandSchema = z.object({
+  type: z.literal('ACCEPT_CONTRACT'),
+  actorId: EntityIdSchema,
+  contractId: z.string().min(1),
+});
+
+export const CompleteContractCommandSchema = z.object({
+  type: z.literal('COMPLETE_CONTRACT'),
+  actorId: EntityIdSchema,
+  contractId: z.string().min(1),
+});
+
+export const HireCompanionCommandSchema = z.object({
+  type: z.literal('HIRE_COMPANION'),
+  actorId: EntityIdSchema,
+  npcId: EntityIdSchema,
+});
+
+export const PayChirurgeonHealCommandSchema = z.object({
+  type: z.literal('PAY_CHIRURGEON_HEAL'),
+  actorId: EntityIdSchema,
+  chirurgeonId: EntityIdSchema,
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -200,6 +224,10 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   SellToMerchantCommandSchema,
   SmashTerrainCommandSchema,
   RestAtBedCommandSchema,
+  AcceptContractCommandSchema,
+  CompleteContractCommandSchema,
+  HireCompanionCommandSchema,
+  PayChirurgeonHealCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
 

@@ -112,8 +112,10 @@ export type WorkbenchComponent = z.infer<typeof WorkbenchComponentSchema>;
 /** Autonomous NPC behavior and faction affiliation controller. */
 export const AiControllerComponentSchema = z.object({
   factionId: FactionIdSchema,
-  role: z.enum(['GUARD', 'SCAVENGER', 'MERCHANT', 'CITIZEN']),
+  role: z.enum(['GUARD', 'SCAVENGER', 'MERCHANT', 'CITIZEN', 'CHIRURGEON', 'FIXER']),
   hostile: z.boolean().default(false),
+  companionOfActorId: EntityIdSchema.optional(),
+  dialogueId: z.string().optional(),
 });
 export type AiControllerComponent = z.infer<typeof AiControllerComponentSchema>;
 

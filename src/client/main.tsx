@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { GameCommand } from '../schemas/commands.schema.js';
-import { EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
+import { EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
 import { generateVictorianDistrict } from '../sim/spatial/generator.js';
@@ -11,6 +11,7 @@ import { handleGameKeydown } from './input/keyboard-router.js';
 import { projectWorldToVisualFrame, VisualGridFrame } from './projection/frame-adapter.js';
 import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer } from './renderer/glyph-stage.js';
 import { CharacterModalShell, ModalWindowId } from './ui/CharacterModalShell.js';
+import { DialogueModal } from './ui/DialogueModal.js';
 import { HudLayout } from './ui/HudLayout.js';
 import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
 import { QuickActionBar } from './ui/QuickActionBar.js';
@@ -59,10 +60,30 @@ async function bootstrapClient(): Promise<void> {
   let isLookModeActive = false;
   let lookCursor: { x: number; y: number } | null = null;
 
+  let activeDialogueNpcId: EntityId | null = null;
+
   const handleCommand = (cmd: GameCommand): void => {
     const result = dispatchCommand(worldState, cmd);
     worldState = result.state;
     syncPresentation();
+  };
+
+  const handleTalk = (targetId?: EntityId): void => {
+    if (targetId) {
+      activeDialogueNpcId = targetId;
+      syncPresentation();
+      return;
+    }
+    const p = worldState.entities[playerId]?.position;
+    if (!p) return;
+    const adj = Object.values(worldState.entities).find(
+      (e) => e.id !== playerId && e.actor && !e.actor.isPlayer && !e.aiController?.hostile && e.position
+        && e.position.stratum === p.stratum && Math.max(Math.abs(e.position.x - p.x), Math.abs(e.position.y - p.y)) <= 1,
+    );
+    if (adj) {
+      activeDialogueNpcId = adj.id;
+      syncPresentation();
+    }
   };
 
   const cycleModal = (direction: 1 | -1): void => {
@@ -75,13 +96,9 @@ async function bootstrapClient(): Promise<void> {
 
   const toggleLookMode = (): void => {
     isLookModeActive = !isLookModeActive;
-    if (isLookModeActive) {
-      const p = worldState.entities[playerId]?.position;
-      lookCursor = p ? { x: p.x, y: p.y } : { x: 12, y: 10 };
-      hoveredTile = lookCursor;
-    } else {
-      lookCursor = null;
-    }
+    const p = worldState.entities[playerId]?.position;
+    lookCursor = isLookModeActive ? (p ? { x: p.x, y: p.y } : { x: 12, y: 10 }) : null;
+    hoveredTile = lookCursor;
     syncPresentation();
   };
 
@@ -89,11 +106,9 @@ async function bootstrapClient(): Promise<void> {
     if (!lookCursor) return;
     const p = worldState.entities[playerId]?.position;
     const grid = p ? worldState.strata[p.stratum] : undefined;
-    const maxX = (grid?.width ?? 48) - 1;
-    const maxY = (grid?.height ?? 36) - 1;
     lookCursor = {
-      x: Math.max(0, Math.min(maxX, lookCursor.x + dx)),
-      y: Math.max(0, Math.min(maxY, lookCursor.y + dy)),
+      x: Math.max(0, Math.min((grid?.width ?? 48) - 1, lookCursor.x + dx)),
+      y: Math.max(0, Math.min((grid?.height ?? 36) - 1, lookCursor.y + dy)),
     };
     hoveredTile = lookCursor;
     syncPresentation();
@@ -106,9 +121,7 @@ async function bootstrapClient(): Promise<void> {
     const target = Object.values(worldState.entities).find(
       (e) => e.id !== playerId && e.actor && e.position && e.position.stratum === p.stratum && e.position.x === lookCursor?.x && e.position.y === lookCursor?.y,
     );
-    if (target) {
-      handleCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot });
-    }
+    if (target) handleCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot });
   };
 
   const lookInteract = (): void => {
@@ -119,9 +132,9 @@ async function bootstrapClient(): Promise<void> {
     const cell = grid ? getTileCell(grid, lookCursor.x, lookCursor.y) : undefined;
     if (cell?.terrainType === 'WOODEN_DOOR_CLOSED' || cell?.terrainType === 'WOODEN_DOOR_OPEN') {
       handleCommand({ type: 'TOGGLE_DOOR', actorId: playerId, target: { x: lookCursor.x, y: lookCursor.y, stratum: p.stratum } });
-      return;
+    } else {
+      handleCommand({ type: 'USE_PORTAL', actorId: playerId });
     }
-    handleCommand({ type: 'USE_PORTAL', actorId: playerId });
   };
 
   const syncPresentation = (): void => {
@@ -130,13 +143,8 @@ async function bootstrapClient(): Promise<void> {
 
     render(
       <LookCursorOverlay
-        isActive={isLookModeActive}
-        cursor={lookCursor}
-        cameraOrigin={visualFrame.cameraOrigin}
-        state={worldState}
-        actorId={playerId}
-        onCommand={handleCommand}
-        onClose={toggleLookMode}
+        isActive={isLookModeActive} cursor={lookCursor} cameraOrigin={visualFrame.cameraOrigin}
+        state={worldState} actorId={playerId} onCommand={handleCommand} onClose={toggleLookMode} onTalk={handleTalk}
       />,
       overlayHost,
     );
@@ -144,11 +152,8 @@ async function bootstrapClient(): Promise<void> {
     if (actionBarHost) {
       render(
         <QuickActionBar
-          state={worldState}
-          actorId={playerId}
-          isLookModeActive={isLookModeActive}
-          onToggleLookMode={toggleLookMode}
-          onCommand={handleCommand}
+          state={worldState} actorId={playerId} isLookModeActive={isLookModeActive}
+          onToggleLookMode={toggleLookMode} onCommand={handleCommand}
           onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
           onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
         />,
@@ -159,23 +164,24 @@ async function bootstrapClient(): Promise<void> {
     render(
       <div>
         <HudLayout
-          state={worldState}
-          onCommand={handleCommand}
-          hoveredTile={hoveredTile}
+          state={worldState} onCommand={handleCommand} hoveredTile={hoveredTile}
           onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
           onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
         />
         <CharacterModalShell
-          state={worldState}
-          actorId={playerId}
-          activeWindow={activeModal}
+          state={worldState} actorId={playerId} activeWindow={activeModal}
           onClose={() => { activeModal = null; syncPresentation(); }}
           onSelectWindow={(w) => { activeModal = w; syncPresentation(); }}
           onCommand={handleCommand}
         />
+        {activeDialogueNpcId && (
+          <DialogueModal
+            state={worldState} actorId={playerId} targetNpcId={activeDialogueNpcId}
+            onCommand={handleCommand} onClose={() => { activeDialogueNpcId = null; syncPresentation(); }}
+          />
+        )}
         <SystemMenuModal
-          state={worldState}
-          isOpen={isSystemMenuOpen}
+          state={worldState} isOpen={isSystemMenuOpen}
           onClose={() => { isSystemMenuOpen = false; syncPresentation(); }}
           onNewSeed={(seed) => { worldState = createFreshWorld(seed); syncPresentation(); }}
           onLoadWorld={(loaded) => { worldState = loaded; syncPresentation(); }}
@@ -217,6 +223,7 @@ async function bootstrapClient(): Promise<void> {
       onMoveLookCursor: moveLookCursor,
       onLookAttack: lookAttack,
       onLookInteract: lookInteract,
+      onTalk: handleTalk,
       onCommand: handleCommand,
     });
   });
@@ -232,3 +239,4 @@ async function bootstrapClient(): Promise<void> {
 }
 
 void bootstrapClient();
+

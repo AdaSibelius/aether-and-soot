@@ -12,6 +12,7 @@ export interface LookCursorOverlayProps {
   readonly actorId: EntityId;
   readonly onCommand: (cmd: GameCommand) => void;
   readonly onClose: () => void;
+  readonly onTalk?: (targetNpcId: EntityId) => void;
 }
 
 const LIMB_TARGETS: readonly { slot: LimbSlotId; key: string; label: string }[] = [
@@ -24,13 +25,7 @@ const LIMB_TARGETS: readonly { slot: LimbSlotId; key: string; label: string }[] 
 ];
 
 export function LookCursorOverlay({
-  isActive,
-  cursor,
-  cameraOrigin,
-  state,
-  actorId,
-  onCommand,
-  onClose,
+  isActive, cursor, cameraOrigin, state, actorId, onCommand, onClose, onTalk,
 }: LookCursorOverlayProps) {
   if (!isActive || !cursor) return null;
 
@@ -123,25 +118,36 @@ export function LookCursorOverlay({
                 </div>
               )}
               {isAdjacent ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', marginTop: '4px' }}>
-                  {LIMB_TARGETS.map((t) => (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', marginTop: '4px' }}>
+                    {LIMB_TARGETS.map((t) => (
+                      <button
+                        key={t.slot}
+                        type="button"
+                        onClick={() =>
+                          onCommand({
+                            type: 'ATTACK_ACTOR',
+                            attackerId: actorId,
+                            targetId: targetActor.id,
+                            targetSlot: t.slot,
+                          })
+                        }
+                        style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center' }}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  {!targetActor.aiController?.hostile && onTalk && (
                     <button
-                      key={t.slot}
                       type="button"
-                      onClick={() =>
-                        onCommand({
-                          type: 'ATTACK_ACTOR',
-                          attackerId: actorId,
-                          targetId: targetActor.id,
-                          targetSlot: t.slot,
-                        })
-                      }
-                      style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center' }}
+                      onClick={() => onTalk(targetActor.id)}
+                      style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', width: '100%', marginTop: '3px', color: 'var(--brass-gold)', border: '1px solid var(--brass-gold)', cursor: 'pointer' }}
                     >
-                      {t.label}
+                      [Talk (T)]
                     </button>
-                  ))}
-                </div>
+                  )}
+                </>
               ) : (
                 <div style={{ color: '#7f8c8d', fontSize: '9px' }}>
                   Step adjacent to strike limbs in melee.

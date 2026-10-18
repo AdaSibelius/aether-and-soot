@@ -19,12 +19,7 @@ export const NPC_VISION_RADIUS = 8;
 export const HOSTILE_REPUTATION_THRESHOLD = -30;
 
 const TARGETABLE_SLOTS: readonly LimbSlotId[] = [
-  'TORSO',
-  'LEFT_ARM',
-  'RIGHT_ARM',
-  'LEFT_LEG',
-  'RIGHT_LEG',
-  'HEAD',
+  'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG', 'HEAD',
 ];
 
 /** Builds a 6-limb AnatomyComponent for an NPC or enemy. */
@@ -166,7 +161,8 @@ export function advanceNpcTurns(
 
     const gainedEnergy = npc.actor.energy + npc.actor.speed;
     const rep = workingState.economy.factionReputation[npc.aiController.factionId] ?? 0;
-    const isHostile = npc.aiController.hostile || rep <= HOSTILE_REPUTATION_THRESHOLD;
+    const isCompanion = Boolean(npc.aiController.companionOfActorId);
+    const isHostile = !isCompanion && (npc.aiController.hostile || rep <= HOSTILE_REPUTATION_THRESHOLD);
 
     if (gainedEnergy < STANDARD_ACTION_AP) {
       workingState = {
@@ -187,7 +183,27 @@ export function advanceNpcTurns(
     const grid = workingState.strata[npc.position.stratum];
     let apSpent = STANDARD_ACTION_AP;
 
-    if (isHostile && player?.position && player.position.stratum === npc.position.stratum && grid) {
+    if (isCompanion && player?.position && player.position.stratum === npc.position.stratum) {
+      const adjacentHostile = Object.values(workingState.entities).find(
+        (e) => e.actor && !e.actor.isPlayer && e.aiController?.hostile && e.position?.stratum === npc.position!.stratum
+          && Math.max(Math.abs(e.position.x - npc.position!.x), Math.abs(e.position.y - npc.position!.y)) <= 1,
+      );
+      if (adjacentHostile) {
+        const targetSlot = TARGETABLE_SLOTS[rng.nextInt(0, TARGETABLE_SLOTS.length - 1)] ?? 'TORSO';
+        const atkRes = resolveAttackActor(workingState, npc.id, adjacentHostile.id, targetSlot, rng);
+        workingState = atkRes.state;
+        apSpent = atkRes.apSpent;
+        events.push(...atkRes.events);
+      } else if (Math.max(Math.abs(player.position.x - npc.position.x), Math.abs(player.position.y - npc.position.y)) > 1) {
+        const moveRes = resolveMoveStep(
+          workingState, npc.id,
+          Math.sign(player.position.x - npc.position.x), Math.sign(player.position.y - npc.position.y),
+        );
+        workingState = moveRes.state;
+        apSpent = moveRes.apSpent;
+        events.push(...moveRes.events);
+      }
+    } else if (isHostile && player?.position && player.position.stratum === npc.position.stratum && grid) {
       const visible = computeVisibleTiles(grid, npc.position.x, npc.position.y, NPC_VISION_RADIUS);
       if (isPointVisible(visible, player.position)) {
         const dist = Math.max(

@@ -15,12 +15,10 @@ import {
 } from '../systems/economy.system.js';
 import { RNGStateSchema, SeededRNG } from './rng.js';
 
+import { FactionContractSchema } from '../../schemas/contracts.schema.js';
+
 export const SavedDistrictSnapshotSchema = z.object({
-  strata: z.object({
-    UNDERCROFT: StratumGridSchema,
-    STREET: StratumGridSchema,
-    SPIRE: StratumGridSchema,
-  }),
+  strata: z.object({ UNDERCROFT: StratumGridSchema, STREET: StratumGridSchema, SPIRE: StratumGridSchema }),
   entities: z.record(z.string(), EntityComponentsSchema),
 });
 export type SavedDistrictSnapshot = z.infer<typeof SavedDistrictSnapshotSchema>;
@@ -37,6 +35,7 @@ export const WorldStateSchema = z.object({
   strata: z.record(StratumIdSchema, StratumGridSchema),
   entities: z.record(z.string(), EntityComponentsSchema),
   economy: DistrictEconomyLedgerSchema,
+  contracts: z.array(FactionContractSchema).default([]),
   eventLog: z.array(SimEventSchema),
   savedDistricts: z.record(z.string(), SavedDistrictSnapshotSchema).default({}),
 });
@@ -231,6 +230,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       [ladderUpId]: ladderEntity,
     },
     economy: createInitialEconomyLedger(),
+    contracts: [],
     eventLog: [],
     savedDistricts: {},
   };
