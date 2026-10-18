@@ -1,125 +1,136 @@
 # ROADMAP.md — Phased AI Feature Handoff Plan (Aether & Soot)
 
-> **HOW TO USE THIS ROADMAP**: Phases 1–6 established the deterministic headless core (`src/sim/`), 3-strata verticality, anatomy/prosthetics, thermodynamics, macro-economy, and the PixiJS/Preact presentation shell.
+> **HOW TO USE THIS ROADMAP**:
+> - **Phases 1–6 (Completed)**: Established the deterministic headless core (`src/sim/`), 3-strata verticality, anatomy/prosthetics, thermodynamics, macro-economy, and the PixiJS/Preact presentation shell.
+> - **Phases 7–12 (Completed — Issues #12–#17)**: Built world items & encumbrance, multi-building districts & inter-district transit, steam-powered crafting & salvage, autonomous NPC AI & targeted limb combat, physical merchant trading, and the initial UI inspector/system menu.
+> - **Phases 13–17 (Active — The *Caves of Qud* UI & Tactical UX Overhaul)**: Replaces the cramped sidebar tabs with full-window, keyboard-driven *Caves of Qud*-style modal screens (`[I]` Satchel, `[A]` Vitruvian Anatomy & Grafts, `[C]` Artificer Schematic Bench, `[M]` Dual-Column Exchange & Factions, `[W]` Multi-Stratum World Atlas) and keyboard `[L]` Look/Target cursor mode.
 >
-> Phases **7 through 12** below turn that engine foundation into a complete, interconnected roguelike loop. Each phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
+> Every phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
 
 ---
 
-## 1. Current State Gap Analysis (What Exists vs. What Is Missing)
+## 1. Current UI & UX Gap Analysis (Sidebar Tabs vs. *Caves of Qud* Windows)
 
-| Domain | What Currently Exists (Phases 1–6) | What Is Missing (Phases 7–12) |
+| Domain | What Currently Exists (Phases 1–12) | What Phases 13–17 Deliver (*Caves of Qud* UX) |
 | :--- | :--- | :--- |
-| **Items & Inventory** | `InventoryComponentSchema` tracks `containedEntityIds` and mass; player starts with 2 hardcoded prosthetics (`world.ts`). | General `item` component (materials, consumables, weapons, commodities), items spawning on floor tiles, `PICK_UP_ITEM` and `DROP_ITEM` commands. |
-| **World & Map Generation** | `generateVictorianDistrict` (`generator.ts`, 285 lines) carves 2–3 small rooms on a 24x20 grid with vertical portals (`>`, `<`, `^`, `v`). | Multi-room buildings with doors (`+`/`/`), outside street thoroughfares, and District Transit Gates to travel between the 3 districts in `data/world/districts.json`. |
-| **Crafting & Salvage** | Declarative blueprints exist for prosthetics and commodities (`data/items/`). | Crafting recipes (`recipes.json`), Workbench entities, salvaging scrap from broken items, and crafting new prosthetics/vials using steam pressure + materials. |
-| **NPCs, Enemies & Combat** | `DAMAGE_LIMB` command and limb amputation/bleeding mechanics exist in `anatomy.system.ts`. | Non-player actors (`AiControllerComponent`), enemy spawning, deterministic NPC turn loop in `scheduler.ts`, and targeted limb melee/ranged combat (`ATTACK_ACTOR`). |
-| **Storefronts & Trading** | `economy.system.ts` simulates macro-tick price curves, supply shocks, and abstract pedestal sales. | Physical item linkage (stocking a pedestal consumes an item from `inventory`), plus buying/selling items and prosthetics at NPC merchants using `playerTreasuryPence`. |
-| **Menus & Interface** | Everything renders on a single crowded sidebar (`HudLayout.tsx`) with hardcoded test buttons. | Title/Seed/Save-Load screen, tabbed/modal screens (`[I]` Inventory, `[C]` Crafting, `[A]` Anatomy, `[M]` Market), and canvas tile hover/click inspection. |
+| **Main Viewport & Sidebar (`HudLayout.tsx`)** | 5 tiny tabs (`TEL`, `INV[I]`, `SURG[A]`, `BENCH[C]`, `MKT[M]`) swap inside the narrow 340px right-hand sidebar, hiding telemetry whenever a tab is open. | Right sidebar stays permanently dedicated to **Live Telemetry, Nearby Entities/Hostiles, Tile Inspector, and the Action Chronicle**, plus a bottom **Quick-Action Ability Bar**. Pressing `[I]`, `[A]`, `[C]`, `[M]`, or `[W]` opens a **large full-window overlay modal**. |
+| **Modal Window Navigation** | Only `[Esc]` System Menu is a modal; management views require clicking small sidebar buttons. | Unified **`CharacterModalShell.tsx`** with a *Caves of Qud*-style header bar (`[Q <<] SATCHEL [I] | ANATOMY [A] | WORKBENCH [C] | EXCHANGE [M] | ATLAS [W] [>> E]`), keyboard tab cycling (`Tab`, `Q`/`E`), and `[Esc]` to return to the map. |
+| **Inventory & Item Inspection (`[I]`)** | Single narrow list (`InventoryPanel.tsx`) with truncated names and no item lore or `[a-z]` hotkeys. | **Two-Column `InventoryWindow.tsx`**: Categorized item list with `[a]`–`[z]` hotkeys on the left; rich **Victorian Item Dossier** (lore description, mass/volume gauges, steam kPa requirements, market value, and `[u] Use`, `[d] Drop`, `[g] Graft`, `[s] Salvage` keybinds) on the right. |
+| **Anatomy & Crafting (`[A]` & `[C]`)** | Text-only limb rows (`AnatomyDoll.tsx`) and compact recipe buttons (`CraftingPanel.tsx`). | **2D Vitruvian Clockwork Paperdoll (`AnatomyWindow.tsx`)** with spatial limb boxes (`[1]`–`[6]`), bleed/HP meters, and direct prosthetic socket picker; plus a split-pane **Blueprint Schematic Bench (`CraftingWindow.tsx`)**. |
+| **Trading & Economy (`[M]`)** | Compact commodity table (`MarketLedger.tsx`) and tiny inline buy/sell buttons inside `TileInspectorPanel.tsx`. | **Dual-Column `TradeWindow.tsx`**: Merchant Stock on the left, Player Satchel on the right, live faction discount math, plus the full **District Cartel & Storefront Ledger**. |
+| **World Map (`[W]`) & Look Mode (`[L]`)** | No overview map of explored strata or London districts; tile inspection requires mouse hover. | **`AtlasWindow.tsx`** showing the London Overworld (`Spitalfields`, `Whitechapel`, `Kensington`) + 3-Strata Cross-Section (`SPIRE`, `STREET`, `UNDERCROFT`), and keyboard **`[L]` Look / Target Cursor Mode** on the main canvas. |
 
 ---
 
-## 2. System Interconnection Diagram (How Phases 7–12 Fit Together)
+## 2. Architecture Diagram (Phases 13–17 UI & Window Hierarchy)
 
 ```mermaid
 flowchart TD
-    P7["Phase 7: World Items & Inventory\n(inventory.system.ts)"]
-    P8["Phase 8: Multi-Building Districts & Transit\n(district-layout.ts + transit.system.ts)"]
-    P9["Phase 9: Steam-Powered Crafting & Salvage\n(crafting.system.ts + recipes.json)"]
-    P10["Phase 10: NPCs, Enemies & Targeted Limb Combat\n(combat.system.ts + ai.system.ts)"]
-    P11["Phase 11: Physical Storefronts & Merchant Trade\n(trade.system.ts)"]
-    P12["Phase 12: Multi-Screen Menus, Tabs & Canvas Inspector\n(src/client/ui/*.tsx)"]
+    Main["src/client/main.tsx\n(Keyboard Router + Look Cursor + Window State)"]
+    Hud["src/client/ui/HudLayout.tsx\n(Always-On Tactical Sidebar + Bottom Ability Bar)"]
+    Shell["src/client/ui/CharacterModalShell.tsx\n(Caves of Qud Full-Window Modal Frame: [Q/E/Tab/Esc])"]
 
-    P7 -->|"Floor loot & raw materials"| P9
-    P7 -->|"Physical commodities"| P11
-    P8 -->|"Spawns rooms, workbenches & district gates"| P9
-    P8 -->|"Spawns faction patrols & sewer enemies"| P10
-    P9 -->|"Crafts prosthetics, weapons & commodities"| P10
-    P9 -->|"Crafts high-value goods for sale"| P11
-    P10 -->|"Drops salvageable limbs/gear & alters Faction Rep"| P11
-    P7 & P8 & P9 & P10 & P11 -->|"Surfaced via clean modal/tab views"| P12
+    P14["Phase 14: InventoryWindow.tsx [I]\n(2-Column [a-z] Satchel + Item Dossier)"]
+    P15A["Phase 15: AnatomyWindow.tsx [A]\n(2D Vitruvian Paperdoll + Limb Surgery)"]
+    P15B["Phase 15: CraftingWindow.tsx [C]\n(Split-Pane Schematic & Salvage Bench)"]
+    P16["Phase 16: TradeWindow.tsx [M]\n(Dual-Column Merchant Trade + Cartel Ledger)"]
+    P17["Phase 17: AtlasWindow.tsx [W]\n(London Overworld + 3-Strata Map + [L] Look Mode)"]
+
+    Main --> Hud
+    Main --> Shell
+    Shell --> P14
+    Shell --> P15A
+    Shell --> P15B
+    Shell --> P16
+    Shell --> P17
 ```
 
 ---
 
-## 3. Phased Implementation Plan (Ready for AI Handoff)
+## 3. Active Implementation Plan (Phases 13–17 — Ready for AI Handoff)
 
-### Phase 7: World Items, Ground Spawning & True Inventory Management
-- **Goal**: Make items physical entities that exist on map tiles, can be picked up, stacked, dropped, and inspected in the player's inventory.
-- **Why First**: Crafting (Phase 9), Enemy Loot Drops (Phase 10), and Physical Storefronts (Phase 11) all depend on items existing as first-class ECS entities on the ground and inside `inventory.containedEntityIds`.
+### Phase 13: *Caves of Qud* Modal Window Shell & Always-On Tactical Sidebar (Issue #18)
+- **Goal**: Decouple deep management screens from the narrow right-hand sidebar. Turn `HudLayout.tsx` into a clean, always-on tactical HUD (Vitals gauges, Stratum/District header, Nearby Entities & Hostiles list, Tile Inspector, and Action Chronicle) with a bottom Quick-Action Bar, and create the full-screen `CharacterModalShell.tsx` overlay triggered by `[I]`, `[A]`, `[C]`, `[M]`, or `[W]`.
+- **Architectural Constraint**: Every `.tsx` file in `src/client/` must remain strictly **<= 250 lines** (hard gate: 300 lines).
 - **Files to Create / Modify**:
-  - **Modify** `src/schemas/components.schema.ts`: Add `ItemComponentSchema` (`blueprintId`, `category: 'MATERIAL' | 'CONSUMABLE' | 'PROSTHETIC' | 'COMMODITY'`, `massGrams`, `volumeMl`, `quantity`, `commodityId?`).
-  - **Modify** `src/schemas/blueprint.schema.ts` & `data/items/materials.json`: Add raw materials (`mat_brass_gears`, `mat_vulcanized_rubber`, `mat_aether_salt`, `mat_cast_iron_plate`) and consumables (`item_coagulant_tonic`, `item_pressurized_steam_canister`).
-  - **Modify** `src/schemas/commands.schema.ts` & `src/schemas/events.schema.ts`: Add `PICK_UP_ITEM`, `DROP_ITEM`, and `USE_ITEM` commands + `ITEM_PICKED_UP`, `ITEM_DROPPED`, `ITEM_USED` events.
-  - **Create** `src/sim/systems/inventory.system.ts` (**New Module** — do not bloat `anatomy.system.ts`): Implement `resolvePickupItem`, `resolveDropItem`, `resolveUseItem`, and deterministic ground-item spawning helper `spawnDistrictItems`.
-  - **Create** `tests/sim/inventory-items.test.ts`: Verify mass/volume encumbrance limits, picking up items from a tile, dropping items back onto a tile, and using a coagulant tonic or steam canister.
+  - **Create** `src/client/ui/CharacterModalShell.tsx` (**New Module**): Full-window Victorian double-brass-bordered modal overlay with top tab bar (`SATCHEL [I]`, `ANATOMY [A]`, `WORKBENCH [C]`, `EXCHANGE [M]`, `ATLAS [W]`), footer keybind legend (`[Q/E or Tab] Switch Window  |  [Esc] Return to World`), and active window slot rendering.
+  - **Create** `src/client/ui/QuickActionBar.tsx` (**New Module**): Bottom horizontal ability bar below the PixiJS viewport (`[Space] Wait`, `[G] Get Item`, `[>/<] Portal`, `[R] Stoke Boiler`, `[V] Vent Steam`, `[L] Look`, `[I] Satchel`, `[A] Anatomy`, `[C] Craft`, `[M] Market`, `[W] Map`).
+  - **Modify** `src/client/ui/HudLayout.tsx`: Remove the 5-tab switcher from the sidebar so the sidebar always displays live Player Vitals (Blood & Steam progress bars), District/Stratum status, Nearby Visible Entities/NPCs, `TileInspectorPanel`, and `ACTION CHRONICLE`.
+  - **Modify** `src/client/main.tsx` & `index.html`: Track `activeModalWindow: ModalWindowId | null` (`'INVENTORY' | 'ANATOMY' | 'WORKBENCH' | 'EXCHANGE' | 'ATLAS' | null`), bind `[I]`, `[A]`, `[C]`, `[M]`, `[W]`, `[Tab]`, `[Q]`, `[E]`, and `[Esc]` to open/cycle/close the full-window modal, and block movement commands while a modal window is open.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 7). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 7: World Items, Ground Spawning & True Inventory Management** by creating `src/sim/systems/inventory.system.ts` and `tests/sim/inventory-items.test.ts`. Run `npm run verify` and confirm 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 13). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 13: Caves of Qud Modal Window Shell & Always-On Tactical Sidebar (Issue #18)** by creating `src/client/ui/CharacterModalShell.tsx` and `src/client/ui/QuickActionBar.tsx`, and refactoring `src/client/ui/HudLayout.tsx` and `src/client/main.tsx` so `[I]`, `[A]`, `[C]`, `[M]`, and `[W]` open a large full-window modal instead of sidebar tabs. Keep every file <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 8: Multi-Building District ProcGen, Doors & Inter-District Transit
-- **Goal**: Expand the map from a single enclosed courtyard into a multi-building Victorian district (Workshop, Market Hall, Foundry Boiler House, Sewer Vaults, Spire Catwalks) with openable doors and District Transit Gates to travel to the outside world.
-- **Architectural Constraint**: `src/sim/spatial/generator.ts` is currently at **286 lines** (near the 300-line hard cap). The agent **MUST** extract room/building carving into `src/sim/spatial/district-layout.ts` and inter-district travel into `src/sim/systems/transit.system.ts`.
+### Phase 14: Two-Column Satchel Window (`[I]`), `[a–z]` Hotkeys & Item Dossier (Issue #19)
+- **Goal**: Replace the cramped single-column inventory panel with a *Caves of Qud*-style two-column **Satchel & Equipment Dossier Window** featuring keyboard `[a]`–`[z]` item selection, category grouping, encumbrance/volume bars, ground-loot transfer, and rich mechanical/lore inspection.
+- **Architectural Constraint**: Keep `src/client/ui/InventoryWindow.tsx` **<= 250 lines** by extracting item metadata/dossier rendering into `src/client/ui/ItemDossierCard.tsx` if needed.
 - **Files to Create / Modify**:
-  - **Modify** `src/sim/spatial/grid.ts`: Add `'WOODEN_DOOR_CLOSED'`, `'WOODEN_DOOR_OPEN'`, and `'DISTRICT_GATE'` to `TerrainTypeSchema`. Closed doors block movement, sight, and steam diffusion; open doors allow all three.
-  - **Create** `src/sim/spatial/district-layout.ts` (**New Module**): Procedural building generator that carves named buildings with doorways along a central cobblestone thoroughfare on `STREET`, sewer tunnels on `UNDERCROFT`, and catwalk bridges on `SPIRE`.
-  - **Modify** `src/sim/spatial/generator.ts`: Delegate room carving to `district-layout.ts` (reducing `generator.ts` below 200 lines) and place District Transit Portals at the North/South/East/West street borders linking the 3 districts in `data/world/districts.json` (`district_spitalfields_sootworks`, `district_whitechapel_sump`, `district_kensington_aether_spire`).
-  - **Create** `src/sim/systems/transit.system.ts` (**New Module**): Implement `resolveToggleDoor` (`TOGGLE_DOOR` command) and `resolveTravelDistrict` (`TRAVEL_DISTRICT` command, which transitions `WorldState.currentDistrictId` and generates/restores the target district grid using `SeededRNG`).
-  - **Create** `tests/sim/district-transit.test.ts`: Verify door opening/closing alters FOV & steam propagation, and verify deterministic travel between Spitalfields and Whitechapel Sump.
+  - **Create** `src/client/ui/InventoryWindow.tsx` (**New Module**):
+    - **Left Column**: Carried items grouped by category (`PROSTHETIC`, `CONSUMABLE`, `MATERIAL`, `COMMODITY`) assigned `[a]`–`[z]` letter hotkeys, plus a "Ground Items at Feet" section (`[G]` to pick up).
+    - **Top Encumbrance Bar**: Visual mass (`kg / max kg`) and volume (`mL / max mL`) meters with overburdened warnings.
+  - **Create** `src/client/ui/ItemDossierCard.tsx` (**New Module**):
+    - **Right Column**: Full inspection card for the selected item showing blueprint description, category badge, mass, volume, stack quantity, prosthetic socket/limb compatibility or consumable effect, and keyboard/click action buttons (`[U] Use / Consume`, `[D] Drop`, `[G] Graft to Limb`, `[S] Salvage into Scrap`).
+  - **Modify** `src/client/ui/CharacterModalShell.tsx`: Mount `<InventoryWindow />` when the `INVENTORY` window is active.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 8). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 8: Multi-Building District ProcGen, Doors & Inter-District Transit**. Extract `src/sim/spatial/district-layout.ts` and `src/sim/systems/transit.system.ts` so `generator.ts` stays well under 250 lines. Run `npm run verify` and confirm 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 14). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 14: Two-Column Satchel Window (`[I]`), `[a–z]` Hotkeys & Item Dossier (Issue #19)** by creating `src/client/ui/InventoryWindow.tsx` and `src/client/ui/ItemDossierCard.tsx` and wiring them into `CharacterModalShell.tsx`. Keep all files <= 250 lines and run `npm run verify` with 0 errors.
 
 ---
 
-### Phase 9: Artificer Crafting, Salvage & Steam Workbenches
-- **Goal**: Allow the player to combine raw materials (from Phase 7) at an Artificer Workbench (spawned in Phase 8) using personal or boiler steam pressure to craft prosthetics, commodities, and field supplies—or salvage unwanted items into raw materials.
+### Phase 15: Vitruvian Clockwork Paperdoll (`[A]`) & Schematic Workbench Window (`[C]`) (Issue #20)
+- **Goal**: Upgrade the `[A]` Anatomy and `[C]` Crafting views into full-screen, spatial *Caves of Qud* / *Dwarf Fortress*-inspired engineering schematics.
+- **Architectural Constraint**: Each window component (`AnatomyWindow.tsx` and `CraftingWindow.tsx`) must stay **<= 250 lines**.
 - **Files to Create / Modify**:
-  - **Modify** `src/schemas/blueprint.schema.ts` & **Create** `data/items/recipes.json`: Define `CraftingRecipeBlueprintSchema` (`id`, `outputBlueprintId`, `ingredients: { blueprintId, count }[]`, `steamCostKpa`, `requiresWorkbench: boolean`, `apCost`).
-  - **Modify** `src/schemas/components.schema.ts`: Add `WorkbenchComponentSchema` (`stationType: 'ARTIFICER_BENCH' | 'ALCHEMICAL_STILL'`, `bonusEfficiencyPct`).
-  - **Modify** `src/schemas/commands.schema.ts` & `src/schemas/events.schema.ts`: Add `CRAFT_RECIPE`, `SALVAGE_ITEM`, and `REPAIR_LIMB` commands + corresponding `SimEvent` variants.
-  - **Create** `src/sim/systems/crafting.system.ts` (**New Module**): Implement `resolveCraftRecipe` (validates workbench adjacency, deducts ingredients from `inventory` and `steamReserveKpa` from `anatomy`, spawns crafted entity into `inventory`) and `resolveSalvageItem`.
-  - **Create** `tests/sim/crafting-salvage.test.ts`: Verify recipe ingredient consumption, steam pressure requirement, and item salvage recovery.
+  - **Create** `src/client/ui/AnatomyWindow.tsx` (**New Module**):
+    - **Left/Center Pane (2D Vitruvian Paperdoll Grid)**: Spatial layout of `HEAD [1]`, `LEFT_ARM [2]`, `TORSO [3]`, `RIGHT_ARM [4]`, `LEFT_LEG [5]`, `RIGHT_LEG [6]` with visual HP bars, arterial bleed badges, and installed prosthetic blueprints.
+    - **Right Pane (Limb Surgical Dossier)**: Selecting a limb slot (`[1]`–`[6]` or click) shows detailed tissue integrity, movement/combat penalties, `[R] Field Repair Limb (Brass Gears + 15 kPa)`, `[U] Uninstall Prosthetic`, or a list of compatible prosthetics in the player's satchel to `[G] Graft` directly into that socket.
+  - **Create** `src/client/ui/CraftingWindow.tsx` (**New Module**):
+    - **Left Pane**: Recipe catalog (`RECIPE_CATALOG`) with craftability status badges (`READY`, `MISSING PARTS`, `NEEDS WORKBENCH`, `LOW STEAM`) and `[1]`–`[9]` hotkeys.
+    - **Right Pane**: Full blueprint schematic showing required ingredients (owned vs. required count), boiler pressure cost (`kPa`), nearby Artificer Workbench / Alchemical Still detection, output item stats, `[C] Forge Blueprint` button, and a quick-salvage list for turning extra items into brass gears.
+  - **Modify** `src/client/ui/CharacterModalShell.tsx`: Mount `<AnatomyWindow />` and `<CraftingWindow />`.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 9). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 9: Artificer Crafting, Salvage & Steam Workbenches** in `src/sim/systems/crafting.system.ts` and `data/items/recipes.json`. Run `npm run verify` and confirm 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 15). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 15: Vitruvian Clockwork Paperdoll (`[A]`) & Schematic Workbench Window (`[C]`) (Issue #20)** by creating `src/client/ui/AnatomyWindow.tsx` and `src/client/ui/CraftingWindow.tsx` and mounting them in `CharacterModalShell.tsx`. Keep all files <= 250 lines and run `npm run verify` with 0 errors.
 
 ---
 
-### Phase 10: Autonomous NPCs, Enemies, Faction AI & Targeted Limb Combat
-- **Goal**: Populate the districts with autonomous NPCs and enemies (Clockwork Automaton Wardens, Sump Scavengers, Foundry Stokers, Guild Merchants) that act on the energy scheduler and engage in targeted limb combat.
-- **Architectural Constraint**: `src/sim/systems/anatomy.system.ts` is at **293 lines**. Do NOT add combat or AI functions to `anatomy.system.ts`; create `src/sim/systems/combat.system.ts` and `src/sim/systems/ai.system.ts` and call `resolveDamageLimb` from `anatomy.system.ts`.
+### Phase 16: Dual-Column Merchant Trade Window & Cartel Economy Ledger (`[M]`) (Issue #21)
+- **Goal**: Create a *Caves of Qud*-style side-by-side **Merchant Exchange & Cartel Ledger Window** (`[M]`) so trading with adjacent merchants and managing storefront pedestals happens in a spacious dual-column interface rather than cramped inspector buttons.
+- **Architectural Constraint**: Keep `TradeWindow.tsx` and `CartelLedgerView.tsx` **<= 250 lines** each.
 - **Files to Create / Modify**:
-  - **Modify** `src/schemas/components.schema.ts`: Add `AiControllerComponentSchema` (`factionId`, `role: 'GUARD' | 'SCAVENGER' | 'MERCHANT' | 'CITIZEN'`, `hostile: boolean`) and `CombatStatsComponentSchema` (`meleeDamage`, `accuracyPct`, `armorReduction`).
-  - **Modify** `src/schemas/commands.schema.ts` & `src/schemas/events.schema.ts`: Add `ATTACK_ACTOR` command (`attackerId`, `targetId`, `targetSlot: LimbSlotId`) + `COMBAT_ATTACK_RESOLVED` and `ACTOR_DEFEATED` events.
-  - **Create** `src/sim/systems/combat.system.ts` (**New Module**): Implement targeted limb attacks (hitting `LEFT_LEG` slows enemy movement; hitting `RIGHT_ARM` disarms; hitting `TORSO`/`HEAD` to `0 HP` defeats the actor and drops their inventory/prosthetics onto the tile). Attacking a faction member reduces `factionReputation` in `state.economy`.
-  - **Create** `src/sim/systems/ai.system.ts` (**New Module**): Implement `advanceNpcTurns(state, rng)` called during `dispatchCommand` after the player acts, using `computeVisibleTiles` (`fov.ts`) to detect targets and step toward or attack them.
-  - **Create** `tests/sim/combat-ai.test.ts`: Verify targeted limb damage in combat, NPC turn scheduling, loot drops on defeat, and faction reputation penalties.
+  - **Create** `src/client/ui/TradeWindow.tsx` (**New Module**):
+    - Detects any adjacent NPC with `aiController.role === 'MERCHANT'`.
+    - **Left Column (Merchant Stock)**: Lists merchant inventory items with dynamic buy prices in pence (`d`) adjusted by the merchant's faction reputation multiplier, plus `[Buy]` action buttons.
+    - **Right Column (Player Satchel)**: Lists player's sellable items with dynamic sell quotes in pence (`d`) and `[Sell]` action buttons.
+    - **Header Strip**: Displays Player Treasury (`pence`), Merchant Faction Standing (`-100` to `+100`), and active price markup/discount percentage.
+  - **Create** `src/client/ui/CartelLedgerView.tsx` (**New Module**):
+    - Bottom or secondary sub-view inside the `[M]` Exchange window displaying the 3 Victorian Cartels (`Foundry Directorate`, `Sump Syndicate`, `Royal Aether Society`), live district commodity quotes (`refined_aether`, `whale_oil`, `clockwork_limb`, `smokeless_coal`), and storefront pedestal stocking controls.
+  - **Modify** `src/client/ui/CharacterModalShell.tsx` & `src/client/ui/TileInspectorPanel.tsx`: Wire `[M]` and the Tile Inspector's `[Trade with Merchant]` button to open `TradeWindow.tsx` inside the modal shell.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 10). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 10: Autonomous NPCs, Enemies, Faction AI & Targeted Limb Combat** by creating `src/sim/systems/combat.system.ts` and `src/sim/systems/ai.system.ts`. Do not add lines to `anatomy.system.ts`. Run `npm run verify` and confirm 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 16). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 16: Dual-Column Merchant Trade Window & Cartel Economy Ledger (`[M]`) (Issue #21)** by creating `src/client/ui/TradeWindow.tsx` and `src/client/ui/CartelLedgerView.tsx` and wiring them into `CharacterModalShell.tsx`. Keep all files <= 250 lines and run `npm run verify` with 0 errors.
 
 ---
 
-### Phase 11: Physical Storefront Inventories & Merchant Trading
-- **Goal**: Connect physical items (Phase 7/9) and NPC merchants (Phase 10) to the district macro-economy (`economy.system.ts`) so stocking pedestals consumes real inventory items, and players can buy/sell gear with merchants using `playerTreasuryPence`.
-- **Architectural Constraint**: `src/sim/systems/economy.system.ts` is at **283 lines**. Create `src/sim/systems/trade.system.ts` for merchant transactions and physical pedestal stocking.
+### Phase 17: Multi-Stratum World Atlas (`[W]`) & Keyboard `[L]` Look / Target Mode (Issue #22)
+- **Goal**: Give players a full **London Overworld & 3-Strata Cartography Window** (`[W]`) to visualize vertical connections and district transit routes, plus *Caves of Qud*'s signature **`[L]` Look / Examine & Limb-Target Cursor** on the main viewport for full keyboard-only play.
+- **Architectural Constraint**: Keep `AtlasWindow.tsx` and `LookCursorController.ts` **<= 250 lines** each; zero browser imports in `src/sim/`.
 - **Files to Create / Modify**:
-  - **Modify** `src/schemas/commands.schema.ts` & `src/schemas/events.schema.ts`: Add `BUY_FROM_MERCHANT` and `SELL_TO_MERCHANT` commands + `MERCHANT_TRADE_COMPLETED` event.
-  - **Create** `src/sim/systems/trade.system.ts` (**New Module**): Implement `resolveBuyFromMerchant` and `resolveSellToMerchant` (calculating prices from `state.economy.marketQuotes` and scaling by `factionReputation` standing), plus physical item transfer when stocking storefront pedestals.
-  - **Create** `tests/sim/merchant-trade.test.ts`: Verify pence deduction, inventory item transfer, and faction reputation price modifiers.
+  - **Create** `src/client/ui/AtlasWindow.tsx` (**New Module**):
+    - **London District Overworld Map**: Interactive node graph of `Spitalfields Sootworks`, `Whitechapel Sump`, and `Kensington Aether Spire` showing current location, district descriptions, and active transit gates.
+    - **3-Strata Cross-Section Minimap (`SPIRE` / `STREET` / `UNDERCROFT`)**: Side-by-side or switchable ASCII/grid overview of all three vertical strata in the current district, highlighting the player `@`, discovered portals (`>`, `<`, `^`, `v`), District Gates (`D`), Workbenches (`&`), Merchants, and Hostiles.
+  - **Create** `src/client/ui/LookCursorOverlay.tsx` (**New Module**):
+    - Pressing `[L]` on the main map enters **Look / Target Mode** at the player's coordinates.
+    - `WASD` / Arrow keys move the brass reticle across the 24x20 viewport (updating `hoveredTile` in `TileInspectorPanel` without spending a turn).
+    - When the reticle is over an adjacent hostile NPC, pressing `[1]`–`[6]` or `[F]` dispatches `ATTACK_ACTOR` targeting that specific limb (`HEAD`, `TORSO`, `LEFT_ARM`, `RIGHT_ARM`, `LEFT_LEG`, `RIGHT_LEG`), and pressing `[Enter]` interacts with doors/portals/merchants.
+  - **Modify** `src/client/main.tsx` & `src/client/ui/CharacterModalShell.tsx`: Wire `[W]` to open `AtlasWindow.tsx` and `[L]` to toggle Look Mode on the main canvas.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 11). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 11: Physical Storefront Inventories & Merchant Trading** in `src/sim/systems/trade.system.ts` (keeping `economy.system.ts` under 285 lines). Run `npm run verify` and confirm 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 17). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 17: Multi-Stratum World Atlas (`[W]`) & Keyboard `[L]` Look / Target Mode (Issue #22)** by creating `src/client/ui/AtlasWindow.tsx` and `src/client/ui/LookCursorOverlay.tsx` and wiring them into `CharacterModalShell.tsx` and `src/client/main.tsx`. Keep all files <= 250 lines and run `npm run verify` with 0 errors.
 
 ---
 
-### Phase 12: Multi-Screen UI Architecture, Modal Menus & Interactive Canvas Inspector
-- **Goal**: Replace the single-screen debug sidebar with a clean, multi-screen Victorian interface featuring a Title/Save-Load Modal, Tabbed/Shortcut Drawers (`[I]` Inventory, `[C]` Crafting, `[A]` Anatomy & Prosthetics, `[M]` Market & Trade), and live Canvas Tile Inspection.
-- **Architectural Constraint**: Every `.tsx` file in `src/client/ui/` must stay **<= 250 lines** (one UI panel per file).
-- **Files to Create / Modify**:
-  - **Create** `src/client/ui/EventFormatter.ts`: Extract `formatEventMessage(ev: SimEvent)` out of `HudLayout.tsx` into its own pure helper module so `HudLayout.tsx` stays compact as new events are added.
-  - **Create** `src/client/ui/InventoryPanel.tsx`: Displays carried items, mass/volume bars, `[Pick Up]`, `[Drop]`, `[Use]`, and `[Install Prosthetic]` actions.
-  - **Create** `src/client/ui/CraftingPanel.tsx`: Displays available recipes from `data/items/recipes.json`, ingredient checklist, steam cost, and `[Craft]` / `[Salvage]` buttons.
-  - **Create** `src/client/ui/TileInspectorPanel.tsx`: Displays terrain, steam kPa, coal dust density, and entities/NPC limbs on the currently hovered or selected canvas tile.
-  - **Create** `src/client/ui/SystemMenuModal.tsx`: Modal overlay (`[Esc]`) for New Seed Generation, Save to LocalStorage / JSON Export, and Load JSON Save (`serializeWorld` / `deserializeWorld`).
-  - **Modify** `src/client/ui/HudLayout.tsx` & `src/client/main.tsx`: Add tab navigation (`TELEMETRY` | `INVENTORY [I]` | `SURGERY [A]` | `WORKBENCH [C]` | `EXCHANGE [M]`) and canvas pointer hover/click listeners.
-- **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 12). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 12: Multi-Screen UI Architecture, Modal Menus & Interactive Canvas Inspector** across modular files in `src/client/ui/` (each <= 250 lines). Run `npm run verify` and confirm 0 errors.
+## 4. Archive: Completed Foundation Phases (Phases 7–12)
+- **Phase 7 (Issue #12 — Completed)**: World Items, Ground Spawning & True Inventory Management (`src/sim/systems/inventory.system.ts`, `src/sim/systems/item-spawner.ts`).
+- **Phase 8 (Issue #13 — Completed)**: Multi-Building District ProcGen, Doors & Inter-District Transit (`src/sim/spatial/district-layout.ts`, `src/sim/systems/transit.system.ts`).
+- **Phase 9 (Issue #14 — Completed)**: Artificer Crafting, Salvage & Steam Workbenches (`src/sim/systems/crafting.system.ts`, `data/items/recipes.json`).
+- **Phase 10 (Issue #15 — Completed)**: Autonomous NPCs, Enemies, Faction AI & Targeted Limb Combat (`src/sim/systems/combat.system.ts`, `src/sim/systems/ai.system.ts`).
+- **Phase 11 (Issue #16 — Completed)**: Physical Storefront Inventories & Merchant Trading (`src/sim/systems/trade.system.ts`).
+- **Phase 12 (Issue #17 — Completed)**: Initial Multi-Screen UI Panels, System Menu Modal & Canvas Tile Inspector (`src/client/ui/*.tsx`).
