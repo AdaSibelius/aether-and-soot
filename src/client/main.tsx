@@ -4,6 +4,7 @@ import { EntityIdSchema } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
 import { generateVictorianDistrict } from '../sim/spatial/generator.js';
+import { spawnDistrictNpcs } from '../sim/systems/ai.system.js';
 import { spawnDistrictItems } from '../sim/systems/item-spawner.js';
 import { projectWorldToVisualFrame, VisualGridFrame } from './projection/frame-adapter.js';
 import { GlyphStageRenderer } from './renderer/glyph-stage.js';
@@ -30,7 +31,8 @@ async function bootstrapClient(): Promise<void> {
   }
 
   const baseWorld = createInitialWorld({ seed: 0xcafebabe, width: 24, height: 20 });
-  let worldState = spawnDistrictItems(generateVictorianDistrict(baseWorld).state).state;
+  const withItems = spawnDistrictItems(generateVictorianDistrict(baseWorld).state).state;
+  let worldState = spawnDistrictNpcs(withItems).state;
   const stageRenderer = await GlyphStageRenderer.create(canvasHost, 24, 20);
   const playerId = EntityIdSchema.parse('actor_player');
 

@@ -1,12 +1,14 @@
 import { GameCommand, GameCommandSchema } from '../../schemas/commands.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { setTileCell } from '../spatial/grid.js';
+import { advanceNpcTurns } from '../systems/ai.system.js';
 import {
   resolveDamageLimb,
   resolveInstallProsthetic,
   resolveRefillSteam,
   resolveRemoveProsthetic,
 } from '../systems/anatomy.system.js';
+import { resolveAttackActor } from '../systems/combat.system.js';
 import {
   resolveCraftRecipe,
   resolveRepairLimb,
@@ -29,8 +31,8 @@ export interface DispatchTurnResult {
 
 /**
  * Pure simulation command dispatcher.
- * Validates incoming command, executes domain system, ticks environmental thermodynamics,
- * updates RNG state, and advances the turn clock (including 100-turn Macro-Ticks).
+ * Validates incoming command, executes domain system, ticks autonomous NPCs and
+ * environmental thermodynamics, updates RNG state, and advances the turn clock.
  */
 export function dispatchCommand(
   currentState: WorldState,
@@ -43,22 +45,20 @@ export function dispatchCommand(
   let systemEvents: SimEvent[] = [];
   let apSpent = STANDARD_ACTION_AP;
 
+  const apply = (res: { state: WorldState; events: SimEvent[]; apSpent: number }): void => {
+    nextState = res.state;
+    systemEvents = res.events;
+    apSpent = res.apSpent;
+  };
+
   switch (command.type) {
-    case 'MOVE_STEP': {
-      const res = resolveMoveStep(nextState, command.actorId, command.dx, command.dy);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'MOVE_STEP':
+      apply(resolveMoveStep(nextState, command.actorId, command.dx, command.dy));
       break;
-    }
-    case 'USE_PORTAL': {
-      const res = resolveUsePortal(nextState, command.actorId);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'USE_PORTAL':
+      apply(resolveUsePortal(nextState, command.actorId));
       break;
-    }
-    case 'WAIT_TURN': {
+    case 'WAIT_TURN':
       rng.nextUint32();
       systemEvents = [
         {
@@ -69,7 +69,6 @@ export function dispatchCommand(
         },
       ];
       break;
-    }
     case 'VENT_STEAM': {
       const targetStratum = nextState.strata[command.target.stratum];
       if (targetStratum) {
@@ -101,145 +100,101 @@ export function dispatchCommand(
       ];
       break;
     }
-    case 'DAMAGE_LIMB': {
-      const res = resolveDamageLimb(nextState, command.targetId, command.slot, command.damage);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'DAMAGE_LIMB':
+      apply(resolveDamageLimb(nextState, command.targetId, command.slot, command.damage));
       break;
-    }
-    case 'INSTALL_PROSTHETIC': {
-      const res = resolveInstallProsthetic(
-        nextState,
-        command.actorId,
-        command.prostheticEntityId,
-        command.slot,
+    case 'INSTALL_PROSTHETIC':
+      apply(
+        resolveInstallProsthetic(
+          nextState,
+          command.actorId,
+          command.prostheticEntityId,
+          command.slot,
+        ),
       );
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
       break;
-    }
-    case 'REMOVE_PROSTHETIC': {
-      const res = resolveRemoveProsthetic(nextState, command.actorId, command.slot);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'REMOVE_PROSTHETIC':
+      apply(resolveRemoveProsthetic(nextState, command.actorId, command.slot));
       break;
-    }
-    case 'REFILL_STEAM': {
-      const res = resolveRefillSteam(nextState, command.actorId, command.pressureAddedKpa);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'REFILL_STEAM':
+      apply(resolveRefillSteam(nextState, command.actorId, command.pressureAddedKpa));
       break;
-    }
-    case 'PRESSURIZE_VESSEL': {
-      const res = resolvePressurizeVessel(
-        nextState,
-        command.vesselEntityId,
-        command.pressureAddedKpa,
+    case 'PRESSURIZE_VESSEL':
+      apply(
+        resolvePressurizeVessel(nextState, command.vesselEntityId, command.pressureAddedKpa),
       );
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
       break;
-    }
-    case 'EMIT_SPARK': {
-      const res = resolveEmitSpark(nextState, command.target);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'EMIT_SPARK':
+      apply(resolveEmitSpark(nextState, command.target));
       break;
-    }
-    case 'STOCK_PEDESTAL': {
-      const res = resolveStockPedestal(
-        nextState,
-        command.commodity,
-        command.quantity,
-        command.askingPriceMarkupPct,
+    case 'STOCK_PEDESTAL':
+      apply(
+        resolveStockPedestal(
+          nextState,
+          command.commodity,
+          command.quantity,
+          command.askingPriceMarkupPct,
+        ),
       );
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
       break;
-    }
-    case 'TRIGGER_SUPPLY_SHOCK': {
-      const res = resolveTriggerSupplyShock(
-        nextState,
-        command.commodity,
-        command.supplyDelta,
-        command.factionAffected,
-        command.reputationDelta,
+    case 'TRIGGER_SUPPLY_SHOCK':
+      apply(
+        resolveTriggerSupplyShock(
+          nextState,
+          command.commodity,
+          command.supplyDelta,
+          command.factionAffected,
+          command.reputationDelta,
+        ),
       );
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
       break;
-    }
-    case 'PICK_UP_ITEM': {
-      const res = resolvePickupItem(nextState, command.actorId, command.itemEntityId);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'PICK_UP_ITEM':
+      apply(resolvePickupItem(nextState, command.actorId, command.itemEntityId));
       break;
-    }
-    case 'DROP_ITEM': {
-      const res = resolveDropItem(nextState, command.actorId, command.itemEntityId, command.quantity);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'DROP_ITEM':
+      apply(resolveDropItem(nextState, command.actorId, command.itemEntityId, command.quantity));
       break;
-    }
-    case 'USE_ITEM': {
-      const res = resolveUseItem(nextState, command.actorId, command.itemEntityId);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'USE_ITEM':
+      apply(resolveUseItem(nextState, command.actorId, command.itemEntityId));
       break;
-    }
-    case 'TOGGLE_DOOR': {
-      const res = resolveToggleDoor(nextState, command.actorId, command.target);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'TOGGLE_DOOR':
+      apply(resolveToggleDoor(nextState, command.actorId, command.target));
       break;
-    }
-    case 'TRAVEL_DISTRICT': {
-      const res = resolveTravelDistrict(nextState, command.actorId, command.targetDistrictId);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'TRAVEL_DISTRICT':
+      apply(resolveTravelDistrict(nextState, command.actorId, command.targetDistrictId));
       break;
-    }
-    case 'CRAFT_RECIPE': {
-      const res = resolveCraftRecipe(nextState, command.actorId, command.recipeId);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'CRAFT_RECIPE':
+      apply(resolveCraftRecipe(nextState, command.actorId, command.recipeId));
       break;
-    }
-    case 'SALVAGE_ITEM': {
-      const res = resolveSalvageItem(nextState, command.actorId, command.itemEntityId);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'SALVAGE_ITEM':
+      apply(resolveSalvageItem(nextState, command.actorId, command.itemEntityId));
       break;
-    }
-    case 'REPAIR_LIMB': {
-      const res = resolveRepairLimb(nextState, command.actorId, command.slot);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
+    case 'REPAIR_LIMB':
+      apply(resolveRepairLimb(nextState, command.actorId, command.slot));
       break;
-    }
+    case 'ATTACK_ACTOR':
+      apply(
+        resolveAttackActor(
+          nextState,
+          command.attackerId,
+          command.targetId,
+          command.targetSlot,
+          rng,
+        ),
+      );
+      break;
   }
+
+  const npcTick = advanceNpcTurns(nextState, rng);
+  nextState = npcTick.state;
+  systemEvents = [...systemEvents, ...npcTick.events];
 
   const thermoTick = advanceThermodynamicsTick(nextState);
   nextState = thermoTick.state;
   systemEvents = [...systemEvents, ...thermoTick.events];
 
-  const scheduled = advanceTurnSchedule(nextState, command.actorId, apSpent, systemEvents, rng);
+  const actingActorId = command.type === 'ATTACK_ACTOR' ? command.attackerId : command.actorId;
+  const scheduled = advanceTurnSchedule(nextState, actingActorId, apSpent, systemEvents, rng);
   return {
     state: scheduled.state,
     events: scheduled.allEvents,
