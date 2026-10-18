@@ -4,6 +4,7 @@ import { EntityIdSchema } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
 import { generateVictorianDistrict } from '../sim/spatial/generator.js';
+import { spawnDistrictItems } from '../sim/systems/item-spawner.js';
 import { projectWorldToVisualFrame, VisualGridFrame } from './projection/frame-adapter.js';
 import { GlyphStageRenderer } from './renderer/glyph-stage.js';
 import { HudLayout } from './ui/HudLayout.js';
@@ -29,7 +30,7 @@ async function bootstrapClient(): Promise<void> {
   }
 
   const baseWorld = createInitialWorld({ seed: 0xcafebabe, width: 24, height: 20 });
-  let worldState = generateVictorianDistrict(baseWorld).state;
+  let worldState = spawnDistrictItems(generateVictorianDistrict(baseWorld).state).state;
   const stageRenderer = await GlyphStageRenderer.create(canvasHost, 24, 20);
   const playerId = EntityIdSchema.parse('actor_player');
 
@@ -70,6 +71,9 @@ async function bootstrapClient(): Promise<void> {
     } else if (ev.key === '.' || ev.key === ' ') {
       ev.preventDefault();
       handleCommand({ type: 'WAIT_TURN', actorId: playerId });
+    } else if (ev.key === 'g' || ev.key === ',') {
+      ev.preventDefault();
+      handleCommand({ type: 'PICK_UP_ITEM', actorId: playerId });
     }
   });
 

@@ -5,6 +5,7 @@ import {
   CommodityBlueprintSchema,
   DistrictBlueprintSchema,
   GasFluidBlueprintSchema,
+  ItemBlueprintSchema,
   ProstheticBlueprintSchema,
 } from '../../src/schemas/blueprint.schema.js';
 
@@ -34,9 +35,17 @@ function runDataValidation(): void {
     'data/districts/soot_works.json',
     z.array(DistrictBlueprintSchema).min(1),
   );
+  const materials = validateJsonFile(
+    'data/items/materials.json',
+    z.array(ItemBlueprintSchema).min(1),
+  );
+  const materialIds = new Set(materials.map((m) => m.id));
+  if (materialIds.size !== materials.length) {
+    throw new Error('[validate:data] Duplicate item blueprint ids in data/items/materials.json');
+  }
 
   console.log(
-    `[validate:data] OK — Validated ${prosthetics.length} prosthetics, ${commodities.length} commodities, ${gases.length} gases/fluids, ${districts.length} districts.`,
+    `[validate:data] OK — Validated ${prosthetics.length} prosthetics, ${commodities.length} commodities, ${materials.length} materials/consumables, ${gases.length} gases/fluids, ${districts.length} districts.`,
   );
 }
 

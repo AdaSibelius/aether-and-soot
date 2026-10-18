@@ -4,6 +4,7 @@ import { EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { AnatomyDoll } from './AnatomyDoll.js';
 import { MarketLedger } from './MarketLedger.js';
+import { SatchelPanel } from './SatchelPanel.js';
 
 export interface HudLayoutProps {
   readonly state: Readonly<WorldState>;
@@ -50,6 +51,14 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] SALE! Sold ${ev.unitsSold}x ${ev.commodity} for ${ev.revenuePence}d!`;
     case 'MACRO_TICK_COMPLETED':
       return `[T${ev.turn}] === District Macro-Tick #${ev.macroTickIndex} Processed ===`;
+    case 'ITEM_PICKED_UP':
+      return `[T${ev.turn}] Pocketed ${ev.quantity}x ${ev.itemName}${ev.stackedIntoEntityId ? ' (stacked)' : ''}.`;
+    case 'ITEM_DROPPED':
+      return `[T${ev.turn}] Dropped ${ev.quantity}x ${ev.itemName} at (${ev.at.x}, ${ev.at.y}).`;
+    case 'ITEM_USED':
+      return `[T${ev.turn}] Used ${ev.itemName}: +${Math.round(ev.amountRestored)} ${ev.effect === 'RESTORE_BLOOD' ? '% blood' : 'kPa steam'} (${ev.remainingQuantity} left).`;
+    case 'INVENTORY_ACTION_FAILED':
+      return `[T${ev.turn}] ${ev.action} failed: ${ev.reason}`;
   }
 }
 
@@ -89,6 +98,8 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
       </div>
 
       <AnatomyDoll anatomy={player?.anatomy} />
+
+      <SatchelPanel state={state} actorId={playerId} onCommand={onCommand} />
 
       <MarketLedger economy={state.economy} onCommand={onCommand} />
 

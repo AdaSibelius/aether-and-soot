@@ -1,3 +1,4 @@
+import { EntityRecord } from '../../schemas/components.schema.js';
 import { StratumId, VisualGlyphSpec } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { computeVisibleTiles, pointKey } from '../../sim/spatial/fov.js';
@@ -23,6 +24,13 @@ export interface VisualGridFrame {
   readonly effectiveFovRadius: number;
   readonly playerOrigin: { readonly x: number; readonly y: number };
   readonly cells: readonly RenderCellFrame[];
+}
+
+/** Higher draws later (on top): ground items (0) < fixtures like portals/vessels (1) < actors (2). */
+function entityDrawPriority(entity: EntityRecord): number {
+  if (entity.actor) return 2;
+  if (entity.item || entity.prostheticSpec) return 0;
+  return 1;
 }
 
 /**
@@ -82,7 +90,10 @@ export function projectWorldToVisualFrame(
     }
   }
 
-  for (const entity of Object.values(state.entities)) {
+  const drawOrder = Object.values(state.entities).sort(
+    (a, b) => entityDrawPriority(a) - entityDrawPriority(b),
+  );
+  for (const entity of drawOrder) {
     const pos = entity.position;
     if (pos && pos.stratum === activeStratum && visibleSet.has(pointKey(pos.x, pos.y))) {
       const idx = pos.y * grid.width + pos.x;
