@@ -59,6 +59,12 @@ function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Used ${ev.itemName}: +${Math.round(ev.amountRestored)} ${ev.effect === 'RESTORE_BLOOD' ? '% blood' : 'kPa steam'} (${ev.remainingQuantity} left).`;
     case 'INVENTORY_ACTION_FAILED':
       return `[T${ev.turn}] ${ev.action} failed: ${ev.reason}`;
+    case 'DOOR_TOGGLED':
+      return `[T${ev.turn}] ${ev.newState === 'OPEN' ? 'Opened' : 'Closed'} door at (${ev.at.x}, ${ev.at.y}).`;
+    case 'DISTRICT_TRAVELED':
+      return `[T${ev.turn}] Traveled to ${ev.toDistrictId}!`;
+    case 'TRANSIT_ACTION_FAILED':
+      return `[T${ev.turn}] Transit (${ev.action}) failed: ${ev.reason}`;
   }
 }
 
@@ -123,7 +129,7 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
               })
             }
           >
-            [1] Socket Pneumatic Strider (L.Leg)
+            [+] Left Strider Leg
           </button>
           <button
             type="button"
@@ -136,7 +142,31 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
               })
             }
           >
-            [2] Socket Aetheric Monocle (Ocular)
+            [+] Vernier Monocle
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onCommand({
+                type: 'REMOVE_PROSTHETIC',
+                actorId: playerId,
+                slot: 'LEFT_LEG',
+              })
+            }
+          >
+            [-] Detach Strider Leg
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onCommand({
+                type: 'REMOVE_PROSTHETIC',
+                actorId: playerId,
+                slot: 'OCULAR_MOUNT',
+              })
+            }
+          >
+            [-] Detach Monocle
           </button>
           <button
             type="button"
@@ -144,44 +174,48 @@ export function HudLayout({ state, onCommand }: HudLayoutProps) {
               onCommand({
                 type: 'REFILL_STEAM',
                 actorId: playerId,
-                pressureAddedKpa: 50,
+                pressureAddedKpa: 25,
               })
             }
           >
-            [R] Stoker Boiler (+50 kPa Steam)
+            [~] Stoke Steam Boiler
           </button>
           <button
             type="button"
-            onClick={() => {
-              if (!player?.position) return;
+            onClick={() =>
               onCommand({
-                type: 'VENT_STEAM',
+                type: 'DAMAGE_LIMB',
                 actorId: playerId,
-                target: {
-                  x: player.position.x,
-                  y: player.position.y,
-                  stratum: player.position.stratum,
-                },
-                pressureReleasedKpa: 45,
-              });
-            }}
+                targetId: playerId,
+                slot: 'RIGHT_ARM',
+                damage: 10,
+              })
+            }
           >
-            [V] Vent Boiler Steam
+            [!] Stress Right Arm
+          </button>
+          <button
+            type="button"
+            onClick={() => onCommand({ type: 'WAIT_TURN', actorId: playerId })}
+          >
+            [.] Rest &amp; Recalibrate
           </button>
         </div>
       </div>
 
-      <div class="panel-box log-box">
-        <div class="panel-header">CHRONICLE LOG</div>
-        {recentEvents.length === 0 ? (
-          <div class="log-entry muted">Awaiting pneumatic actuation...</div>
-        ) : (
-          recentEvents.map((ev, idx) => (
-            <div key={`${ev.turn}-${idx}`} class="log-entry">
-              {formatEventMessage(ev)}
-            </div>
-          ))
-        )}
+      <div class="panel-box event-log-box">
+        <div class="panel-header">DISTRICT CHRONICLE</div>
+        <div class="event-stream">
+          {recentEvents.length === 0 ? (
+            <div class="event-entry muted-text">Awaiting mechanical input...</div>
+          ) : (
+            recentEvents.map((ev) => (
+              <div key={`${ev.type}-${ev.turn}`} class="event-entry">
+                {formatEventMessage(ev)}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

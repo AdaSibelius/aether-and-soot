@@ -12,6 +12,7 @@ import { resolveDropItem, resolvePickupItem, resolveUseItem } from '../systems/i
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
+import { resolveToggleDoor, resolveTravelDistrict } from '../systems/transit.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -187,6 +188,20 @@ export function dispatchCommand(
     }
     case 'USE_ITEM': {
       const res = resolveUseItem(nextState, command.actorId, command.itemEntityId);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'TOGGLE_DOOR': {
+      const res = resolveToggleDoor(nextState, command.actorId, command.target);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'TRAVEL_DISTRICT': {
+      const res = resolveTravelDistrict(nextState, command.actorId, command.targetDistrictId);
       nextState = res.state;
       systemEvents = res.events;
       apSpent = res.apSpent;
