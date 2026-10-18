@@ -4,101 +4,118 @@
 > - **Phases 1–6 (Completed)**: Established the deterministic headless core (`src/sim/`), 3-strata verticality, anatomy/prosthetics, thermodynamics, macro-economy, and the PixiJS/Preact presentation shell.
 > - **Phases 7–12 (Completed — Issues #12–#17)**: Built world items & encumbrance, multi-building districts & inter-district transit, steam-powered crafting & salvage, autonomous NPC AI & targeted limb combat, physical merchant trading, and the initial UI inspector/system menu.
 > - **Phases 13–17 (Completed — Issues #18–#22)**: Delivered the *Caves of Qud* full-window modal UI shell (`[I]` Satchel, `[A]` Vitruvian Anatomy & Grafts, `[C]` Artificer Schematic Bench, `[M]` Dual-Column Exchange & Factions, `[W]` Multi-Stratum World Atlas) and keyboard `[L]` Look/Target cursor mode.
-> - **Phases 18–22 (Active — Issues #23–#27 — The *Cataclysm: Dark Days Ahead* Living Sandbox Expansion)**: Expands the world into large scrolling districts (`48x36`) with persistent Fog-of-War memory and cached district states, 5 procedural building archetypes with smashable glass windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, a CDDA-style Character Creation screen (Professions, Traits, Scenarios), and wielded melee/ranged weapons with wearable pocketed armor.
+> - **Phases 18–22 (Completed — Issues #23–#27)**: Expanded the world into large scrolling districts (`48x36`) with persistent Fog-of-War memory and cached district states, 5 procedural building archetypes with smashable glass windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, a CDDA-style Character Creation screen, and wielded melee/ranged weapons with wearable pocketed armor.
+> - **Phases 23–28 (Active — Issues #28–#33 — Deep Interconnected World & Systems Cohesion)**: Connects every standalone mechanic into an interlocking Victorian survival simulation: lootable furniture containers & physical currency pouches, grounded inventory-backed trade stalls & Merchant dialogue wiring, fuel-driven boiler stoking & tactical pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
 >
 > Every phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
 
 ---
 
-## 1. Active Implementation Plan: Phases 18–22 (CDDA Living Sandbox Expansion)
+## 1. Active Implementation Plan: Phases 23–28 (World Scale & Systems Cohesion)
 
-### Phase 18: Large Scrolling Districts (`48x36`), Camera Viewport, Persistent Fog-of-War & District State Cache (Issue #23)
-- **Goal**: Expand the playable world from a tiny static `24x20` room into a **Large Scrolling District (`48x36`)** rendered through a **24x20 Camera Viewport** centered on the player (`@`), with **Persistent Fog-of-War Tile Memory** (`explored`) and **Persistent Inter-District State Caching** (`savedDistricts`) so revisiting a district preserves opened doors, dropped items, and defeated NPCs.
+### Phase 23: Interactive Containers (`LOCKER`, `CRATE`, `BOOKSHELF`) & Tangible Currency / Loot Tables (Issue #28)
+- **Goal**: Connect existing furniture containers (`LOCKER`, `CRATE`, `BOOKSHELF`) and the hidden currency system (`playerTreasuryPence`) into a tangible scavenging and loot economy.
+- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines). Create `src/sim/systems/container.system.ts`.
+- **Files to Create / Modify**:
+  - **Modify** `src/schemas/commands.schema.ts`, `src/schemas/domain-events.schema.ts`, & `src/schemas/components.schema.ts`:
+    - Add `LootContainerCommandSchema` (`type: 'LOOT_CONTAINER'`, `actorId`, `containerId`, `itemId?: EntityId`).
+    - Add `ContainerLootedEventSchema` (`type: 'CONTAINER_LOOTED'`, `actorId`, `containerId`, `containerName`, `itemIds`, `penceGained`).
+    - Add `penceValue: z.number().int().nonnegative().optional()` to `ItemBlueprintSchema` & `ItemComponentSchema`.
+  - **Modify** `data/items/materials.json` & `src/sim/spatial/building-prefabs.ts`:
+    - Add `item_crown_pence_pouch` (*Crown Pence Pouch*, `penceValue: 18`, glyph `$`).
+    - Seed deterministic starting inventories (`inventory: EntityId[]`) into spawned `LOCKER`, `CRATE`, and `BOOKSHELF` furniture entities in Apothecary, Armoury, Foundry, and Tavern buildings.
+    - Drop a `Crown Pence Pouch` when NPCs are defeated.
+  - **Create** `src/sim/systems/container.system.ts` & wire in `src/sim/core/engine.ts` and `src/sim/systems/inventory.system.ts`:
+    - Implement `resolveLootContainer` (requires Chebyshev distance `<= 1` to a `LOCKER`, `CRATE`, or `BOOKSHELF`) and credit `penceValue` items directly into `state.economy.playerTreasuryPence` upon pickup or container looting.
+  - **Modify** `src/client/ui/InventoryWindow.tsx`, `src/client/ui/CharacterCreatorModal.tsx`, `src/client/ui/LookCursorOverlay.tsx`, & `src/client/ui/TileInspectorPanel.tsx`:
+    - Display `playerTreasuryPence` (`Treasury: Xd`) in Satchel and Character Creator, and add `[Loot Container]` buttons when inspecting adjacent containers.
+  - **Create** `tests/sim/containers-currency.test.ts`: Deterministic tests for container seeding, `LOOT_CONTAINER`, range validation, and `Crown Pence Pouch` treasury crediting.
+- **Copy-Paste Prompt for AI Agent**:
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 23). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 23: Interactive Containers (LOCKER, CRATE, BOOKSHELF) & Tangible Currency / Loot Tables (Issue #28)** by creating `src/sim/systems/container.system.ts` and `tests/sim/containers-currency.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+
+---
+
+### Phase 24: Grounded Trade, Storefront Stalls & Dialogue-to-Market Wiring (Issue #29)
+- **Goal**: Ground the trading and cartel economy in the physical world by connecting Merchant NPC dialogue directly to the Market Exchange (`[M]`), requiring real inventory commodities to stock Trade Pedestals, and replacing magic UI debug buttons with in-world economic interactions.
 - **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines).
 - **Files to Create / Modify**:
-  - **Modify** `src/sim/spatial/grid.ts` & `src/sim/core/world.ts`:
-    - Add `explored: z.boolean().default(false)` to `TileCellSchema` (or `exploredTiles` in `WorldStateSchema`).
-    - Add `savedDistricts` snapshot cache to `WorldStateSchema` so `resolveTravelDistrict` (`src/sim/systems/transit.system.ts`) saves the current district's strata & non-player entities before switching and restores previously visited districts instead of regenerating them from scratch.
-    - Update `src/client/main.tsx` to initialize `48x36` districts (`createInitialWorld({ seed, width: 48, height: 36 })`).
-  - **Modify** `src/client/projection/frame-adapter.ts` & `src/client/main.tsx`:
-    - Compute `cameraOrigin: { x: number; y: number }` clamping a `24x20` viewport window centered on the player's `(x, y)` within `[0..grid.width - 24, 0..grid.height - 20]`.
-    - Mark tiles in current FOV as `explored` and render previously explored out-of-FOV tiles in dimmed slate (`#1c2833` / `#34495e`) while hiding unseen mobile actors.
-    - Translate mouse hover/click and `[L]` Look Cursor coordinates by `cameraOrigin`.
-  - **Create** `tests/sim/scrolling-fog-persistence.test.ts`: Deterministic tests for `48x36` camera clamping, fog-of-war memory persistence, and A -> B -> A district state restoration.
+  - **Modify** `src/sim/systems/dialogue-quest.system.ts` & `src/client/ui/DialogueModal.tsx`:
+    - Restrict `resolveHireCompanion` so only combat/street roles (`GUARD`, `SCAVENGER`, `CITIZEN`) can be hired as followers; reject stationary service roles (`MERCHANT`, `CHIRURGEON`, `FIXER`).
+    - In `DialogueModal.tsx`, render `[Open Exchange Ledger (M)]` when speaking to a `MERCHANT` so players can transition directly from dialogue to trading.
+  - **Modify** `src/sim/systems/trade-pedestal.ts` & `src/client/ui/CartelLedgerView.tsx`:
+    - Enforce inventory consumption in `resolveStockPedestal` (`strict = true` default) so stocking a pedestal consumes matching commodity items from `actor_player.inventory`.
+    - Replace the hardcoded cheat buttons in `CartelLedgerView.tsx` (`[+] List 3x Anthracite` and `[!] Sabotage Coal Convoy`) with an inventory-driven commodity listing selector, and trigger `resolveTriggerSupplyShock` in-world when a Foundry Boiler ruptures (`PRESSURE_VESSEL_RUPTURED`).
+  - **Create** `tests/sim/grounded-economy.test.ts`: Deterministic tests for strict inventory-backed pedestal stocking, role-restricted companion hiring, and boiler-rupture supply shocks.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 18). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 18: Large Scrolling Districts (48x36), Camera Viewport, Persistent Fog-of-War & District State Cache (Issue #23)**. Keep all files <= 250 lines, add deterministic tests in `tests/sim/scrolling-fog-persistence.test.ts`, and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 24). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 24: Grounded Trade, Storefront Stalls & Dialogue-to-Market Wiring (Issue #29)** and add deterministic tests in `tests/sim/grounded-economy.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 19: Procedural Building Archetypes, Glass Windows, Interactive Furniture & Schematic Manuals (Issue #24)
-- **Goal**: Transform district generation into a **CDDA-style Urban Sandbox** featuring **5 Distinct Procedural Building Archetypes**, smashable/transparent **Glass Windows**, **Interactive Furniture** (`BED`, `SURGICAL_TABLE`), and **Readable Schematic Manuals** that unlock advanced crafting recipes.
-- **Architectural Constraint**: Do NOT bloat `src/sim/spatial/generator.ts`—create `src/sim/spatial/building-prefabs.ts` and `src/sim/systems/furniture.system.ts` (all files **<= 250 lines**).
+### Phase 25: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (Issue #30)
+- **Goal**: Connect the internal boiler (`steamReserveKpa`), fuel commodities (`Anthracite Coal`, `Steam Canisters`), Foundry Boilers (`pressureVessel`), and explosive pyrotechnics (`PRESSURIZE_VESSEL`, `EMIT_SPARK`) into a cohesive resource and tactical hazard loop.
+- **Architectural Constraint**: `src/sim/systems/anatomy.system.ts` is near the 300-line ceiling (293 lines). Extract boiler/steam refill and venting into `src/sim/systems/boiler-stoking.system.ts` so both files stay **<= 250 lines**.
 - **Files to Create / Modify**:
-  - **Modify** `src/sim/spatial/grid.ts`: Add `GLASS_WINDOW` (`blocksMovement: true`, `blocksSight: false`) and `SMASHED_WINDOW_FRAME` (`blocksMovement: false`, `blocksSight: false`) to `TerrainTypeSchema`.
-  - **Create** `src/sim/spatial/building-prefabs.ts`: Procedural builders for **1. Chirurgeon's Apothecary**, **2. Clockwork Foundry**, **3. Constabulary Watchhouse**, **4. Tenement & Public House**, and **5. Aether Alchemical Lab**, with contextual furniture and themed loot tables.
-  - **Create** `src/sim/systems/furniture.system.ts` & update `src/schemas/`:
-    - Add `SMASH_TERRAIN` (`actorId`, `target: Point3D`) to smash adjacent `GLASS_WINDOW` into `SMASHED_WINDOW_FRAME` (`TERRAIN_SMASHED` event).
-    - Add `REST_AT_BED` (`actorId`) to rest at an adjacent `BED` / `SURGICAL_TABLE` and restore limb HP & blood volume (`ACTOR_RESTED` event).
-    - Add `unlocksRecipeId: BlueprintIdSchema.optional()` to `ItemBlueprintSchema` & `ItemComponentSchema` and `unlockedRecipeIds: z.array(BlueprintIdSchema)` to `AnatomyComponentSchema`, so using a Schematic Manual unlocks advanced recipes (`RECIPE_UNLOCKED` event).
-  - **Create** `tests/sim/buildings-manuals.test.ts`: Deterministic tests for transparent `GLASS_WINDOW` FOV, `SMASH_TERRAIN`, reading manuals to unlock recipes, and `REST_AT_BED`.
+  - **Create** `src/sim/systems/boiler-stoking.system.ts` & update `src/sim/systems/anatomy.system.ts` and `src/sim/core/engine.ts`:
+    - Update `resolveRefillSteam`: stoke `+50 kPa` for free if adjacent (`<= 1` tile) to an unruptured `pressureVessel` (*Foundry Boiler*), OR consume 1x fuel item (`item_steam_canister`, `commodity_anthracite_briquette`, or `item_anthracite_coal`) from `actor.inventory`.
+    - Update `VENT_STEAM` so venting deducts `pressureReleasedKpa` from `actor.anatomy.steamReserveKpa` (requiring available steam), adds `steamPressureKpa` to the tile, and dumps `10%` `coreHeatPct`.
+  - **Modify** `src/client/ui/LookCursorOverlay.tsx` & `src/client/ui/TileInspectorPanel.tsx`:
+    - Add `[Stoke from Boiler (+50 kPa)]` (`REFILL_STEAM`) and `[Sabotage Valve (+120 kPa)]` (`PRESSURIZE_VESSEL`) when inspecting an adjacent unruptured `pressureVessel`.
+    - Add `[Strike Flint Spark]` (`EMIT_SPARK`) when inspecting an adjacent or current tile with `coalDustDensity >= 40`.
+  - **Create** `tests/sim/boiler-pyrotechnics.test.ts`: Deterministic tests for boiler/fuel-backed stoking, `VENT_STEAM` reserve deduction + cooling, and `PRESSURIZE_VESSEL` / `EMIT_SPARK` pyrotechnics.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 19). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 19: Procedural Building Archetypes, Glass Windows, Interactive Furniture & Schematic Manuals (Issue #24)** by creating `src/sim/spatial/building-prefabs.ts`, `src/sim/systems/furniture.system.ts`, and `tests/sim/buildings-manuals.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 25). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 25: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (Issue #30)** by creating `src/sim/systems/boiler-stoking.system.ts` and `tests/sim/boiler-pyrotechnics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 20: Interactive NPC Dialogue, Procedural Faction Contracts (Quests), Chirurgeon Services & Companions (Issue #25)
-- **Goal**: Bring NPCs to life with a **Dialogue & Contract System (`[T]` Talk)**. Players can converse with named NPCs, accept and turn in **Procedural Faction Contracts (Quests)** for pence and cartel reputation, pay **Street Chirurgeons** for medical restoration, and recruit **Allied Companions** who follow and fight alongside the player.
-- **Architectural Constraint**: Create `src/sim/systems/dialogue-quest.system.ts` and `src/client/ui/DialogueModal.tsx` (all files **<= 250 lines**).
+### Phase 26: Procedural Overworld City Grid & Distinct District Biomes (Issue #31)
+- **Goal**: Expand the playable world from 3 static districts into a connected 5-district Victorian Overworld City Grid where every visited district is populated with NPCs, loot, seed-varied building layouts, and distinct environmental biomes, and where stepping on a `DISTRICT_GATE` (`Ω`) travels across the city.
+- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines).
 - **Files to Create / Modify**:
-  - **Modify** `src/schemas/components.schema.ts`, `src/schemas/commands.schema.ts`, & `src/schemas/domain-events.schema.ts`:
-    - Add `'CHIRURGEON'` and `'FIXER'` roles and `companionOfActorId: EntityIdSchema.optional()` to `AiControllerComponentSchema`.
-    - Add `FactionContractSchema` (`id`, `issuerNpcId`, `factionId`, `title`, `description`, `kind`: `'DELIVER_ITEM' | 'SLAY_HOSTILE' | 'PRESSURIZE_BOILER'`, `targetBlueprintOrEntityId`, `rewardPence`, `rewardReputation`, `status`: `'AVAILABLE' | 'ACTIVE' | 'COMPLETED'`) to `DistrictEconomyLedgerSchema`.
-    - Add commands: `ACCEPT_CONTRACT`, `COMPLETE_CONTRACT`, `HIRE_COMPANION`, `PAY_CHIRURGEON_HEAL`.
-  - **Create** `src/sim/systems/dialogue-quest.system.ts` & update `src/sim/systems/ai.system.ts`:
-    - Implement `resolveAcceptContract`, `resolveCompleteContract`, `resolveHireCompanion`, and `resolvePayChirurgeonHeal`.
-    - Update `advanceNpcTurns` in `ai.system.ts` so companions (`companionOfActorId === playerId`) follow the player and attack adjacent hostiles.
-  - **Create** `src/client/ui/DialogueModal.tsx`: Interactive conversation, contract board, Chirurgeon healing service, and companion recruitment modal triggered by `[T]` or clicking `[Talk]` on an adjacent NPC.
-  - **Create** `tests/sim/dialogue-contracts.test.ts`: Deterministic tests for contract completion rewards, Chirurgeon healing, and companion AI combat assistance.
+  - **Create** `data/districts/whitechapel_ward.json` & `data/districts/limehouse_docks.json`:
+    - Expand `VALID_DISTRICT_IDS` to 5 districts: `spitalfields_works` (Industrial), `fleet_ditch` (Canal Slums), `belgravia_spires` (High Society), `whitechapel_ward` (Quarantine Ward), and `limehouse_docks` (Steam-Docks).
+  - **Modify** `src/sim/systems/transit.system.ts` & `src/sim/spatial/building-prefabs.ts`:
+    - Ensure `resolveTravelDistrict` invokes `spawnDistrictItems` and `spawnDistrictNpcs` when generating an unvisited district for the first time (while preserving cached entities on revisit).
+    - Wire `USE_PORTAL` when standing on a `DISTRICT_GATE` (`Ω`) entity to transition to the next connected district.
+    - Apply district biome modifiers (smog/coal-dust baseline, wealth index, and seed-varied building placement).
+  - **Modify** `src/client/ui/AtlasWindow.tsx`: Render the 5-district Overworld City Node Map with biome badges, visited status, and transit controls.
+  - **Create** `tests/sim/overworld-biomes.test.ts`: Deterministic tests verifying NPC/item population on newly visited districts, `DISTRICT_GATE` portal transit, and 5-district validation.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 20). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 20: Interactive NPC Dialogue, Procedural Faction Contracts (Quests), Chirurgeon Services & Companions (Issue #25)** by creating `src/sim/systems/dialogue-quest.system.ts`, `src/client/ui/DialogueModal.tsx`, and `tests/sim/dialogue-contracts.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 26). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 26: Procedural Overworld City Grid & Distinct District Biomes (Issue #31)** and add deterministic tests in `tests/sim/overworld-biomes.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 21: CDDA-Style Character Creation Modal (Professions, Traits & Starting Scenarios) (Issue #26)
-- **Goal**: Replace the static starting character with a **CDDA / Caves of Qud Character Creation & Starting Scenario Builder** where players choose their **Profession**, **Build-Defining Traits**, and **Starting District Scenario**.
-- **Architectural Constraint**: Create `src/sim/systems/character-archetypes.ts` and `src/client/ui/CharacterCreatorModal.tsx` (all files **<= 250 lines**).
+### Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks (Issue #32)
+- **Goal**: Transform the vertical `UNDERCROFT` and `SPIRE` strata from tiny two-room placeholders into full `48x36` procedural multi-room sewer dungeons and rooftop catwalk networks populated with stratum-specific NPCs, hazards, and high-tier loot crates.
+- **Architectural Constraint**: `src/sim/spatial/generator.ts` is 285 lines. Create `src/sim/spatial/strata-dungeons.ts` (**<= 250 lines**) and move `UNDERCROFT` / `SPIRE` layout logic into it so `generator.ts` shrinks below 250 lines.
 - **Files to Create / Modify**:
-  - **Create** `src/sim/systems/character-archetypes.ts`:
-    - Define 4 Professions: `DISGRACED_CHIRURGEON`, `FOUNDRY_ARTIFICER`, `CLOCKWORK_VETERAN` (starts with pre-grafted `Pneumatic Strider Leg`), and `AETHER_SMUGGLER`.
-    - Define 6 Traits (pick up to 2): `NIGHT_OPTICS`, `BOILER_HEART`, `PACK_MULE`, `IRON_FISTS`, `CARTEL_CONNECTIONS`, `TINKER_SAVANT`.
-    - Define 3 Starting Scenarios: `SPITALFIELDS_FOUNDRY_ROW` (`STREET`), `BELGRAVIA_SKY_WALK` (`SPIRE`), `FLEET_DITCH_SUMP` (`UNDERCROFT`).
-    - Implement `applyCharacterCreation(state: WorldState, config: CharacterCreationConfig): WorldState`.
-  - **Create** `src/client/ui/CharacterCreatorModal.tsx` & wire into `src/client/main.tsx` (`[N] New Character` button in `QuickActionBar.tsx` and `SystemMenuModal.tsx`).
-  - **Create** `tests/sim/character-creation.test.ts`: Deterministic tests verifying all 4 professions, trait stat modifiers, pre-grafted prosthetics, and starting scenarios.
+  - **Create** `src/sim/spatial/strata-dungeons.ts` & update `src/sim/spatial/generator.ts` and `src/sim/core/world.ts`:
+    - **`UNDERCROFT` (`48x36`)**: Carve 6–8 interconnected brick sewer chambers and smuggling vaults connected by sluice corridors, with coal-dust pockets, steam vents, `Heavy Brass Gear Crates`, Syndicate `FIXER` / smugglers, and feral sewer hostiles.
+    - **`SPIRE` (`48x36`)**: Carve 5–7 elevated brass tower platforms connected by narrow sky-bridges/catwalks, with pressure vessels, `Constabulary Armoury Lockers`, `Public House Library Shelves`, Clockwork Guild artificers, and sentry guards.
+    - Verify `hasWalkablePath` connectivity between entry portals (`MANHOLE` at `(4, 4)` and `PNEUMATIC_LIFT` at `(15, 10)`) and all carved chambers.
+  - **Create** `tests/sim/strata-dungeons.test.ts`: Deterministic tests verifying `>= 250` walkable tiles, multi-room connectivity, and stratum-specific NPC/container spawns in both `UNDERCROFT` and `SPIRE`.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 21). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 21: CDDA-Style Character Creation Modal (Professions, Traits & Starting Scenarios) (Issue #26)** by creating `src/sim/systems/character-archetypes.ts`, `src/client/ui/CharacterCreatorModal.tsx`, and `tests/sim/character-creation.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 27). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks (Issue #32)** by creating `src/sim/spatial/strata-dungeons.ts` and `tests/sim/strata-dungeons.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 22: Wielded Weapons, Wearable Armor/Pocket Gear & Ranged Pneumatic Ballistics (`[F]` Fire Mode) (Issue #27)
-- **Goal**: Complete the CDDA survival-combat loop by adding **Wielded Melee & Ranged Weapons**, **Wearable Clothing & Armor Layers** (providing **Pocket Carry Capacity**, **Armor**, and **Steam Scald Resistance**), and **Ranged Pneumatic Ballistics (`[F]` Fire Mode)** across the viewport.
-- **Architectural Constraint**: Create `src/sim/systems/equipment.system.ts` and `src/sim/systems/ballistics.system.ts` (all files **<= 250 lines**).
+### Phase 28: Unified Mortality, Bleeding, Morgue Screen & Expanded Cybernetics (Issue #33)
+- **Goal**: Unify actor mortality across all damage sources (melee, ranged ballistics, steam scalds, and boiler explosions), add a Victorian Morgue / Obituary screen when the player dies, and expand the prosthetic cybernetics catalog with surgical context bonuses.
+- **Architectural Constraint**: Create `src/sim/systems/mortality.system.ts` and `src/client/ui/MorgueModal.tsx` (all files **<= 250 lines**).
 - **Files to Create / Modify**:
-  - **Modify** `src/schemas/` & `data/items/materials.json`:
-    - Add `EquipmentSpecSchema` (`equipSlot`: `'WIELD' | 'HEAD_WEAR' | 'TORSO_WEAR' | 'BACK_WEAR'`, `meleeDamageBonus`, `armorBonus`, `storageVolumeBonusMl`, `steamResistanceKpa`, `rangedRange`, `rangedDamage`, `rangedSteamCostKpa`) to `ItemBlueprintSchema` & `ItemComponentSchema`.
-    - Add `equippedSlots` to `InventoryComponentSchema`.
-    - Add 4 gear blueprints to `data/items/materials.json`: *Heavy Pipe Wrench*, *Pneumatic Harpoon Rifle*, *Asbestos Foundry Coat*, and *Artificer's Canvas Rucksack*.
-  - **Create** `src/sim/systems/equipment.system.ts` & `src/sim/systems/ballistics.system.ts`:
-    - Implement `EQUIP_ITEM`, `UNEQUIP_ITEM`, and `FIRE_RANGED_WEAPON` (`attackerId`, `targetId`, `targetSlot`).
-    - Apply pocket storage volume (`storageVolumeBonusMl`), melee/armor bonuses, and steam scald resistance in `inventory-utils.ts`, `combat.system.ts`, and `thermo.system.ts`.
-  - **Modify** `src/client/ui/InventoryWindow.tsx` & `src/client/ui/LookCursorOverlay.tsx`: Add `[E] Equip / Unequip` controls in Satchel and ranged `[F]` / `[1]`–`[6]` limb firing in Look Mode.
-  - **Create** `tests/sim/equipment-ballistics.test.ts`: Deterministic tests for rucksack volume expansion, asbestos steam resistance, and ranged harpoon firing with LOS validation.
+  - **Create** `src/sim/systems/mortality.system.ts` & wire into `combat.system.ts`, `ballistics.system.ts`, `thermo.system.ts`, and `pressure.system.ts`:
+    - Implement `resolveActorDefeatIfFatal(state, targetId, attackerId?)`: when `TORSO.hp <= 0 || HEAD.hp <= 0 || bloodVolumePct <= 0`, emit `ACTOR_DEFEATED`, drop NPC inventory + loot + Crown Pence pouch, advance active `SLAY_HOSTILE` contracts, and remove defeated NPCs while preserving `actor_player` in `state.entities` so the Morgue screen can inspect the player's final state.
+  - **Modify** `data/items/prosthetics.json`, `data/items/recipes.json`, & `src/sim/systems/anatomy.system.ts`:
+    - Add `item_pneumatic_piledriver_arm`, `item_boiler_core_furnace`, and `item_clockwork_gyrostabilizer_leg` plus crafting recipes.
+    - Standing adjacent to a `SURGICAL_TABLE` (or having the `DISGRACED_CHIRURGEON` profession) prevents the `-15%` blood-loss shock penalty during `AMPUTATE_LIMB`.
+  - **Create** `src/client/ui/MorgueModal.tsx` & wire into `src/client/ui/HudLayout.tsx`:
+    - Display a Victorian Coroner's Inquest / Obituary when `actor_player` is defeated, with a `[New Character / Re-Embark (N)]` button.
+  - **Create** `tests/sim/mortality-cybernetics.test.ts`: Deterministic tests for lethal ranged/explosion kills dropping loot and completing contracts, player defeat preservation, and new prosthetic crafting/installation.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 22). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 22: Wielded Weapons, Wearable Armor/Pocket Gear & Ranged Pneumatic Ballistics ([F] Fire Mode) (Issue #27)** by creating `src/sim/systems/equipment.system.ts`, `src/sim/systems/ballistics.system.ts`, and `tests/sim/equipment-ballistics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 28). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 28: Unified Mortality, Bleeding, Morgue Screen & Expanded Cybernetics (Issue #33)** by creating `src/sim/systems/mortality.system.ts`, `src/client/ui/MorgueModal.tsx`, and `tests/sim/mortality-cybernetics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-## 2. Archive: Completed Phases (Phases 7–17)
+## 2. Archive: Completed Phases (Phases 7–22)
 - **Phase 7 (Issue #12 — Completed)**: World Items, Ground Spawning & True Inventory Management (`src/sim/systems/inventory.system.ts`, `src/sim/systems/item-spawner.ts`).
 - **Phase 8 (Issue #13 — Completed)**: Multi-Building District ProcGen, Doors & Inter-District Transit (`src/sim/spatial/district-layout.ts`, `src/sim/systems/transit.system.ts`).
 - **Phase 9 (Issue #14 — Completed)**: Artificer Crafting, Salvage & Steam Workbenches (`src/sim/systems/crafting.system.ts`, `data/items/recipes.json`).
@@ -110,3 +127,8 @@
 - **Phase 15 (Issue #20 — Completed)**: Vitruvian Clockwork Paperdoll (`[A]`) & Schematic Workbench Window (`[C]`) (`src/client/ui/AnatomyWindow.tsx`, `src/client/ui/CraftingWindow.tsx`).
 - **Phase 16 (Issue #21 — Completed)**: Dual-Column Merchant Trade Window & Cartel Economy Ledger (`[M]`) (`src/client/ui/TradeWindow.tsx`, `src/client/ui/CartelLedgerView.tsx`).
 - **Phase 17 (Issue #22 — Completed)**: Multi-Stratum World Atlas (`[W]`) & Keyboard `[L]` Look / Target Mode (`src/client/ui/AtlasWindow.tsx`, `src/client/ui/LookCursorOverlay.tsx`).
+- **Phase 18 (Issue #23 — Completed)**: Large Scrolling Districts (`48x36`), Camera Viewport, Persistent Fog-of-War & District State Cache (`src/client/projection/frame-adapter.ts`, `src/sim/systems/transit.system.ts`).
+- **Phase 19 (Issue #24 — Completed)**: Procedural Building Archetypes, Glass Windows, Interactive Furniture & Schematic Manuals (`src/sim/spatial/building-prefabs.ts`, `src/sim/systems/furniture.system.ts`).
+- **Phase 20 (Issue #25 — Completed)**: Interactive NPC Dialogue, Procedural Faction Contracts, Chirurgeon Services & Companions (`src/sim/systems/dialogue-quest.system.ts`, `src/client/ui/DialogueModal.tsx`).
+- **Phase 21 (Issue #26 — Completed)**: CDDA-Style Character Creation Modal — Professions, Traits & Starting Scenarios (`src/sim/systems/character-archetypes.ts`, `src/client/ui/CharacterCreatorModal.tsx`).
+- **Phase 22 (Issue #27 — Completed)**: Wielded Weapons, Wearable Armor/Pocket Gear & Ranged Pneumatic Ballistics (`src/sim/systems/equipment.system.ts`, `src/sim/systems/ballistics.system.ts`).
