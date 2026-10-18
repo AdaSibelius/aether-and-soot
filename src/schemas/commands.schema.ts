@@ -140,6 +140,13 @@ export const RepairLimbCommandSchema = z.object({
   slot: LimbSlotIdSchema,
 });
 
+export const AttackActorCommandSchema = z.object({
+  type: z.literal('ATTACK_ACTOR'),
+  attackerId: EntityIdSchema,
+  targetId: EntityIdSchema,
+  targetSlot: LimbSlotIdSchema.default('TORSO'),
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -161,5 +168,6 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   CraftRecipeCommandSchema,
   SalvageItemCommandSchema,
   RepairLimbCommandSchema,
+  AttackActorCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
