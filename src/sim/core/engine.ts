@@ -8,6 +8,8 @@ import {
   resolveRemoveProsthetic,
 } from '../systems/anatomy.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
+import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
+import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -19,7 +21,8 @@ export interface DispatchTurnResult {
 
 /**
  * Pure simulation command dispatcher.
- * Validates incoming command, executes domain system, updates RNG state, and advances turn clock.
+ * Validates incoming command, executes domain system, ticks environmental thermodynamics,
+ * updates RNG state, and advances the turn clock.
  */
 export function dispatchCommand(
   currentState: WorldState,
@@ -34,7 +37,7 @@ export function dispatchCommand(
 
   switch (command.type) {
     case 'MOVE_STEP': {
-      const res = resolveMoveStep(nextState, command.actorId, command.dx, command.dy);
+      const res = resolveMoveStep(nextState, command.dx ? command.actorId : command.actorId, command.dx, command.dy);
       nextState = res.state;
       systemEvents = res.events;
       apSpent = res.apSpent;
@@ -123,7 +126,30 @@ export function dispatchCommand(
       apSpent = res.apSpent;
       break;
     }
+    case 'PRESSURIZE_VESSEL': {
+      const res = resolvePressurizeVessel(
+        nextState,
+        command.vesselEntityId,
+        command.pressureAddedKpa,
+      );
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'EMIT_SPARK': {
+      const res = resolveEmitSpark(nextState, command.target);
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
   }
+
+  // Advance environmental cellular automata (gas diffusion, portal rising, thermal scalds)
+  const thermoTick = advanceThermodynamicsTick(nextState);
+  nextState = thermoTick.state;
+  systemEvents = [...systemEvents, ...thermoTick.events];
 
   const stateWithRng: WorldState = {
     ...nextState,
