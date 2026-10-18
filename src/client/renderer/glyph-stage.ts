@@ -74,7 +74,7 @@ export class GlyphStageRenderer {
       const bgColor = hexToNumber(cell.visual.bgColor);
       this.bgGraphics.rect(px, py, CELL_WIDTH_PX, CELL_HEIGHT_PX).fill({
         color: bgColor,
-        alpha: cell.visible ? 1.0 : 0.65,
+        alpha: cell.visible ? 1.0 : cell.explored ? 0.65 : 1.0,
       });
 
       if (cell.steamPressureKpa > 0 && cell.visible) {
@@ -91,7 +91,7 @@ export class GlyphStageRenderer {
       const fgHex = useSecondaryPulse ? cell.visual.fgSecondary : cell.visual.fgPrimary;
       textNode.text = cell.visual.glyph;
       textNode.style.fill = hexToNumber(fgHex);
-      textNode.alpha = cell.visible ? 1.0 : 0.38;
+      textNode.alpha = cell.visible ? 1.0 : cell.explored ? 0.42 : 0.0;
     }
   }
 

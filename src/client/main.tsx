@@ -40,7 +40,7 @@ async function bootstrapClient(): Promise<void> {
   }
 
   const createFreshWorld = (seed: number): WorldState => {
-    const base = createInitialWorld({ seed, width: 24, height: 20 });
+    const base = createInitialWorld({ seed });
     const withItems = spawnDistrictItems(generateVictorianDistrict(base).state).state;
     return spawnDistrictNpcs(withItems).state;
   };
@@ -87,9 +87,13 @@ async function bootstrapClient(): Promise<void> {
 
   const moveLookCursor = (dx: number, dy: number): void => {
     if (!lookCursor) return;
+    const p = worldState.entities[playerId]?.position;
+    const grid = p ? worldState.strata[p.stratum] : undefined;
+    const maxX = (grid?.width ?? 48) - 1;
+    const maxY = (grid?.height ?? 36) - 1;
     lookCursor = {
-      x: Math.max(0, Math.min(23, lookCursor.x + dx)),
-      y: Math.max(0, Math.min(19, lookCursor.y + dy)),
+      x: Math.max(0, Math.min(maxX, lookCursor.x + dx)),
+      y: Math.max(0, Math.min(maxY, lookCursor.y + dy)),
     };
     hoveredTile = lookCursor;
     syncPresentation();
@@ -128,6 +132,7 @@ async function bootstrapClient(): Promise<void> {
       <LookCursorOverlay
         isActive={isLookModeActive}
         cursor={lookCursor}
+        cameraOrigin={visualFrame.cameraOrigin}
         state={worldState}
         actorId={playerId}
         onCommand={handleCommand}
@@ -182,11 +187,14 @@ async function bootstrapClient(): Promise<void> {
 
   const updateTileFromMouse = (ev: MouseEvent): void => {
     const rect = canvasHost.getBoundingClientRect();
-    const x = Math.floor((ev.clientX - rect.left) / CELL_WIDTH_PX);
-    const y = Math.floor((ev.clientY - rect.top) / CELL_HEIGHT_PX);
-    if (x >= 0 && x < 24 && y >= 0 && y < 20) {
-      if (!hoveredTile || hoveredTile.x !== x || hoveredTile.y !== y) {
-        hoveredTile = { x, y };
+    const sx = Math.floor((ev.clientX - rect.left) / CELL_WIDTH_PX);
+    const sy = Math.floor((ev.clientY - rect.top) / CELL_HEIGHT_PX);
+    if (sx >= 0 && sx < 24 && sy >= 0 && sy < 20) {
+      const frame = projectWorldToVisualFrame(worldState, playerId);
+      const wx = frame.cameraOrigin.x + sx;
+      const wy = frame.cameraOrigin.y + sy;
+      if (!hoveredTile || hoveredTile.x !== wx || hoveredTile.y !== wy) {
+        hoveredTile = { x: wx, y: wy };
         syncPresentation();
       }
     }

@@ -4,13 +4,18 @@ import { WorldState } from '../../sim/core/world.js';
 import { computeVisibleTiles, pointKey } from '../../sim/spatial/fov.js';
 import { computeProstheticFovBonus } from '../../sim/systems/anatomy.system.js';
 
+export const DEFAULT_VIEWPORT_WIDTH = 24;
+export const DEFAULT_VIEWPORT_HEIGHT = 20;
 export const DEFAULT_FOV_RADIUS = 10;
 
 export interface RenderCellFrame {
   readonly x: number;
   readonly y: number;
+  readonly worldX: number;
+  readonly worldY: number;
   readonly visual: VisualGlyphSpec;
   readonly visible: boolean;
+  readonly explored: boolean;
   readonly steamPressureKpa: number;
   readonly coalDustDensity: number;
 }
@@ -21,6 +26,7 @@ export interface VisualGridFrame {
   readonly activeStratum: StratumId;
   readonly width: number;
   readonly height: number;
+  readonly cameraOrigin: { readonly x: number; readonly y: number };
   readonly effectiveFovRadius: number;
   readonly playerOrigin: { readonly x: number; readonly y: number };
   readonly cells: readonly RenderCellFrame[];
@@ -34,7 +40,7 @@ function entityDrawPriority(entity: EntityRecord): number {
 }
 
 /**
- * Pure read-only projection from WorldState + Shadowcasting FOV to a Caves of Qud style glyph/tile frame.
+ * Pure read-only projection from WorldState + Shadowcasting FOV to a viewport-clamped glyph/tile frame.
  * Never mutates WorldState.
  */
 export function projectWorldToVisualFrame(
@@ -55,20 +61,37 @@ export function projectWorldToVisualFrame(
   const effectiveFovRadius = Math.max(2, baseFovRadius + fovBonus);
   const visibleSet = computeVisibleTiles(grid, originX, originY, effectiveFovRadius);
 
+  const viewportWidth = Math.min(DEFAULT_VIEWPORT_WIDTH, grid.width);
+  const viewportHeight = Math.min(DEFAULT_VIEWPORT_HEIGHT, grid.height);
+
+  const cameraX = Math.max(0, Math.min(grid.width - viewportWidth, originX - Math.floor(viewportWidth / 2)));
+  const cameraY = Math.max(0, Math.min(grid.height - viewportHeight, originY - Math.floor(viewportHeight / 2)));
+
   const cells: RenderCellFrame[] = [];
-  for (let y = 0; y < grid.height; y++) {
-    for (let x = 0; x < grid.width; x++) {
-      const tile = grid.cells[y * grid.width + x];
-      const isVisible = visibleSet.has(pointKey(x, y));
+  for (let vy = 0; vy < viewportHeight; vy++) {
+    for (let vx = 0; vx < viewportWidth; vx++) {
+      const worldX = cameraX + vx;
+      const worldY = cameraY + vy;
+      const tile = grid.cells[worldY * grid.width + worldX];
+      const isVisible = visibleSet.has(pointKey(worldX, worldY));
+      const isExplored = isVisible || (tile?.explored ?? false);
 
       let baseVisual: VisualGlyphSpec;
-      if (tile?.terrainType === 'SOOT_BRICK_WALL') {
+      if (!isExplored) {
+        baseVisual = {
+          glyph: ' ',
+          fgPrimary: '#17202A',
+          fgSecondary: '#050708',
+          bgColor: '#050708',
+          shaderFlags: [],
+        };
+      } else if (tile?.terrainType === 'SOOT_BRICK_WALL') {
         baseVisual = {
           glyph: '#',
           fgPrimary: isVisible ? '#99A3A4' : '#34495E',
-          fgSecondary: '#BA4A00',
+          fgSecondary: isVisible ? '#BA4A00' : '#2C3E50',
           bgColor: '#17202A',
-          shaderFlags: ['SOOT_OCCLUSION'],
+          shaderFlags: isVisible ? ['SOOT_OCCLUSION'] : [],
         };
       } else if (tile?.terrainType === 'WOODEN_DOOR_CLOSED') {
         baseVisual = {
@@ -92,24 +115,27 @@ export function projectWorldToVisualFrame(
           fgPrimary: isVisible ? '#F4D03F' : '#7D6608',
           fgSecondary: '#F39C12',
           bgColor: '#1A1105',
-          shaderFlags: ['SPARK_GLINT'],
+          shaderFlags: isVisible ? ['SPARK_GLINT'] : [],
         };
       } else {
         baseVisual = {
           glyph: tile?.terrainType === 'BRASS_CATWALK' ? '=' : tile?.terrainType === 'IRON_GRATE' ? '≈' : '·',
-          fgPrimary: isVisible ? '#5D6D7E' : '#1C2833',
-          fgSecondary: '#2C3E50',
+          fgPrimary: isVisible ? '#5D6D7E' : '#2C3E50',
+          fgSecondary: '#1C2833',
           bgColor: '#0A0D0E',
           shaderFlags:
-            (tile?.steamPressureKpa ?? 0) > 0 ? ['PULSE_STEAM', 'HEAT_SHIMMER'] : [],
+            isVisible && (tile?.steamPressureKpa ?? 0) > 0 ? ['PULSE_STEAM', 'HEAT_SHIMMER'] : [],
         };
       }
 
       cells.push({
-        x,
-        y,
+        x: vx,
+        y: vy,
+        worldX,
+        worldY,
         visual: baseVisual,
         visible: isVisible,
+        explored: isExplored,
         steamPressureKpa: tile?.steamPressureKpa ?? 0,
         coalDustDensity: tile?.coalDustDensity ?? 0,
       });
@@ -121,8 +147,17 @@ export function projectWorldToVisualFrame(
   );
   for (const entity of drawOrder) {
     const pos = entity.position;
-    if (pos && pos.stratum === activeStratum && visibleSet.has(pointKey(pos.x, pos.y))) {
-      const idx = pos.y * grid.width + pos.x;
+    if (!pos || pos.stratum !== activeStratum) continue;
+    const isActor = Boolean(entity.actor);
+    const inFov = visibleSet.has(pointKey(pos.x, pos.y));
+    if (isActor && !inFov && entity.id !== focusActorId) continue;
+    const tileExplored = inFov || (grid.cells[pos.y * grid.width + pos.x]?.explored ?? false);
+    if (!inFov && !tileExplored) continue;
+
+    const screenX = pos.x - cameraX;
+    const screenY = pos.y - cameraY;
+    if (screenX >= 0 && screenX < viewportWidth && screenY >= 0 && screenY < viewportHeight) {
+      const idx = screenY * viewportWidth + screenX;
       const currentCell = cells[idx];
       if (currentCell) {
         cells[idx] = {
@@ -137,8 +172,9 @@ export function projectWorldToVisualFrame(
     turnCount: state.turnCount,
     macroTickCount: state.macroTickCount,
     activeStratum,
-    width: grid.width,
-    height: grid.height,
+    width: viewportWidth,
+    height: viewportHeight,
+    cameraOrigin: { x: cameraX, y: cameraY },
     effectiveFovRadius,
     playerOrigin: { x: originX, y: originY },
     cells,

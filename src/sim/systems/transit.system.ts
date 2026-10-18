@@ -1,3 +1,4 @@
+import { EntityRecord, PositionComponent } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { BlueprintId, EntityId, Point3D } from '../../schemas/primitives.schema.js';
 import { findBlockingEntityAtPoint, setTileCell } from '../spatial/grid.js';
@@ -129,7 +130,7 @@ export function resolveTravelDistrict(
   const fromDistrictId = state.currentDistrictId;
 
   // Preserve player, carried inventory items, and installed prosthetics
-  const preservedEntities: Record<string, typeof actor> = { [actorId]: actor };
+  const preservedEntities: Record<string, EntityRecord> = { [actorId]: actor };
   for (const invId of actor.inventory?.containedEntityIds ?? []) {
     const item = state.entities[invId];
     if (item) preservedEntities[invId] = item;
@@ -141,29 +142,78 @@ export function resolveTravelDistrict(
     }
   }
 
-  const genResult = generateVictorianDistrict({
-    ...state,
-    currentDistrictId: targetDistrictId,
-    entities: preservedEntities,
-  });
-  let nextState = genResult.state;
+  if (!state.strata.UNDERCROFT || !state.strata.STREET || !state.strata.SPIRE) {
+    return failTransit(state, currentTurn, actorId, 'TRAVEL_DISTRICT', 'NO_GATE_AT_POSITION');
+  }
 
-  // Place player at the arrival gate on STREET (or manhole if gate not found)
-  const arrivalGate = Object.values(nextState.entities).find(
-    (e) => e.districtGate && e.districtGate.targetDistrictId === fromDistrictId && e.position,
-  );
-  const arrivalPos = arrivalGate?.position ?? {
-    x: genResult.landmarks.streetManhole.x,
-    y: genResult.landmarks.streetManhole.y,
-    stratum: 'STREET',
-    blocksMovement: true,
-    blocksSight: false,
+  // Snapshot departing district entities & strata
+  const leavingEntities: Record<string, EntityRecord> = {};
+  for (const [id, ent] of Object.entries(state.entities)) {
+    if (!preservedEntities[id]) {
+      leavingEntities[id] = ent;
+    }
+  }
+  const updatedSavedDistricts = {
+    ...state.savedDistricts,
+    [fromDistrictId]: {
+      strata: {
+        UNDERCROFT: state.strata.UNDERCROFT,
+        STREET: state.strata.STREET,
+        SPIRE: state.strata.SPIRE,
+      },
+      entities: leavingEntities,
+    },
   };
 
-  nextState = {
-    ...nextState,
+  const cachedTarget = updatedSavedDistricts[targetDistrictId];
+  let nextStrata: WorldState['strata'];
+  let nextEntities: Record<string, EntityRecord>;
+  let arrivalPos: PositionComponent;
+
+  if (cachedTarget) {
+    nextStrata = cachedTarget.strata;
+    nextEntities = {
+      ...cachedTarget.entities,
+      ...preservedEntities,
+    };
+    const arrivalGate = Object.values(nextEntities).find(
+      (e) => e.districtGate && e.districtGate.targetDistrictId === fromDistrictId && e.position,
+    );
+    const streetGrid = nextStrata.STREET;
+    arrivalPos = arrivalGate?.position ?? {
+      x: streetGrid ? Math.floor(streetGrid.width / 2) : 12,
+      y: streetGrid ? Math.floor(streetGrid.height / 2) : 10,
+      stratum: 'STREET',
+      blocksMovement: true,
+      blocksSight: false,
+    };
+  } else {
+    const genResult = generateVictorianDistrict({
+      ...state,
+      currentDistrictId: targetDistrictId,
+      entities: preservedEntities,
+    });
+    nextStrata = genResult.state.strata;
+    nextEntities = genResult.state.entities;
+    const arrivalGate = Object.values(nextEntities).find(
+      (e) => e.districtGate && e.districtGate.targetDistrictId === fromDistrictId && e.position,
+    );
+    arrivalPos = arrivalGate?.position ?? {
+      x: genResult.landmarks.streetManhole.x,
+      y: genResult.landmarks.streetManhole.y,
+      stratum: 'STREET',
+      blocksMovement: true,
+      blocksSight: false,
+    };
+  }
+
+  const nextState: WorldState = {
+    ...state,
+    currentDistrictId: targetDistrictId,
+    strata: nextStrata,
+    savedDistricts: updatedSavedDistricts,
     entities: {
-      ...nextState.entities,
+      ...nextEntities,
       [actorId]: {
         ...actor,
         position: { ...arrivalPos, blocksMovement: true, blocksSight: false },

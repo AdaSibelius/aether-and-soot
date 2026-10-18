@@ -7,12 +7,23 @@ import {
   StratumId,
   StratumIdSchema,
 } from '../../schemas/primitives.schema.js';
-import { createStratumGrid, StratumGridSchema } from '../spatial/grid.js';
+import { createStratumGrid, markExploredTiles, StratumGridSchema } from '../spatial/grid.js';
+import { computeVisibleTiles } from '../spatial/fov.js';
 import {
   createInitialEconomyLedger,
   DistrictEconomyLedgerSchema,
 } from '../systems/economy.system.js';
 import { RNGStateSchema, SeededRNG } from './rng.js';
+
+export const SavedDistrictSnapshotSchema = z.object({
+  strata: z.object({
+    UNDERCROFT: StratumGridSchema,
+    STREET: StratumGridSchema,
+    SPIRE: StratumGridSchema,
+  }),
+  entities: z.record(z.string(), EntityComponentsSchema),
+});
+export type SavedDistrictSnapshot = z.infer<typeof SavedDistrictSnapshotSchema>;
 
 export const WorldStateSchema = z.object({
   version: z.literal(1),
@@ -27,6 +38,7 @@ export const WorldStateSchema = z.object({
   entities: z.record(z.string(), EntityComponentsSchema),
   economy: DistrictEconomyLedgerSchema,
   eventLog: z.array(SimEventSchema),
+  savedDistricts: z.record(z.string(), SavedDistrictSnapshotSchema).default({}),
 });
 export type WorldState = z.infer<typeof WorldStateSchema>;
 
@@ -37,11 +49,10 @@ export interface CreateWorldConfig {
 }
 
 export function createInitialWorld(config: CreateWorldConfig): WorldState {
-  const width = config.width ?? 24;
-  const height = config.height ?? 24;
+  const width = config.width ?? 48;
+  const height = config.height ?? 36;
   const rng = new SeededRNG(config.seed);
 
-  const strataNames: StratumId[] = ['UNDERCROFT', 'STREET', 'SPIRE'];
   const strata: Record<StratumId, z.infer<typeof StratumGridSchema>> = {
     UNDERCROFT: createStratumGrid('UNDERCROFT', width, height),
     STREET: createStratumGrid('STREET', width, height),
@@ -200,11 +211,8 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     },
   };
 
-  for (const s of strataNames) {
-    if (!strata[s]) {
-      throw new Error(`Missing stratum initialization: ${s}`);
-    }
-  }
+  const initialVisible = computeVisibleTiles(strata.STREET, centerX, centerY, 10);
+  strata.STREET = markExploredTiles(strata.STREET, initialVisible);
 
   return {
     version: 1,
@@ -223,6 +231,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     },
     economy: createInitialEconomyLedger(),
     eventLog: [],
+    savedDistricts: {},
   };
 }
 

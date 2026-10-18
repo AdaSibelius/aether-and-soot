@@ -15,6 +15,7 @@ export function buildSolidStratumGrid(stratum: StratumId, width: number, height:
     blocksSight: true,
     steamPressureKpa: 0,
     coalDustDensity: 0,
+    explored: false,
   }));
   return { ...base, cells: solidCells };
 }

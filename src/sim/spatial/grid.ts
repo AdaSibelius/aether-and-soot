@@ -16,6 +16,7 @@ export const TileCellSchema = z.object({
   blocksSight: z.boolean(),
   steamPressureKpa: z.number().nonnegative().default(0),
   coalDustDensity: z.number().min(0).max(1).default(0),
+  explored: z.boolean().default(false),
 });
 export type TileCell = z.infer<typeof TileCellSchema>;
 
@@ -42,6 +43,7 @@ export function createStratumGrid(
         blocksSight: isBorder,
         steamPressureKpa: 0,
         coalDustDensity: 0,
+        explored: false,
       });
     }
   }
@@ -63,7 +65,7 @@ export function setTileCell(
   grid: StratumGrid,
   x: number,
   y: number,
-  updater: (prev: TileCell) => TileCell,
+  updater: (prev: TileCell) => Partial<TileCell> | TileCell,
 ): StratumGrid {
   if (!isWithinBounds(grid, x, y)) {
     return grid;
@@ -74,7 +76,8 @@ export function setTileCell(
     return grid;
   }
   const nextCells = [...grid.cells];
-  nextCells[idx] = updater(current);
+  const updated = updater(current);
+  nextCells[idx] = { ...current, ...updated };
   return { ...grid, cells: nextCells };
 }
 
@@ -103,4 +106,25 @@ export function findBlockingEntityAtPoint(
     }
   }
   return undefined;
+}
+
+export function markExploredTiles(
+  grid: StratumGrid,
+  visibleKeys: ReadonlySet<string>,
+): StratumGrid {
+  let changed = false;
+  const nextCells = [...grid.cells];
+  for (const key of visibleKeys) {
+    const comma = key.indexOf(',');
+    if (comma === -1) continue;
+    const x = Number(key.slice(0, comma));
+    const y = Number(key.slice(comma + 1));
+    const idx = y * grid.width + x;
+    const current = nextCells[idx];
+    if (current && !current.explored) {
+      nextCells[idx] = { ...current, explored: true };
+      changed = true;
+    }
+  }
+  return changed ? { ...grid, cells: nextCells } : grid;
 }

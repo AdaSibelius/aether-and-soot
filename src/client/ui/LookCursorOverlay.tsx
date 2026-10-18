@@ -7,6 +7,7 @@ import { CELL_HEIGHT_PX, CELL_WIDTH_PX } from '../renderer/glyph-stage.js';
 export interface LookCursorOverlayProps {
   readonly isActive: boolean;
   readonly cursor: { x: number; y: number } | null;
+  readonly cameraOrigin?: { readonly x: number; readonly y: number };
   readonly state: Readonly<WorldState>;
   readonly actorId: EntityId;
   readonly onCommand: (cmd: GameCommand) => void;
@@ -25,6 +26,7 @@ const LIMB_TARGETS: readonly { slot: LimbSlotId; key: string; label: string }[] 
 export function LookCursorOverlay({
   isActive,
   cursor,
+  cameraOrigin,
   state,
   actorId,
   onCommand,
@@ -50,8 +52,14 @@ export function LookCursorOverlay({
     ? Math.max(Math.abs(player.position.x - cursor.x), Math.abs(player.position.y - cursor.y)) <= 1
     : false;
 
-  const leftPx = cursor.x * CELL_WIDTH_PX;
-  const topPx = cursor.y * CELL_HEIGHT_PX;
+  const camX = cameraOrigin?.x ?? 0;
+  const camY = cameraOrigin?.y ?? 0;
+  const screenX = cursor.x - camX;
+  const screenY = cursor.y - camY;
+  const isCursorOnScreen = screenX >= 0 && screenX < 24 && screenY >= 0 && screenY < 20;
+
+  const leftPx = screenX * CELL_WIDTH_PX;
+  const topPx = screenY * CELL_HEIGHT_PX;
 
   return (
     <div
@@ -101,22 +109,24 @@ export function LookCursorOverlay({
       </div>
 
       {/* Brass Reticle Box */}
-      <div
-        style={{
-          position: 'absolute',
-          left: `${leftPx}px`,
-          top: `${topPx}px`,
-          width: `${CELL_WIDTH_PX}px`,
-          height: `${CELL_HEIGHT_PX}px`,
-          border: '2px solid var(--brass-gold)',
-          boxShadow: '0 0 12px rgba(212, 175, 55, 0.95), inset 0 0 6px rgba(212, 175, 55, 0.4)',
-          boxSizing: 'border-box',
-          zIndex: 40,
-        }}
-      />
+      {isCursorOnScreen && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${leftPx}px`,
+            top: `${topPx}px`,
+            width: `${CELL_WIDTH_PX}px`,
+            height: `${CELL_HEIGHT_PX}px`,
+            border: '2px solid var(--brass-gold)',
+            boxShadow: '0 0 12px rgba(212, 175, 55, 0.95), inset 0 0 6px rgba(212, 175, 55, 0.4)',
+            boxSizing: 'border-box',
+            zIndex: 40,
+          }}
+        />
+      )}
 
       {/* Floating Target Dossier Badge */}
-      {(targetActor || isDoor || entitiesOnTile.length > 0) && (
+      {isCursorOnScreen && (targetActor || isDoor || entitiesOnTile.length > 0) && (
         <div
           style={{
             position: 'absolute',

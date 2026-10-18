@@ -1,8 +1,10 @@
 import { GameCommand, GameCommandSchema } from '../../schemas/commands.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { setTileCell } from '../spatial/grid.js';
+import { markExploredTiles, setTileCell } from '../spatial/grid.js';
+import { computeVisibleTiles } from '../spatial/fov.js';
 import { advanceNpcTurns } from '../systems/ai.system.js';
 import {
+  computeProstheticFovBonus,
   resolveDamageLimb,
   resolveInstallProsthetic,
   resolveRefillSteam,
@@ -144,26 +146,10 @@ export function dispatchCommand(
       );
       break;
     case 'BUY_FROM_MERCHANT':
-      apply(
-        resolveBuyFromMerchant(
-          nextState,
-          command.actorId,
-          command.merchantId,
-          command.itemEntityId,
-          command.quantity,
-        ),
-      );
+      apply(resolveBuyFromMerchant(nextState, command.actorId, command.merchantId, command.itemEntityId, command.quantity));
       break;
     case 'SELL_TO_MERCHANT':
-      apply(
-        resolveSellToMerchant(
-          nextState,
-          command.actorId,
-          command.merchantId,
-          command.itemEntityId,
-          command.quantity,
-        ),
-      );
+      apply(resolveSellToMerchant(nextState, command.actorId, command.merchantId, command.itemEntityId, command.quantity));
       break;
     case 'TRIGGER_SUPPLY_SHOCK':
       apply(
@@ -223,8 +209,28 @@ export function dispatchCommand(
 
   const actingActorId = command.type === 'ATTACK_ACTOR' ? command.attackerId : command.actorId;
   const scheduled = advanceTurnSchedule(nextState, actingActorId, apSpent, systemEvents, rng);
+
+  let finalState = scheduled.state;
+  const player = scheduled.state.entities['actor_player'];
+  if (player?.position) {
+    const pStratum = player.position.stratum;
+    const grid = scheduled.state.strata[pStratum];
+    if (grid) {
+      const bonus = computeProstheticFovBonus(scheduled.state, player);
+      const visible = computeVisibleTiles(grid, player.position.x, player.position.y, Math.max(2, 10 + bonus));
+      const updatedGrid = markExploredTiles(grid, visible);
+      finalState = {
+        ...scheduled.state,
+        strata: {
+          ...scheduled.state.strata,
+          [pStratum]: updatedGrid,
+        },
+      };
+    }
+  }
+
   return {
-    state: scheduled.state,
+    state: finalState,
     events: scheduled.allEvents,
   };
 }
