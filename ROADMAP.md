@@ -4,32 +4,15 @@
 > - **Phases 1–6 (Completed)**: Established the deterministic headless core (`src/sim/`), 3-strata verticality, anatomy/prosthetics, thermodynamics, macro-economy, and the PixiJS/Preact presentation shell.
 > - **Phases 7–12 (Completed — Issues #12–#17)**: Built world items & encumbrance, multi-building districts & inter-district transit, steam-powered crafting & salvage, autonomous NPC AI & targeted limb combat, physical merchant trading, and the initial UI inspector/system menu.
 > - **Phases 13–17 (Completed — Issues #18–#22)**: Delivered the *Caves of Qud* full-window modal UI shell (`[I]` Satchel, `[A]` Vitruvian Anatomy & Grafts, `[C]` Artificer Schematic Bench, `[M]` Dual-Column Exchange & Factions, `[W]` Multi-Stratum World Atlas) and keyboard `[L]` Look/Target cursor mode.
-> - **Phases 18–23 (Completed — Issues #23–#28)**: Expanded the world into large scrolling districts (`48x36`), procedural building archetypes with smashable windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, CDDA-style Character Creation, wielded weapons & wearable pocketed armor, and interactive containers (`LOCKER`, `CRATE`, `BOOKSHELF`) with tangible currency pouches (`Crown Pence Pouch`).
-> - **Phases 24–28 (Active — Issues #29–#33 — Deep Interconnected World & Systems Cohesion)**: Connects every standalone mechanic into an interlocking Victorian survival simulation: grounded inventory-backed trade stalls & Merchant dialogue wiring, fuel-driven boiler stoking & tactical pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
+> - **Phases 18–24 (Completed — Issues #23–#29)**: Expanded the world into large scrolling districts (`48x36`), procedural building archetypes with smashable windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, CDDA-style Character Creation, wielded weapons & wearable pocketed armor, interactive containers (`LOCKER`, `CRATE`, `BOOKSHELF`) with tangible currency pouches (`Crown Pence Pouch`), and grounded trade with live Chirurgeon/Fixer spawns and dialogue-to-market wiring.
+> - **Phases 25–28 (Active — Issues #30–#33 — Deep Interconnected World & Systems Cohesion)**: Connects every standalone mechanic into an interlocking Victorian survival simulation: fuel-driven boiler stoking & tactical pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
 >
 > Every phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
 
 ---
 
-## 1. Active Implementation Plan: Phases 24–28 (World Scale & Systems Cohesion)
+## 1. Active Implementation Plan: Phases 25–28 (World Scale & Systems Cohesion)
 
-### Phase 24: Grounded Trade, Live Chirurgeon/Fixer/Contract Spawns & Dialogue-to-Market Wiring (Issue #29)
-- **Goal**: Ground the trading, dialogue, and cartel contract economy in the physical world by spawning live `CHIRURGEON` and `FIXER` NPCs and seeding procedural `FactionContract` quests during district generation (fixing the Phase 20 world-gen gap), connecting Merchant NPC dialogue directly to the Market Exchange (`[M]`), requiring real inventory commodities to stock Trade Pedestals, and replacing magic UI debug buttons with in-world economic interactions.
-- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines).
-- **Files to Create / Modify**:
-  - **Modify** `src/sim/systems/ai.system.ts`, `src/sim/systems/dialogue-quest.system.ts`, & `src/client/ui/DialogueModal.tsx`:
-    - In `spawnDistrictNpcs`, spawn a live `CHIRURGEON` inside the Apothecary and a `FIXER` inside the Tenement/Public House, and seed 3 procedural `FactionContract` quests (`DELIVER_ITEM`, `SLAY_HOSTILE`, `PRESSURIZE_BOILER`) into `state.contracts`.
-    - Add `PRESSURIZE_BOILER` completion verification in `resolveCompleteContract` and `DialogueModal.tsx`.
-    - Restrict `resolveHireCompanion` so only combat/street roles (`GUARD`, `SCAVENGER`, `CITIZEN`) can be hired as followers; reject stationary service roles (`MERCHANT`, `CHIRURGEON`, `FIXER`).
-    - In `DialogueModal.tsx`, render `[Open Exchange Ledger (M)]` when speaking to a `MERCHANT` so players can transition directly from dialogue to trading.
-  - **Modify** `src/sim/systems/trade-pedestal.ts` & `src/client/ui/CartelLedgerView.tsx`:
-    - Enforce inventory consumption in `resolveStockPedestal` (`strict = true` default) so stocking a pedestal consumes matching commodity items from `actor_player.inventory`.
-    - Replace the hardcoded cheat buttons in `CartelLedgerView.tsx` (`[+] List 3x Anthracite` and `[!] Sabotage Coal Convoy`) with an inventory-driven commodity listing selector, and trigger `resolveTriggerSupplyShock` in-world when a Foundry Boiler ruptures (`PRESSURE_VESSEL_RUPTURED`).
-  - **Create** `tests/sim/grounded-economy.test.ts`: Deterministic tests for live Chirurgeon/Fixer/Contract spawning, `PRESSURIZE_BOILER` contract completion, strict inventory-backed pedestal stocking, and role-restricted companion hiring.
-- **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 24). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 24: Grounded Trade, Live Chirurgeon/Fixer/Contract Spawns & Dialogue-to-Market Wiring (Issue #29)** and add deterministic tests in `tests/sim/grounded-economy.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
-
----
 
 ### Phase 25: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (Issue #30)
 - **Goal**: Connect the internal boiler (`steamReserveKpa`), fuel commodities (`Anthracite Coal`, `Steam Canisters`), Foundry Boilers (`pressureVessel`), and explosive pyrotechnics (`PRESSURIZE_VESSEL`, `EMIT_SPARK`) into a cohesive resource and tactical hazard loop.
@@ -97,7 +80,7 @@
 
 ---
 
-## 2. Archive: Completed Phases (Phases 7–23)
+## 2. Archive: Completed Phases (Phases 7–24)
 - **Phase 7 (Issue #12 — Completed)**: World Items, Ground Spawning & True Inventory Management (`src/sim/systems/inventory.system.ts`, `src/sim/systems/item-spawner.ts`).
 - **Phase 8 (Issue #13 — Completed)**: Multi-Building District ProcGen, Doors & Inter-District Transit (`src/sim/spatial/district-layout.ts`, `src/sim/systems/transit.system.ts`).
 - **Phase 9 (Issue #14 — Completed)**: Artificer Crafting, Salvage & Steam Workbenches (`src/sim/systems/crafting.system.ts`, `data/items/recipes.json`).
@@ -115,3 +98,4 @@
 - **Phase 21 (Issue #26 — Completed)**: CDDA-Style Character Creation Modal — Professions, Traits & Starting Scenarios (`src/sim/systems/character-archetypes.ts`, `src/client/ui/CharacterCreatorModal.tsx`).
 - **Phase 22 (Issue #27 — Completed)**: Wielded Weapons, Wearable Armor/Pocket Gear & Ranged Pneumatic Ballistics (`src/sim/systems/equipment.system.ts`, `src/sim/systems/ballistics.system.ts`).
 - **Phase 23 (Issue #28 — Completed)**: Interactive Containers (`LOCKER`, `CRATE`, `BOOKSHELF`) & Tangible Currency / Loot Tables (`src/sim/systems/container.system.ts`, `data/items/materials.json`, `tests/sim/containers-currency.test.ts`).
+- **Phase 24 (Issue #29 — Completed)**: Grounded Trade, Live Chirurgeon/Fixer/Contract Spawns & Dialogue-to-Market Wiring (`src/sim/systems/district-spawner.ts`, `src/sim/systems/trade-pedestal.ts`, `tests/sim/grounded-economy.test.ts`).
