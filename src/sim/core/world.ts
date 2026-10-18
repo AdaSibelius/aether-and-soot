@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { EntityComponentsSchema, EntityRecord } from '../../schemas/components.schema.js';
 import { SimEventSchema } from '../../schemas/events.schema.js';
 import {
+  BlueprintId,
   BlueprintIdSchema,
   EntityIdSchema,
   StratumId,
@@ -20,6 +21,9 @@ export const WorldStateSchema = z.object({
   rngState: RNGStateSchema,
   turnCount: z.number().int().nonnegative(),
   macroTickCount: z.number().int().nonnegative(),
+  currentDistrictId: BlueprintIdSchema.default(
+    'district_spitalfields_soot_works' as z.infer<typeof BlueprintIdSchema>,
+  ),
   strata: z.record(StratumIdSchema, StratumGridSchema),
   entities: z.record(z.string(), EntityComponentsSchema),
   economy: DistrictEconomyLedgerSchema,
@@ -79,13 +83,25 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     anatomy: {
       limbs: {
         HEAD: { slot: 'HEAD', hp: 20, maxHp: 20, amputated: false },
-        TORSO: { slot: 'TORSO', hp: 40, maxHp: 40, amputated: false },
+        TORSO: { slot: 'TORSO', hp: 50, maxHp: 50, amputated: false },
         LEFT_ARM: { slot: 'LEFT_ARM', hp: 25, maxHp: 25, amputated: false },
         RIGHT_ARM: { slot: 'RIGHT_ARM', hp: 25, maxHp: 25, amputated: false },
-        LEFT_LEG: { slot: 'LEFT_LEG', hp: 30, maxHp: 30, amputated: false },
+        LEFT_LEG: {
+          slot: 'LEFT_LEG',
+          hp: 0,
+          maxHp: 30,
+          amputated: true,
+          installedProstheticEntityId: striderLegId,
+        },
         RIGHT_LEG: { slot: 'RIGHT_LEG', hp: 30, maxHp: 30, amputated: false },
-        OCULAR_MOUNT: { slot: 'OCULAR_MOUNT', hp: 10, maxHp: 10, amputated: false },
-        CHASSIS_CORE: { slot: 'CHASSIS_CORE', hp: 50, maxHp: 50, amputated: false },
+        OCULAR_MOUNT: {
+          slot: 'OCULAR_MOUNT',
+          hp: 10,
+          maxHp: 10,
+          amputated: false,
+          installedProstheticEntityId: ocularMonocleId,
+        },
+        CHASSIS_CORE: { slot: 'CHASSIS_CORE', hp: 40, maxHp: 40, amputated: false },
       },
       bloodVolumePct: 100,
       steamReserveKpa: 100,
@@ -95,65 +111,65 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       containedEntityIds: [striderLegId, ocularMonocleId],
       maxMassGrams: 25000,
       maxVolumeMl: 30000,
-      currentMassGrams: 4650,
+      currentMassGrams: 5100,
     },
   };
 
   const striderLegEntity: EntityRecord = {
     id: striderLegId,
-    name: 'Gilded Pneumatic Strider Leg Mk.I',
+    name: 'Pneumatic Strider Leg Mk.II',
     visual: {
       glyph: 'L',
       fgPrimary: '#D4AF37',
-      fgSecondary: '#8B4513',
+      fgSecondary: '#9A7D0A',
       bgColor: '#0A0D0E',
-      shaderFlags: ['PULSE_STEAM'],
+      shaderFlags: ['SPARK_GLINT'],
     },
     prostheticSpec: {
-      blueprintId: BlueprintIdSchema.parse('prosthetic_pneumatic_leg_mk1'),
+      blueprintId: BlueprintIdSchema.parse('item_pneumatic_strider_leg'),
       targetLimbSlot: 'LEFT_LEG',
-      socketType: 'ACTUATOR',
-      massGrams: 4200,
-      volumeMl: 3100,
+      socketType: 'PNEUMATIC_BRACKET',
+      massGrams: 4500,
+      volumeMl: 3200,
       steamConsumptionPerTurn: 2,
       moveApModifier: -15,
       fovRadiusBonus: 0,
-      pressureRatingKpa: 320,
+      pressureRatingKpa: 250,
     },
   };
 
   const ocularMonocleEntity: EntityRecord = {
     id: ocularMonocleId,
-    name: 'Aetheric Turret Monocle',
+    name: 'Aetheric Vernier Monocle',
     visual: {
       glyph: 'o',
       fgPrimary: '#5DADE2',
-      fgSecondary: '#D4AF37',
+      fgSecondary: '#2E86C1',
       bgColor: '#0A0D0E',
-      shaderFlags: ['SPARK_GLINT'],
+      shaderFlags: ['HEAT_SHIMMER'],
     },
     prostheticSpec: {
-      blueprintId: BlueprintIdSchema.parse('prosthetic_clockwork_ocular_lens'),
+      blueprintId: BlueprintIdSchema.parse('item_aetheric_monocle'),
       targetLimbSlot: 'OCULAR_MOUNT',
-      socketType: 'OPTIC_SENSOR',
-      massGrams: 450,
-      volumeMl: 300,
+      socketType: 'CLOCKWORK_GEAR',
+      massGrams: 600,
+      volumeMl: 450,
       steamConsumptionPerTurn: 0,
       moveApModifier: 0,
-      fovRadiusBonus: 4,
+      fovRadiusBonus: 3,
       pressureRatingKpa: 120,
     },
   };
 
   const manholeEntity: EntityRecord = {
     id: manholeDownId,
-    name: 'Iron Manhole to Undercroft',
+    name: 'Heavy Cast-Iron Manhole Cover (To Undercroft)',
     visual: {
       glyph: '>',
-      fgPrimary: '#D4AF37',
-      fgSecondary: '#5D6D7E',
+      fgPrimary: '#7F8C8D',
+      fgSecondary: '#2C3E50',
       bgColor: '#0A0D0E',
-      shaderFlags: ['PULSE_STEAM'],
+      shaderFlags: [],
     },
     position: {
       x: centerX,
@@ -167,17 +183,17 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       bidirectional: true,
       conductsGas: true,
       apCost: 100,
-      portalLabel: 'Descend into the Soot-Sewers',
+      portalLabel: 'Descend Heavy Cast-Iron Ladder to Undercroft',
     },
   };
 
   const ladderEntity: EntityRecord = {
     id: ladderUpId,
-    name: 'Rusted Iron Ladder to Street',
+    name: 'Rusted Iron Ladder (To Street)',
     visual: {
       glyph: '<',
-      fgPrimary: '#D4AF37',
-      fgSecondary: '#5D6D7E',
+      fgPrimary: '#7F8C8D',
+      fgSecondary: '#2C3E50',
       bgColor: '#0A0D0E',
       shaderFlags: [],
     },
@@ -209,6 +225,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     rngState: rng.getState(),
     turnCount: 0,
     macroTickCount: 0,
+    currentDistrictId: BlueprintIdSchema.parse('district_spitalfields_soot_works'),
     strata,
     entities: {
       [playerId]: playerEntity,
