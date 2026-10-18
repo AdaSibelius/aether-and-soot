@@ -7,7 +7,7 @@
     "ambientSmogDensity": 0.65,
     "wealthIndex": 0.75,
     "floorVisual": {
-      "glyph": ".",
+      "glyph": "·",
       "fgPrimary": "#566573",
       "fgSecondary": "#2C3E50",
       "bgColor": "#0A0D0E",
@@ -19,6 +19,50 @@
       "fgSecondary": "#BA4A00",
       "bgColor": "#17202A",
       "shaderFlags": ["SOOT_OCCLUSION"]
+    }
+  },
+  {
+    "id": "district_fleet_ditch_undercroft",
+    "name": "Fleet Ditch Flooded Undercroft",
+    "dominantStratum": "UNDERCROFT",
+    "controllingFactionId": "faction_undercroft_syndicate",
+    "ambientSmogDensity": 0.85,
+    "wealthIndex": 0.35,
+    "floorVisual": {
+      "glyph": "≈",
+      "fgPrimary": "#2E86C1",
+      "fgSecondary": "#1B4F72",
+      "bgColor": "#070B0E",
+      "shaderFlags": []
+    },
+    "wallVisual": {
+      "glyph": "#",
+      "fgPrimary": "#4D5656",
+      "fgSecondary": "#212F3D",
+      "bgColor": "#0E161A",
+      "shaderFlags": ["SOOT_OCCLUSION"]
+    }
+  },
+  {
+    "id": "district_belgravia_brass_spires",
+    "name": "Belgravia Brass Spires & Sky-Walks",
+    "dominantStratum": "SPIRE",
+    "controllingFactionId": "faction_clockwork_guild",
+    "ambientSmogDensity": 0.15,
+    "wealthIndex": 3.4,
+    "floorVisual": {
+      "glyph": "=",
+      "fgPrimary": "#D4AF37",
+      "fgSecondary": "#9A7D0A",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    },
+    "wallVisual": {
+      "glyph": "╬",
+      "fgPrimary": "#F4D03F",
+      "fgSecondary": "#D4AF37",
+      "bgColor": "#17202A",
+      "shaderFlags": []
     }
   }
 ]
