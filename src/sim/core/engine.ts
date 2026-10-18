@@ -7,6 +7,7 @@ import {
   resolveRefillSteam,
   resolveRemoveProsthetic,
 } from '../systems/anatomy.system.js';
+import { resolveStockPedestal, resolveTriggerSupplyShock } from '../systems/economy.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
@@ -22,7 +23,7 @@ export interface DispatchTurnResult {
 /**
  * Pure simulation command dispatcher.
  * Validates incoming command, executes domain system, ticks environmental thermodynamics,
- * updates RNG state, and advances the turn clock.
+ * updates RNG state, and advances the turn clock (including 100-turn Macro-Ticks).
  */
 export function dispatchCommand(
   currentState: WorldState,
@@ -144,19 +145,38 @@ export function dispatchCommand(
       apSpent = res.apSpent;
       break;
     }
+    case 'STOCK_PEDESTAL': {
+      const res = resolveStockPedestal(
+        nextState,
+        command.commodity,
+        command.quantity,
+        command.askingPriceMarkupPct,
+      );
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
+    case 'TRIGGER_SUPPLY_SHOCK': {
+      const res = resolveTriggerSupplyShock(
+        nextState,
+        command.commodity,
+        command.supplyDelta,
+        command.factionAffected,
+        command.reputationDelta,
+      );
+      nextState = res.state;
+      systemEvents = res.events;
+      apSpent = res.apSpent;
+      break;
+    }
   }
 
-  // Advance environmental cellular automata (gas diffusion, portal rising, thermal scalds)
   const thermoTick = advanceThermodynamicsTick(nextState);
   nextState = thermoTick.state;
   systemEvents = [...systemEvents, ...thermoTick.events];
 
-  const stateWithRng: WorldState = {
-    ...nextState,
-    rngState: rng.getState(),
-  };
-
-  const scheduled = advanceTurnSchedule(stateWithRng, command.actorId, apSpent, systemEvents);
+  const scheduled = advanceTurnSchedule(nextState, command.actorId, apSpent, systemEvents, rng);
   return {
     state: scheduled.state,
     events: scheduled.allEvents,
