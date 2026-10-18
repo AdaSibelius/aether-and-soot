@@ -16,6 +16,7 @@ export interface KeyboardRouterParams {
   readonly onLookAttack: (slot: LimbSlotId) => void;
   readonly onLookInteract: () => void;
   readonly onTalk?: () => void;
+  readonly onOpenCharacterCreator?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
 }
 
@@ -34,6 +35,7 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     onLookAttack,
     onLookInteract,
     onTalk,
+    onOpenCharacterCreator,
     onCommand,
   } = params;
 
@@ -192,5 +194,8 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
   } else if (ev.key === 'g' || ev.key === ',') {
     ev.preventDefault();
     onCommand({ type: 'PICK_UP_ITEM', actorId: playerId });
+  } else if ((ev.key === 'n' || ev.key === 'N') && onOpenCharacterCreator) {
+    ev.preventDefault();
+    onOpenCharacterCreator();
   }
 }

@@ -7,6 +7,7 @@ export interface SystemMenuModalProps {
   readonly onClose: () => void;
   readonly onNewSeed: (seed: number) => void;
   readonly onLoadWorld: (savedWorld: WorldState) => void;
+  readonly onOpenCharacterCreator?: () => void;
 }
 
 const LOCAL_STORAGE_KEY = 'aether_soot_save';
@@ -17,6 +18,7 @@ export function SystemMenuModal({
   onClose,
   onNewSeed,
   onLoadWorld,
+  onOpenCharacterCreator,
 }: SystemMenuModalProps) {
   if (!isOpen) return null;
 
@@ -122,6 +124,29 @@ export function SystemMenuModal({
         {statusMsg && (
           <div class="log-entry brass-text" style={{ margin: '6px 0', padding: '4px' }}>
             {statusMsg}
+          </div>
+        )}
+
+        {onOpenCharacterCreator && (
+          <div style={{ margin: '8px 0' }}>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenCharacterCreator();
+              }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                background: 'rgba(212, 175, 55, 0.15)',
+                border: '1px solid var(--brass-gold)',
+                color: 'var(--brass-gold)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              [+] Create New Character / Scenario
+            </button>
           </div>
         )}
 

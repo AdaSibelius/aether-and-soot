@@ -57,17 +57,16 @@ export function dispatchCommand(
     case 'USE_PORTAL':
       apply(resolveUsePortal(nextState, command.actorId));
       break;
-    case 'WAIT_TURN':
+    case 'WAIT_TURN': {
       rng.nextUint32();
-      systemEvents = [
-        {
-          type: 'ACTOR_WAITED',
-          turn: nextState.turnCount + 1,
-          actorId: command.actorId,
-          apSpent: STANDARD_ACTION_AP,
-        },
-      ];
+      const wActor = nextState.entities[command.actorId];
+      if (wActor?.anatomy && wActor.traits?.includes('BOILER_HEART')) {
+        const nextSteam = Math.min(wActor.anatomy.maxSteamReserveKpa, wActor.anatomy.steamReserveKpa + 5);
+        nextState = { ...nextState, entities: { ...nextState.entities, [command.actorId]: { ...wActor, anatomy: { ...wActor.anatomy, steamReserveKpa: nextSteam } } } };
+      }
+      systemEvents = [{ type: 'ACTOR_WAITED', turn: nextState.turnCount + 1, actorId: command.actorId, apSpent: STANDARD_ACTION_AP }];
       break;
+    }
     case 'VENT_STEAM': {
       const targetStratum = nextState.strata[command.target.stratum];
       if (targetStratum) {
@@ -226,16 +225,10 @@ export function dispatchCommand(
     const pStratum = player.position.stratum;
     const grid = scheduled.state.strata[pStratum];
     if (grid) {
-      const bonus = computeProstheticFovBonus(scheduled.state, player);
+      const bonus = computeProstheticFovBonus(scheduled.state, player) + (player.traits?.includes('NIGHT_OPTICS') ? 2 : 0);
       const visible = computeVisibleTiles(grid, player.position.x, player.position.y, Math.max(2, 10 + bonus));
       const updatedGrid = markExploredTiles(grid, visible);
-      finalState = {
-        ...scheduled.state,
-        strata: {
-          ...scheduled.state.strata,
-          [pStratum]: updatedGrid,
-        },
-      };
+      finalState = { ...scheduled.state, strata: { ...scheduled.state.strata, [pStratum]: updatedGrid } };
     }
   }
 

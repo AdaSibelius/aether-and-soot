@@ -103,7 +103,8 @@ export function resolveCraftRecipe(state: WorldState, actorId: EntityId, recipeI
     return failCrafting(state, actorId, 'CRAFT_RECIPE', 'WORKBENCH_REQUIRED');
   }
 
-  const discountPct = bench?.workbench?.bonusEfficiencyPct ?? 0;
+  const traitDiscount = actor.traits?.includes('TINKER_SAVANT') ? 25 : 0;
+  const discountPct = Math.min(90, (bench?.workbench?.bonusEfficiencyPct ?? 0) + traitDiscount);
   const steamCost = Math.max(0, Math.round((recipe.steamCostKpa * (100 - discountPct)) / 100));
   if (actor.anatomy.steamReserveKpa < steamCost) {
     return failCrafting(state, actorId, 'CRAFT_RECIPE', 'INSUFFICIENT_STEAM');

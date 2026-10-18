@@ -57,7 +57,8 @@ export function projectWorldToVisualFrame(
 
   const originX = focusActor?.position?.x ?? Math.floor(grid.width / 2);
   const originY = focusActor?.position?.y ?? Math.floor(grid.height / 2);
-  const fovBonus = focusActor ? computeProstheticFovBonus(state, focusActor) : 0;
+  const traitBonus = focusActor?.traits?.includes('NIGHT_OPTICS') ? 2 : 0;
+  const fovBonus = (focusActor ? computeProstheticFovBonus(state, focusActor) : 0) + traitBonus;
   const effectiveFovRadius = Math.max(2, baseFovRadius + fovBonus);
   const visibleSet = computeVisibleTiles(grid, originX, originY, effectiveFovRadius);
 

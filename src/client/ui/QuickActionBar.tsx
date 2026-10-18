@@ -11,6 +11,7 @@ export interface QuickActionBarProps {
   readonly onCommand: (cmd: GameCommand) => void;
   readonly onOpenModal: (window: ModalWindowId) => void;
   readonly onOpenSystemMenu: () => void;
+  readonly onOpenCharacterCreator?: () => void;
 }
 
 export function QuickActionBar({
@@ -21,6 +22,7 @@ export function QuickActionBar({
   onCommand,
   onOpenModal,
   onOpenSystemMenu,
+  onOpenCharacterCreator,
 }: QuickActionBarProps) {
   const player = state.entities[actorId];
   const pos = player?.position;
@@ -156,6 +158,16 @@ export function QuickActionBar({
         >
           [W] Atlas
         </button>
+        {onOpenCharacterCreator && (
+          <button
+            type="button"
+            onClick={onOpenCharacterCreator}
+            style={{ padding: '3px 6px', fontSize: '10px', color: '#2ecc71' }}
+            title="Create New Character / Scenario [N]"
+          >
+            [N] New Char
+          </button>
+        )}
         <button
           type="button"
           onClick={onOpenSystemMenu}

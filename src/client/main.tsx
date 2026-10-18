@@ -1,5 +1,6 @@
 import { render } from 'preact';
 import { GameCommand } from '../schemas/commands.schema.js';
+import { CharacterCreationConfig } from '../schemas/character.schema.js';
 import { EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
@@ -7,10 +8,12 @@ import { generateVictorianDistrict } from '../sim/spatial/generator.js';
 import { getTileCell } from '../sim/spatial/grid.js';
 import { spawnDistrictNpcs } from '../sim/systems/ai.system.js';
 import { spawnDistrictItems } from '../sim/systems/item-spawner.js';
+import { applyCharacterCreation } from '../sim/systems/character-archetypes.js';
 import { handleGameKeydown } from './input/keyboard-router.js';
 import { projectWorldToVisualFrame, VisualGridFrame } from './projection/frame-adapter.js';
 import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer } from './renderer/glyph-stage.js';
 import { CharacterModalShell, ModalWindowId } from './ui/CharacterModalShell.js';
+import { CharacterCreatorModal } from './ui/CharacterCreatorModal.js';
 import { DialogueModal } from './ui/DialogueModal.js';
 import { HudLayout } from './ui/HudLayout.js';
 import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
@@ -25,9 +28,7 @@ export interface DebugSimBridge {
 }
 
 declare global {
-  interface Window {
-    __DEBUG_SIM__?: DebugSimBridge;
-  }
+  interface Window { __DEBUG_SIM__?: DebugSimBridge; }
 }
 
 const MODAL_WINDOW_IDS: readonly ModalWindowId[] = ['INVENTORY', 'ANATOMY', 'WORKBENCH', 'EXCHANGE', 'ATLAS'];
@@ -36,9 +37,7 @@ async function bootstrapClient(): Promise<void> {
   const canvasHost = document.getElementById('canvas-stage');
   const hudHost = document.getElementById('hud-root');
   const actionBarHost = document.getElementById('action-bar-root');
-  if (!canvasHost || !hudHost) {
-    throw new Error('Missing #canvas-stage or #hud-root mount elements');
-  }
+  if (!canvasHost || !hudHost) throw new Error('Missing #canvas-stage or #hud-root mount elements');
 
   const createFreshWorld = (seed: number): WorldState => {
     const base = createInitialWorld({ seed });
@@ -49,7 +48,6 @@ async function bootstrapClient(): Promise<void> {
   let worldState = createFreshWorld(0xcafebabe);
   const stageRenderer = await GlyphStageRenderer.create(canvasHost, 24, 20);
   const playerId = EntityIdSchema.parse('actor_player');
-
   canvasHost.style.position = 'relative';
   const overlayHost = document.createElement('div');
   canvasHost.appendChild(overlayHost);
@@ -58,32 +56,29 @@ async function bootstrapClient(): Promise<void> {
   let hoveredTile: { x: number; y: number } | null = null;
   let isSystemMenuOpen = false;
   let isLookModeActive = false;
+  let isCreatorOpen = false;
   let lookCursor: { x: number; y: number } | null = null;
-
   let activeDialogueNpcId: EntityId | null = null;
 
   const handleCommand = (cmd: GameCommand): void => {
-    const result = dispatchCommand(worldState, cmd);
-    worldState = result.state;
+    worldState = dispatchCommand(worldState, cmd).state;
+    syncPresentation();
+  };
+
+  const handleEmbark = (cfg: CharacterCreationConfig, s: number): void => {
+    worldState = applyCharacterCreation(createFreshWorld(s), cfg);
     syncPresentation();
   };
 
   const handleTalk = (targetId?: EntityId): void => {
-    if (targetId) {
-      activeDialogueNpcId = targetId;
-      syncPresentation();
-      return;
-    }
+    if (targetId) { activeDialogueNpcId = targetId; syncPresentation(); return; }
     const p = worldState.entities[playerId]?.position;
     if (!p) return;
     const adj = Object.values(worldState.entities).find(
       (e) => e.id !== playerId && e.actor && !e.actor.isPlayer && !e.aiController?.hostile && e.position
         && e.position.stratum === p.stratum && Math.max(Math.abs(e.position.x - p.x), Math.abs(e.position.y - p.y)) <= 1,
     );
-    if (adj) {
-      activeDialogueNpcId = adj.id;
-      syncPresentation();
-    }
+    if (adj) { activeDialogueNpcId = adj.id; syncPresentation(); }
   };
 
   const cycleModal = (direction: 1 | -1): void => {
@@ -156,6 +151,7 @@ async function bootstrapClient(): Promise<void> {
           onToggleLookMode={toggleLookMode} onCommand={handleCommand}
           onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
           onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
+          onOpenCharacterCreator={() => { isCreatorOpen = true; syncPresentation(); }}
         />,
         actionBarHost,
       );
@@ -183,8 +179,14 @@ async function bootstrapClient(): Promise<void> {
         <SystemMenuModal
           state={worldState} isOpen={isSystemMenuOpen}
           onClose={() => { isSystemMenuOpen = false; syncPresentation(); }}
-          onNewSeed={(seed) => { worldState = createFreshWorld(seed); syncPresentation(); }}
+          onNewSeed={(s) => { worldState = createFreshWorld(s); syncPresentation(); }}
           onLoadWorld={(loaded) => { worldState = loaded; syncPresentation(); }}
+          onOpenCharacterCreator={() => { isCreatorOpen = true; syncPresentation(); }}
+        />
+        <CharacterCreatorModal
+          isOpen={isCreatorOpen} initialSeed={worldState.seed}
+          onClose={() => { isCreatorOpen = false; syncPresentation(); }}
+          onEmbark={handleEmbark}
         />
       </div>,
       hudHost,
@@ -211,10 +213,7 @@ async function bootstrapClient(): Promise<void> {
 
   window.addEventListener('keydown', (ev: KeyboardEvent) => {
     handleGameKeydown(ev, {
-      playerId,
-      isSystemMenuOpen,
-      activeModal,
-      isLookModeActive,
+      playerId, isSystemMenuOpen, activeModal, isLookModeActive,
       onToggleSystemMenu: () => { isSystemMenuOpen = !isSystemMenuOpen; syncPresentation(); },
       onCloseModal: () => { activeModal = null; syncPresentation(); },
       onCycleModal: cycleModal,
@@ -224,6 +223,7 @@ async function bootstrapClient(): Promise<void> {
       onLookAttack: lookAttack,
       onLookInteract: lookInteract,
       onTalk: handleTalk,
+      onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
       onCommand: handleCommand,
     });
   });

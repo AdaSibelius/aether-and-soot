@@ -134,6 +134,8 @@ export const FurnitureComponentSchema = z.object({
 });
 export type FurnitureComponent = z.infer<typeof FurnitureComponentSchema>;
 
+import { ProfessionIdSchema, TraitIdSchema } from './character.schema.js';
+
 export const EntityComponentsSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1),
@@ -151,6 +153,8 @@ export const EntityComponentsSchema = z.object({
   aiController: AiControllerComponentSchema.optional(),
   combatStats: CombatStatsComponentSchema.optional(),
   furniture: FurnitureComponentSchema.optional(),
+  traits: z.array(TraitIdSchema).optional(),
+  profession: ProfessionIdSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
 
