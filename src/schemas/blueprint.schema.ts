@@ -78,6 +78,7 @@ export const ItemBlueprintSchema = z
     useEffect: ItemUseEffectSchema.optional(),
     unlocksRecipeId: BlueprintIdSchema.optional(),
     equipment: EquipmentSpecSchema.optional(),
+    penceValue: z.number().int().nonnegative().optional(),
     spawnStrata: z.array(StratumIdSchema).default([]),
     spawnWeight: z.number().int().nonnegative().default(0),
     spawnQuantityMax: z.number().int().positive().default(1),

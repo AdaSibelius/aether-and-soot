@@ -207,35 +207,33 @@ export const TradeActionFailedEventSchema = z.object({
 });
 
 export const TerrainSmashedEventSchema = z.object({
-  type: z.literal('TERRAIN_SMASHED'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  target: Point3DSchema,
-  fromTerrain: z.string().min(1),
-  toTerrain: z.string().min(1),
+  type: z.literal('TERRAIN_SMASHED'), turn: z.number().int().nonnegative(), actorId: EntityIdSchema,
+  target: Point3DSchema, fromTerrain: z.string().min(1), toTerrain: z.string().min(1),
 });
 
 export const ActorRestedEventSchema = z.object({
-  type: z.literal('ACTOR_RESTED'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  hpRestored: z.number().int().nonnegative(),
-  bloodRestoredPct: z.number().nonnegative(),
+  type: z.literal('ACTOR_RESTED'), turn: z.number().int().nonnegative(), actorId: EntityIdSchema,
+  hpRestored: z.number().int().nonnegative(), bloodRestoredPct: z.number().nonnegative(),
 });
 
 export const RecipeUnlockedEventSchema = z.object({
-  type: z.literal('RECIPE_UNLOCKED'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  recipeId: BlueprintIdSchema,
-  itemName: z.string().min(1),
+  type: z.literal('RECIPE_UNLOCKED'), turn: z.number().int().nonnegative(), actorId: EntityIdSchema,
+  recipeId: BlueprintIdSchema, itemName: z.string().min(1),
 });
 
 export const FurnitureActionFailedEventSchema = z.object({
-  type: z.literal('FURNITURE_ACTION_FAILED'),
+  type: z.literal('FURNITURE_ACTION_FAILED'), turn: z.number().int().nonnegative(), actorId: EntityIdSchema,
+  action: z.enum(['SMASH_TERRAIN', 'REST_AT_BED', 'LOOT_CONTAINER']),
+  reason: z.enum(['OUT_OF_RANGE', 'NOT_SMASHABLE', 'NO_BED_NEARBY', 'ALREADY_RESTED', 'CONTAINER_NOT_FOUND', 'NOT_A_CONTAINER', 'CONTAINER_EMPTY', 'VOLUME_EXCEEDED', 'MASS_EXCEEDED']),
+});
+
+export const ContainerLootedEventSchema = z.object({
+  type: z.literal('CONTAINER_LOOTED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
-  action: z.enum(['SMASH_TERRAIN', 'REST_AT_BED']),
-  reason: z.enum(['OUT_OF_RANGE', 'NOT_SMASHABLE', 'NO_BED_NEARBY', 'ALREADY_RESTED']),
+  containerId: EntityIdSchema,
+  containerName: z.string().min(1),
+  itemIds: z.array(EntityIdSchema),
+  penceGained: z.number().int().nonnegative(),
 });
 

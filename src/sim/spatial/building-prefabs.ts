@@ -1,11 +1,31 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
-import { BlueprintIdSchema, EntityIdSchema, Point2D } from '../../schemas/primitives.schema.js';
+import { BlueprintIdSchema, EntityId, EntityIdSchema, Point2D } from '../../schemas/primitives.schema.js';
 import { carveBuildingWithDoor, carveCorridor, carveRoom } from './district-layout.js';
 import { setTileCell, StratumGrid } from './grid.js';
+
+import { createEntityFromBlueprint } from '../data/item-catalog.js';
 
 export interface DistrictArchetypesResult {
   readonly grid: StratumGrid;
   readonly entities: Record<string, EntityRecord>;
+}
+
+function seedContainer(
+  entities: Record<string, EntityRecord>,
+  items: readonly { id: string; blueprintId: string; quantity: number }[],
+): EntityRecord['inventory'] {
+  const containedEntityIds: EntityId[] = [];
+  let totalMass = 0;
+  for (const it of items) {
+    const eid = EntityIdSchema.parse(it.id);
+    const created = createEntityFromBlueprint(it.blueprintId, eid, it.quantity);
+    if (created) {
+      entities[eid] = created;
+      containedEntityIds.push(eid);
+      totalMass += (created.item?.massGrams ?? 0) * (created.item?.quantity ?? 1);
+    }
+  }
+  return { containedEntityIds, currentMassGrams: totalMass, maxMassGrams: 50000, maxVolumeMl: 50000 };
 }
 
 function setWindow(grid: StratumGrid, x: number, y: number): StratumGrid {
@@ -60,24 +80,35 @@ export function populateDistrictArchetypes(
   };
 
   const medLockerId = EntityIdSchema.parse('furniture_medicine_locker');
+  const medInv = seedContainer(entities, [
+    { id: 'loot_apoth_tonic_1', blueprintId: 'item_coagulant_tonic', quantity: 2 },
+    { id: 'loot_apoth_rubber_1', blueprintId: 'mat_vulcanized_rubber', quantity: 1 },
+  ]);
   entities[medLockerId] = {
     id: medLockerId,
     name: 'Sanitary Medicine Locker',
     visual: { glyph: '⌸', fgPrimary: '#5DADE2', fgSecondary: '#2E86C1', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: apothCx + 1, y: apothCy, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     furniture: { kind: 'LOCKER', label: 'Sanitary Medicine Locker' },
+    inventory: medInv,
   };
 
   // 2. Clockwork Foundry (top-left) - add glass windows overlooking the street
   grid = setWindow(grid, 3, 2);
   grid = setWindow(grid, 5, 2);
   const gearCrateId = EntityIdSchema.parse('furniture_gear_crate');
+  const gearInv = seedContainer(entities, [
+    { id: 'loot_foundry_gears_1', blueprintId: 'mat_brass_gears', quantity: 3 },
+    { id: 'loot_foundry_coal_1', blueprintId: 'commodity_anthracite_briquette', quantity: 2 },
+    { id: 'loot_foundry_pence_1', blueprintId: 'item_crown_pence_pouch', quantity: 1 },
+  ]);
   entities[gearCrateId] = {
     id: gearCrateId,
     name: 'Heavy Brass Gear Crate',
     visual: { glyph: '⌸', fgPrimary: '#D4AF37', fgSecondary: '#8B6914', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: 3, y: 5, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     furniture: { kind: 'CRATE', label: 'Heavy Brass Gear Crate' },
+    inventory: gearInv,
   };
 
   // 3. Constabulary Watchhouse (bottom-left)
@@ -93,12 +124,17 @@ export function populateDistrictArchetypes(
   grid = carveRoom(grid, watchCx - 2, watchCy + 1, 1, 1, 'IRON_GRATE');
 
   const armLockerId = EntityIdSchema.parse('furniture_armoury_locker');
+  const armInv = seedContainer(entities, [
+    { id: 'loot_armoury_plate_1', blueprintId: 'mat_cast_iron_plate', quantity: 2 },
+    { id: 'loot_armoury_wrench_1', blueprintId: 'weapon_heavy_pipe_wrench', quantity: 1 },
+  ]);
   entities[armLockerId] = {
     id: armLockerId,
     name: 'Constabulary Armoury Locker',
     visual: { glyph: '⌸', fgPrimary: '#7F8C8D', fgSecondary: '#34495E', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: watchCx + 2, y: watchCy, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     furniture: { kind: 'LOCKER', label: 'Constabulary Armoury Locker' },
+    inventory: armInv,
   };
 
   // 4. Tenement & Public House (bottom-right)
@@ -129,12 +165,17 @@ export function populateDistrictArchetypes(
   };
 
   const bookshelfId = EntityIdSchema.parse('furniture_bookshelf');
+  const bookInv = seedContainer(entities, [
+    { id: 'loot_library_manual_1', blueprintId: 'book_pneumatic_schematic', quantity: 1 },
+    { id: 'loot_library_manual_2', blueprintId: 'book_ocular_schematic', quantity: 1 },
+  ]);
   entities[bookshelfId] = {
     id: bookshelfId,
     name: 'Public House Library Shelf',
     visual: { glyph: 'E', fgPrimary: '#A04000', fgSecondary: '#6E2C00', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: pubCx, y: pubCy + 2, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     furniture: { kind: 'BOOKSHELF', label: 'Public House Library Shelf' },
+    inventory: bookInv,
   };
 
   // 5. Aether Alchemical Lab (top-center)

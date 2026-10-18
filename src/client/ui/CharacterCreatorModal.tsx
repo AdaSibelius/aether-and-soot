@@ -211,8 +211,11 @@ export function CharacterCreatorModal({
             </div>
 
             <div style={{ marginTop: '14px' }}>
-              <div style={{ fontSize: '10px', color: '#8b949e', marginBottom: '6px' }}>
+              <div style={{ fontSize: '10px', color: '#8b949e', marginBottom: '3px' }}>
                 Starting in: <span style={{ color: 'var(--brass-gold)' }}>{scenDef.name} [{scenDef.stratum}]</span>
+              </div>
+              <div style={{ fontSize: '10px', color: '#8b949e', marginBottom: '6px' }}>
+                Treasury: <span style={{ color: 'var(--brass-gold)' }}>{100 + profDef.bonusPence + (selectedTraits.includes('CARTEL_CONNECTIONS') ? 50 : 0)}d Crown Pence</span>
               </div>
               <button
                 type="button"

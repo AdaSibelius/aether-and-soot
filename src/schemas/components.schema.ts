@@ -94,6 +94,7 @@ export const ItemComponentSchema = z.object({
   useEffect: ItemUseEffectSchema.optional(),
   unlocksRecipeId: BlueprintIdSchema.optional(),
   equipmentSpec: EquipmentSpecSchema.optional(),
+  penceValue: z.number().int().nonnegative().optional(),
 });
 export type ItemComponent = z.infer<typeof ItemComponentSchema>;
 

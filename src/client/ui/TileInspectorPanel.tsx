@@ -84,6 +84,22 @@ export function TileInspectorPanel({
                 Torso: {e.anatomy.limbs.TORSO?.hp ?? 0}/{e.anatomy.limbs.TORSO?.maxHp ?? 0} HP | Blood: {e.anatomy.bloodVolumePct}%
               </div>
             )}
+            {e.furniture && (
+              <div style={{ fontSize: '10px', color: '#7f8c8d' }}>
+                Fixture: {e.furniture.kind} {e.inventory ? `(${e.inventory.containedEntityIds.length} items)` : ''}
+              </div>
+            )}
+            {isAdjacent && e.furniture && ['LOCKER', 'CRATE', 'BOOKSHELF'].includes(e.furniture.kind) && (
+              <div style={{ marginTop: '4px' }}>
+                <button
+                  type="button"
+                  style={{ fontSize: '10px', padding: '2px 4px', color: 'var(--brass-gold)' }}
+                  onClick={() => onCommand({ type: 'LOOT_CONTAINER', actorId, containerId: e.id })}
+                >
+                  [Loot {e.furniture.kind} ({e.inventory?.containedEntityIds.length ?? 0})]
+                </button>
+              </div>
+            )}
             {/* Tactical context actions if adjacent */}
             {isAdjacent && e.id !== actorId && e.actor && (
               <div style={{ marginTop: '4px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>

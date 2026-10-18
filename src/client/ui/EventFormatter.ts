@@ -105,5 +105,7 @@ export function formatEventMessage(ev: SimEvent): string {
         : `[T${ev.turn}] ${ev.attackerId}'s shot with ${ev.weaponName} missed ${ev.targetId} (-${ev.steamSpentKpa} kPa steam)!`;
     case 'EQUIPMENT_ACTION_FAILED':
       return `[T${ev.turn}] Equipment action failed: ${ev.reason}`;
+    case 'CONTAINER_LOOTED':
+      return `[T${ev.turn}] Looted ${ev.containerName}: ${ev.itemIds.length} items${ev.penceGained > 0 ? `, +${ev.penceGained}d pence` : ''}!`;
   }
 }

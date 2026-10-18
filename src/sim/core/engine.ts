@@ -21,6 +21,7 @@ import {
 } from '../systems/dialogue-quest.system.js';
 import { resolveEquipItem, resolveUnequipItem } from '../systems/equipment.system.js';
 import { resolveFireRangedWeapon } from '../systems/ballistics.system.js';
+import { resolveLootContainer } from '../systems/container.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -167,6 +168,9 @@ export function dispatchCommand(
       break;
     case 'FIRE_RANGED_WEAPON':
       apply(resolveFireRangedWeapon(nextState, command.actorId, command.targetId, command.targetSlot, rng));
+      break;
+    case 'LOOT_CONTAINER':
+      apply(resolveLootContainer(nextState, command.actorId, command.containerId, command.itemId));
       break;
   }
 

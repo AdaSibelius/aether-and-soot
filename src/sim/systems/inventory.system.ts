@@ -51,9 +51,19 @@ export function resolvePickupItem(
     return createInventoryFailureResult(state, actorId, 'PICK_UP', reason, itemEntityId);
   }
 
+  const penceVal = target.item?.penceValue ?? 0;
+  if (penceVal > 0) {
+    const penceGained = penceVal * (target.item?.quantity ?? 1);
+    const nextEntities = withoutEntity(state.entities, target.id);
+    return {
+      state: { ...state, entities: nextEntities, economy: { ...state.economy, playerTreasuryPence: state.economy.playerTreasuryPence + penceGained } },
+      apSpent: PICKUP_AP,
+      events: [{ type: 'ITEM_PICKED_UP', turn: state.turnCount + 1, actorId, itemEntityId: target.id, itemName: target.name, quantity: target.item?.quantity ?? 1 }],
+    };
+  }
+
   const profile = getCarryProfile(target);
   if (!profile) return createInventoryFailureResult(state, actorId, 'PICK_UP', 'NOT_CARRYABLE', target.id);
-
   const inv = actor.inventory;
   if (computeCarriedVolumeMl(state, inv) + profile.volumeMl > inv.maxVolumeMl) {
     return createInventoryFailureResult(state, actorId, 'PICK_UP', 'VOLUME_EXCEEDED', target.id);
@@ -82,17 +92,7 @@ export function resolvePickupItem(
   return {
     state: { ...state, entities },
     apSpent: PICKUP_AP,
-    events: [
-      {
-        type: 'ITEM_PICKED_UP',
-        turn: state.turnCount + 1,
-        actorId,
-        itemEntityId: target.id,
-        itemName: target.name,
-        quantity,
-        stackedIntoEntityId: stack?.id,
-      },
-    ],
+    events: [{ type: 'ITEM_PICKED_UP', turn: state.turnCount + 1, actorId, itemEntityId: target.id, itemName: target.name, quantity, stackedIntoEntityId: stack?.id }],
   };
 }
 
@@ -157,17 +157,7 @@ export function resolveDropItem(
   return {
     state: { ...state, entities },
     apSpent: DROP_AP,
-    events: [
-      {
-        type: 'ITEM_DROPPED',
-        turn: state.turnCount + 1,
-        actorId,
-        itemEntityId: droppedId,
-        itemName: item.name,
-        quantity: dropQty,
-        at,
-      },
-    ],
+    events: [{ type: 'ITEM_DROPPED', turn: state.turnCount + 1, actorId, itemEntityId: droppedId, itemName: item.name, quantity: dropQty, at }],
   };
 }
 
@@ -232,17 +222,6 @@ export function resolveUseItem(
   return {
     state: { ...state, entities },
     apSpent: USE_ITEM_AP,
-    events: [
-      {
-        type: 'ITEM_USED',
-        turn: state.turnCount + 1,
-        actorId,
-        itemEntityId,
-        itemName: item.name,
-        effect: effect.kind,
-        amountRestored,
-        remainingQuantity,
-      },
-    ],
+    events: [{ type: 'ITEM_USED', turn: state.turnCount + 1, actorId, itemEntityId, itemName: item.name, effect: effect.kind, amountRestored, remainingQuantity }],
   };
 }

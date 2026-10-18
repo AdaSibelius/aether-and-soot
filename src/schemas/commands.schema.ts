@@ -26,15 +26,8 @@ export const MoveStepCommandSchema = z.object({
   dy: z.number().int().min(-1).max(1),
 });
 
-export const UsePortalCommandSchema = z.object({
-  type: z.literal('USE_PORTAL'),
-  actorId: EntityIdSchema,
-});
-
-export const WaitTurnCommandSchema = z.object({
-  type: z.literal('WAIT_TURN'),
-  actorId: EntityIdSchema,
-});
+export const UsePortalCommandSchema = z.object({ type: z.literal('USE_PORTAL'), actorId: EntityIdSchema });
+export const WaitTurnCommandSchema = z.object({ type: z.literal('WAIT_TURN'), actorId: EntityIdSchema });
 
 export const VentSteamCommandSchema = z.object({
   type: z.literal('VENT_STEAM'),
@@ -58,17 +51,8 @@ export const InstallProstheticCommandSchema = z.object({
   slot: LimbSlotIdSchema,
 });
 
-export const RemoveProstheticCommandSchema = z.object({
-  type: z.literal('REMOVE_PROSTHETIC'),
-  actorId: EntityIdSchema,
-  slot: LimbSlotIdSchema,
-});
-
-export const RefillSteamCommandSchema = z.object({
-  type: z.literal('REFILL_STEAM'),
-  actorId: EntityIdSchema,
-  pressureAddedKpa: z.number().positive(),
-});
+export const RemoveProstheticCommandSchema = z.object({ type: z.literal('REMOVE_PROSTHETIC'), actorId: EntityIdSchema, slot: LimbSlotIdSchema });
+export const RefillSteamCommandSchema = z.object({ type: z.literal('REFILL_STEAM'), actorId: EntityIdSchema, pressureAddedKpa: z.number().positive() });
 
 export const PressurizeVesselCommandSchema = z.object({
   type: z.literal('PRESSURIZE_VESSEL'),
@@ -77,11 +61,7 @@ export const PressurizeVesselCommandSchema = z.object({
   pressureAddedKpa: z.number().positive(),
 });
 
-export const EmitSparkCommandSchema = z.object({
-  type: z.literal('EMIT_SPARK'),
-  actorId: EntityIdSchema,
-  target: Point3DSchema,
-});
+export const EmitSparkCommandSchema = z.object({ type: z.literal('EMIT_SPARK'), actorId: EntityIdSchema, target: Point3DSchema });
 
 export const StockPedestalCommandSchema = z.object({
   type: z.literal('STOCK_PEDESTAL'),
@@ -209,6 +189,13 @@ export const PayChirurgeonHealCommandSchema = z.object({
   chirurgeonId: EntityIdSchema,
 });
 
+export const LootContainerCommandSchema = z.object({
+  type: z.literal('LOOT_CONTAINER'),
+  actorId: EntityIdSchema,
+  containerId: EntityIdSchema,
+  itemId: EntityIdSchema.optional(),
+});
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -242,6 +229,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   EquipItemCommandSchema,
   UnequipItemCommandSchema,
   FireRangedWeaponCommandSchema,
+  LootContainerCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
 

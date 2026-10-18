@@ -108,7 +108,10 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
         <EquippedGearPanel state={state} actorId={actorId} onCommand={onCommand} />
         {/* Encumbrance Gauges */}
         <div class="panel-box">
-          <div class="panel-header">SATCHEL CAPACITY &amp; LOAD</div>
+          <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>SATCHEL CAPACITY &amp; LOAD</span>
+            <span class="brass-text">Treasury: {state.economy.playerTreasuryPence}d</span>
+          </div>
           <div style={{ marginBottom: '6px' }}>
             <div class="stat-row" style={{ fontSize: '11px' }}>
               <span>Carried Mass:</span>

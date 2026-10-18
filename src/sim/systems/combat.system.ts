@@ -1,9 +1,10 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
+import { EntityId, EntityIdSchema, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { SeededRNG } from '../core/rng.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
+import { createEntityFromBlueprint } from '../data/item-catalog.js';
 import { resolveDamageLimb, SystemAnatomyResult } from './anatomy.system.js';
 import { withoutEntity } from './inventory-utils.js';
 
@@ -172,6 +173,17 @@ export function resolveAttackActor(
 
   const droppedEntityIds = [...dropSet];
   const nextEntities = withoutEntity(workingState.entities, targetId);
+
+  // Defeated NPCs drop a Crown Pence Pouch
+  if (!target.actor?.isPlayer) {
+    const penceDropId = EntityIdSchema.parse(`loot_pence_${targetId}_t${turn}`);
+    const pencePouch = createEntityFromBlueprint('item_crown_pence_pouch', penceDropId, 1);
+    if (pencePouch) {
+      nextEntities[penceDropId] = pencePouch;
+      droppedEntityIds.push(penceDropId);
+    }
+  }
+
   for (const dropId of droppedEntityIds) {
     const item = nextEntities[dropId];
     if (!item) continue;

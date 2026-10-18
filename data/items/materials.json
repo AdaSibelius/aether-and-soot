@@ -270,5 +270,25 @@
       "bgColor": "#0A0D0E",
       "shaderFlags": []
     }
+  },
+  {
+    "id": "item_crown_pence_pouch",
+    "name": "Crown Pence Pouch",
+    "description": "A heavy velvet pouch clinking with stamped Victorian bronze and silver pence.",
+    "category": "MATERIAL",
+    "massGrams": 200,
+    "volumeMl": 150,
+    "stackable": true,
+    "penceValue": 18,
+    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "spawnWeight": 20,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "$",
+      "fgPrimary": "#F4D03F",
+      "fgSecondary": "#D4AC0D",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
   }
 ]

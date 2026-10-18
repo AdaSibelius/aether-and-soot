@@ -30,12 +30,7 @@ export function LookCursorOverlay({
   const stratum = player?.position?.stratum ?? 'STREET';
   const grid = state.strata[stratum];
 
-  const entitiesOnTile = findEntitiesAtPoint(state.entities, {
-    x: cursor.x,
-    y: cursor.y,
-    stratum,
-  });
-
+  const entitiesOnTile = findEntitiesAtPoint(state.entities, { x: cursor.x, y: cursor.y, stratum });
   const targetActor = entitiesOnTile.find((e) => e.id !== actorId && e.actor);
   const cell = grid ? getTileCell(grid, cursor.x, cursor.y) : undefined;
   const isDoor = cell?.terrainType === 'WOODEN_DOOR_CLOSED' || cell?.terrainType === 'WOODEN_DOOR_OPEN';
@@ -51,14 +46,10 @@ export function LookCursorOverlay({
   const wieldedSpec = wieldedItem?.item?.equipmentSpec ?? wieldedItem?.equipmentSpec;
   const canRangedShoot = !isAdjacent && !!wieldedSpec && wieldedSpec.rangedRange > 0 && dist <= wieldedSpec.rangedRange;
 
-  const camX = cameraOrigin?.x ?? 0;
-  const camY = cameraOrigin?.y ?? 0;
-  const screenX = cursor.x - camX;
-  const screenY = cursor.y - camY;
+  const camX = cameraOrigin?.x ?? 0, camY = cameraOrigin?.y ?? 0;
+  const screenX = cursor.x - camX, screenY = cursor.y - camY;
   const isCursorOnScreen = screenX >= 0 && screenX < 24 && screenY >= 0 && screenY < 20;
-
-  const leftPx = screenX * CELL_WIDTH_PX;
-  const topPx = screenY * CELL_HEIGHT_PX;
+  const leftPx = screenX * CELL_WIDTH_PX, topPx = screenY * CELL_HEIGHT_PX;
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', overflow: 'hidden' }}>
@@ -159,14 +150,7 @@ export function LookCursorOverlay({
                       <button
                         key={t.slot}
                         type="button"
-                        onClick={() =>
-                          onCommand({
-                            type: 'FIRE_RANGED_WEAPON',
-                            actorId,
-                            targetId: targetActor.id,
-                            targetSlot: t.slot,
-                          })
-                        }
+                        onClick={() => onCommand({ type: 'FIRE_RANGED_WEAPON', actorId, targetId: targetActor.id, targetSlot: t.slot })}
                         style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', color: '#e67e22' }}
                       >
                         {t.label}
@@ -219,8 +203,9 @@ export function LookCursorOverlay({
               <div class="brass-text" style={{ fontWeight: 'bold' }}>
                 {furnitureEntity.visual.glyph} {furnitureEntity.name}
               </div>
-              <div style={{ color: '#7f8c8d', margin: '2px 0 6px 0' }}>
+              <div style={{ color: '#7f8c8d', margin: '2px 0 4px 0' }}>
                 Type: {furnitureEntity.furniture?.kind}
+                {furnitureEntity.inventory && ` (${furnitureEntity.inventory.containedEntityIds.length} items)`}
               </div>
               {(furnitureEntity.furniture?.kind === 'BED' || furnitureEntity.furniture?.kind === 'SURGICAL_TABLE') && isAdjacent && (
                 <button
@@ -229,6 +214,15 @@ export function LookCursorOverlay({
                   style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}
                 >
                   [Rest / Recuperate]
+                </button>
+              )}
+              {Boolean(furnitureEntity.furniture && ['LOCKER', 'CRATE', 'BOOKSHELF'].includes(furnitureEntity.furniture.kind)) && isAdjacent && (
+                <button
+                  type="button"
+                  onClick={() => onCommand({ type: 'LOOT_CONTAINER', actorId, containerId: furnitureEntity.id })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}
+                >
+                  [Loot Container ({furnitureEntity.inventory?.containedEntityIds.length ?? 0})]
                 </button>
               )}
             </div>

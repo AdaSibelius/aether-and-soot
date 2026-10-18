@@ -82,6 +82,7 @@ export function createItemEntity(
       commodityId: blueprint.commodityId,
       useEffect: blueprint.useEffect,
       unlocksRecipeId: blueprint.unlocksRecipeId,
+      penceValue: blueprint.penceValue,
       ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),
     },
     ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
-  CombatAttackResolvedEventSchema, CraftingFailedEventSchema, DistrictTraveledEventSchema,
+  CombatAttackResolvedEventSchema, ContainerLootedEventSchema, CraftingFailedEventSchema, DistrictTraveledEventSchema,
   DoorToggledEventSchema, FurnitureActionFailedEventSchema, InventoryActionFailedEventSchema,
   ItemCraftedEventSchema, ItemDroppedEventSchema, ItemPickedUpEventSchema,
   ItemSalvagedEventSchema, ItemUsedEventSchema, LimbRepairedEventSchema,
@@ -29,7 +29,7 @@ import {
 
 export {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
-  CombatAttackResolvedEventSchema, CraftingFailedEventSchema, DistrictTraveledEventSchema,
+  CombatAttackResolvedEventSchema, ContainerLootedEventSchema, CraftingFailedEventSchema, DistrictTraveledEventSchema,
   DoorToggledEventSchema, FurnitureActionFailedEventSchema, InventoryActionFailedEventSchema,
   ItemCraftedEventSchema, ItemDroppedEventSchema, ItemPickedUpEventSchema,
   ItemSalvagedEventSchema, ItemUsedEventSchema, LimbRepairedEventSchema,
@@ -98,5 +98,6 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ItemUnequippedEventSchema,
   RangedAttackResolvedEventSchema,
   EquipmentActionFailedEventSchema,
+  ContainerLootedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
