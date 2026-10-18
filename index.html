@@ -38,6 +38,11 @@
         padding: 14px;
         box-shadow: 0 0 28px rgba(212, 175, 55, 0.15);
       }
+      .viewport-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
       #canvas-stage {
         border: 1px solid #2c3e50;
         display: flex;
@@ -116,7 +121,10 @@
   </head>
   <body>
     <div class="app-frame">
-      <div id="canvas-stage"></div>
+      <div class="viewport-column">
+        <div id="canvas-stage"></div>
+        <div id="action-bar-root"></div>
+      </div>
       <div id="hud-root"></div>
     </div>
     <script type="module" src="/src/client/main.tsx"></script>

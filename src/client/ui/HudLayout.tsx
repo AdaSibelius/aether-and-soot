@@ -1,22 +1,15 @@
-import { useState } from 'preact/hooks';
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
-import { AnatomyDoll } from './AnatomyDoll.js';
-import { CraftingPanel } from './CraftingPanel.js';
+import { ModalWindowId } from './CharacterModalShell.js';
 import { formatEventMessage } from './EventFormatter.js';
-import { InventoryPanel } from './InventoryPanel.js';
-import { MarketLedger } from './MarketLedger.js';
 import { TileInspectorPanel } from './TileInspectorPanel.js';
-
-export type HudTab = 'TELEMETRY' | 'INVENTORY' | 'SURGERY' | 'WORKBENCH' | 'EXCHANGE';
 
 export interface HudLayoutProps {
   readonly state: Readonly<WorldState>;
   readonly onCommand: (cmd: GameCommand) => void;
   readonly hoveredTile?: { x: number; y: number } | null;
-  readonly activeTab?: HudTab;
-  readonly onSelectTab?: (tab: HudTab) => void;
+  readonly onOpenModal?: (window: ModalWindowId) => void;
   readonly onOpenSystemMenu?: () => void;
 }
 
@@ -24,162 +17,138 @@ export function HudLayout({
   state,
   onCommand,
   hoveredTile = null,
-  activeTab: controlledTab,
-  onSelectTab: controlledSelectTab,
+  onOpenModal,
   onOpenSystemMenu,
 }: HudLayoutProps) {
-  const [internalTab, setInternalTab] = useState<HudTab>('TELEMETRY');
-  const activeTab = controlledTab ?? internalTab;
-  const setTab = (tab: HudTab) => {
-    if (controlledSelectTab) controlledSelectTab(tab);
-    else setInternalTab(tab);
-  };
-
   const playerId = EntityIdSchema.parse('actor_player');
   const player = state.entities[playerId];
+  const pos = player?.position;
   const recentEvents = state.eventLog.slice(-5).reverse();
+
+  // Find nearby visible entities on the current stratum within Chebyshev radius 8
+  const nearbyEntities = Object.values(state.entities)
+    .filter((ent) => {
+      if (!ent.position || !pos || ent.id === playerId) return false;
+      if (ent.position.stratum !== pos.stratum) return false;
+      const dist = Math.max(Math.abs(ent.position.x - pos.x), Math.abs(ent.position.y - pos.y));
+      return dist <= 8;
+    })
+    .slice(0, 4);
+
+  const bloodPct = Math.max(0, Math.min(100, player?.anatomy?.bloodVolumePct ?? 0));
+  const steamKpa = player?.anatomy?.steamReserveKpa ?? 0;
+  const steamPct = Math.max(0, Math.min(100, (steamKpa / 200) * 100));
 
   return (
     <div class="hud-sidebar">
-      {/* Top Navigation Drawer Tabs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px' }}>
-        {(
-          [
-            ['TELEMETRY', 'TEL'],
-            ['INVENTORY', 'INV[I]'],
-            ['SURGERY', 'SURG[A]'],
-            ['WORKBENCH', 'BENCH[C]'],
-            ['EXCHANGE', 'MKT[M]'],
-          ] as const
-        ).map(([tabId, label]) => (
-          <button
-            key={tabId}
-            type="button"
-            onClick={() => setTab(tabId)}
-            style={{
-              padding: '6px 2px',
-              fontSize: '10px',
-              textAlign: 'center',
-              background: activeTab === tabId ? '#243342' : '#11171a',
-              border: activeTab === tabId ? '1px solid var(--brass-gold)' : '1px solid #2e4053',
-              color: activeTab === tabId ? 'var(--brass-gold)' : '#7f8c8d',
-            }}
-          >
-            {label}
-          </button>
-        ))}
+      {/* District & Chronometer Header */}
+      <div class="panel-box">
+        <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>TACTICAL TELEMETRY</span>
+          {onOpenSystemMenu && (
+            <button
+              type="button"
+              onClick={onOpenSystemMenu}
+              style={{ padding: '1px 5px', fontSize: '10px' }}
+            >
+              [Esc] Menu
+            </button>
+          )}
+        </div>
+        <div class="stat-row">
+          <span>District:</span>
+          <span class="brass-text" style={{ fontSize: '11px' }}>
+            {state.currentDistrictId ?? 'district_spitalfields_sootworks'}
+          </span>
+        </div>
+        <div class="stat-row">
+          <span>Stratum:</span>
+          <span class="copper-text">{pos?.stratum ?? 'STREET'}</span>
+        </div>
+        <div class="stat-row">
+          <span>Position:</span>
+          <span>
+            ({pos?.x ?? 0}, {pos?.y ?? 0})
+          </span>
+        </div>
+        <div class="stat-row">
+          <span>Chronometer:</span>
+          <span>
+            Turn {state.turnCount} (Tick #{state.macroTickCount})
+          </span>
+        </div>
       </div>
 
-      {/* Tab Panels */}
-      {activeTab === 'TELEMETRY' && (
-        <div class="panel-box">
-          <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>TELEMETRY OVERVIEW</span>
-            {onOpenSystemMenu && (
-              <button
-                type="button"
-                onClick={onOpenSystemMenu}
-                style={{ padding: '1px 5px', fontSize: '10px' }}
-              >
-                [Esc] Menu
-              </button>
-            )}
-          </div>
-          <div class="stat-row">
-            <span>Stratum:</span>
-            <span class="brass-text">{player?.position?.stratum ?? 'STREET'}</span>
-          </div>
-          <div class="stat-row">
-            <span>Coordinates:</span>
-            <span>
-              ({player?.position?.x ?? 0}, {player?.position?.y ?? 0})
-            </span>
-          </div>
-          <div class="stat-row">
-            <span>Chronometer:</span>
-            <span>
-              Turn {state.turnCount} (Tick #{state.macroTickCount})
-            </span>
-          </div>
-          <div class="stat-row">
+      {/* Sanguine & Steam Reserves */}
+      <div class="panel-box">
+        <div class="panel-header">VITALS &amp; ENERGY RESERVES</div>
+        <div style={{ marginBottom: '6px' }}>
+          <div class="stat-row" style={{ fontSize: '11px' }}>
             <span>Sanguine Volume:</span>
-            <span>{player?.anatomy?.bloodVolumePct ?? 0}%</span>
+            <span class={bloodPct < 40 ? 'warn-text' : 'ok-text'}>{bloodPct}%</span>
           </div>
-          <div class="stat-row">
-            <span>Boiler Steam:</span>
-            <span class="copper-text">{player?.anatomy?.steamReserveKpa ?? 0} kPa</span>
-          </div>
-          <div class="stat-row">
-            <span>Cartel Treasury:</span>
-            <span class="brass-text">{state.economy.playerTreasuryPence}d</span>
-          </div>
-
-          <div class="panel-header" style={{ marginTop: '8px' }}>TACTICAL ACTIONS</div>
-          <div class="button-grid">
-            <button
-              type="button"
-              onClick={() => onCommand({ type: 'USE_PORTAL', actorId: playerId })}
-            >
-              [&gt;/&lt;] Traverse Portal
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                onCommand({
-                  type: 'REFILL_STEAM',
-                  actorId: playerId,
-                  pressureAddedKpa: 50,
-                })
-              }
-            >
-              [R] Stoker Boiler (+50 kPa)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!player?.position) return;
-                onCommand({
-                  type: 'VENT_STEAM',
-                  actorId: playerId,
-                  target: {
-                    x: player.position.x,
-                    y: player.position.y,
-                    stratum: player.position.stratum,
-                  },
-                  pressureReleasedKpa: 25,
-                });
+          <div style={{ background: '#1a0d0d', height: '6px', border: '1px solid #4a1515' }}>
+            <div
+              style={{
+                background: bloodPct < 40 ? '#ec7063' : '#e74c3c',
+                width: `${bloodPct}%`,
+                height: '100%',
               }}
-            >
-              [V] Vent Boiler (25 kPa)
-            </button>
-            <button
-              type="button"
-              onClick={() => onCommand({ type: 'WAIT_TURN', actorId: playerId })}
-            >
-              [Space] Wait 1 Turn
-            </button>
+            />
           </div>
         </div>
-      )}
 
-      {activeTab === 'INVENTORY' && (
-        <InventoryPanel state={state} actorId={playerId} onCommand={onCommand} />
-      )}
-
-      {activeTab === 'SURGERY' && (
-        <div class="panel-box">
-          <div class="panel-header">PROSTHETIC SURGERY &amp; ANATOMY [A]</div>
-          <AnatomyDoll anatomy={player?.anatomy} />
+        <div style={{ marginBottom: '6px' }}>
+          <div class="stat-row" style={{ fontSize: '11px' }}>
+            <span>Boiler Pressure:</span>
+            <span class="copper-text">{steamKpa} / 200 kPa</span>
+          </div>
+          <div style={{ background: '#1c150c', height: '6px', border: '1px solid #5a3c1e' }}>
+            <div
+              style={{
+                background: '#cd7f32',
+                width: `${steamPct}%`,
+                height: '100%',
+              }}
+            />
+          </div>
         </div>
-      )}
 
-      {activeTab === 'WORKBENCH' && (
-        <CraftingPanel state={state} actorId={playerId} onCommand={onCommand} />
-      )}
+        <div class="stat-row">
+          <span>Cartel Treasury:</span>
+          <span class="brass-text">{state.economy.playerTreasuryPence}d</span>
+        </div>
+      </div>
 
-      {activeTab === 'EXCHANGE' && (
-        <MarketLedger economy={state.economy} onCommand={onCommand} />
-      )}
+      {/* Nearby Detected Entities */}
+      <div class="panel-box">
+        <div class="panel-header">PROXIMITY RADAR</div>
+        {nearbyEntities.length === 0 ? (
+          <div class="log-entry muted">No acoustic signals in immediate proximity.</div>
+        ) : (
+          nearbyEntities.map((ent) => {
+            const dx = Math.abs((ent.position?.x ?? 0) - (pos?.x ?? 0));
+            const dy = Math.abs((ent.position?.y ?? 0) - (pos?.y ?? 0));
+            const dist = Math.max(dx, dy);
+            const label = ent.aiController
+              ? `${ent.aiController.role} (${ent.id.slice(0, 10)})`
+              : ent.item
+                ? `Item: ${ent.item.blueprintId}`
+                : ent.portal
+                  ? `Portal: ${ent.portal.portalLabel}`
+                  : ent.id.slice(0, 14);
+
+            return (
+              <div key={ent.id} class="stat-row" style={{ fontSize: '11px' }}>
+                <span style={{ color: ent.aiController?.hostile ? '#ec7063' : '#d5dbdb' }}>
+                  {label}
+                </span>
+                <span class="muted">{dist}m</span>
+              </div>
+            );
+          })
+        )}
+      </div>
 
       {/* Canvas Tile Inspector */}
       <TileInspectorPanel
@@ -187,7 +156,13 @@ export function HudLayout({
         actorId={playerId}
         tile={hoveredTile}
         onCommand={onCommand}
-        onSelectTab={setTab}
+        onSelectTab={(tab) => {
+          if (!onOpenModal) return;
+          if (tab === 'EXCHANGE') onOpenModal('EXCHANGE');
+          else if (tab === 'INVENTORY') onOpenModal('INVENTORY');
+          else if (tab === 'SURGERY') onOpenModal('ANATOMY');
+          else if (tab === 'WORKBENCH') onOpenModal('WORKBENCH');
+        }}
       />
 
       {/* Action Chronicle Log */}
