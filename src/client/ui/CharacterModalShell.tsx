@@ -1,8 +1,8 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
-import { AnatomyDoll } from './AnatomyDoll.js';
-import { CraftingPanel } from './CraftingPanel.js';
+import { AnatomyWindow } from './AnatomyWindow.js';
+import { CraftingWindow } from './CraftingWindow.js';
 import { InventoryWindow } from './InventoryWindow.js';
 import { MarketLedger } from './MarketLedger.js';
 
@@ -140,14 +140,11 @@ export function CharacterModalShell({
           )}
 
           {activeWindow === 'ANATOMY' && (
-            <div class="panel-box" style={{ flex: 1 }}>
-              <div class="panel-header">PROSTHETIC SURGERY &amp; VITRUVIAN ANATOMY [A]</div>
-              <AnatomyDoll anatomy={player?.anatomy} />
-            </div>
+            <AnatomyWindow state={state} actorId={actorId} onCommand={onCommand} />
           )}
 
           {activeWindow === 'WORKBENCH' && (
-            <CraftingPanel state={state} actorId={actorId} onCommand={onCommand} />
+            <CraftingWindow state={state} actorId={actorId} onCommand={onCommand} />
           )}
 
           {activeWindow === 'EXCHANGE' && (
