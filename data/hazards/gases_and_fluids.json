@@ -1,0 +1,35 @@
+[
+  {
+    "id": "gas_superheated_steam",
+    "name": "Superheated Boiler Steam",
+    "diffusionRate": 0.45,
+    "dissipationPerTurn": 0.12,
+    "scaldDamagePerTurn": 6,
+    "toxicityPerTurn": 0,
+    "risesAcrossPortals": true,
+    "visual": {
+      "glyph": "~",
+      "fgPrimary": "#ECF0F1",
+      "fgSecondary": "#BDC3C7",
+      "bgColor": "#1C2833",
+      "shaderFlags": ["PULSE_STEAM", "HEAT_SHIMMER"]
+    }
+  },
+  {
+    "id": "gas_suspended_coal_dust",
+    "name": "Suspended Bituminous Coal Dust",
+    "diffusionRate": 0.25,
+    "dissipationPerTurn": 0.04,
+    "ignitionThresholdTempC": 280,
+    "scaldDamagePerTurn": 0,
+    "toxicityPerTurn": 2,
+    "risesAcrossPortals": false,
+    "visual": {
+      "glyph": ":",
+      "fgPrimary": "#566573",
+      "fgSecondary": "#CB4335",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SOOT_OCCLUSION"]
+    }
+  }
+]

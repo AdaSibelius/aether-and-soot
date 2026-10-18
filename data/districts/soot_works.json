@@ -1,0 +1,24 @@
+[
+  {
+    "id": "district_spitalfields_soot_works",
+    "name": "Spitalfields Soot-Works & Foundry Row",
+    "dominantStratum": "STREET",
+    "controllingFactionId": "faction_ironmongers_cartel",
+    "ambientSmogDensity": 0.65,
+    "wealthIndex": 0.75,
+    "floorVisual": {
+      "glyph": ".",
+      "fgPrimary": "#566573",
+      "fgSecondary": "#2C3E50",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    },
+    "wallVisual": {
+      "glyph": "#",
+      "fgPrimary": "#7F8C8D",
+      "fgSecondary": "#BA4A00",
+      "bgColor": "#17202A",
+      "shaderFlags": ["SOOT_OCCLUSION"]
+    }
+  }
+]
