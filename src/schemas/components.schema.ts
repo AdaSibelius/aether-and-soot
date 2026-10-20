@@ -146,6 +146,20 @@ export const ThermalComponentSchema = z.object({
 });
 export type ThermalComponent = z.infer<typeof ThermalComponentSchema>;
 
+export const NpcScheduleComponentSchema = z.object({
+  workAnchor: Point3DSchema,
+  restAnchor: Point3DSchema,
+  currentGoal: z.enum(['WORK', 'REST', 'PATROL', 'SEEK_MEDICAL']).default('WORK'),
+});
+export type NpcScheduleComponent = z.infer<typeof NpcScheduleComponentSchema>;
+
+export const TradePedestalComponentSchema = z.object({
+  itemEntityId: EntityIdSchema.optional(),
+  commodityId: CommodityIdSchema.optional(),
+  pricePence: z.number().int().nonnegative().default(0),
+});
+export type TradePedestalComponent = z.infer<typeof TradePedestalComponentSchema>;
+
 import { ProfessionIdSchema, TraitIdSchema } from './character.schema.js';
 
 export const EntityComponentsSchema = z.object({
@@ -169,6 +183,8 @@ export const EntityComponentsSchema = z.object({
   traits: z.array(TraitIdSchema).optional(),
   profession: ProfessionIdSchema.optional(),
   thermal: ThermalComponentSchema.optional(),
+  schedule: NpcScheduleComponentSchema.optional(),
+  tradePedestal: TradePedestalComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
 

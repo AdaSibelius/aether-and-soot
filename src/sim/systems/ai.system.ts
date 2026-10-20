@@ -4,6 +4,7 @@ import { SeededRNG } from '../core/rng.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { canActorSpotTarget } from './stealth-acoustics.system.js';
+import { resolveNpcEcologyAction } from './npc-ecology.system.js';
 import { resolveAttackActor } from './combat.system.js';
 import { sortEntitiesById } from './inventory-utils.js';
 import { resolveMoveStep } from './movement.system.js';
@@ -62,6 +63,29 @@ export function advanceNpcTurns(
     let apSpent = STANDARD_ACTION_AP;
     let nextAlertState = npc.aiController.alertState;
     let nextLastKnownTargetPos = npc.aiController.lastKnownTargetPos;
+
+    if (npc.anatomy && npc.anatomy.bloodVolumePct <= 60 && npc.inventory) {
+      const ecoRes = resolveNpcEcologyAction(workingState, npc.id);
+      if (ecoRes.handled) {
+        workingState = ecoRes.state;
+        apSpent = ecoRes.apSpent;
+        events.push(...ecoRes.events);
+        const afterEcoNpc = workingState.entities[npc.id];
+        if (afterEcoNpc?.actor && afterEcoNpc.aiController) {
+          workingState = {
+            ...workingState,
+            entities: {
+              ...workingState.entities,
+              [npc.id]: {
+                ...afterEcoNpc,
+                actor: { ...afterEcoNpc.actor, energy: gainedEnergy - apSpent },
+              },
+            },
+          };
+        }
+        continue;
+      }
+    }
 
     if (isCompanion && player?.position && player.position.stratum === npc.position.stratum) {
       const adjacentHostile = Object.values(workingState.entities).find(
@@ -143,6 +167,13 @@ export function advanceNpcTurns(
               nextLastKnownTargetPos = undefined;
             }
           }
+        }
+      } else {
+        const ecoRes = resolveNpcEcologyAction(workingState, npc.id);
+        if (ecoRes.handled) {
+          workingState = ecoRes.state;
+          apSpent = ecoRes.apSpent;
+          events.push(...ecoRes.events);
         }
       }
     }

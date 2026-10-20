@@ -6,6 +6,7 @@ import { WorldState } from '../core/world.js';
 import { generateVictorianDistrict } from '../spatial/generator.js';
 import { spawnDistrictItems } from './item-spawner.js';
 import { spawnDistrictNpcs } from './district-spawner.js';
+import { catchUpDistrictState } from './district-catchup.system.js';
 
 export const VALID_DISTRICT_IDS: ReadonlySet<string> = new Set([
   'district_spitalfields_soot_works',
@@ -166,6 +167,7 @@ export function resolveTravelDistrict(
         SPIRE: state.strata.SPIRE,
       },
       entities: leavingEntities,
+      lastSimulatedTurn: state.turnCount,
     },
   };
 
@@ -175,9 +177,10 @@ export function resolveTravelDistrict(
   let arrivalPos: PositionComponent;
 
   if (cachedTarget) {
-    nextStrata = cachedTarget.strata;
+    const caughtUp = catchUpDistrictState(cachedTarget, state.turnCount);
+    nextStrata = caughtUp.strata;
     nextEntities = {
-      ...cachedTarget.entities,
+      ...caughtUp.entities,
       ...preservedEntities,
     };
     const arrivalGate = Object.values(nextEntities).find(

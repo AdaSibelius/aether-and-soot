@@ -20,8 +20,21 @@ import { FactionContractSchema } from '../../schemas/contracts.schema.js';
 export const SavedDistrictSnapshotSchema = z.object({
   strata: z.object({ UNDERCROFT: StratumGridSchema, STREET: StratumGridSchema, SPIRE: StratumGridSchema }),
   entities: z.record(z.string(), EntityComponentsSchema),
+  lastSimulatedTurn: z.number().int().nonnegative().default(0),
 });
 export type SavedDistrictSnapshot = z.infer<typeof SavedDistrictSnapshotSchema>;
+export const DistrictStateSnapshotSchema = SavedDistrictSnapshotSchema;
+export type DistrictStateSnapshot = SavedDistrictSnapshot;
+
+export type ShiftPhase = 'DAWN_WHISTLE' | 'FOUNDRY_SHIFT' | 'GASLIGHT_CURFEW' | 'GRAVEYARD_WATCH';
+
+export function getShiftPhase(turnCount: number): ShiftPhase {
+  const cycleTurn = ((turnCount % 100) + 100) % 100;
+  if (cycleTurn < 25) return 'DAWN_WHISTLE';
+  if (cycleTurn < 50) return 'FOUNDRY_SHIFT';
+  if (cycleTurn < 75) return 'GASLIGHT_CURFEW';
+  return 'GRAVEYARD_WATCH';
+}
 
 export const WorldStateSchema = z.object({
   version: z.literal(1),
@@ -70,25 +83,9 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
   const playerEntity: EntityRecord = {
     id: playerId,
     name: 'Chief Artificer',
-    visual: {
-      glyph: '@',
-      fgPrimary: '#F4D03F',
-      fgSecondary: '#B7950B',
-      bgColor: '#0A0D0E',
-      shaderFlags: [],
-    },
-    position: {
-      x: centerX,
-      y: centerY,
-      stratum: 'STREET',
-      blocksMovement: true,
-      blocksSight: false,
-    },
-    actor: {
-      energy: 100,
-      speed: 100,
-      isPlayer: true,
-    },
+    visual: { glyph: '@', fgPrimary: '#F4D03F', fgSecondary: '#B7950B', bgColor: '#0A0D0E', shaderFlags: [] },
+    position: { x: centerX, y: centerY, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    actor: { energy: 100, speed: 100, isPlayer: true },
     anatomy: {
       limbs: {
         HEAD: { slot: 'HEAD', hp: 20, maxHp: 20, amputated: false },
@@ -118,13 +115,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
   const striderLegEntity: EntityRecord = {
     id: striderLegId,
     name: 'Gilded Pneumatic Strider Leg Mk.I',
-    visual: {
-      glyph: 'L',
-      fgPrimary: '#D4AF37',
-      fgSecondary: '#8B4513',
-      bgColor: '#0A0D0E',
-      shaderFlags: ['PULSE_STEAM'],
-    },
+    visual: { glyph: 'L', fgPrimary: '#D4AF37', fgSecondary: '#8B4513', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM'] },
     prostheticSpec: {
       blueprintId: BlueprintIdSchema.parse('prosthetic_pneumatic_leg_mk1'),
       targetLimbSlot: 'LEFT_LEG',
@@ -137,13 +128,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
   const ocularMonocleEntity: EntityRecord = {
     id: ocularMonocleId,
     name: 'Aetheric Turret Monocle',
-    visual: {
-      glyph: 'o',
-      fgPrimary: '#5DADE2',
-      fgSecondary: '#D4AF37',
-      bgColor: '#0A0D0E',
-      shaderFlags: ['SPARK_GLINT'],
-    },
+    visual: { glyph: 'o', fgPrimary: '#5DADE2', fgSecondary: '#D4AF37', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
     prostheticSpec: {
       blueprintId: BlueprintIdSchema.parse('prosthetic_clockwork_ocular_lens'),
       targetLimbSlot: 'OCULAR_MOUNT',
