@@ -5,82 +5,76 @@
 > - **Phases 7–12 (Completed — Issues #12–#17)**: Built world items & encumbrance, multi-building districts & inter-district transit, steam-powered crafting & salvage, autonomous NPC AI & targeted limb combat, physical merchant trading, and the initial UI inspector/system menu.
 > - **Phases 13–17 (Completed — Issues #18–#22)**: Delivered the *Caves of Qud* full-window modal UI shell (`[I]` Satchel, `[A]` Vitruvian Anatomy & Grafts, `[C]` Artificer Schematic Bench, `[M]` Dual-Column Exchange & Factions, `[W]` Multi-Stratum World Atlas) and keyboard `[L]` Look/Target cursor mode.
 > - **Phases 18–24 (Completed — Issues #23–#29)**: Expanded the world into large scrolling districts (`48x36`), procedural building archetypes with smashable windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, CDDA-style Character Creation, wielded weapons & wearable pocketed armor, interactive containers (`LOCKER`, `CRATE`, `BOOKSHELF`) with tangible currency pouches (`Crown Pence Pouch`), and grounded trade with live Chirurgeon/Fixer spawns and dialogue-to-market wiring.
-> - **Phases 25–28 (Active — Issues #30–#33 — Deep Interconnected World & Systems Cohesion)**: Connects every standalone mechanic into an interlocking Victorian survival simulation: fuel-driven boiler stoking & tactical pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
+> - **Phases 25–28 (Completed — Issues #30–#33)**: Connected fuel-driven boiler stoking & pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
+> - **Phases 29–31 (Active — Issues #34–#36 — Emergent Systemic Sandbox Epics)**: Elevates *Aether & Soot* to true *CDDA* / *Caves of Qud* emergent systemic depth through acoustic propagation & smog stealth, diurnal shift clocks & background district catch-up, and structural wall breaching, multi-strata gravity falls & clockwork traps.
 >
 > Every phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
 
 ---
 
-## 1. Active Implementation Plan: Phases 25–28 (World Scale & Systems Cohesion)
+## 1. Active Implementation Plan: Phases 29–31 (Emergent Systemic Sandbox Epics)
 
-
-### Phase 25: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (Issue #30) [COMPLETED]
-- **Goal**: Connect the internal boiler (`steamReserveKpa`), fuel commodities (`Anthracite Coal`, `Steam Canisters`), Foundry Boilers (`pressureVessel`), and explosive pyrotechnics (`PRESSURIZE_VESSEL`, `EMIT_SPARK`) into a cohesive resource and tactical hazard loop.
-- **Architectural Constraint**: `src/sim/systems/anatomy.system.ts` is near the 300-line ceiling (293 lines). Extract boiler/steam refill and venting into `src/sim/systems/boiler-stoking.system.ts` so both files stay **<= 250 lines**.
+### Phase 29: Acoustic Propagation, Smog Occlusion Stealth & Sensory AI (Issue #34)
+- **Goal**: Replace binary omniscient NPC awareness with **CDDA-style Acoustic Decibel Propagation** and **Dynamic Particulate Sight Attenuation** so steam clouds, coal dust, prosthetic noise tradeoffs, ocular blindness, and acoustic decoys create emergent stealth and heist gameplay.
+- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines). Extract sensory and acoustic rules into `src/sim/systems/stealth-acoustics.system.ts`.
 - **Files to Create / Modify**:
-  - **Create** `src/sim/systems/boiler-stoking.system.ts` & update `src/sim/systems/anatomy.system.ts` and `src/sim/core/engine.ts`:
-    - Update `resolveRefillSteam`: stoke `+50 kPa` for free if adjacent (`<= 1` tile) to an unruptured `pressureVessel` (*Foundry Boiler*), OR consume 1x fuel item (`item_steam_canister`, `commodity_anthracite_briquette`, or `item_anthracite_coal`) from `actor.inventory`.
-    - Update `VENT_STEAM` so venting deducts `pressureReleasedKpa` from `actor.anatomy.steamReserveKpa` (requiring available steam), adds `steamPressureKpa` to the tile, and dumps `10%` `coreHeatPct`.
-  - **Modify** `src/client/ui/LookCursorOverlay.tsx` & `src/client/ui/TileInspectorPanel.tsx`:
-    - Add `[Stoke from Boiler (+50 kPa)]` (`REFILL_STEAM`) and `[Sabotage Valve (+120 kPa)]` (`PRESSURIZE_VESSEL`) when inspecting an adjacent unruptured `pressureVessel`.
-    - Add `[Strike Flint Spark]` (`EMIT_SPARK`) when inspecting an adjacent or current tile with `coalDustDensity >= 40`.
-  - **Create** `tests/sim/boiler-pyrotechnics.test.ts`: Deterministic tests for boiler/fuel-backed stoking, `VENT_STEAM` reserve deduction + cooling, and `PRESSURIZE_VESSEL` / `EMIT_SPARK` pyrotechnics.
+  - **Modify** `src/schemas/components.schema.ts`, `src/schemas/domain-events.schema.ts`, & `src/schemas/events.schema.ts`:
+    - Add `alertState: z.enum(['IDLE', 'INVESTIGATING', 'COMBAT']).default('IDLE')` and `lastKnownTargetPos: Point3DSchema.optional()` to `AiControllerComponentSchema`.
+    - Add `noiseDb: z.number().int().nonnegative().default(0)` to `ProstheticSpecComponentSchema` (e.g. loud pneumatic limbs vs silent clockwork limbs).
+    - Add `SOUND_EMITTED` event (`origin: Point3DSchema`, `decibels: z.number().int().nonnegative()`, `sourceActorId: EntityIdSchema.optional()`).
+  - **Modify** `src/sim/spatial/fov.ts`:
+    - Treat tiles with `steamPressureKpa >= 20` or `coalDustDensity >= 0.3` as opaque sight blockers (`isOpaque`).
+    - Clamp actor FOV radius to `1` if `OCULAR_MOUNT` has `amputated: true` without an installed optic prosthetic.
+  - **Create** `src/sim/systems/stealth-acoustics.system.ts` (**<= 200 lines**):
+    - Implement `computeActorStepNoiseDb(state, actorId)`, `emitAcousticPulse(state, origin, decibels, turn, sourceActorId?)` (alerting NPCs within hearing range to set `alertState: 'INVESTIGATING'` and `lastKnownTargetPos: origin`), and `canActorSpotTarget(state, observerId, targetId)`.
+  - **Modify** `src/sim/systems/ai.system.ts`, `src/sim/systems/movement.system.ts`, & `src/sim/systems/pressure.system.ts`:
+    - Emit sound pulses on noisy movement, window smashing (`85 dB`), ranged gunfire (`95 dB`), and boiler ruptures (`120 dB`).
+    - Update `ai.system.ts` so NPCs only engage in `COMBAT` when `canActorSpotTarget` is true, and otherwise pathfind toward `lastKnownTargetPos` while `INVESTIGATING`.
+  - **Create** `tests/sim/stealth-acoustics.test.ts`: Deterministic tests verifying: (a) venting steam breaks NPC line-of-sight, (b) amputating an NPC's `OCULAR_MOUNT` blinds them to radius 1, and (c) smashing a window or walking with noisy pneumatic prosthetics lures an out-of-sight guard to `lastKnownTargetPos`.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 25). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 25: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (Issue #30)** by creating `src/sim/systems/boiler-stoking.system.ts` and `tests/sim/boiler-pyrotechnics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 29). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 29: Acoustic Propagation, Smog Occlusion Stealth & Sensory AI (Issue #34)** by creating `src/sim/systems/stealth-acoustics.system.ts` and `tests/sim/stealth-acoustics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 26: Procedural Overworld City Grid & Distinct District Biomes (Issue #31) [COMPLETED]
-- **Goal**: Expand the playable world from 3 static districts into a connected 5-district Victorian Overworld City Grid where every visited district is populated with NPCs, loot, seed-varied building layouts, and distinct environmental biomes, and where stepping on a `DISTRICT_GATE` (`Ω`) travels across the city.
-- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines).
+### Phase 30: Diurnal Shift Clocks, Autonomous NPC Ecology & Background District Catch-Up (Issue #35)
+- **Goal**: Bring districts to life with a **Victorian Industrial Shift Clock** (`DAWN_WHISTLE`, `FOUNDRY_SHIFT`, `GASLIGHT_CURFEW`, `GRAVEYARD_WATCH`), autonomous NPC self-preservation and storefront restocking, and a **Deterministic Delta Catch-Up Solver** when returning to cached districts in `state.savedDistricts`.
+- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines**. Create `src/sim/systems/npc-ecology.system.ts` and `src/sim/systems/district-catchup.system.ts` so `ai.system.ts` and `transit.system.ts` stay well below 250 lines.
 - **Files to Create / Modify**:
-  - **Create** `data/districts/whitechapel_ward.json` & `data/districts/limehouse_docks.json`:
-    - Expand `VALID_DISTRICT_IDS` to 5 districts: `spitalfields_works` (Industrial), `fleet_ditch` (Canal Slums), `belgravia_spires` (High Society), `whitechapel_ward` (Quarantine Ward), and `limehouse_docks` (Steam-Docks).
-  - **Modify** `src/sim/systems/transit.system.ts` & `src/sim/spatial/building-prefabs.ts`:
-    - Ensure `resolveTravelDistrict` invokes `spawnDistrictItems` and `spawnDistrictNpcs` when generating an unvisited district for the first time (while preserving cached entities on revisit).
-    - Wire `USE_PORTAL` when standing on a `DISTRICT_GATE` (`Ω`) entity to transition to the next connected district.
-    - Apply district biome modifiers (smog/coal-dust baseline, wealth index, and seed-varied building placement).
-  - **Modify** `src/client/ui/AtlasWindow.tsx`: Render the 5-district Overworld City Node Map with biome badges, visited status, and transit controls.
-  - **Create** `tests/sim/overworld-biomes.test.ts`: Deterministic tests verifying NPC/item population on newly visited districts, `DISTRICT_GATE` portal transit, and 5-district validation.
+  - **Modify** `src/schemas/components.schema.ts` & `src/sim/core/world.ts`:
+    - Define `NpcScheduleComponentSchema` (`workAnchor: Point3DSchema`, `restAnchor: Point3DSchema`, `currentGoal: z.enum(['WORK', 'REST', 'PATROL', 'SEEK_MEDICAL']).default('WORK')`) and attach `schedule: NpcScheduleComponentSchema.optional()` to `EntityComponentsSchema`.
+    - Add `lastSimulatedTurn: z.number().int().nonnegative().default(0)` to `DistrictStateSnapshotSchema` and export `getShiftPhase(turnCount: number): 'DAWN_WHISTLE' | 'FOUNDRY_SHIFT' | 'GASLIGHT_CURFEW' | 'GRAVEYARD_WATCH'`.
+  - **Create** `src/sim/systems/npc-ecology.system.ts` (**<= 200 lines**):
+    - Wounded NPCs (`bloodVolumePct <= 60`) automatically consume carried `RESTORE_BLOOD` tonics; if `bloodVolumePct <= 50` with no tonic, set `currentGoal: 'SEEK_MEDICAL'` and path toward the nearest `CHIRURGEON` or `SURGICAL_TABLE`.
+    - During `GRAVEYARD_WATCH` (turns 75–99 of each 100-turn cycle), non-guard scheduled NPCs path toward `restAnchor`; during `FOUNDRY_SHIFT`, they path toward `workAnchor` and merchants restock adjacent empty `tradePedestal` entities from their inventory.
+  - **Create** `src/sim/systems/district-catchup.system.ts` (**<= 150 lines**) & wire into `src/sim/systems/transit.system.ts`:
+    - When `resolveTravelDistrict` rehydrates a snapshot from `state.savedDistricts`, compute `elapsedTurns = state.turnCount - snapshot.lastSimulatedTurn`, decay residual steam/coal-dust proportional to `elapsedTurns`, and snap scheduled NPCs to their active shift anchor (`workAnchor` vs `restAnchor`).
+  - **Create** `tests/sim/npc-ecology-catchup.test.ts`: Deterministic tests verifying wounded NPC self-medication, diurnal shift transitions, merchant pedestal restocking, and elapsed-turn district catch-up on transit.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 26). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 26: Procedural Overworld City Grid & Distinct District Biomes (Issue #31)** and add deterministic tests in `tests/sim/overworld-biomes.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 30). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 30: Diurnal Shift Clocks, Autonomous NPC Ecology & Background District Catch-Up (Issue #35)** by creating `src/sim/systems/npc-ecology.system.ts`, `src/sim/systems/district-catchup.system.ts`, and `tests/sim/npc-ecology-catchup.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks (Issue #32) [COMPLETED]
-- **Goal**: Transform the vertical `UNDERCROFT` and `SPIRE` strata from tiny two-room placeholders into full `48x36` procedural multi-room sewer dungeons and rooftop catwalk networks populated with stratum-specific NPCs, hazards, and high-tier loot crates.
-- **Architectural Constraint**: `src/sim/spatial/generator.ts` is 285 lines. Create `src/sim/spatial/strata-dungeons.ts` (**<= 250 lines**) and move `UNDERCROFT` / `SPIRE` layout logic into it so `generator.ts` shrinks below 250 lines.
+### Phase 31: Structural Wall Breaching, Multi-Strata Gravity Falls & Clockwork Traps (Issue #36)
+- **Goal**: Turn district architecture and vertical strata into an interactive physics sandbox with destructible `SOOT_BRICK_WALL` -> `RUBBLE_PILE` breaching, pneumatic knockback across `SPIRE` `ABYSS_DROP` chasms (triggering multi-strata gravity falls with leg trauma and pneumatic shock absorption), and deployable clockwork traps (`SPARK_TRIPWIRE`, `STEAM_MINE`, `SPRING_JAW`).
+- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines**. Create `src/sim/systems/physics-traps.system.ts`.
 - **Files to Create / Modify**:
-  - **Create** `src/sim/spatial/strata-dungeons.ts` & update `src/sim/spatial/generator.ts` and `src/sim/core/world.ts`:
-    - **`UNDERCROFT` (`48x36`)**: Carve 6–8 interconnected brick sewer chambers and smuggling vaults connected by sluice corridors, with coal-dust pockets, steam vents, `Heavy Brass Gear Crates`, Syndicate `FIXER` / smugglers, and feral sewer hostiles.
-    - **`SPIRE` (`48x36`)**: Carve 5–7 elevated brass tower platforms connected by narrow sky-bridges/catwalks, with pressure vessels, `Constabulary Armoury Lockers`, `Public House Library Shelves`, Clockwork Guild artificers, and sentry guards.
-    - Verify `hasWalkablePath` connectivity between entry portals (`MANHOLE` at `(4, 4)` and `PNEUMATIC_LIFT` at `(15, 10)`) and all carved chambers.
-  - **Create** `tests/sim/strata-dungeons.test.ts`: Deterministic tests verifying `>= 250` walkable tiles, multi-room connectivity, and stratum-specific NPC/container spawns in both `UNDERCROFT` and `SPIRE`.
+  - **Modify** `src/schemas/primitives.schema.ts`, `src/schemas/components.schema.ts`, `src/schemas/commands.schema.ts`, & `src/schemas/domain-events.schema.ts`:
+    - Add `'RUBBLE_PILE'` to `TerrainTypeSchema`.
+    - Add `TrapComponentSchema` (`trapKind: z.enum(['SPARK_TRIPWIRE', 'STEAM_MINE', 'SPRING_JAW'])`, `armed: z.boolean().default(true)`, `damageMagnitude: z.number().int().nonnegative().default(20)`) and attach `trap: TrapComponentSchema.optional()` to `EntityComponentsSchema`.
+    - Add `WALL_BREACHED`, `ACTOR_FELL_STRATUM`, and `TRAP_TRIGGERED` events.
+  - **Create** `src/sim/systems/physics-traps.system.ts` (**<= 220 lines**):
+    - `resolveBreachTile(state, targetPoint, turn)`: Converts `SOOT_BRICK_WALL` into walkable `RUBBLE_PILE`, allowing gas and actors to pass through (triggered by boiler ruptures in `pressure.system.ts` or heavy piledriver strikes).
+    - `resolveKnockbackAndGravityFall(state, actorId, dx, dy, turn)`: Pushes actor 1 tile; if pushed onto `ABYSS_DROP` in `SPIRE`, drops the actor to `STREET` at `(x, y)`, dealing 20 HP damage to `LEFT_LEG` and `RIGHT_LEG` (reduced by 50% if a pneumatic leg prosthetic is installed with `steamReserveKpa >= 15`).
+    - `resolveStepOnTraps(state, actorId, point, turn)`: Triggers armed `trap` entities when an actor steps onto `point` (`SPARK_TRIPWIRE` invokes `resolveEmitSpark` to ignite coal dust; `SPRING_JAW` damages a leg limb).
+  - **Modify** `data/items/materials.json`, `data/items/recipes.json`, & `src/client/projection/frame-adapter.ts`:
+    - Add craftable `item_clockwork_spark_trap` and render `RUBBLE_PILE` as `,` (`#7F8C8D`).
+  - **Create** `tests/sim/physics-traps-falls.test.ts`: Deterministic tests verifying wall breaching + steam flooding, Spire-to-Street gravity fall + pneumatic leg mitigation, and spark tripwire coal-dust ignition.
 - **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 27). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks (Issue #32)** by creating `src/sim/spatial/strata-dungeons.ts` and `tests/sim/strata-dungeons.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 31). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 31: Structural Wall Breaching, Multi-Strata Gravity Falls & Clockwork Traps (Issue #36)** by creating `src/sim/systems/physics-traps.system.ts` and `tests/sim/physics-traps-falls.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
 
 ---
 
-### Phase 28: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (Issue #33) [COMPLETED]
-- **Goal**: Unify actor mortality across all damage sources (melee, ranged ballistics, steam scalds, and boiler explosions), fix equipped-item drop/salvage stat leaks, add a Victorian Morgue / Obituary screen when the player dies, and expand the prosthetic cybernetics catalog with surgical context bonuses.
-- **Architectural Constraint**: Create `src/sim/systems/mortality.system.ts` and `src/client/ui/MorgueModal.tsx` (all files **<= 250 lines**).
-- **Files to Create / Modify**:
-  - **Create** `src/sim/systems/mortality.system.ts` & wire into `combat.system.ts`, `ballistics.system.ts`, `thermo.system.ts`, and `pressure.system.ts`:
-    - Implement `resolveActorDefeatIfFatal(state, targetId, attackerId?)`: when `TORSO.hp <= 0 || HEAD.hp <= 0 || bloodVolumePct <= 0`, emit `ACTOR_DEFEATED`, drop NPC inventory + loot + Crown Pence pouch, and remove defeated NPCs while preserving `actor_player` in `state.entities` so the Morgue screen can inspect the player's final state.
-  - **Modify** `src/sim/systems/inventory.system.ts` & `src/sim/systems/crafting.system.ts`:
-    - When `resolveDropItem` or `resolveSalvageItem` is called on an `itemEntityId` currently equipped in `actor.inventory.equippedSlots`, automatically unequip it first via `resolveUnequipItem` (removing its slot entry and subtracting its `storageVolumeBonusMl`, `meleeDamageBonus`, and `armorBonus`) so actors never retain ghost stat bonuses.
-  - **Modify** `data/items/prosthetics.json`, `data/items/recipes.json`, & `src/sim/systems/anatomy.system.ts`:
-    - Add `prosthetic_pneumatic_piledriver_arm`, `prosthetic_boiler_core_furnace`, and `prosthetic_clockwork_gyrostabilizer_leg` plus crafting recipes.
-    - Standing adjacent to a `SURGICAL_TABLE` (or having the `DISGRACED_CHIRURGEON` profession) prevents blood-loss shock during `INSTALL_PROSTHETIC` / `REMOVE_PROSTHETIC`.
-  - **Create** `src/client/ui/MorgueModal.tsx` & wire into `src/client/ui/HudLayout.tsx`:
-    - Display a Victorian Coroner's Inquest / Obituary when `actor_player` is defeated, with a `[New Character / Re-Embark (N)]` button.
-  - **Create** `tests/sim/mortality-cybernetics.test.ts`: Deterministic tests for lethal ranged/explosion kills dropping loot and completing contracts, equipped-item drop/salvage stat reversal, player defeat preservation, and new prosthetic crafting/installation.
-- **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 28). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 28: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (Issue #33)** by creating `src/sim/systems/mortality.system.ts`, `src/client/ui/MorgueModal.tsx`, and `tests/sim/mortality-cybernetics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
-
----
-
-## 2. Archive: Completed Phases (Phases 7–24)
+## 2. Archive: Completed Phases (Phases 7–28)
 - **Phase 7 (Issue #12 — Completed)**: World Items, Ground Spawning & True Inventory Management (`src/sim/systems/inventory.system.ts`, `src/sim/systems/item-spawner.ts`).
 - **Phase 8 (Issue #13 — Completed)**: Multi-Building District ProcGen, Doors & Inter-District Transit (`src/sim/spatial/district-layout.ts`, `src/sim/systems/transit.system.ts`).
 - **Phase 9 (Issue #14 — Completed)**: Artificer Crafting, Salvage & Steam Workbenches (`src/sim/systems/crafting.system.ts`, `data/items/recipes.json`).
@@ -99,3 +93,7 @@
 - **Phase 22 (Issue #27 — Completed)**: Wielded Weapons, Wearable Armor/Pocket Gear & Ranged Pneumatic Ballistics (`src/sim/systems/equipment.system.ts`, `src/sim/systems/ballistics.system.ts`).
 - **Phase 23 (Issue #28 — Completed)**: Interactive Containers (`LOCKER`, `CRATE`, `BOOKSHELF`) & Tangible Currency / Loot Tables (`src/sim/systems/container.system.ts`, `data/items/materials.json`, `tests/sim/containers-currency.test.ts`).
 - **Phase 24 (Issue #29 — Completed)**: Grounded Trade, Live Chirurgeon/Fixer/Contract Spawns & Dialogue-to-Market Wiring (`src/sim/systems/district-spawner.ts`, `src/sim/systems/trade-pedestal.ts`, `tests/sim/grounded-economy.test.ts`).
+- **Phase 25 (Issue #30 — Completed)**: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (`src/sim/systems/boiler-stoking.system.ts`, `tests/sim/boiler-pyrotechnics.test.ts`).
+- **Phase 26 (Issue #31 — Completed)**: Procedural Overworld City Grid & Distinct District Biomes (`data/districts/whitechapel_ward.json`, `data/districts/limehouse_docks.json`, `tests/sim/overworld-biomes.test.ts`).
+- **Phase 27 (Issue #32 — Completed)**: Undercroft Sewer Dungeons & Spire Catwalk Networks (`src/sim/spatial/strata-dungeons.ts`, `tests/sim/strata-dungeons.test.ts`).
+- **Phase 28 (Issue #33 — Completed)**: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (`src/sim/systems/mortality.system.ts`, `src/client/ui/MorgueModal.tsx`, `tests/sim/mortality-cybernetics.test.ts`).
