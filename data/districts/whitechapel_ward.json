@@ -1,0 +1,24 @@
+[
+  {
+    "id": "district_whitechapel_ward",
+    "name": "Whitechapel Quarantine Ward & Infirmary",
+    "dominantStratum": "STREET",
+    "controllingFactionId": "faction_crown_constabulary",
+    "ambientSmogDensity": 0.55,
+    "wealthIndex": 0.45,
+    "floorVisual": {
+      "glyph": "·",
+      "fgPrimary": "#7D6608",
+      "fgSecondary": "#4D5656",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    },
+    "wallVisual": {
+      "glyph": "#",
+      "fgPrimary": "#A04000",
+      "fgSecondary": "#6E2C00",
+      "bgColor": "#17202A",
+      "shaderFlags": ["SOOT_OCCLUSION"]
+    }
+  }
+]

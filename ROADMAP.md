@@ -30,7 +30,7 @@
 
 ---
 
-### Phase 26: Procedural Overworld City Grid & Distinct District Biomes (Issue #31)
+### Phase 26: Procedural Overworld City Grid & Distinct District Biomes (Issue #31) [COMPLETED]
 - **Goal**: Expand the playable world from 3 static districts into a connected 5-district Victorian Overworld City Grid where every visited district is populated with NPCs, loot, seed-varied building layouts, and distinct environmental biomes, and where stepping on a `DISTRICT_GATE` (`Ω`) travels across the city.
 - **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines).
 - **Files to Create / Modify**:

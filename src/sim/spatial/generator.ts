@@ -11,6 +11,14 @@ import {
 import { populateDistrictArchetypes } from './building-prefabs.js';
 import { getTileCell, isWithinBounds, setTileCell, StratumGrid } from './grid.js';
 
+export const DISTRICT_ADJACENCY: Record<string, { west: string; east: string }> = {
+  district_spitalfields_soot_works: { west: 'district_fleet_ditch_undercroft', east: 'district_belgravia_brass_spires' },
+  district_fleet_ditch_undercroft: { west: 'district_whitechapel_ward', east: 'district_spitalfields_soot_works' },
+  district_whitechapel_ward: { west: 'district_fleet_ditch_undercroft', east: 'district_limehouse_docks' },
+  district_limehouse_docks: { west: 'district_whitechapel_ward', east: 'district_belgravia_brass_spires' },
+  district_belgravia_brass_spires: { west: 'district_limehouse_docks', east: 'district_spitalfields_soot_works' },
+};
+
 export interface GeneratedDistrictResult {
   readonly state: WorldState;
   readonly landmarks: {
@@ -46,6 +54,13 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
     y: rng.nextInt(Math.max(3, center.y + 2), Math.min(height - 4, height - 3)),
   };
 
+  const currDistrict = state.currentDistrictId ?? 'district_spitalfields_soot_works';
+  const biomeDust =
+    currDistrict === 'district_fleet_ditch_undercroft' ? 0.35 :
+    currDistrict === 'district_limehouse_docks' ? 0.30 :
+    currDistrict === 'district_belgravia_brass_spires' ? 0.0 :
+    currDistrict === 'district_whitechapel_ward' ? 0.10 : 0.15;
+
   // 1. UNDERCROFT: Brick sewer chambers connected by iron grates
   let undercroft = buildSolidStratumGrid('UNDERCROFT', width, height);
   const sewerChamberB: Point2D = {
@@ -58,9 +73,9 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
 
   // 2. STREET: Central thoroughfare, buildings with doors, boiler house, and transit gates
   let street = buildSolidStratumGrid('STREET', width, height);
-  street = carveRoom(street, center.x, center.y, 3, 3, 'COBBLESTONE_FLOOR', 0.15);
-  street = carveRoom(street, liftPos.x, liftPos.y, 2, 2, 'COBBLESTONE_FLOOR', 0.05);
-  street = carveRoom(street, boilerPos.x, boilerPos.y, 2, 2, 'COBBLESTONE_FLOOR', 0.45);
+  street = carveRoom(street, center.x, center.y, 3, 3, 'COBBLESTONE_FLOOR', biomeDust);
+  street = carveRoom(street, liftPos.x, liftPos.y, 2, 2, 'COBBLESTONE_FLOOR', Math.max(0, biomeDust - 0.05));
+  street = carveRoom(street, boilerPos.x, boilerPos.y, 2, 2, 'COBBLESTONE_FLOOR', Math.min(1, biomeDust + 0.3));
   street = carveCorridor(street, center, liftPos, 'COBBLESTONE_FLOOR');
   street = carveCorridor(street, center, boilerPos, 'COBBLESTONE_FLOOR');
 
@@ -107,13 +122,12 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const westGateId = EntityIdSchema.parse('gate_transit_west');
   const eastGateId = EntityIdSchema.parse('gate_transit_east');
 
-  const currDistrict = state.currentDistrictId ?? 'district_spitalfields_soot_works';
-  const westTarget = currDistrict === 'district_fleet_ditch_undercroft'
-    ? 'district_spitalfields_soot_works'
-    : 'district_fleet_ditch_undercroft';
-  const eastTarget = currDistrict === 'district_belgravia_brass_spires'
-    ? 'district_spitalfields_soot_works'
-    : 'district_belgravia_brass_spires';
+  const adj = DISTRICT_ADJACENCY[currDistrict] ?? {
+    west: 'district_fleet_ditch_undercroft',
+    east: 'district_whitechapel_ward',
+  };
+  const westTarget = adj.west;
+  const eastTarget = adj.east;
 
   const newEntities: Record<string, EntityRecord> = {
     ...state.entities,

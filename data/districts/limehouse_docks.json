@@ -1,0 +1,24 @@
+[
+  {
+    "id": "district_limehouse_docks",
+    "name": "Limehouse Arterial Steam-Docks",
+    "dominantStratum": "STREET",
+    "controllingFactionId": "faction_ironmongers_cartel",
+    "ambientSmogDensity": 0.70,
+    "wealthIndex": 1.25,
+    "floorVisual": {
+      "glyph": "·",
+      "fgPrimary": "#2E86C1",
+      "fgSecondary": "#1B4F72",
+      "bgColor": "#080C0E",
+      "shaderFlags": []
+    },
+    "wallVisual": {
+      "glyph": "#",
+      "fgPrimary": "#5D6D7E",
+      "fgSecondary": "#34495E",
+      "bgColor": "#11181F",
+      "shaderFlags": []
+    }
+  }
+]

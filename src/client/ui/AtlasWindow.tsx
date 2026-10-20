@@ -20,9 +20,11 @@ interface DistrictInfo {
 }
 
 const DISTRICT_ROSTER: readonly DistrictInfo[] = [
-  { id: BlueprintIdSchema.parse('district_spitalfields_soot_works'), name: 'Spitalfields Soot-Works & Foundry Row', dominantStratum: 'STREET', cartel: 'Ironmongers Cartel', smog: '65% Particulate', description: 'Bessemer furnaces, smokeless coal silos, and arterial pneumatic transit gates.' },
-  { id: BlueprintIdSchema.parse('district_fleet_ditch_undercroft'), name: 'Fleet Ditch Flooded Undercroft', dominantStratum: 'UNDERCROFT', cartel: 'Undercroft Syndicate', smog: '85% Toxic Miasma', description: 'Flooded subterranean sewers, sump scavenger camps, and illicit aether stills.' },
-  { id: BlueprintIdSchema.parse('district_belgravia_brass_spires'), name: 'Belgravia Brass Spires & Sky-Walks', dominantStratum: 'SPIRE', cartel: 'Clockwork Guild', smog: '15% High-Altitude Venting', description: 'Sky-high brass catwalks, pneumatic freight lifts, and aristocratic watchtowers.' },
+  { id: BlueprintIdSchema.parse('district_spitalfields_soot_works'), name: 'Spitalfields Soot-Works', dominantStratum: 'STREET', cartel: 'Ironmongers Cartel', smog: '65% Particulate', description: 'Bessemer furnaces, smokeless coal silos, and arterial transit gates.' },
+  { id: BlueprintIdSchema.parse('district_fleet_ditch_undercroft'), name: 'Fleet Ditch Undercroft', dominantStratum: 'UNDERCROFT', cartel: 'Undercroft Syndicate', smog: '85% Toxic Miasma', description: 'Flooded subterranean sewers, sump scavenger camps, and illicit aether stills.' },
+  { id: BlueprintIdSchema.parse('district_belgravia_brass_spires'), name: 'Belgravia Brass Spires', dominantStratum: 'SPIRE', cartel: 'Clockwork Guild', smog: '15% High-Altitude', description: 'Sky-high brass catwalks, pneumatic freight lifts, and aristocratic towers.' },
+  { id: BlueprintIdSchema.parse('district_whitechapel_ward'), name: 'Whitechapel Quarantine Ward', dominantStratum: 'STREET', cartel: 'Crown Constabulary', smog: '55% Hospital Carbolic', description: 'Quarantine checkpoints, surgical infirmaries, and convalescent wards.' },
+  { id: BlueprintIdSchema.parse('district_limehouse_docks'), name: 'Limehouse Steam-Docks', dominantStratum: 'STREET', cartel: 'Ironmongers Cartel', smog: '70% River Smog', description: 'Thames coal wharves, arterial steam cranes, and contraband export warehouses.' },
 ];
 
 const STRATA_ORDER: readonly { id: StratumId; label: string; altitude: string }[] = [
@@ -166,10 +168,14 @@ export function AtlasWindow({ state, actorId, onCommand }: AtlasWindowProps) {
                     <span class={isCurrent ? 'brass-text' : 'parchment-text'} style={{ fontWeight: 'bold', fontSize: '11px' }}>
                       {district.name}
                     </span>
-                    {isCurrent && (
+                    {isCurrent ? (
                       <span style={{ fontSize: '10px', color: 'var(--ok-green)', fontWeight: 'bold' }}>
                         [CURRENT LOCATION]
                       </span>
+                    ) : state.savedDistricts[district.id] ? (
+                      <span style={{ fontSize: '10px', color: '#5dade2' }}>[VISITED]</span>
+                    ) : (
+                      <span style={{ fontSize: '10px', color: '#7f8c8d' }}>[UNEXPLORED]</span>
                     )}
                   </div>
                   <div style={{ fontSize: '10px', color: '#95a5a6', marginTop: '3px' }}>

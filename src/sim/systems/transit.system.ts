@@ -4,11 +4,15 @@ import { BlueprintId, EntityId, Point3D } from '../../schemas/primitives.schema.
 import { findBlockingEntityAtPoint, setTileCell } from '../spatial/grid.js';
 import { WorldState } from '../core/world.js';
 import { generateVictorianDistrict } from '../spatial/generator.js';
+import { spawnDistrictItems } from './item-spawner.js';
+import { spawnDistrictNpcs } from './district-spawner.js';
 
 export const VALID_DISTRICT_IDS: ReadonlySet<string> = new Set([
   'district_spitalfields_soot_works',
   'district_fleet_ditch_undercroft',
   'district_belgravia_brass_spires',
+  'district_whitechapel_ward',
+  'district_limehouse_docks',
 ]);
 
 export interface TransitResolutionResult {
@@ -193,8 +197,10 @@ export function resolveTravelDistrict(
       currentDistrictId: targetDistrictId,
       entities: preservedEntities,
     });
-    nextStrata = genResult.state.strata;
-    nextEntities = genResult.state.entities;
+    const withItems = spawnDistrictItems(genResult.state);
+    const withNpcs = spawnDistrictNpcs(withItems.state);
+    nextStrata = withNpcs.state.strata;
+    nextEntities = withNpcs.state.entities;
     const arrivalGate = Object.values(nextEntities).find(
       (e) => e.districtGate && e.districtGate.targetDistrictId === fromDistrictId && e.position,
     );
