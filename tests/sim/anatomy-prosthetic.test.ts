@@ -132,6 +132,7 @@ describe('Phase 3: Anatomy, Encumbrance & Socketed Pneumatic Prosthetics', () =>
       type: 'REFILL_STEAM',
       actorId: playerId,
       pressureAddedKpa: 40,
+      bypassFuelRequirement: true,
     });
     world = refillRes.state;
     expect(world.entities[playerId]!.anatomy!.steamReserveKpa).toBe(40);

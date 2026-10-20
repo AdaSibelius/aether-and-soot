@@ -228,6 +228,7 @@ describe('Phase 8: Multi-Building District ProcGen, Doors & Inter-District Trans
       actorId: playerId,
       target: outsidePos,
       pressureReleasedKpa: 100,
+      bypassReserveCheck: true,
     }).state;
 
     // Tick thermodynamics across open door

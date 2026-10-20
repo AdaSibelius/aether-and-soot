@@ -37,6 +37,8 @@ export function LookCursorOverlay({
   const isGlassWindow = cell?.terrainType === 'GLASS_WINDOW';
   const isSmashedWindow = cell?.terrainType === 'SMASHED_WINDOW_FRAME';
   const furnitureEntity = entitiesOnTile.find((e) => e.furniture !== undefined);
+  const vesselEntity = entitiesOnTile.find((e) => e.pressureVessel !== undefined);
+  const hasCoalDust = !!cell && (cell.coalDustDensity >= 0.25 || cell.coalDustDensity >= 40);
 
   const dist = player?.position ? Math.max(Math.abs(player.position.x - cursor.x), Math.abs(player.position.y - cursor.y)) : 0;
   const isAdjacent = dist <= 1;
@@ -53,7 +55,6 @@ export function LookCursorOverlay({
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-      {/* Top HUD Status Bar */}
       <div style={{
         position: 'absolute', top: '6px', left: '8px', right: '8px',
         background: 'rgba(7, 10, 12, 0.92)', border: '1px solid var(--brass-gold)',
@@ -63,38 +64,27 @@ export function LookCursorOverlay({
         <div>
           <span style={{ color: 'var(--brass-gold)', fontWeight: 'bold' }}>[LOOK MODE]</span>{' '}
           <span>Cursor: ({cursor.x}, {cursor.y}) [{stratum}]</span>
-          <span style={{ color: '#7f8c8d', marginLeft: '8px' }}>
-            [WASD / Arrows] Move &nbsp;|&nbsp; [1-6 / F] Strike Limb &nbsp;|&nbsp; [Enter] Interact
-          </span>
+          <span style={{ color: '#7f8c8d', marginLeft: '8px' }}>[WASD] Move | [1-6/F] Strike | [Enter] Interact</span>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{ padding: '2px 6px', fontSize: '10px', background: '#2c1e1e', border: '1px solid #ec7063', color: '#ec7063', cursor: 'pointer' }}
-        >
+        <button type="button" onClick={onClose} style={{ padding: '2px 6px', fontSize: '10px', background: '#2c1e1e', border: '1px solid #ec7063', color: '#ec7063', cursor: 'pointer' }}>
           [Esc / L] Exit
         </button>
       </div>
 
-      {/* Brass Reticle Box */}
       {isCursorOnScreen && (
         <div style={{
-          position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`,
-          width: `${CELL_WIDTH_PX}px`, height: `${CELL_HEIGHT_PX}px`,
-          border: '2px solid var(--brass-gold)',
-          boxShadow: '0 0 12px rgba(212, 175, 55, 0.95), inset 0 0 6px rgba(212, 175, 55, 0.4)',
+          position: 'absolute', left: `${leftPx}px`, top: `${topPx}px`, width: `${CELL_WIDTH_PX}px`, height: `${CELL_HEIGHT_PX}px`,
+          border: '2px solid var(--brass-gold)', boxShadow: '0 0 12px rgba(212, 175, 55, 0.95), inset 0 0 6px rgba(212, 175, 55, 0.4)',
           boxSizing: 'border-box', zIndex: 40,
         }} />
       )}
 
-      {/* Floating Target Dossier Badge */}
-      {isCursorOnScreen && (targetActor || isDoor || isGlassWindow || isSmashedWindow || furnitureEntity || entitiesOnTile.length > 0) && (
+      {isCursorOnScreen && (targetActor || isDoor || isGlassWindow || isSmashedWindow || furnitureEntity || vesselEntity || hasCoalDust || entitiesOnTile.length > 0) && (
         <div style={{
           position: 'absolute', left: `${Math.min(Math.max(8, leftPx - 40), 24 * CELL_WIDTH_PX - 220)}px`,
           top: `${topPx > 200 ? topPx - 80 : topPx + CELL_HEIGHT_PX + 6}px`, width: '200px',
           background: 'rgba(9, 14, 17, 0.95)', border: '1px solid var(--brass-gold)',
-          padding: '6px 8px', fontSize: '10px', zIndex: 45, pointerEvents: 'auto',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.9)',
+          padding: '6px 8px', fontSize: '10px', zIndex: 45, pointerEvents: 'auto', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.9)',
         }}>
           {targetActor ? (
             <div>
@@ -113,46 +103,23 @@ export function LookCursorOverlay({
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', marginTop: '4px' }}>
                     {LIMB_TARGETS.map((t) => (
-                      <button
-                        key={t.slot}
-                        type="button"
-                        onClick={() =>
-                          onCommand({
-                            type: 'ATTACK_ACTOR',
-                            attackerId: actorId,
-                            targetId: targetActor.id,
-                            targetSlot: t.slot,
-                          })
-                        }
-                        style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center' }}
-                      >
+                      <button key={t.slot} type="button" onClick={() => onCommand({ type: 'ATTACK_ACTOR', attackerId: actorId, targetId: targetActor.id, targetSlot: t.slot })} style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center' }}>
                         {t.label}
                       </button>
                     ))}
                   </div>
                   {!targetActor.aiController?.hostile && onTalk && (
-                    <button
-                      type="button"
-                      onClick={() => onTalk(targetActor.id)}
-                      style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', width: '100%', marginTop: '3px', color: 'var(--brass-gold)', border: '1px solid var(--brass-gold)', cursor: 'pointer' }}
-                    >
+                    <button type="button" onClick={() => onTalk(targetActor.id)} style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', width: '100%', marginTop: '3px', color: 'var(--brass-gold)', border: '1px solid var(--brass-gold)', cursor: 'pointer' }}>
                       [Talk (T)]
                     </button>
                   )}
                 </>
               ) : canRangedShoot ? (
                 <>
-                  <div style={{ color: '#e67e22', fontSize: '9px', marginTop: '2px' }}>
-                    Fire ({dist} tiles | {wieldedSpec?.rangedSteamCostKpa}kPa):
-                  </div>
+                  <div style={{ color: '#e67e22', fontSize: '9px', marginTop: '2px' }}>Fire ({dist} tiles | {wieldedSpec?.rangedSteamCostKpa}kPa):</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', marginTop: '2px' }}>
                     {LIMB_TARGETS.map((t) => (
-                      <button
-                        key={t.slot}
-                        type="button"
-                        onClick={() => onCommand({ type: 'FIRE_RANGED_WEAPON', actorId, targetId: targetActor.id, targetSlot: t.slot })}
-                        style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', color: '#e67e22' }}
-                      >
+                      <button key={t.slot} type="button" onClick={() => onCommand({ type: 'FIRE_RANGED_WEAPON', actorId, targetId: targetActor.id, targetSlot: t.slot })} style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', color: '#e67e22' }}>
                         {t.label}
                       </button>
                     ))}
@@ -166,29 +133,16 @@ export function LookCursorOverlay({
             </div>
           ) : isDoor ? (
             <div>
-              <div class="brass-text" style={{ fontWeight: 'bold' }}>
-                {cell?.terrainType === 'WOODEN_DOOR_CLOSED' ? '+ Closed Wooden Door' : '/ Open Wooden Door'}
-              </div>
-              <div style={{ color: '#7f8c8d', marginTop: '2px' }}>
-                {isAdjacent ? 'Press [Enter] to toggle door' : 'Step adjacent to open/close'}
-              </div>
+              <div class="brass-text" style={{ fontWeight: 'bold' }}>{cell?.terrainType === 'WOODEN_DOOR_CLOSED' ? '+ Closed Wooden Door' : '/ Open Wooden Door'}</div>
+              <div style={{ color: '#7f8c8d', marginTop: '2px' }}>{isAdjacent ? 'Press [Enter] to toggle door' : 'Step adjacent to open/close'}</div>
             </div>
           ) : isGlassWindow ? (
             <div>
               <div class="brass-text" style={{ fontWeight: 'bold' }}>⊞ Glass Window</div>
               <div style={{ color: '#7f8c8d', margin: '2px 0 6px 0' }}>Blocks movement, allows line of sight.</div>
               {isAdjacent && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    onCommand({
-                      type: 'SMASH_TERRAIN',
-                      actorId,
-                      target: { x: cursor.x, y: cursor.y, stratum },
-                    })
-                  }
-                  style={{ padding: '3px 6px', fontSize: '10px', background: '#3b2219', border: '1px solid #e67e22', color: '#e67e22', cursor: 'pointer', width: '100%' }}
-                >
+                <button type="button" onClick={() => onCommand({ type: 'SMASH_TERRAIN', actorId, target: { x: cursor.x, y: cursor.y, stratum } })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#3b2219', border: '1px solid #e67e22', color: '#e67e22', cursor: 'pointer', width: '100%' }}>
                   [Smash Window]
                 </button>
               )}
@@ -198,42 +152,56 @@ export function LookCursorOverlay({
               <div class="muted" style={{ fontWeight: 'bold' }}>% Smashed Window Frame</div>
               <div style={{ color: '#7f8c8d', marginTop: '2px' }}>Shattered glass. Walkable aperture.</div>
             </div>
+          ) : vesselEntity ? (
+            <div>
+              <div class="brass-text" style={{ fontWeight: 'bold' }}>{vesselEntity.visual.glyph} {vesselEntity.name}</div>
+              <div style={{ color: '#7f8c8d', margin: '2px 0 4px 0' }}>
+                Pressure: {vesselEntity.pressureVessel?.currentPressureKpa}/{vesselEntity.pressureVessel?.maxPressureKpa} kPa {vesselEntity.pressureVessel?.ruptured ? '(RUPTURED)' : ''}
+              </div>
+              {isAdjacent && !vesselEntity.pressureVessel?.ruptured && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '4px' }}>
+                  <button type="button" onClick={() => onCommand({ type: 'REFILL_STEAM', actorId, pressureAddedKpa: 50 })}
+                    style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}>
+                    [Stoke Steam (+50 kPa)]
+                  </button>
+                  <button type="button" onClick={() => onCommand({ type: 'PRESSURIZE_VESSEL', actorId, vesselEntityId: vesselEntity.id, pressureAddedKpa: 120 })}
+                    style={{ padding: '3px 6px', fontSize: '10px', background: '#3b2219', border: '1px solid #e67e22', color: '#e67e22', cursor: 'pointer', width: '100%' }}>
+                    [Sabotage Valve (+120 kPa)]
+                  </button>
+                </div>
+              )}
+            </div>
           ) : furnitureEntity ? (
             <div>
-              <div class="brass-text" style={{ fontWeight: 'bold' }}>
-                {furnitureEntity.visual.glyph} {furnitureEntity.name}
-              </div>
+              <div class="brass-text" style={{ fontWeight: 'bold' }}>{furnitureEntity.visual.glyph} {furnitureEntity.name}</div>
               <div style={{ color: '#7f8c8d', margin: '2px 0 4px 0' }}>
-                Type: {furnitureEntity.furniture?.kind}
-                {furnitureEntity.inventory && ` (${furnitureEntity.inventory.containedEntityIds.length} items)`}
+                Type: {furnitureEntity.furniture?.kind} {furnitureEntity.inventory && `(${furnitureEntity.inventory.containedEntityIds.length} items)`}
               </div>
               {(furnitureEntity.furniture?.kind === 'BED' || furnitureEntity.furniture?.kind === 'SURGICAL_TABLE') && isAdjacent && (
-                <button
-                  type="button"
-                  onClick={() => onCommand({ type: 'REST_AT_BED', actorId })}
-                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}
-                >
+                <button type="button" onClick={() => onCommand({ type: 'REST_AT_BED', actorId })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}>
                   [Rest / Recuperate]
                 </button>
               )}
               {Boolean(furnitureEntity.furniture && ['LOCKER', 'CRATE', 'BOOKSHELF'].includes(furnitureEntity.furniture.kind)) && isAdjacent && (
-                <button
-                  type="button"
-                  onClick={() => onCommand({ type: 'LOOT_CONTAINER', actorId, containerId: furnitureEntity.id })}
-                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}
-                >
+                <button type="button" onClick={() => onCommand({ type: 'LOOT_CONTAINER', actorId, containerId: furnitureEntity.id })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%' }}>
                   [Loot Container ({furnitureEntity.inventory?.containedEntityIds.length ?? 0})]
                 </button>
               )}
             </div>
           ) : (
             <div>
-              <div class="brass-text" style={{ fontWeight: 'bold' }}>
-                {entitiesOnTile[0]?.visual.glyph ?? '.'} {entitiesOnTile[0]?.name ?? cell?.terrainType ?? 'Empty Space'}
-              </div>
+              <div class="brass-text" style={{ fontWeight: 'bold' }}>{entitiesOnTile[0]?.visual.glyph ?? '.'} {entitiesOnTile[0]?.name ?? cell?.terrainType ?? 'Empty Space'}</div>
               <div style={{ color: '#7f8c8d', marginTop: '2px' }}>
-                {entitiesOnTile[0]?.portal ? 'Press [Enter] to traverse portal' : 'Objects on tile'}
+                {entitiesOnTile[0]?.portal ? 'Press [Enter] to traverse portal' : hasCoalDust ? 'Coal dust cloud hovering.' : 'Objects on tile'}
               </div>
+              {hasCoalDust && (
+                <button type="button" onClick={() => onCommand({ type: 'EMIT_SPARK', actorId, target: { x: cursor.x, y: cursor.y, stratum } })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#3b2219', border: '1px solid #e67e22', color: '#e67e22', cursor: 'pointer', width: '100%', marginTop: '4px' }}>
+                  [Strike Flint Spark]
+                </button>
+              )}
             </div>
           )}
         </div>

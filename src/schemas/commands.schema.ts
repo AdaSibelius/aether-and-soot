@@ -34,6 +34,7 @@ export const VentSteamCommandSchema = z.object({
   actorId: EntityIdSchema,
   target: Point3DSchema,
   pressureReleasedKpa: z.number().positive(),
+  bypassReserveCheck: z.boolean().optional(),
 });
 
 export const DamageLimbCommandSchema = z.object({
@@ -52,7 +53,12 @@ export const InstallProstheticCommandSchema = z.object({
 });
 
 export const RemoveProstheticCommandSchema = z.object({ type: z.literal('REMOVE_PROSTHETIC'), actorId: EntityIdSchema, slot: LimbSlotIdSchema });
-export const RefillSteamCommandSchema = z.object({ type: z.literal('REFILL_STEAM'), actorId: EntityIdSchema, pressureAddedKpa: z.number().positive() });
+export const RefillSteamCommandSchema = z.object({
+  type: z.literal('REFILL_STEAM'),
+  actorId: EntityIdSchema,
+  pressureAddedKpa: z.number().positive().default(50).optional(),
+  bypassFuelRequirement: z.boolean().optional(),
+});
 
 export const PressurizeVesselCommandSchema = z.object({
   type: z.literal('PRESSURIZE_VESSEL'),

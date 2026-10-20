@@ -43,23 +43,11 @@ export function resolveDamageLimb(
   const turn = state.turnCount + 1;
 
   const events: SimEvent[] = [
-    {
-      type: 'LIMB_DAMAGED',
-      turn,
-      targetId,
-      slot,
-      damage,
-      remainingHp,
-    },
+    { type: 'LIMB_DAMAGED', turn, targetId, slot, damage, remainingHp },
   ];
 
   if (newlyAmputated) {
-    events.push({
-      type: 'LIMB_AMPUTATED',
-      turn,
-      targetId,
-      slot,
-    });
+    events.push({ type: 'LIMB_AMPUTATED', turn, targetId, slot });
   }
 
   const updatedLimb = {
@@ -249,45 +237,5 @@ export function resolveRemoveProsthetic(
   };
 }
 
-export function resolveRefillSteam(
-  state: WorldState,
-  actorId: EntityId,
-  pressureAddedKpa: number,
-): SystemAnatomyResult {
-  const actor = state.entities[actorId];
-  if (!actor || !actor.anatomy) {
-    return { state, events: [], apSpent: STANDARD_ACTION_AP };
-  }
+export { resolveRefillSteam } from './boiler-stoking.system.js';
 
-  const newReserveKpa = Math.min(
-    actor.anatomy.maxSteamReserveKpa,
-    actor.anatomy.steamReserveKpa + pressureAddedKpa,
-  );
-
-  const updatedActor: EntityRecord = {
-    ...actor,
-    anatomy: {
-      ...actor.anatomy,
-      steamReserveKpa: newReserveKpa,
-    },
-  };
-
-  return {
-    state: {
-      ...state,
-      entities: {
-        ...state.entities,
-        [actorId]: updatedActor,
-      },
-    },
-    apSpent: STANDARD_ACTION_AP,
-    events: [
-      {
-        type: 'STEAM_REFILLED',
-        turn: state.turnCount + 1,
-        actorId,
-        newReserveKpa,
-      },
-    ],
-  };
-}

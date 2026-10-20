@@ -112,6 +112,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       maxVolumeMl: 30000,
       currentMassGrams: 4650,
     },
+    thermal: { coreHeatPct: 50 },
   };
 
   const striderLegEntity: EntityRecord = {

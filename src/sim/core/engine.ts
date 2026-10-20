@@ -1,11 +1,12 @@
 import { GameCommand, GameCommandSchema } from '../../schemas/commands.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { markExploredTiles, setTileCell } from '../spatial/grid.js';
+import { markExploredTiles } from '../spatial/grid.js';
 import { computeVisibleTiles } from '../spatial/fov.js';
 import { advanceNpcTurns } from '../systems/ai.system.js';
 import {
-  computeProstheticFovBonus, resolveDamageLimb, resolveInstallProsthetic, resolveRefillSteam, resolveRemoveProsthetic,
+  computeProstheticFovBonus, resolveDamageLimb, resolveInstallProsthetic, resolveRemoveProsthetic,
 } from '../systems/anatomy.system.js';
+import { resolveRefillSteam, resolveVentSteam } from '../systems/boiler-stoking.system.js';
 import { resolveAttackActor } from '../systems/combat.system.js';
 import { resolveCraftRecipe, resolveRepairLimb, resolveSalvageItem } from '../systems/crafting.system.js';
 import { resolveTriggerSupplyShock } from '../systems/economy.system.js';
@@ -70,21 +71,9 @@ export function dispatchCommand(
       systemEvents = [{ type: 'ACTOR_WAITED', turn: nextState.turnCount + 1, actorId: command.actorId, apSpent: STANDARD_ACTION_AP }];
       break;
     }
-    case 'VENT_STEAM': {
-      const targetStratum = nextState.strata[command.target.stratum];
-      if (targetStratum) {
-        const updatedGrid = setTileCell(
-          targetStratum, command.target.x, command.target.y,
-          (cell) => ({ ...cell, steamPressureKpa: cell.steamPressureKpa + command.pressureReleasedKpa }),
-        );
-        nextState = { ...nextState, strata: { ...nextState.strata, [command.target.stratum]: updatedGrid } };
-      }
-      systemEvents = [{
-        type: 'STEAM_VENTED', turn: nextState.turnCount + 1,
-        actorId: command.actorId, origin: command.target, pressureReleasedKpa: command.pressureReleasedKpa,
-      }];
+    case 'VENT_STEAM':
+      apply(resolveVentSteam(nextState, command.actorId, command.target, command.pressureReleasedKpa, command.bypassReserveCheck));
       break;
-    }
     case 'DAMAGE_LIMB':
       apply(resolveDamageLimb(nextState, command.targetId, command.slot, command.damage));
       break;
@@ -95,7 +84,7 @@ export function dispatchCommand(
       apply(resolveRemoveProsthetic(nextState, command.actorId, command.slot));
       break;
     case 'REFILL_STEAM':
-      apply(resolveRefillSteam(nextState, command.actorId, command.pressureAddedKpa));
+      apply(resolveRefillSteam(nextState, command.actorId, command.pressureAddedKpa, command.bypassFuelRequirement));
       break;
     case 'PRESSURIZE_VESSEL':
       apply(resolvePressurizeVessel(nextState, command.vesselEntityId, command.pressureAddedKpa));

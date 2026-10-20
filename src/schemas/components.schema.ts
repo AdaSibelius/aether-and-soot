@@ -138,6 +138,11 @@ export const FurnitureComponentSchema = z.object({
 });
 export type FurnitureComponent = z.infer<typeof FurnitureComponentSchema>;
 
+export const ThermalComponentSchema = z.object({
+  coreHeatPct: z.number().min(0).max(100).default(50),
+});
+export type ThermalComponent = z.infer<typeof ThermalComponentSchema>;
+
 import { ProfessionIdSchema, TraitIdSchema } from './character.schema.js';
 
 export const EntityComponentsSchema = z.object({
@@ -160,6 +165,7 @@ export const EntityComponentsSchema = z.object({
   furniture: FurnitureComponentSchema.optional(),
   traits: z.array(TraitIdSchema).optional(),
   profession: ProfessionIdSchema.optional(),
+  thermal: ThermalComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
 

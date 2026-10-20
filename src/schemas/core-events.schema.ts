@@ -109,6 +109,22 @@ export const SteamRefilledEventSchema = z.object({
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
   newReserveKpa: z.number().nonnegative(),
+  stokedFromBoiler: z.boolean().optional(),
+  fuelBlueprintId: z.string().optional(),
+});
+
+export const SteamRefillFailedEventSchema = z.object({
+  type: z.literal('STEAM_REFILL_FAILED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  reason: z.string(),
+});
+
+export const SteamVentFailedEventSchema = z.object({
+  type: z.literal('STEAM_VENT_FAILED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  reason: z.string(),
 });
 
 export const VesselRupturedEventSchema = z.object({

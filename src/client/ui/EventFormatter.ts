@@ -17,6 +17,8 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Artificer holds position and checks pressure gauges.`;
     case 'STEAM_VENTED':
       return `[T${ev.turn}] Vented ${ev.pressureReleasedKpa} kPa superheated steam!`;
+    case 'STEAM_VENT_FAILED':
+      return `[T${ev.turn}] Steam venting failed: ${ev.reason}`;
     case 'LIMB_DAMAGED':
       return `[T${ev.turn}] ${ev.slot} took ${ev.damage} dmg (${ev.remainingHp} HP left)`;
     case 'LIMB_AMPUTATED':
@@ -29,6 +31,8 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Surgery failed on ${ev.slot}: ${ev.reason}`;
     case 'STEAM_REFILLED':
       return `[T${ev.turn}] Boiler re-pressurized to ${ev.newReserveKpa} kPa.`;
+    case 'STEAM_REFILL_FAILED':
+      return `[T${ev.turn}] Boiler stoking failed: ${ev.reason}`;
     case 'VESSEL_RUPTURED':
       return `[T${ev.turn}] BOILER RUPTURE! ${ev.releasedPressureKpa} kPa blasted at (${ev.origin.x}, ${ev.origin.y})!`;
     case 'COAL_DUST_IGNITED':

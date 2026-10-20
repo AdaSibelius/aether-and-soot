@@ -89,6 +89,29 @@ export function TileInspectorPanel({
                 Fixture: {e.furniture.kind} {e.inventory ? `(${e.inventory.containedEntityIds.length} items)` : ''}
               </div>
             )}
+            {e.pressureVessel && (
+              <div style={{ fontSize: '10px', color: '#7f8c8d' }}>
+                Pressure: {e.pressureVessel.currentPressureKpa}/{e.pressureVessel.maxPressureKpa} kPa {e.pressureVessel.ruptured ? '(RUPTURED)' : ''}
+              </div>
+            )}
+            {isAdjacent && e.pressureVessel && !e.pressureVessel.ruptured && (
+              <div style={{ marginTop: '4px', display: 'flex', gap: '4px' }}>
+                <button
+                  type="button"
+                  style={{ fontSize: '10px', padding: '2px 4px', color: 'var(--brass-gold)' }}
+                  onClick={() => onCommand({ type: 'REFILL_STEAM', actorId, pressureAddedKpa: 50 })}
+                >
+                  [Stoke Steam (+50 kPa)]
+                </button>
+                <button
+                  type="button"
+                  style={{ fontSize: '10px', padding: '2px 4px', color: '#e67e22' }}
+                  onClick={() => onCommand({ type: 'PRESSURIZE_VESSEL', actorId, vesselEntityId: e.id, pressureAddedKpa: 120 })}
+                >
+                  [Sabotage Valve (+120 kPa)]
+                </button>
+              </div>
+            )}
             {isAdjacent && e.furniture && ['LOCKER', 'CRATE', 'BOOKSHELF'].includes(e.furniture.kind) && (
               <div style={{ marginTop: '4px' }}>
                 <button
@@ -150,6 +173,19 @@ export function TileInspectorPanel({
             }
           >
             {isDoorClosed ? 'Open Door' : 'Close Door'}
+          </button>
+        </div>
+      )}
+
+      {/* Coal dust ignition spark button if dust cloud is present */}
+      {cell && (cell.coalDustDensity >= 0.25 || cell.coalDustDensity >= 40) && (
+        <div style={{ marginTop: '6px' }}>
+          <button
+            type="button"
+            style={{ fontSize: '10px', padding: '3px 6px', color: '#e67e22', border: '1px solid #e67e22', background: '#3b2219', cursor: 'pointer' }}
+            onClick={() => onCommand({ type: 'EMIT_SPARK', actorId, target: { x: tile.x, y: tile.y, stratum } })}
+          >
+            [Strike Flint Spark (Ignite Coal Dust)]
           </button>
         </div>
       )}

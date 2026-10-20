@@ -14,7 +14,7 @@
 ## 1. Active Implementation Plan: Phases 25–28 (World Scale & Systems Cohesion)
 
 
-### Phase 25: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (Issue #30)
+### Phase 25: Fuel-Driven Boiler Stoking, Pyrotechnics & Gas Hazards (Issue #30) [COMPLETED]
 - **Goal**: Connect the internal boiler (`steamReserveKpa`), fuel commodities (`Anthracite Coal`, `Steam Canisters`), Foundry Boilers (`pressureVessel`), and explosive pyrotechnics (`PRESSURIZE_VESSEL`, `EMIT_SPARK`) into a cohesive resource and tactical hazard loop.
 - **Architectural Constraint**: `src/sim/systems/anatomy.system.ts` is near the 300-line ceiling (293 lines). Extract boiler/steam refill and venting into `src/sim/systems/boiler-stoking.system.ts` so both files stay **<= 250 lines**.
 - **Files to Create / Modify**:
