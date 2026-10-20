@@ -9,6 +9,7 @@ import {
   carveRoom,
 } from './district-layout.js';
 import { populateDistrictArchetypes } from './building-prefabs.js';
+import { generateSpireCatwalks, generateUndercroftDungeon } from './strata-dungeons.js';
 import { getTileCell, isWithinBounds, setTileCell, StratumGrid } from './grid.js';
 
 export const DISTRICT_ADJACENCY: Record<string, { west: string; east: string }> = {
@@ -61,15 +62,9 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
     currDistrict === 'district_belgravia_brass_spires' ? 0.0 :
     currDistrict === 'district_whitechapel_ward' ? 0.10 : 0.15;
 
-  // 1. UNDERCROFT: Brick sewer chambers connected by iron grates
-  let undercroft = buildSolidStratumGrid('UNDERCROFT', width, height);
-  const sewerChamberB: Point2D = {
-    x: rng.nextInt(3, Math.max(4, width - 4)),
-    y: rng.nextInt(3, Math.max(4, height - 4)),
-  };
-  undercroft = carveRoom(undercroft, center.x, center.y, 2, 2, 'IRON_GRATE', 0.1);
-  undercroft = carveRoom(undercroft, sewerChamberB.x, sewerChamberB.y, 2, 2, 'IRON_GRATE', 0.2);
-  undercroft = carveCorridor(undercroft, center, sewerChamberB, 'IRON_GRATE');
+  // 1. UNDERCROFT: Procedural sewer dungeon with interconnected chambers and smuggling vaults
+  const undercroftRes = generateUndercroftDungeon(width, height, center, rng, state.entities);
+  const undercroft = undercroftRes.grid;
 
   // 2. STREET: Central thoroughfare, buildings with doors, boiler house, and transit gates
   let street = buildSolidStratumGrid('STREET', width, height);
@@ -109,11 +104,9 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
     blocksSight: false,
   }));
 
-  // 3. SPIRE: Elevated brass catwalks and clockwork observatory
-  let spire = buildSolidStratumGrid('SPIRE', width, height);
-  spire = carveRoom(spire, liftPos.x, liftPos.y, 2, 2, 'BRASS_CATWALK', 0);
-  spire = carveRoom(spire, center.x, center.y, 2, 2, 'BRASS_CATWALK', 0);
-  spire = carveCorridor(spire, liftPos, center, 'BRASS_CATWALK');
+  // 3. SPIRE: Elevated brass tower platforms and sky-bridge catwalks
+  const spireRes = generateSpireCatwalks(width, height, liftPos, rng, undercroftRes.entities);
+  const spire = spireRes.grid;
 
   const liftDownId = EntityIdSchema.parse('portal_spire_lift_down');
   const liftUpId = EntityIdSchema.parse('portal_street_lift_up');
@@ -130,7 +123,7 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const eastTarget = adj.east;
 
   const newEntities: Record<string, EntityRecord> = {
-    ...state.entities,
+    ...spireRes.entities,
     [liftUpId]: {
       id: liftUpId,
       name: 'Pneumatic Freight Elevator (To Spire)',

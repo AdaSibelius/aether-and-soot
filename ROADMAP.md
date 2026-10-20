@@ -47,7 +47,7 @@
 
 ---
 
-### Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks (Issue #32)
+### Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks (Issue #32) [COMPLETED]
 - **Goal**: Transform the vertical `UNDERCROFT` and `SPIRE` strata from tiny two-room placeholders into full `48x36` procedural multi-room sewer dungeons and rooftop catwalk networks populated with stratum-specific NPCs, hazards, and high-tier loot crates.
 - **Architectural Constraint**: `src/sim/spatial/generator.ts` is 285 lines. Create `src/sim/spatial/strata-dungeons.ts` (**<= 250 lines**) and move `UNDERCROFT` / `SPIRE` layout logic into it so `generator.ts` shrinks below 250 lines.
 - **Files to Create / Modify**:
