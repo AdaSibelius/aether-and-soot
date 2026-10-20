@@ -114,5 +114,181 @@
       "bgColor": "#0A0D0E",
       "shaderFlags": ["PULSE_STEAM"]
     }
+  },
+  {
+    "id": "book_pneumatic_schematic",
+    "name": "Technical Folio: Pneumatic Actuators",
+    "description": "A stamped brass-bound workshop manual detailing femoral valve tolerances for pneumatic strider limbs.",
+    "category": "CONSUMABLE",
+    "massGrams": 500,
+    "volumeMl": 600,
+    "stackable": false,
+    "unlocksRecipeId": "recipe_pneumatic_leg_mk1",
+    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnWeight": 8,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "?",
+      "fgPrimary": "#F4D03F",
+      "fgSecondary": "#D4AC0D",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "book_ocular_schematic",
+    "name": "Artificer's Tract: Aetheric Refraction",
+    "description": "An annotated treatise on grinding quartz crystals for multi-aperture turret monocles.",
+    "category": "CONSUMABLE",
+    "massGrams": 400,
+    "volumeMl": 500,
+    "stackable": false,
+    "unlocksRecipeId": "recipe_clockwork_ocular_lens",
+    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnWeight": 8,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "?",
+      "fgPrimary": "#5DADE2",
+      "fgSecondary": "#2E86C1",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
+  },
+  {
+    "id": "gear_heavy_pipe_wrench",
+    "name": "Heavy Pipe Wrench",
+    "description": "A hefty forged iron wrench with hardened teeth, well-suited for striking foes or turning pressurized valves.",
+    "category": "EQUIPMENT",
+    "massGrams": 3500,
+    "volumeMl": 2500,
+    "stackable": false,
+    "equipment": {
+      "equipSlot": "WIELD",
+      "meleeDamageBonus": 8,
+      "armorBonus": 0,
+      "storageVolumeBonusMl": 0,
+      "steamResistanceKpa": 0,
+      "rangedRange": 0,
+      "rangedDamage": 0,
+      "rangedSteamCostKpa": 0
+    },
+    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnWeight": 15,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "/",
+      "fgPrimary": "#BDC3C7",
+      "fgSecondary": "#7F8C8D",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "gear_pneumatic_harpoon_rifle",
+    "name": "Pneumatic Harpoon Rifle",
+    "description": "A high-pressure brass launch tube chambered for tethered steel bolts, powered by compressed steam.",
+    "category": "EQUIPMENT",
+    "massGrams": 4200,
+    "volumeMl": 4000,
+    "stackable": false,
+    "equipment": {
+      "equipSlot": "WIELD",
+      "meleeDamageBonus": 2,
+      "armorBonus": 0,
+      "storageVolumeBonusMl": 0,
+      "steamResistanceKpa": 0,
+      "rangedRange": 7,
+      "rangedDamage": 18,
+      "rangedSteamCostKpa": 12
+    },
+    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnWeight": 10,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "}",
+      "fgPrimary": "#E67E22",
+      "fgSecondary": "#D35400",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
+  },
+  {
+    "id": "gear_asbestos_foundry_coat",
+    "name": "Asbestos Foundry Coat",
+    "description": "A heavy woven coat treated with fireproof mineral fiber and brass clasps, featuring deep utility pockets.",
+    "category": "EQUIPMENT",
+    "massGrams": 4000,
+    "volumeMl": 5000,
+    "stackable": false,
+    "equipment": {
+      "equipSlot": "TORSO_WEAR",
+      "meleeDamageBonus": 0,
+      "armorBonus": 3,
+      "storageVolumeBonusMl": 8000,
+      "steamResistanceKpa": 30,
+      "rangedRange": 0,
+      "rangedDamage": 0,
+      "rangedSteamCostKpa": 0
+    },
+    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnWeight": 12,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "[",
+      "fgPrimary": "#E5E7E9",
+      "fgSecondary": "#95A5A6",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "gear_canvas_rucksack",
+    "name": "Artificer's Canvas Rucksack",
+    "description": "A rugged waxed canvas pack with external leather strapping, vastly expanding item carrying capacity.",
+    "category": "EQUIPMENT",
+    "massGrams": 1200,
+    "volumeMl": 1500,
+    "stackable": false,
+    "equipment": {
+      "equipSlot": "BACK_WEAR",
+      "meleeDamageBonus": 0,
+      "armorBonus": 0,
+      "storageVolumeBonusMl": 20000,
+      "steamResistanceKpa": 0,
+      "rangedRange": 0,
+      "rangedDamage": 0,
+      "rangedSteamCostKpa": 0
+    },
+    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnWeight": 15,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "]",
+      "fgPrimary": "#D4AC0D",
+      "fgSecondary": "#B7950B",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "item_crown_pence_pouch",
+    "name": "Crown Pence Pouch",
+    "description": "A heavy velvet pouch clinking with stamped Victorian bronze and silver pence.",
+    "category": "MATERIAL",
+    "massGrams": 200,
+    "volumeMl": 150,
+    "stackable": true,
+    "penceValue": 18,
+    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "spawnWeight": 20,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "$",
+      "fgPrimary": "#F4D03F",
+      "fgSecondary": "#D4AC0D",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
   }
 ]
