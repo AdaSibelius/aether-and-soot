@@ -64,7 +64,7 @@ export function LookCursorOverlay({
         <div>
           <span style={{ color: 'var(--brass-gold)', fontWeight: 'bold' }}>[LOOK MODE]</span>{' '}
           <span>Cursor: ({cursor.x}, {cursor.y}) [{stratum}]</span>
-          <span style={{ color: '#7f8c8d', marginLeft: '8px' }}>[WASD] Move | [1-6/F] Strike | [Enter] Interact</span>
+          <span style={{ color: '#7f8c8d', marginLeft: '8px' }}>[WASD] Move | [1-6/F] Strike | [Enter/O] Door/Interact</span>
         </div>
         <button type="button" onClick={onClose} style={{ padding: '2px 6px', fontSize: '10px', background: '#2c1e1e', border: '1px solid #ec7063', color: '#ec7063', cursor: 'pointer' }}>
           [Esc / L] Exit

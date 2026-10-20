@@ -15,6 +15,7 @@ export interface KeyboardRouterParams {
   readonly onMoveLookCursor: (dx: number, dy: number) => void;
   readonly onLookAttack: (slot: LimbSlotId) => void;
   readonly onLookInteract: () => void;
+  readonly onToggleDoor?: () => void;
   readonly onTalk?: () => void;
   readonly onOpenCharacterCreator?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
@@ -34,6 +35,7 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     onMoveLookCursor,
     onLookAttack,
     onLookInteract,
+    onToggleDoor,
     onTalk,
     onOpenCharacterCreator,
     onCommand,
@@ -121,7 +123,7 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
       onLookAttack('TORSO');
       return;
     }
-    if (ev.key === 'Enter') {
+    if (ev.key === 'Enter' || ev.key === 'o' || ev.key === 'O') {
       ev.preventDefault();
       onLookInteract();
       return;
@@ -163,6 +165,11 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
   if (ev.key === 't' || ev.key === 'T') {
     ev.preventDefault();
     onTalk?.();
+    return;
+  }
+  if (ev.key === 'o' || ev.key === 'O') {
+    ev.preventDefault();
+    onToggleDoor?.();
     return;
   }
 

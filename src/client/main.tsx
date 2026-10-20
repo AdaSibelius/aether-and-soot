@@ -39,17 +39,17 @@ async function bootstrapClient(): Promise<void> {
   const actionBarHost = document.getElementById('action-bar-root');
   if (!canvasHost || !hudHost) throw new Error('Missing #canvas-stage or #hud-root mount elements');
 
-  const createFreshWorld = (seed: number): WorldState => {
-    const base = createInitialWorld({ seed });
-    const withItems = spawnDistrictItems(generateVictorianDistrict(base).state).state;
-    return spawnDistrictNpcs(withItems).state;
-  };
+  const createFreshWorld = (seed: number): WorldState =>
+    spawnDistrictNpcs(spawnDistrictItems(generateVictorianDistrict(createInitialWorld({ seed })).state).state).state;
 
   let worldState = createFreshWorld(0xcafebabe);
   const stageRenderer = await GlyphStageRenderer.create(canvasHost, 24, 20);
   const playerId = EntityIdSchema.parse('actor_player');
   canvasHost.style.position = 'relative';
+  canvasHost.style.width = '528px';
+  canvasHost.style.height = '480px';
   const overlayHost = document.createElement('div');
+  Object.assign(overlayHost.style, { position: 'absolute', top: '0', left: '0', width: '528px', height: '480px', pointerEvents: 'none' });
   canvasHost.appendChild(overlayHost);
 
   let activeModal: ModalWindowId | null = null;
@@ -64,7 +64,6 @@ async function bootstrapClient(): Promise<void> {
     worldState = dispatchCommand(worldState, cmd).state;
     syncPresentation();
   };
-
   const handleEmbark = (cfg: CharacterCreationConfig, s: number): void => {
     worldState = applyCharacterCreation(createFreshWorld(s), cfg);
     syncPresentation();
@@ -118,9 +117,7 @@ async function bootstrapClient(): Promise<void> {
     );
     if (!target) return;
     const isAdj = Math.max(Math.abs(p.x - lookCursor.x), Math.abs(p.y - lookCursor.y)) <= 1;
-    handleCommand(isAdj
-      ? { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot }
-      : { type: 'FIRE_RANGED_WEAPON', actorId: playerId, targetId: target.id, targetSlot: slot });
+    handleCommand(isAdj ? { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot } : { type: 'FIRE_RANGED_WEAPON', actorId: playerId, targetId: target.id, targetSlot: slot });
   };
 
   const lookInteract = (): void => {
@@ -134,6 +131,18 @@ async function bootstrapClient(): Promise<void> {
     } else {
       handleCommand({ type: 'USE_PORTAL', actorId: playerId });
     }
+  };
+
+  const toggleAdjacentDoor = (): void => {
+    if (isLookModeActive) { lookInteract(); return; }
+    const p = worldState.entities[playerId]?.position, grid = p ? worldState.strata[p.stratum] : undefined;
+    if (!p || !grid) return;
+    const dirs = [{ x: 0, y: -1 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }];
+    const match = dirs.map((d) => ({ x: p.x + d.x, y: p.y + d.y, c: getTileCell(grid, p.x + d.x, p.y + d.y) }))
+      .find((t) => t.c?.terrainType === 'WOODEN_DOOR_CLOSED')
+      ?? dirs.map((d) => ({ x: p.x + d.x, y: p.y + d.y, c: getTileCell(grid, p.x + d.x, p.y + d.y) }))
+        .find((t) => t.c?.terrainType === 'WOODEN_DOOR_OPEN');
+    if (match) handleCommand({ type: 'TOGGLE_DOOR', actorId: playerId, target: { x: match.x, y: match.y, stratum: p.stratum } });
   };
 
   const syncPresentation = (): void => {
@@ -152,7 +161,7 @@ async function bootstrapClient(): Promise<void> {
       render(
         <QuickActionBar
           state={worldState} actorId={playerId} isLookModeActive={isLookModeActive}
-          onToggleLookMode={toggleLookMode} onCommand={handleCommand}
+          onToggleLookMode={toggleLookMode} onToggleDoor={toggleAdjacentDoor} onCommand={handleCommand}
           onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
           onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
           onOpenCharacterCreator={() => { isCreatorOpen = true; syncPresentation(); }}
@@ -172,8 +181,7 @@ async function bootstrapClient(): Promise<void> {
         <CharacterModalShell
           state={worldState} actorId={playerId} activeWindow={activeModal}
           onClose={() => { activeModal = null; syncPresentation(); }}
-          onSelectWindow={(w) => { activeModal = w; syncPresentation(); }}
-          onCommand={handleCommand}
+          onSelectWindow={(w) => { activeModal = w; syncPresentation(); }} onCommand={handleCommand}
         />
         {activeDialogueNpcId && (
           <DialogueModal
@@ -183,16 +191,14 @@ async function bootstrapClient(): Promise<void> {
           />
         )}
         <SystemMenuModal
-          state={worldState} isOpen={isSystemMenuOpen}
-          onClose={() => { isSystemMenuOpen = false; syncPresentation(); }}
+          state={worldState} isOpen={isSystemMenuOpen} onClose={() => { isSystemMenuOpen = false; syncPresentation(); }}
           onNewSeed={(s) => { worldState = createFreshWorld(s); syncPresentation(); }}
           onLoadWorld={(loaded) => { worldState = loaded; syncPresentation(); }}
           onOpenCharacterCreator={() => { isCreatorOpen = true; syncPresentation(); }}
         />
         <CharacterCreatorModal
           isOpen={isCreatorOpen} initialSeed={worldState.seed}
-          onClose={() => { isCreatorOpen = false; syncPresentation(); }}
-          onEmbark={handleEmbark}
+          onClose={() => { isCreatorOpen = false; syncPresentation(); }} onEmbark={handleEmbark}
         />
       </div>,
       hudHost,
@@ -201,12 +207,10 @@ async function bootstrapClient(): Promise<void> {
 
   const updateTileFromMouse = (ev: MouseEvent): void => {
     const rect = canvasHost.getBoundingClientRect();
-    const sx = Math.floor((ev.clientX - rect.left) / CELL_WIDTH_PX);
-    const sy = Math.floor((ev.clientY - rect.top) / CELL_HEIGHT_PX);
+    const sx = Math.floor((ev.clientX - rect.left) / CELL_WIDTH_PX), sy = Math.floor((ev.clientY - rect.top) / CELL_HEIGHT_PX);
     if (sx >= 0 && sx < 24 && sy >= 0 && sy < 20) {
       const frame = projectWorldToVisualFrame(worldState, playerId);
-      const wx = frame.cameraOrigin.x + sx;
-      const wy = frame.cameraOrigin.y + sy;
+      const wx = frame.cameraOrigin.x + sx, wy = frame.cameraOrigin.y + sy;
       if (!hoveredTile || hoveredTile.x !== wx || hoveredTile.y !== wy) {
         hoveredTile = { x: wx, y: wy };
         syncPresentation();
@@ -224,20 +228,17 @@ async function bootstrapClient(): Promise<void> {
       onCloseModal: () => { activeModal = null; syncPresentation(); },
       onCycleModal: cycleModal,
       onSetModal: (modal) => { activeModal = modal; syncPresentation(); },
-      onToggleLookMode: toggleLookMode,
-      onMoveLookCursor: moveLookCursor,
-      onLookAttack: lookAttack,
-      onLookInteract: lookInteract,
-      onTalk: handleTalk,
+      onToggleLookMode: toggleLookMode, onMoveLookCursor: moveLookCursor,
+      onLookAttack: lookAttack, onLookInteract: lookInteract,
+      onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
       onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
       onCommand: handleCommand,
     });
   });
 
   window.__DEBUG_SIM__ = {
-    getState: () => worldState,
+    getState: () => worldState, dispatch: handleCommand,
     getVisualFrame: () => projectWorldToVisualFrame(worldState, playerId),
-    dispatch: handleCommand,
     serialize: () => serializeWorld(worldState),
   };
 

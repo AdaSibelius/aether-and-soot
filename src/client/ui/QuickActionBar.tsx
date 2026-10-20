@@ -8,6 +8,7 @@ export interface QuickActionBarProps {
   readonly actorId: EntityId;
   readonly isLookModeActive?: boolean;
   readonly onToggleLookMode?: () => void;
+  readonly onToggleDoor?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
   readonly onOpenModal: (window: ModalWindowId) => void;
   readonly onOpenSystemMenu: () => void;
@@ -19,6 +20,7 @@ export function QuickActionBar({
   actorId,
   isLookModeActive = false,
   onToggleLookMode,
+  onToggleDoor,
   onCommand,
   onOpenModal,
   onOpenSystemMenu,
@@ -67,6 +69,16 @@ export function QuickActionBar({
         >
           [&gt;/&lt;] Portal
         </button>
+        {onToggleDoor && (
+          <button
+            type="button"
+            onClick={onToggleDoor}
+            style={{ padding: '3px 6px', fontSize: '10px' }}
+            title="Open or close adjacent door [O]"
+          >
+            [O] Door
+          </button>
+        )}
         <button
           type="button"
           onClick={() =>

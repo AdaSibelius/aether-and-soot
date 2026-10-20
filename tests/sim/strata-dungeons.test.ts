@@ -3,6 +3,7 @@ import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
 import { dispatchCommand } from '../../src/sim/core/engine.js';
 import { createInitialWorld } from '../../src/sim/core/world.js';
 import { generateVictorianDistrict, hasWalkablePath } from '../../src/sim/spatial/generator.js';
+import { getTileCell } from '../../src/sim/spatial/grid.js';
 
 describe('Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks', () => {
   it('generates multi-room Undercroft sewer dungeon with >= 250 walkable tiles and unbroken connectivity', () => {
@@ -158,5 +159,39 @@ describe('Phase 27: Undercroft Sewer Dungeons & Spire Catwalk Networks', () => {
     const liftDownRes = dispatchCommand(world, { type: 'USE_PORTAL', actorId: playerId });
     world = liftDownRes.state;
     expect(world.entities[playerId]!.position!.stratum).toBe('STREET');
+  });
+
+  it('bumps into a closed wooden door via MOVE_STEP and automatically opens it', () => {
+    const playerId = EntityIdSchema.parse('actor_player');
+    const base = createInitialWorld({ seed: 305, width: 48, height: 36 });
+    const { state: initialWorld, landmarks } = generateVictorianDistrict(base);
+    const doorPos = landmarks.workshopDoor;
+
+    let world = {
+      ...initialWorld,
+      entities: {
+        ...initialWorld.entities,
+        [playerId]: {
+          ...initialWorld.entities[playerId]!,
+          position: { x: doorPos.x, y: doorPos.y + 1, stratum: 'STREET' as const, blocksMovement: true, blocksSight: false },
+        },
+      },
+    };
+
+    const cellBefore = getTileCell(world.strata.STREET!, doorPos.x, doorPos.y);
+    expect(cellBefore?.terrainType).toBe('WOODEN_DOOR_CLOSED');
+    expect(cellBefore?.blocksMovement).toBe(true);
+
+    // Bump north into the closed door
+    const bumpRes = dispatchCommand(world, { type: 'MOVE_STEP', actorId: playerId, dx: 0, dy: -1 });
+    world = bumpRes.state;
+
+    const doorEvent = bumpRes.events.find((e) => e.type === 'DOOR_TOGGLED');
+    expect(doorEvent).toBeDefined();
+    expect(doorEvent?.type === 'DOOR_TOGGLED' && doorEvent.newState).toBe('OPEN');
+
+    const cellAfter = getTileCell(world.strata.STREET!, doorPos.x, doorPos.y);
+    expect(cellAfter?.terrainType).toBe('WOODEN_DOOR_OPEN');
+    expect(cellAfter?.blocksMovement).toBe(false);
   });
 });

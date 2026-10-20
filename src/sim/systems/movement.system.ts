@@ -5,7 +5,7 @@ import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { findBlockingEntityAtPoint, getTileCell, isWithinBounds } from '../spatial/grid.js';
 import { findPortalAtPoint } from '../spatial/portals.js';
-import { resolveTravelDistrict } from './transit.system.js';
+import { resolveToggleDoor, resolveTravelDistrict } from './transit.system.js';
 
 export interface SystemMovementResult {
   state: WorldState;
@@ -110,6 +110,9 @@ export function resolveMoveStep(
   }
 
   const targetTile = getTileCell(grid, targetPoint.x, targetPoint.y);
+  if (targetTile?.terrainType === 'WOODEN_DOOR_CLOSED') {
+    return resolveToggleDoor(state, actorId, targetPoint);
+  }
   if (!targetTile || targetTile.blocksMovement) {
     return {
       state,
