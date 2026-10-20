@@ -5,6 +5,7 @@ import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { findBlockingEntityAtPoint, getTileCell, isWithinBounds } from '../spatial/grid.js';
 import { findPortalAtPoint } from '../spatial/portals.js';
+import { computeActorStepNoiseDb, emitAcousticPulse } from './stealth-acoustics.system.js';
 import { resolveToggleDoor, resolveTravelDistrict } from './transit.system.js';
 
 export interface SystemMovementResult {
@@ -163,26 +164,30 @@ export function resolveMoveStep(
       : undefined,
   };
 
-  return {
-    state: {
-      ...state,
-      entities: {
-        ...state.entities,
-        [actorId]: updatedActor,
-      },
+  const moveEvents: SimEvent[] = [
+    {
+      type: 'ENTITY_MOVED',
+      turn: state.turnCount + 1,
+      actorId,
+      from: { x: origin.x, y: origin.y, stratum: origin.stratum },
+      to: targetPoint,
+      apSpent,
     },
-    apSpent,
-    events: [
-      {
-        type: 'ENTITY_MOVED',
-        turn: state.turnCount + 1,
-        actorId,
-        from: { x: origin.x, y: origin.y, stratum: origin.stratum },
-        to: targetPoint,
-        apSpent,
-      },
-    ],
+  ];
+
+  let nextState: WorldState = {
+    ...state,
+    entities: { ...state.entities, [actorId]: updatedActor },
   };
+
+  const stepNoise = computeActorStepNoiseDb(nextState, actorId);
+  if (stepNoise >= 15) {
+    const pulse = emitAcousticPulse(nextState, targetPoint, stepNoise, state.turnCount + 1, actorId);
+    nextState = pulse.state;
+    moveEvents.push(...pulse.events);
+  }
+
+  return { state: nextState, apSpent, events: moveEvents };
 }
 
 export function resolveUsePortal(state: WorldState, actorId: EntityId): SystemMovementResult {

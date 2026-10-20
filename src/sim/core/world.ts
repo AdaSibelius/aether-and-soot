@@ -129,12 +129,8 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       blueprintId: BlueprintIdSchema.parse('prosthetic_pneumatic_leg_mk1'),
       targetLimbSlot: 'LEFT_LEG',
       socketType: 'ACTUATOR',
-      massGrams: 4200,
-      volumeMl: 3100,
-      steamConsumptionPerTurn: 2,
-      moveApModifier: -15,
-      fovRadiusBonus: 0,
-      pressureRatingKpa: 320,
+      massGrams: 4200, volumeMl: 3100, steamConsumptionPerTurn: 2,
+      moveApModifier: -15, fovRadiusBonus: 0, pressureRatingKpa: 320, noiseDb: 25,
     },
   };
 
@@ -152,12 +148,8 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       blueprintId: BlueprintIdSchema.parse('prosthetic_clockwork_ocular_lens'),
       targetLimbSlot: 'OCULAR_MOUNT',
       socketType: 'OPTIC_SENSOR',
-      massGrams: 450,
-      volumeMl: 300,
-      steamConsumptionPerTurn: 0,
-      moveApModifier: 0,
-      fovRadiusBonus: 4,
-      pressureRatingKpa: 120,
+      massGrams: 450, volumeMl: 300, steamConsumptionPerTurn: 0,
+      moveApModifier: 0, fovRadiusBonus: 4, pressureRatingKpa: 120, noiseDb: 0,
     },
   };
 

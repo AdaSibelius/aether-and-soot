@@ -3,6 +3,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { getTileCell, setTileCell } from '../spatial/grid.js';
+import { emitAcousticPulse } from './stealth-acoustics.system.js';
 import { withoutEntity } from './inventory-utils.js';
 
 export interface FurnitureResolutionResult {
@@ -78,9 +79,10 @@ export function resolveSmashTerrain(
     toTerrain: 'SMASHED_WINDOW_FRAME',
   };
 
+  const acoustic = emitAcousticPulse(nextState, target, 85, state.turnCount + 1, actorId);
   return {
-    state: nextState,
-    events: [smashEvent],
+    state: acoustic.state,
+    events: [smashEvent, ...acoustic.events],
     apSpent: STANDARD_ACTION_AP,
   };
 }

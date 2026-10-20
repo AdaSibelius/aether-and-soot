@@ -31,7 +31,7 @@ describe('Phase 11: Merchant Trading & Physical Pedestal Stocking', () => {
       visual: { glyph: 'M', fgPrimary: '#E67E22', fgSecondary: '#D35400', bgColor: '#0A0D0E', shaderFlags: [] },
       position: { x: p.position!.x + 1, y: p.position!.y, stratum: p.position!.stratum, blocksMovement: true, blocksSight: false },
       actor: { energy: 100, speed: 100, isPlayer: false },
-      aiController: { factionId: 'IRONMONGERS_CARTEL', role: 'MERCHANT', hostile: false },
+      aiController: { factionId: 'IRONMONGERS_CARTEL', role: 'MERCHANT', hostile: false, alertState: 'IDLE' },
       inventory: { containedEntityIds: [gearItemId], maxMassGrams: 50000, maxVolumeMl: 50000, currentMassGrams: 1000 },
     };
     return {

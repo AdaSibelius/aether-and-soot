@@ -77,7 +77,9 @@ export function computeVisibleTiles(
         }
 
         const cell = getTileCell(grid, mapX, mapY);
-        const isOpaque = cell ? cell.blocksSight : true;
+        const isOpaque = cell
+          ? cell.blocksSight || cell.steamPressureKpa >= 20 || cell.coalDustDensity >= 0.3
+          : true;
 
         if (blocked) {
           if (isOpaque) {
@@ -112,4 +114,28 @@ export function isPointVisible(
   point: Point2D,
 ): boolean {
   return visibleSet.has(pointKey(point.x, point.y));
+}
+
+export interface OcularActorLike {
+  readonly anatomy?: {
+    readonly limbs?: Partial<
+      Record<string, { readonly amputated?: boolean | undefined; readonly installedProstheticEntityId?: string | undefined }>
+    > | undefined;
+  } | undefined;
+}
+
+/**
+ * Calculates effective visual sight radius for an actor, clamping to 1 if
+ * the OCULAR_MOUNT is amputated and unaugmented with an optic prosthetic.
+ */
+export function computeActorFovRadius(
+  actor: OcularActorLike,
+  baseRadius: number = 10,
+  bonusRadius: number = 0,
+): number {
+  const ocular = actor.anatomy?.limbs?.['OCULAR_MOUNT'];
+  if (ocular?.amputated && !ocular.installedProstheticEntityId) {
+    return 1;
+  }
+  return Math.max(1, baseRadius + bonusRadius);
 }

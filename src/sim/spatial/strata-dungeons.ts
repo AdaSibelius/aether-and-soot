@@ -80,7 +80,7 @@ export function generateUndercroftDungeon(
     visual: { glyph: 'F', fgPrimary: '#AF7AC5', fgSecondary: '#7D3C98', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: fixPos.x, y: fixPos.y, stratum: 'UNDERCROFT', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 100, isPlayer: false },
-    aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'FIXER', hostile: false },
+    aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'FIXER', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 12, accuracyPct: 85, armorReduction: 1 },
     anatomy: createDefaultNpcAnatomy(40, 25),
     inventory: seedDungeonContainer(entities, [{ id: 'loot_fix_pouch', blueprintId: 'item_crown_pence_pouch', quantity: 2 }]),
@@ -93,7 +93,7 @@ export function generateUndercroftDungeon(
     visual: { glyph: 'r', fgPrimary: '#E74C3C', fgSecondary: '#922B21', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: hostPos.x, y: hostPos.y, stratum: 'UNDERCROFT', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 110, isPlayer: false },
-    aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'SCAVENGER', hostile: true },
+    aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'SCAVENGER', hostile: true, alertState: 'IDLE' },
     combatStats: { meleeDamage: 15, accuracyPct: 80, armorReduction: 0 },
     anatomy: createDefaultNpcAnatomy(35, 20),
   };
@@ -164,7 +164,7 @@ export function generateSpireCatwalks(
     visual: { glyph: 'A', fgPrimary: '#F4D03F', fgSecondary: '#D4AF37', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
     position: { x: artPos.x, y: artPos.y, stratum: 'SPIRE', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 100, isPlayer: false },
-    aiController: { factionId: 'CLOCKWORK_GUILD', role: 'MERCHANT', hostile: false },
+    aiController: { factionId: 'CLOCKWORK_GUILD', role: 'MERCHANT', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 10, accuracyPct: 85, armorReduction: 2 },
     anatomy: createDefaultNpcAnatomy(45, 25),
   };
@@ -177,7 +177,7 @@ export function generateSpireCatwalks(
     visual: { glyph: 'S', fgPrimary: '#5DADE2', fgSecondary: '#2E86C1', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: sentryPos.x, y: sentryPos.y, stratum: 'SPIRE', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 90, isPlayer: false },
-    aiController: { factionId: 'CLOCKWORK_GUILD', role: 'GUARD', hostile: false },
+    aiController: { factionId: 'CLOCKWORK_GUILD', role: 'GUARD', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 16, accuracyPct: 90, armorReduction: 3 },
     anatomy: createDefaultNpcAnatomy(55, 30),
   };

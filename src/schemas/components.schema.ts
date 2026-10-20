@@ -45,6 +45,7 @@ export const ProstheticSpecComponentSchema = z.object({
   moveApModifier: z.number().int().default(0),
   fovRadiusBonus: z.number().int().default(0),
   pressureRatingKpa: z.number().positive(),
+  noiseDb: z.number().int().nonnegative().default(0),
 });
 export type ProstheticSpecComponent = z.infer<typeof ProstheticSpecComponentSchema>;
 
@@ -120,6 +121,8 @@ export const AiControllerComponentSchema = z.object({
   hostile: z.boolean().default(false),
   companionOfActorId: EntityIdSchema.optional(),
   dialogueId: z.string().optional(),
+  alertState: z.enum(['IDLE', 'INVESTIGATING', 'COMBAT']).default('IDLE'),
+  lastKnownTargetPos: Point3DSchema.optional(),
 });
 export type AiControllerComponent = z.infer<typeof AiControllerComponentSchema>;
 

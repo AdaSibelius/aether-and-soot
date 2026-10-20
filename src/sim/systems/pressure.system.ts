@@ -7,6 +7,7 @@ import { getTileCell, isWithinBounds, setTileCell } from '../spatial/grid.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { resolveTriggerSupplyShock } from './economy.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
+import { emitAcousticPulse } from './stealth-acoustics.system.js';
 
 export const COAL_DUST_IGNITION_THRESHOLD = 0.25;
 
@@ -131,6 +132,10 @@ export function resolvePressurizeVessel(
     }
   }
 
+  const ruptureNoise = emitAcousticPulse(workingState, origin, 120, turn);
+  workingState = ruptureNoise.state;
+  blastEvents.push(...ruptureNoise.events);
+
   return {
     state: workingState,
     apSpent: STANDARD_ACTION_AP,
@@ -194,14 +199,23 @@ export function resolveEmitSpark(state: WorldState, target: Point3D): SystemPres
     }));
   }
 
-  return {
-    state: {
-      ...state,
-      strata: {
-        ...state.strata,
-        [target.stratum]: updatedGrid,
-      },
+  const stateWithIgnition: WorldState = {
+    ...state,
+    strata: {
+      ...state.strata,
+      [target.stratum]: updatedGrid,
     },
+  };
+
+  const ignitionNoise = emitAcousticPulse(
+    stateWithIgnition,
+    target,
+    100,
+    state.turnCount + 1,
+  );
+
+  return {
+    state: ignitionNoise.state,
     apSpent: STANDARD_ACTION_AP,
     events: [
       {
@@ -210,6 +224,7 @@ export function resolveEmitSpark(state: WorldState, target: Point3D): SystemPres
         epicenter: target,
         ignitedTileCount: ignitedCoords.length,
       },
+      ...ignitionNoise.events,
     ],
   };
 }

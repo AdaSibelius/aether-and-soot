@@ -23,6 +23,7 @@ export const ProstheticBlueprintSchema = z.object({
   moveApModifier: z.number().int().default(0),
   fovRadiusBonus: z.number().int().default(0),
   pressureRatingKpa: z.number().positive(),
+  noiseDb: z.number().int().nonnegative().default(0),
   visual: VisualGlyphSpecSchema,
 });
 export type ProstheticBlueprint = z.infer<typeof ProstheticBlueprintSchema>;

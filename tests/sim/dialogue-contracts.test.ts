@@ -25,7 +25,7 @@ describe('Phase 20: Interactive NPC Dialogue, Procedural Faction Contracts, Chir
     name,
     visual: { glyph: '@', fgPrimary: '#ffffff', fgSecondary: '#000000', bgColor: 'transparent', shaderFlags: ['NONE'] },
     actor: { isPlayer: false, energy: 100, speed: 100 },
-    aiController: { factionId: 'CROWN_CONSTABULARY', role, hostile },
+    aiController: { factionId: 'CROWN_CONSTABULARY', role, hostile, alertState: 'IDLE' },
     position: { stratum: 'STREET', x, y, blocksMovement: true, blocksSight: false },
     anatomy: createDefaultNpcAnatomy(30, 20),
     inventory: { containedEntityIds: [], maxMassGrams: 50000, maxVolumeMl: 30000, currentMassGrams: 0 },

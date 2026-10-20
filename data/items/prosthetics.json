@@ -10,6 +10,7 @@
     "steamConsumptionPerTurn": 1.5,
     "moveApModifier": -15,
     "pressureRatingKpa": 320,
+    "noiseDb": 25,
     "visual": {
       "glyph": "L",
       "fgPrimary": "#D4AF37",
@@ -29,6 +30,7 @@
     "steamConsumptionPerTurn": 0,
     "moveApModifier": 0,
     "pressureRatingKpa": 120,
+    "noiseDb": 0,
     "visual": {
       "glyph": "o",
       "fgPrimary": "#5DADE2",
@@ -48,6 +50,7 @@
     "steamConsumptionPerTurn": 2.0,
     "moveApModifier": 0,
     "pressureRatingKpa": 350,
+    "noiseDb": 35,
     "visual": {
       "glyph": "A",
       "fgPrimary": "#E67E22",
@@ -67,6 +70,7 @@
     "steamConsumptionPerTurn": 0.5,
     "moveApModifier": 5,
     "pressureRatingKpa": 500,
+    "noiseDb": 15,
     "visual": {
       "glyph": "F",
       "fgPrimary": "#E74C3C",
@@ -86,6 +90,7 @@
     "steamConsumptionPerTurn": 1.0,
     "moveApModifier": -10,
     "pressureRatingKpa": 280,
+    "noiseDb": 5,
     "visual": {
       "glyph": "L",
       "fgPrimary": "#58D68D",

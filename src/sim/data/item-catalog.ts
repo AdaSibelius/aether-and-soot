@@ -124,6 +124,7 @@ export function createEntityFromBlueprint(
         moveApModifier: prostheticBp.moveApModifier,
         fovRadiusBonus: prostheticBp.fovRadiusBonus,
         pressureRatingKpa: prostheticBp.pressureRatingKpa,
+        noiseDb: prostheticBp.noiseDb,
       },
     };
     return position ? { ...base, position: { ...position, blocksMovement: false, blocksSight: false } } : base;

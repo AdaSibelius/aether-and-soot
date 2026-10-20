@@ -3,7 +3,7 @@ import { LimbSlotId } from '../../schemas/primitives.schema.js';
 import { SeededRNG } from '../core/rng.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
-import { computeVisibleTiles, isPointVisible } from '../spatial/fov.js';
+import { canActorSpotTarget } from './stealth-acoustics.system.js';
 import { resolveAttackActor } from './combat.system.js';
 import { sortEntitiesById } from './inventory-utils.js';
 import { resolveMoveStep } from './movement.system.js';
@@ -59,8 +59,9 @@ export function advanceNpcTurns(
     }
 
     const player = Object.values(workingState.entities).find((e) => e.actor?.isPlayer);
-    const grid = workingState.strata[npc.position.stratum];
     let apSpent = STANDARD_ACTION_AP;
+    let nextAlertState = npc.aiController.alertState;
+    let nextLastKnownTargetPos = npc.aiController.lastKnownTargetPos;
 
     if (isCompanion && player?.position && player.position.stratum === npc.position.stratum) {
       const adjacentHostile = Object.values(workingState.entities).find(
@@ -82,32 +83,73 @@ export function advanceNpcTurns(
         apSpent = moveRes.apSpent;
         events.push(...moveRes.events);
       }
-    } else if (isHostile && player?.position && player.position.stratum === npc.position.stratum && grid) {
-      const visible = computeVisibleTiles(grid, npc.position.x, npc.position.y, NPC_VISION_RADIUS);
-      if (isPointVisible(visible, player.position)) {
-        const dist = Math.max(
-          Math.abs(player.position.x - npc.position.x),
-          Math.abs(player.position.y - npc.position.y),
-        );
-        if (dist <= 1) {
-          const targetSlot = TARGETABLE_SLOTS[rng.nextInt(0, TARGETABLE_SLOTS.length - 1)] ?? 'TORSO';
-          const atkRes = resolveAttackActor(workingState, npc.id, player.id, targetSlot, rng);
-          workingState = atkRes.state;
-          apSpent = atkRes.apSpent;
-          events.push(...atkRes.events);
-        } else {
-          const dx = Math.sign(player.position.x - npc.position.x);
-          const dy = Math.sign(player.position.y - npc.position.y);
-          const moveRes = resolveMoveStep(workingState, npc.id, dx, dy);
-          workingState = moveRes.state;
-          apSpent = moveRes.apSpent;
-          events.push(...moveRes.events);
+    } else if (
+      isHostile &&
+      player?.position &&
+      player.position.stratum === npc.position.stratum &&
+      canActorSpotTarget(workingState, npc.id, player.id)
+    ) {
+      nextAlertState = 'COMBAT';
+      nextLastKnownTargetPos = {
+        x: player.position.x,
+        y: player.position.y,
+        stratum: player.position.stratum,
+      };
+      const dist = Math.max(
+        Math.abs(player.position.x - npc.position.x),
+        Math.abs(player.position.y - npc.position.y),
+      );
+      if (dist <= 1) {
+        const targetSlot = TARGETABLE_SLOTS[rng.nextInt(0, TARGETABLE_SLOTS.length - 1)] ?? 'TORSO';
+        const atkRes = resolveAttackActor(workingState, npc.id, player.id, targetSlot, rng);
+        workingState = atkRes.state;
+        apSpent = atkRes.apSpent;
+        events.push(...atkRes.events);
+      } else {
+        const dx = Math.sign(player.position.x - npc.position.x);
+        const dy = Math.sign(player.position.y - npc.position.y);
+        const moveRes = resolveMoveStep(workingState, npc.id, dx, dy);
+        workingState = moveRes.state;
+        apSpent = moveRes.apSpent;
+        events.push(...moveRes.events);
+      }
+    } else {
+      if (nextAlertState === 'COMBAT') {
+        nextAlertState = 'INVESTIGATING';
+      }
+      if (nextAlertState === 'INVESTIGATING' && nextLastKnownTargetPos) {
+        if (nextLastKnownTargetPos.stratum === npc.position.stratum) {
+          if (
+            npc.position.x === nextLastKnownTargetPos.x &&
+            npc.position.y === nextLastKnownTargetPos.y
+          ) {
+            nextAlertState = 'IDLE';
+            nextLastKnownTargetPos = undefined;
+          } else {
+            const dx = Math.sign(nextLastKnownTargetPos.x - npc.position.x);
+            const dy = Math.sign(nextLastKnownTargetPos.y - npc.position.y);
+            const moveRes = resolveMoveStep(workingState, npc.id, dx, dy);
+            workingState = moveRes.state;
+            apSpent = moveRes.apSpent;
+            events.push(...moveRes.events);
+
+            const movedNpc = workingState.entities[npc.id];
+            if (
+              movedNpc?.position &&
+              movedNpc.position.x === nextLastKnownTargetPos.x &&
+              movedNpc.position.y === nextLastKnownTargetPos.y
+            ) {
+              nextAlertState = 'IDLE';
+              nextLastKnownTargetPos = undefined;
+            }
+          }
         }
       }
     }
 
     const afterNpc = workingState.entities[npc.id];
     if (afterNpc?.actor && afterNpc.aiController) {
+      const { lastKnownTargetPos: _prevTarget, ...restAi } = afterNpc.aiController;
       workingState = {
         ...workingState,
         entities: {
@@ -115,7 +157,12 @@ export function advanceNpcTurns(
           [npc.id]: {
             ...afterNpc,
             actor: { ...afterNpc.actor, energy: gainedEnergy - apSpent },
-            aiController: { ...afterNpc.aiController, hostile: isHostile },
+            aiController: {
+              ...restAi,
+              hostile: isHostile,
+              alertState: nextAlertState,
+              ...(nextLastKnownTargetPos ? { lastKnownTargetPos: nextLastKnownTargetPos } : {}),
+            },
           },
         },
       };

@@ -186,7 +186,7 @@ describe('Phase 23: Interactive Containers & Tangible Currency', () => {
           visual: { glyph: 's', fgPrimary: '#E74C3C', fgSecondary: '#922B21', bgColor: '#0A0D0E', shaderFlags: [] },
           position: { x: pPos.x + 1, y: pPos.y, stratum: pPos.stratum, blocksMovement: true, blocksSight: false },
           actor: { energy: 0, speed: 100, isPlayer: false },
-          aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'SCAVENGER', hostile: true },
+          aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'SCAVENGER', hostile: true, alertState: 'IDLE' },
           combatStats: { meleeDamage: 8, accuracyPct: 75, armorReduction: 0 },
           anatomy: {
             bloodVolumePct: 100,

@@ -237,3 +237,11 @@ export const ContainerLootedEventSchema = z.object({
   penceGained: z.number().int().nonnegative(),
 });
 
+export const SoundEmittedEventSchema = z.object({
+  type: z.literal('SOUND_EMITTED'),
+  turn: z.number().int().nonnegative(),
+  origin: Point3DSchema,
+  decibels: z.number().int().nonnegative(),
+  sourceActorId: EntityIdSchema.optional(),
+});
+
