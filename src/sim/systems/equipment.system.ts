@@ -1,5 +1,7 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
-import { EquipmentSlot, EquipmentSpec } from '../../schemas/equipment.schema.js';
+import type { EquipmentSlot, EquipmentSpec } from '../../schemas/equipment.schema.js';
+
+export type { EquipmentSlot, EquipmentSpec };
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';

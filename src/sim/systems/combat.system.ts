@@ -1,12 +1,11 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { EntityId, EntityIdSchema, LimbSlotId } from '../../schemas/primitives.schema.js';
+import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { SeededRNG } from '../core/rng.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
-import { createEntityFromBlueprint } from '../data/item-catalog.js';
 import { resolveDamageLimb, SystemAnatomyResult } from './anatomy.system.js';
-import { withoutEntity } from './inventory-utils.js';
+import { resolveActorDefeatIfFatal } from './mortality.system.js';
 
 export const MELEE_ATTACK_AP = STANDARD_ACTION_AP;
 export const FACTION_ATTACK_REPUTATION_PENALTY = -15;
@@ -153,63 +152,22 @@ export function resolveAttackActor(
     };
   }
 
-  const torsoHp = anatomy.limbs.TORSO?.hp ?? 1;
-  const headHp = anatomy.limbs.HEAD?.hp ?? 1;
-  const isDefeated = torsoHp <= 0 || headHp <= 0 || anatomy.bloodVolumePct <= 0;
+  workingState = {
+    ...workingState,
+    entities: { ...workingState.entities, [targetId]: debuffedTarget },
+  };
 
-  if (!isDefeated) {
+  const defeatRes = resolveActorDefeatIfFatal(workingState, targetId, attackerId);
+  if (defeatRes.defeated) {
     return {
-      state: { ...workingState, entities: { ...workingState.entities, [targetId]: debuffedTarget } },
+      state: defeatRes.state,
       apSpent: MELEE_ATTACK_AP,
-      events,
+      events: [...events, ...defeatRes.events],
     };
   }
-
-  // Target defeated: drop all carried inventory items and installed prosthetics onto tile
-  const dropSet = new Set<EntityId>(debuffedTarget.inventory?.containedEntityIds ?? []);
-  for (const limb of Object.values(anatomy.limbs)) {
-    if (limb?.installedProstheticEntityId) dropSet.add(limb.installedProstheticEntityId);
-  }
-
-  const droppedEntityIds = [...dropSet];
-  const nextEntities = withoutEntity(workingState.entities, targetId);
-
-  // Defeated NPCs drop a Crown Pence Pouch
-  if (!target.actor?.isPlayer) {
-    const penceDropId = EntityIdSchema.parse(`loot_pence_${targetId}_t${turn}`);
-    const pencePouch = createEntityFromBlueprint('item_crown_pence_pouch', penceDropId, 1);
-    if (pencePouch) {
-      nextEntities[penceDropId] = pencePouch;
-      droppedEntityIds.push(penceDropId);
-    }
-  }
-
-  for (const dropId of droppedEntityIds) {
-    const item = nextEntities[dropId];
-    if (!item) continue;
-    nextEntities[dropId] = {
-      ...item,
-      position: {
-        x: target.position.x,
-        y: target.position.y,
-        stratum: target.position.stratum,
-        blocksMovement: false,
-        blocksSight: false,
-      },
-    };
-  }
-
-  events.push({
-    type: 'ACTOR_DEFEATED',
-    turn,
-    actorId: targetId,
-    actorName: target.name,
-    defeatedById: attackerId,
-    droppedEntityIds,
-  });
 
   return {
-    state: { ...workingState, entities: nextEntities },
+    state: workingState,
     apSpent: MELEE_ATTACK_AP,
     events,
   };

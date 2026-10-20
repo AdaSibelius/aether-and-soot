@@ -4,6 +4,7 @@ import { WorldState } from '../core/world.js';
 import { getTileCell, isWithinBounds, setTileCell, StratumGrid, TileCell } from '../spatial/grid.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { computeEquippedBonuses } from './equipment.system.js';
+import { resolveActorDefeatIfFatal } from './mortality.system.js';
 
 export const SCALD_PRESSURE_THRESHOLD_KPA = 25;
 const STEAM_DIFFUSION_SHARE = 0.4;
@@ -165,6 +166,10 @@ export function advanceThermodynamicsTick(state: WorldState): {
     const dmgRes = resolveDamageLimb(workingState, entity.id, 'TORSO', scaldDmg);
     workingState = dmgRes.state;
     scaldEvents.push(...dmgRes.events);
+
+    const defeatRes = resolveActorDefeatIfFatal(workingState, entity.id);
+    workingState = defeatRes.state;
+    scaldEvents.push(...defeatRes.events);
   }
 
   return { state: workingState, events: scaldEvents };

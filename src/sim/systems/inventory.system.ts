@@ -17,6 +17,8 @@ import {
   withoutPosition,
 } from './inventory-utils.js';
 import { resolveUseManual } from './furniture.system.js';
+import { resolveUnequipItem } from './equipment.system.js';
+import type { EquipmentSlot } from './equipment.system.js';
 
 export const PICKUP_AP = STANDARD_ACTION_AP;
 export const DROP_AP = 50;
@@ -103,37 +105,52 @@ export function resolveDropItem(
   itemEntityId: EntityId,
   quantity?: number,
 ): SystemInventoryResult {
-  const actor = state.entities[actorId];
+  let workingState = state;
+  const unequipEvents: SimEvent[] = [];
+  let actor = workingState.entities[actorId];
   if (!actor?.inventory || !actor.position) {
-    return createInventoryFailureResult(state, actorId, 'DROP', 'NO_INVENTORY', itemEntityId);
+    return createInventoryFailureResult(workingState, actorId, 'DROP', 'NO_INVENTORY', itemEntityId);
   }
+
+  // If item is currently equipped, unequip it first to prevent ghost stat retention
+  const equippedEntry = Object.entries(actor.inventory.equippedSlots ?? {}).find(([_, id]) => id === itemEntityId);
+  if (equippedEntry) {
+    const unequipRes = resolveUnequipItem(workingState, actorId, equippedEntry[0] as EquipmentSlot);
+    workingState = unequipRes.state;
+    unequipEvents.push(...unequipRes.events);
+    actor = workingState.entities[actorId];
+    if (!actor?.inventory || !actor.position) {
+      return createInventoryFailureResult(workingState, actorId, 'DROP', 'NO_INVENTORY', itemEntityId);
+    }
+  }
+
   const inv = actor.inventory;
   if (!inv.containedEntityIds.includes(itemEntityId)) {
-    return createInventoryFailureResult(state, actorId, 'DROP', 'NOT_IN_INVENTORY', itemEntityId);
+    return createInventoryFailureResult(workingState, actorId, 'DROP', 'NOT_IN_INVENTORY', itemEntityId);
   }
-  const item = state.entities[itemEntityId];
-  if (!item) return createInventoryFailureResult(state, actorId, 'DROP', 'ITEM_NOT_FOUND', itemEntityId);
+  const item = workingState.entities[itemEntityId];
+  if (!item) return createInventoryFailureResult(workingState, actorId, 'DROP', 'ITEM_NOT_FOUND', itemEntityId);
   if (isInstalledOnActor(actor, itemEntityId)) {
-    return createInventoryFailureResult(state, actorId, 'DROP', 'ITEM_INSTALLED', itemEntityId);
+    return createInventoryFailureResult(workingState, actorId, 'DROP', 'ITEM_INSTALLED', itemEntityId);
   }
   const profile = getCarryProfile(item);
-  if (!profile) return createInventoryFailureResult(state, actorId, 'DROP', 'NOT_CARRYABLE', itemEntityId);
+  if (!profile) return createInventoryFailureResult(workingState, actorId, 'DROP', 'NOT_CARRYABLE', itemEntityId);
 
   const stackQty = item.item?.quantity ?? 1;
   const dropQty = quantity ?? stackQty;
   if (dropQty < 1 || dropQty > stackQty) {
-    return createInventoryFailureResult(state, actorId, 'DROP', 'INVALID_QUANTITY', itemEntityId);
+    return createInventoryFailureResult(workingState, actorId, 'DROP', 'INVALID_QUANTITY', itemEntityId);
   }
 
   const at: Point3D = { x: actor.position.x, y: actor.position.y, stratum: actor.position.stratum };
   const groundPos: PositionComponent = { ...at, blocksMovement: false, blocksSight: false };
   const droppedMass = item.item ? item.item.massGrams * dropQty : profile.massGrams;
-  const entities: Record<string, EntityRecord> = { ...state.entities };
+  const entities: Record<string, EntityRecord> = { ...workingState.entities };
   let droppedId = itemEntityId;
   let containedEntityIds = inv.containedEntityIds;
 
   if (item.item && dropQty < stackQty) {
-    droppedId = allocateSplitId(state, itemEntityId);
+    droppedId = allocateSplitId(workingState, itemEntityId);
     entities[itemEntityId] = { ...item, item: { ...item.item, quantity: stackQty - dropQty } };
     entities[droppedId] = {
       ...item,
@@ -155,9 +172,12 @@ export function resolveDropItem(
   };
 
   return {
-    state: { ...state, entities },
+    state: { ...workingState, entities },
     apSpent: DROP_AP,
-    events: [{ type: 'ITEM_DROPPED', turn: state.turnCount + 1, actorId, itemEntityId: droppedId, itemName: item.name, quantity: dropQty, at }],
+    events: [
+      ...unequipEvents,
+      { type: 'ITEM_DROPPED', turn: workingState.turnCount + 1, actorId, itemEntityId: droppedId, itemName: item.name, quantity: dropQty, at },
+    ],
   };
 }
 

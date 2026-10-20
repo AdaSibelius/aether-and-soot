@@ -6,6 +6,7 @@ import { WorldState } from '../core/world.js';
 import { computeVisibleTiles, isPointVisible } from '../spatial/fov.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { getEquipmentSpec } from './equipment.system.js';
+import { resolveActorDefeatIfFatal } from './mortality.system.js';
 
 function failBallistics(state: WorldState, actorId: EntityId, reason: string) {
   return {
@@ -133,6 +134,9 @@ export function resolveFireRangedWeapon(
   const dmgRes = resolveDamageLimb(nextState, targetId, targetSlot, damageDealt);
   nextState = dmgRes.state;
 
+  const defeatRes = resolveActorDefeatIfFatal(nextState, targetId, actorId);
+  nextState = defeatRes.state;
+
   const updatedTarget = nextState.entities[targetId];
   const remainingHp = updatedTarget?.anatomy
     ? Object.values(updatedTarget.anatomy.limbs).reduce((sum, l) => sum + (l && !l.amputated ? l.hp : 0), 0)
@@ -154,6 +158,6 @@ export function resolveFireRangedWeapon(
   return {
     state: nextState,
     apSpent: STANDARD_ACTION_AP,
-    events: [attackEvent, ...dmgRes.events],
+    events: [attackEvent, ...dmgRes.events, ...defeatRes.events],
   };
 }

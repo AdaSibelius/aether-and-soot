@@ -3,6 +3,7 @@ import { EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { ModalWindowId } from './CharacterModalShell.js';
 import { formatEventMessage } from './EventFormatter.js';
+import { MorgueModal } from './MorgueModal.js';
 import { TileInspectorPanel } from './TileInspectorPanel.js';
 
 export interface HudLayoutProps {
@@ -11,6 +12,7 @@ export interface HudLayoutProps {
   readonly hoveredTile?: { x: number; y: number } | null;
   readonly onOpenModal?: (window: ModalWindowId) => void;
   readonly onOpenSystemMenu?: () => void;
+  readonly onReEmbark?: () => void;
 }
 
 export function HudLayout({
@@ -19,6 +21,7 @@ export function HudLayout({
   hoveredTile = null,
   onOpenModal,
   onOpenSystemMenu,
+  onReEmbark,
 }: HudLayoutProps) {
   const playerId = EntityIdSchema.parse('actor_player');
   const player = state.entities[playerId];
@@ -178,6 +181,14 @@ export function HudLayout({
           ))
         )}
       </div>
+
+      <MorgueModal
+        state={state}
+        onReEmbark={() => {
+          if (onReEmbark) onReEmbark();
+          else if (onOpenSystemMenu) onOpenSystemMenu();
+        }}
+      />
     </div>
   );
 }

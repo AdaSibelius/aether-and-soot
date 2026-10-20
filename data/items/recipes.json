@@ -76,5 +76,50 @@
     "requiresWorkbench": true,
     "stationType": "ARTIFICER_BENCH",
     "apCost": 120
+  },
+  {
+    "id": "recipe_piledriver_arm",
+    "name": "Forge Pneumatic Piledriver Arm",
+    "description": "Rivet together cast-iron hydraulic cylinders and heavy brass gears to craft a crushing piledriver arm.",
+    "outputBlueprintId": "prosthetic_pneumatic_piledriver_arm",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_cast_iron_plate", "count": 3 },
+      { "blueprintId": "mat_brass_gears", "count": 2 }
+    ],
+    "steamCostKpa": 40,
+    "requiresWorkbench": true,
+    "stationType": "ARTIFICER_BENCH",
+    "apCost": 150
+  },
+  {
+    "id": "recipe_boiler_core_furnace",
+    "name": "Fabricate Internal Boiler Core Furnace",
+    "description": "Construct an insulated internal boiler core from cast-iron plates and aether salt heat stabilizers.",
+    "outputBlueprintId": "prosthetic_boiler_core_furnace",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_cast_iron_plate", "count": 4 },
+      { "blueprintId": "mat_aether_salt", "count": 2 }
+    ],
+    "steamCostKpa": 50,
+    "requiresWorkbench": true,
+    "stationType": "ARTIFICER_BENCH",
+    "apCost": 160
+  },
+  {
+    "id": "recipe_gyrostabilizer_leg",
+    "name": "Assemble Clockwork Gyrostabilizer Leg",
+    "description": "Machine high-speed brass gyroscopic flywheels into a balanced leg armature.",
+    "outputBlueprintId": "prosthetic_clockwork_gyrostabilizer_leg",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_brass_gears", "count": 4 },
+      { "blueprintId": "mat_vulcanized_rubber", "count": 2 }
+    ],
+    "steamCostKpa": 35,
+    "requiresWorkbench": true,
+    "stationType": "ARTIFICER_BENCH",
+    "apCost": 130
   }
 ]

@@ -1,6 +1,6 @@
-import { EntityRecord, InventoryComponent } from '../../schemas/components.schema.js';
+import { InventoryComponent } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { BlueprintId, BlueprintIdSchema, EntityId, EntityIdSchema, LimbSlotId } from '../../schemas/primitives.schema.js';
+import { BlueprintId, BlueprintIdSchema, EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { createEntityFromBlueprint, getRecipeBlueprint } from '../data/item-catalog.js';
@@ -12,6 +12,14 @@ import {
   MAX_OVERLOAD_RATIO,
   withoutEntity,
 } from './inventory-utils.js';
+import {
+  allocateCraftedId,
+  consumeIngredients,
+  findAdjacentWorkbench,
+  recomputeMassGrams,
+} from './crafting-utils.js';
+import { resolveUnequipItem } from './equipment.system.js';
+import type { EquipmentSlot } from './equipment.system.js';
 import { SystemInventoryResult } from './inventory.system.js';
 
 export const SALVAGE_AP = STANDARD_ACTION_AP;
@@ -25,64 +33,6 @@ function failCrafting(
   state: WorldState, actorId: EntityId, action: CraftingFailureEvent['action'], reason: CraftingFailureEvent['reason'],
 ): SystemInventoryResult {
   return { state, apSpent: STANDARD_ACTION_AP, events: [{ type: 'CRAFTING_FAILED', turn: state.turnCount + 1, actorId, action, reason }] };
-}
-
-function findAdjacentWorkbench(
-  state: WorldState,
-  actor: EntityRecord,
-  stationType?: 'ARTIFICER_BENCH' | 'ALCHEMICAL_STILL',
-): EntityRecord | undefined {
-  if (!actor.position) return undefined;
-  const { x, y, stratum } = actor.position;
-  for (const entity of Object.values(state.entities)) {
-    if (!entity.workbench || !entity.position || entity.position.stratum !== stratum) continue;
-    if (stationType && entity.workbench.stationType !== stationType) continue;
-    if (Math.max(Math.abs(entity.position.x - x), Math.abs(entity.position.y - y)) <= 1) return entity;
-  }
-  return undefined;
-}
-
-function allocateCraftedId(entities: Readonly<Record<string, EntityRecord>>, turnCount: number, blueprintId: BlueprintId): EntityId {
-  for (let n = 0; ; n++) {
-    const candidate = EntityIdSchema.parse(`crafted_${blueprintId}_t${turnCount}_${n}`);
-    if (!entities[candidate]) return candidate;
-  }
-}
-
-function recomputeMassGrams(entities: Readonly<Record<string, EntityRecord>>, containedIds: readonly EntityId[]): number {
-  let mass = 0;
-  for (const id of containedIds) {
-    const e = entities[id];
-    if (e) mass += getCarryProfile(e)?.massGrams ?? 0;
-  }
-  return mass;
-}
-
-function consumeIngredients(
-  entities: Record<string, EntityRecord>,
-  containedIds: EntityId[],
-  ingredients: readonly { blueprintId: BlueprintId; count: number }[],
-): { entities: Record<string, EntityRecord>; containedIds: EntityId[]; ok: boolean } {
-  let nextEntities = { ...entities };
-  let nextContained = [...containedIds];
-  for (const req of ingredients) {
-    let remaining = req.count;
-    for (const id of [...nextContained]) {
-      if (remaining <= 0) break;
-      const held = nextEntities[id];
-      if (!held?.item || held.item.blueprintId !== req.blueprintId) continue;
-      const take = Math.min(remaining, held.item.quantity);
-      remaining -= take;
-      if (held.item.quantity === take) {
-        nextEntities = withoutEntity(nextEntities, id);
-        nextContained = nextContained.filter((cid) => cid !== id);
-      } else {
-        nextEntities[id] = { ...held, item: { ...held.item, quantity: held.item.quantity - take } };
-      }
-    }
-    if (remaining > 0) return { entities, containedIds, ok: false };
-  }
-  return { entities: nextEntities, containedIds: nextContained, ok: true };
 }
 
 /** Crafts an item, prosthetic, or commodity from a blueprint recipe using materials and steam. */
@@ -169,28 +119,45 @@ export function resolveCraftRecipe(state: WorldState, actorId: EntityId, recipeI
 
 /** Disassembles an unequipped prosthetic, commodity, or consumable into raw crafting materials. */
 export function resolveSalvageItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult {
-  const actor = state.entities[actorId];
-  if (!actor?.inventory) return failCrafting(state, actorId, 'SALVAGE_ITEM', 'NO_INVENTORY');
-  if (!actor.inventory.containedEntityIds.includes(itemEntityId)) {
-    return failCrafting(state, actorId, 'SALVAGE_ITEM', 'ITEM_NOT_IN_INVENTORY');
+  let workingState = state;
+  const unequipEvents: SimEvent[] = [];
+  let actor = workingState.entities[actorId];
+  if (!actor?.inventory) return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'NO_INVENTORY');
+
+  // If item is currently equipped, unequip it first to prevent ghost stat retention
+  const equippedEntry = Object.entries(actor.inventory.equippedSlots ?? {}).find(([_, id]) => id === itemEntityId);
+  if (equippedEntry) {
+    const unequipRes = resolveUnequipItem(workingState, actorId, equippedEntry[0] as EquipmentSlot);
+    workingState = unequipRes.state;
+    unequipEvents.push(...unequipRes.events);
+    actor = workingState.entities[actorId];
+    if (!actor?.inventory) return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'NO_INVENTORY');
+  }
+
+  const inv: InventoryComponent = actor.inventory;
+  if (!inv.containedEntityIds.includes(itemEntityId)) {
+    return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'ITEM_NOT_IN_INVENTORY');
   }
   if (isInstalledOnActor(actor, itemEntityId)) {
-    return failCrafting(state, actorId, 'SALVAGE_ITEM', 'ITEM_INSTALLED');
+    return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'ITEM_INSTALLED');
   }
 
-  const target = state.entities[itemEntityId];
-  if (!target) return failCrafting(state, actorId, 'SALVAGE_ITEM', 'ITEM_NOT_IN_INVENTORY');
+  const target = workingState.entities[itemEntityId];
+  if (!target) return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'ITEM_NOT_IN_INVENTORY');
 
   const yieldSpec =
-    target.prostheticSpec || target.item?.category === 'COMMODITY' || target.item?.blueprintId === 'mat_cast_iron_plate'
+    target.prostheticSpec ||
+    target.item?.category === 'COMMODITY' ||
+    target.item?.category === 'EQUIPMENT' ||
+    target.item?.blueprintId === 'mat_cast_iron_plate'
       ? { blueprintId: BlueprintIdSchema.parse('mat_brass_gears'), quantity: 2 }
       : target.item?.category === 'CONSUMABLE'
         ? { blueprintId: BlueprintIdSchema.parse('mat_vulcanized_rubber'), quantity: 1 }
         : undefined;
-  if (!yieldSpec) return failCrafting(state, actorId, 'SALVAGE_ITEM', 'NOT_SALVAGEABLE');
+  if (!yieldSpec) return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'NOT_SALVAGEABLE');
 
-  let entities = { ...state.entities };
-  let contained = [...actor.inventory.containedEntityIds];
+  let entities = { ...workingState.entities };
+  let contained = [...inv.containedEntityIds];
   if (target.item && target.item.quantity > 1) {
     entities[target.id] = { ...target, item: { ...target.item, quantity: target.item.quantity - 1 } };
   } else {
@@ -198,10 +165,10 @@ export function resolveSalvageItem(state: WorldState, actorId: EntityId, itemEnt
     contained = contained.filter((id) => id !== target.id);
   }
 
-  const salvageId = allocateCraftedId(entities, state.turnCount, yieldSpec.blueprintId);
+  const salvageId = allocateCraftedId(entities, workingState.turnCount, yieldSpec.blueprintId);
   const salvaged = createEntityFromBlueprint(yieldSpec.blueprintId, salvageId, yieldSpec.quantity);
-  if (!salvaged) return failCrafting(state, actorId, 'SALVAGE_ITEM', 'NOT_SALVAGEABLE');
-  const stack = findMergeableStack({ ...state, entities }, { ...actor.inventory, containedEntityIds: contained }, salvaged);
+  if (!salvaged) return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'NOT_SALVAGEABLE');
+  const stack = findMergeableStack({ ...workingState, entities }, { ...inv, containedEntityIds: contained }, salvaged);
 
   if (stack?.item && salvaged.item) {
     entities[stack.id] = { ...stack, item: { ...stack.item, quantity: stack.item.quantity + yieldSpec.quantity } };
@@ -212,21 +179,24 @@ export function resolveSalvageItem(state: WorldState, actorId: EntityId, itemEnt
 
   entities[actorId] = {
     ...actor,
-    inventory: { ...actor.inventory, containedEntityIds: contained, currentMassGrams: recomputeMassGrams(entities, contained) },
+    inventory: { ...inv, containedEntityIds: contained, currentMassGrams: recomputeMassGrams(entities, contained) },
   };
 
   return {
-    state: { ...state, entities },
+    state: { ...workingState, entities },
     apSpent: SALVAGE_AP,
-    events: [{
-      type: 'ITEM_SALVAGED',
-      turn: state.turnCount + 1,
-      actorId,
-      salvagedItemEntityId: target.id,
-      salvagedItemName: target.name,
-      recoveredMaterialBlueprintId: yieldSpec.blueprintId,
-      recoveredQuantity: yieldSpec.quantity,
-    }],
+    events: [
+      ...unequipEvents,
+      {
+        type: 'ITEM_SALVAGED',
+        turn: workingState.turnCount + 1,
+        actorId,
+        salvagedItemEntityId: target.id,
+        salvagedItemName: target.name,
+        recoveredMaterialBlueprintId: yieldSpec.blueprintId,
+        recoveredQuantity: yieldSpec.quantity,
+      },
+    ],
   };
 }
 

@@ -61,7 +61,7 @@
 
 ---
 
-### Phase 28: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (Issue #33)
+### Phase 28: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (Issue #33) [COMPLETED]
 - **Goal**: Unify actor mortality across all damage sources (melee, ranged ballistics, steam scalds, and boiler explosions), fix equipped-item drop/salvage stat leaks, add a Victorian Morgue / Obituary screen when the player dies, and expand the prosthetic cybernetics catalog with surgical context bonuses.
 - **Architectural Constraint**: Create `src/sim/systems/mortality.system.ts` and `src/client/ui/MorgueModal.tsx` (all files **<= 250 lines**).
 - **Files to Create / Modify**:

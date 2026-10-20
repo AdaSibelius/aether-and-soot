@@ -36,5 +36,62 @@
       "bgColor": "#0A0D0E",
       "shaderFlags": ["SPARK_GLINT"]
     }
+  },
+  {
+    "id": "prosthetic_pneumatic_piledriver_arm",
+    "name": "Pneumatic Piledriver Arm",
+    "description": "Reinforced piston-driven hydraulic forearm capable of crushing masonry and devastating adversaries in close quarters.",
+    "targetLimbSlot": "RIGHT_ARM",
+    "socketType": "ACTUATOR",
+    "massGrams": 5500,
+    "volumeMl": 4000,
+    "steamConsumptionPerTurn": 2.0,
+    "moveApModifier": 0,
+    "pressureRatingKpa": 350,
+    "visual": {
+      "glyph": "A",
+      "fgPrimary": "#E67E22",
+      "fgSecondary": "#78281F",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["PULSE_STEAM"]
+    }
+  },
+  {
+    "id": "prosthetic_boiler_core_furnace",
+    "name": "Internal Boiler Core Furnace",
+    "description": "A high-pressure thoracic steam furnace mounted into the chest cavity, vastly augmenting thermal energy and reservoir capacity.",
+    "targetLimbSlot": "CHASSIS_CORE",
+    "socketType": "POWER_SOURCE",
+    "massGrams": 8000,
+    "volumeMl": 6000,
+    "steamConsumptionPerTurn": 0.5,
+    "moveApModifier": 5,
+    "pressureRatingKpa": 500,
+    "visual": {
+      "glyph": "F",
+      "fgPrimary": "#E74C3C",
+      "fgSecondary": "#F39C12",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["PULSE_STEAM"]
+    }
+  },
+  {
+    "id": "prosthetic_clockwork_gyrostabilizer_leg",
+    "name": "Clockwork Gyrostabilizer Leg",
+    "description": "A precision-balanced tibia framework with counter-rotating brass flywheels providing impeccable balance and brisk locomotion.",
+    "targetLimbSlot": "RIGHT_LEG",
+    "socketType": "ACTUATOR",
+    "massGrams": 3800,
+    "volumeMl": 2800,
+    "steamConsumptionPerTurn": 1.0,
+    "moveApModifier": -10,
+    "pressureRatingKpa": 280,
+    "visual": {
+      "glyph": "L",
+      "fgPrimary": "#58D68D",
+      "fgSecondary": "#1E8449",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
   }
 ]

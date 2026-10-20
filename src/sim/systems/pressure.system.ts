@@ -4,7 +4,9 @@ import { EntityId, Point3D } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { getTileCell, isWithinBounds, setTileCell } from '../spatial/grid.js';
+import { resolveDamageLimb } from './anatomy.system.js';
 import { resolveTriggerSupplyShock } from './economy.system.js';
+import { resolveActorDefeatIfFatal } from './mortality.system.js';
 
 export const COAL_DUST_IGNITION_THRESHOLD = 0.25;
 
@@ -57,14 +59,15 @@ export function resolvePressurizeVessel(
   const grid = state.strata[origin.stratum];
   let updatedGrid = grid;
 
+  const points = [
+    { x: origin.x, y: origin.y, share: 0.4 },
+    { x: origin.x + 1, y: origin.y, share: 0.15 },
+    { x: origin.x - 1, y: origin.y, share: 0.15 },
+    { x: origin.x, y: origin.y + 1, share: 0.15 },
+    { x: origin.x, y: origin.y - 1, share: 0.15 },
+  ];
+
   if (updatedGrid) {
-    const points = [
-      { x: origin.x, y: origin.y, share: 0.4 },
-      { x: origin.x + 1, y: origin.y, share: 0.15 },
-      { x: origin.x - 1, y: origin.y, share: 0.15 },
-      { x: origin.x, y: origin.y + 1, share: 0.15 },
-      { x: origin.x, y: origin.y - 1, share: 0.15 },
-    ];
     for (const pt of points) {
       const cell = getTileCell(updatedGrid, pt.x, pt.y);
       if (cell && !cell.blocksMovement) {
@@ -103,8 +106,33 @@ export function resolvePressurizeVessel(
     -15,
   );
 
+  let workingState = shockRes.state;
+  const blastEvents: SimEvent[] = [];
+
+  for (const pt of points) {
+    const victims = Object.values(workingState.entities).filter(
+      (e) =>
+        e.actor &&
+        e.anatomy &&
+        e.position &&
+        e.position.stratum === origin.stratum &&
+        e.position.x === pt.x &&
+        e.position.y === pt.y,
+    );
+    for (const victim of victims) {
+      const blastDmg = Math.max(3, Math.floor((nextPressure * pt.share) / 20));
+      const dmgRes = resolveDamageLimb(workingState, victim.id, 'TORSO', blastDmg);
+      workingState = dmgRes.state;
+      blastEvents.push(...dmgRes.events);
+
+      const defeatRes = resolveActorDefeatIfFatal(workingState, victim.id);
+      workingState = defeatRes.state;
+      blastEvents.push(...defeatRes.events);
+    }
+  }
+
   return {
-    state: shockRes.state,
+    state: workingState,
     apSpent: STANDARD_ACTION_AP,
     events: [
       {
@@ -115,6 +143,7 @@ export function resolvePressurizeVessel(
         releasedPressureKpa: nextPressure,
       },
       ...shockRes.events,
+      ...blastEvents,
     ],
   };
 }

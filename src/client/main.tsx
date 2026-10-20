@@ -167,6 +167,7 @@ async function bootstrapClient(): Promise<void> {
           state={worldState} onCommand={handleCommand} hoveredTile={hoveredTile}
           onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
           onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
+          onReEmbark={() => { isCreatorOpen = true; syncPresentation(); }}
         />
         <CharacterModalShell
           state={worldState} actorId={playerId} activeWindow={activeModal}
