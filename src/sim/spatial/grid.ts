@@ -1,19 +1,9 @@
 import { z } from 'zod';
 import { EntityRecord } from '../../schemas/components.schema.js';
-import { EntityId, Point3D, StratumId, StratumIdSchema } from '../../schemas/primitives.schema.js';
+import { EntityId, Point3D, StratumId, StratumIdSchema, TerrainTypeSchema } from '../../schemas/primitives.schema.js';
 
 export const TileCellSchema = z.object({
-  terrainType: z.enum([
-    'COBBLESTONE_FLOOR',
-    'SOOT_BRICK_WALL',
-    'IRON_GRATE',
-    'BRASS_CATWALK',
-    'WOODEN_DOOR_CLOSED',
-    'WOODEN_DOOR_OPEN',
-    'DISTRICT_GATE',
-    'GLASS_WINDOW',
-    'SMASHED_WINDOW_FRAME',
-  ]),
+  terrainType: TerrainTypeSchema,
   blocksMovement: z.boolean(),
   blocksSight: z.boolean(),
   steamPressureKpa: z.number().nonnegative().default(0),

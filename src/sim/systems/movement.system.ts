@@ -7,6 +7,7 @@ import { findBlockingEntityAtPoint, getTileCell, isWithinBounds } from '../spati
 import { findPortalAtPoint } from '../spatial/portals.js';
 import { computeActorStepNoiseDb, emitAcousticPulse } from './stealth-acoustics.system.js';
 import { resolveToggleDoor, resolveTravelDistrict } from './transit.system.js';
+import { resolveStepOnTraps } from './physics-traps.system.js';
 
 export interface SystemMovementResult {
   state: WorldState;
@@ -186,6 +187,10 @@ export function resolveMoveStep(
     nextState = pulse.state;
     moveEvents.push(...pulse.events);
   }
+
+  const trapRes = resolveStepOnTraps(nextState, actorId, targetPoint, state.turnCount + 1);
+  nextState = trapRes.state;
+  moveEvents.push(...trapRes.events);
 
   return { state: nextState, apSpent, events: moveEvents };
 }

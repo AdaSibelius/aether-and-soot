@@ -48,6 +48,21 @@ export const Point3DSchema = Point2DSchema.extend({
 });
 export type Point3D = z.infer<typeof Point3DSchema>;
 
+export const TerrainTypeSchema = z.enum([
+  'COBBLESTONE_FLOOR',
+  'SOOT_BRICK_WALL',
+  'IRON_GRATE',
+  'BRASS_CATWALK',
+  'WOODEN_DOOR_CLOSED',
+  'WOODEN_DOOR_OPEN',
+  'DISTRICT_GATE',
+  'GLASS_WINDOW',
+  'SMASHED_WINDOW_FRAME',
+  'RUBBLE_PILE',
+  'ABYSS_DROP',
+]);
+export type TerrainType = z.infer<typeof TerrainTypeSchema>;
+
 export const VisualGlyphSpecSchema = z.object({
   glyph: z.string().min(1).max(32),
   fgPrimary: HexColorSchema,

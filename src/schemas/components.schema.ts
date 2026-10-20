@@ -160,6 +160,13 @@ export const TradePedestalComponentSchema = z.object({
 });
 export type TradePedestalComponent = z.infer<typeof TradePedestalComponentSchema>;
 
+export const TrapComponentSchema = z.object({
+  trapKind: z.enum(['SPARK_TRIPWIRE', 'STEAM_MINE', 'SPRING_JAW']),
+  armed: z.boolean().default(true),
+  damageMagnitude: z.number().int().nonnegative().default(20),
+});
+export type TrapComponent = z.infer<typeof TrapComponentSchema>;
+
 import { ProfessionIdSchema, TraitIdSchema } from './character.schema.js';
 
 export const EntityComponentsSchema = z.object({
@@ -185,6 +192,7 @@ export const EntityComponentsSchema = z.object({
   thermal: ThermalComponentSchema.optional(),
   schedule: NpcScheduleComponentSchema.optional(),
   tradePedestal: TradePedestalComponentSchema.optional(),
+  trap: TrapComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
 

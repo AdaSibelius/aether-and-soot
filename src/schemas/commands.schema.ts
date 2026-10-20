@@ -190,16 +190,15 @@ export const HireCompanionCommandSchema = z.object({
 });
 
 export const PayChirurgeonHealCommandSchema = z.object({
-  type: z.literal('PAY_CHIRURGEON_HEAL'),
-  actorId: EntityIdSchema,
-  chirurgeonId: EntityIdSchema,
+  type: z.literal('PAY_CHIRURGEON_HEAL'), actorId: EntityIdSchema, chirurgeonId: EntityIdSchema,
 });
 
 export const LootContainerCommandSchema = z.object({
-  type: z.literal('LOOT_CONTAINER'),
-  actorId: EntityIdSchema,
-  containerId: EntityIdSchema,
-  itemId: EntityIdSchema.optional(),
+  type: z.literal('LOOT_CONTAINER'), actorId: EntityIdSchema, containerId: EntityIdSchema, itemId: EntityIdSchema.optional(),
+});
+
+export const BreachTileCommandSchema = z.object({
+  type: z.literal('BREACH_TILE'), actorId: EntityIdSchema, target: Point3DSchema,
 });
 
 export const GameCommandSchema = z.discriminatedUnion('type', [
@@ -236,6 +235,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   UnequipItemCommandSchema,
   FireRangedWeaponCommandSchema,
   LootContainerCommandSchema,
+  BreachTileCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
 

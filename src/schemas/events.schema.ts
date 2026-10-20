@@ -7,6 +7,7 @@ import {
   ItemSalvagedEventSchema, ItemUsedEventSchema, LimbRepairedEventSchema,
   MerchantTradeCompletedEventSchema, RecipeUnlockedEventSchema, TerrainSmashedEventSchema,
   TradeActionFailedEventSchema, TransitActionFailedEventSchema, SoundEmittedEventSchema,
+  WallBreachedEventSchema, ActorFellStratumEventSchema, TrapTriggeredEventSchema,
 } from './domain-events.schema.js';
 import {
   ChirurgeonHealCompletedEventSchema, CompanionRecruitedEventSchema,
@@ -35,6 +36,7 @@ export {
   ItemSalvagedEventSchema, ItemUsedEventSchema, LimbRepairedEventSchema,
   MerchantTradeCompletedEventSchema, RecipeUnlockedEventSchema, TerrainSmashedEventSchema,
   TradeActionFailedEventSchema, TransitActionFailedEventSchema, SoundEmittedEventSchema,
+  WallBreachedEventSchema, ActorFellStratumEventSchema, TrapTriggeredEventSchema,
   ChirurgeonHealCompletedEventSchema, CompanionRecruitedEventSchema,
   ContractAcceptedEventSchema, ContractCompletedEventSchema,
   DialogueActionFailedEventSchema,
@@ -102,5 +104,8 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   EquipmentActionFailedEventSchema,
   ContainerLootedEventSchema,
   SoundEmittedEventSchema,
+  WallBreachedEventSchema,
+  ActorFellStratumEventSchema,
+  TrapTriggeredEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

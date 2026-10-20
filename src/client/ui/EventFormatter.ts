@@ -113,5 +113,11 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Looted ${ev.containerName}: ${ev.itemIds.length} items${ev.penceGained > 0 ? `, +${ev.penceGained}d pence` : ''}!`;
     case 'SOUND_EMITTED':
       return `[T${ev.turn}] Noise echoes (${ev.decibels} dB) from (${ev.origin.x}, ${ev.origin.y})!`;
+    case 'WALL_BREACHED':
+      return `[T${ev.turn}] BREACH! Wall shattered into rubble at (${ev.target.x}, ${ev.target.y}) via ${ev.breachSource}!`;
+    case 'ACTOR_FELL_STRATUM':
+      return `[T${ev.turn}] PLUMMET! ${ev.actorId} fell from ${ev.fromStratum} to ${ev.toStratum} (${ev.impactDamage} impact damage)!`;
+    case 'TRAP_TRIGGERED':
+      return `[T${ev.turn}] TRAP TRIGGERED! ${ev.victimActorId} tripped a ${ev.trapKind} at (${ev.at.x}, ${ev.at.y})!`;
   }
 }

@@ -121,5 +121,19 @@
     "requiresWorkbench": true,
     "stationType": "ARTIFICER_BENCH",
     "apCost": 130
+  },
+  {
+    "id": "recipe_clockwork_spark_trap",
+    "name": "Assemble Clockwork Spark Trap",
+    "description": "Fashion a tripwire triggering mechanism with flint, spring gears, and phosphor bronze contacts.",
+    "outputBlueprintId": "item_clockwork_spark_trap",
+    "outputQuantity": 1,
+    "ingredients": [
+      { "blueprintId": "mat_brass_gears", "count": 2 },
+      { "blueprintId": "mat_cast_iron_plate", "count": 1 }
+    ],
+    "steamCostKpa": 10,
+    "requiresWorkbench": false,
+    "apCost": 100
   }
 ]

@@ -23,6 +23,7 @@ import {
 import { resolveEquipItem, resolveUnequipItem } from '../systems/equipment.system.js';
 import { resolveFireRangedWeapon } from '../systems/ballistics.system.js';
 import { resolveLootContainer } from '../systems/container.system.js';
+import { resolveBreachCommand } from '../systems/physics-traps.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -160,6 +161,9 @@ export function dispatchCommand(
       break;
     case 'LOOT_CONTAINER':
       apply(resolveLootContainer(nextState, command.actorId, command.containerId, command.itemId));
+      break;
+    case 'BREACH_TILE':
+      apply(resolveBreachCommand(nextState, command.actorId, command.target));
       break;
   }
 

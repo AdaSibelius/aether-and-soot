@@ -8,6 +8,7 @@ import { resolveDamageLimb } from './anatomy.system.js';
 import { resolveTriggerSupplyShock } from './economy.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
 import { emitAcousticPulse } from './stealth-acoustics.system.js';
+import { resolveBreachTile } from './physics-traps.system.js';
 
 export const COAL_DUST_IGNITION_THRESHOLD = 0.25;
 
@@ -59,6 +60,7 @@ export function resolvePressurizeVessel(
   const origin = vessel.position;
   const grid = state.strata[origin.stratum];
   let updatedGrid = grid;
+  const blastEvents: SimEvent[] = [];
 
   const points = [
     { x: origin.x, y: origin.y, share: 0.4 },
@@ -71,7 +73,20 @@ export function resolvePressurizeVessel(
   if (updatedGrid) {
     for (const pt of points) {
       const cell = getTileCell(updatedGrid, pt.x, pt.y);
-      if (cell && !cell.blocksMovement) {
+      if (cell?.terrainType === 'SOOT_BRICK_WALL') {
+        const breachRes = resolveBreachTile(
+          { ...state, strata: { ...state.strata, [origin.stratum]: updatedGrid } },
+          { x: pt.x, y: pt.y, stratum: origin.stratum },
+          turn,
+          'EXPLOSION',
+        );
+        if (breachRes.breached) {
+          updatedGrid = breachRes.state.strata[origin.stratum]!;
+          blastEvents.push(...breachRes.events);
+        }
+      }
+      const updatedCell = getTileCell(updatedGrid, pt.x, pt.y);
+      if (updatedCell && !updatedCell.blocksMovement) {
         updatedGrid = setTileCell(updatedGrid, pt.x, pt.y, (c) => ({
           ...c,
           steamPressureKpa: c.steamPressureKpa + Math.round(nextPressure * pt.share),
@@ -108,7 +123,6 @@ export function resolvePressurizeVessel(
   );
 
   let workingState = shockRes.state;
-  const blastEvents: SimEvent[] = [];
 
   for (const pt of points) {
     const victims = Object.values(workingState.entities).filter(

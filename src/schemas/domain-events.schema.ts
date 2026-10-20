@@ -1,40 +1,25 @@
 import { z } from 'zod';
 import {
-  BlueprintIdSchema,
-  EntityIdSchema,
-  ItemUseEffectSchema,
-  LimbSlotIdSchema,
-  Point3DSchema,
+  BlueprintIdSchema, EntityIdSchema, ItemUseEffectSchema,
+  LimbSlotIdSchema, Point3DSchema, StratumIdSchema,
 } from './primitives.schema.js';
 
 export const ItemPickedUpEventSchema = z.object({
-  type: z.literal('ITEM_PICKED_UP'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  itemEntityId: EntityIdSchema,
-  itemName: z.string().min(1),
-  quantity: z.number().int().positive(),
-  stackedIntoEntityId: EntityIdSchema.optional(),
+  type: z.literal('ITEM_PICKED_UP'), turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema, itemEntityId: EntityIdSchema, itemName: z.string().min(1),
+  quantity: z.number().int().positive(), stackedIntoEntityId: EntityIdSchema.optional(),
 });
 
 export const ItemDroppedEventSchema = z.object({
-  type: z.literal('ITEM_DROPPED'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  itemEntityId: EntityIdSchema,
-  itemName: z.string().min(1),
-  quantity: z.number().int().positive(),
-  at: Point3DSchema,
+  type: z.literal('ITEM_DROPPED'), turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema, itemEntityId: EntityIdSchema, itemName: z.string().min(1),
+  quantity: z.number().int().positive(), at: Point3DSchema,
 });
 
 export const ItemUsedEventSchema = z.object({
-  type: z.literal('ITEM_USED'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  itemEntityId: EntityIdSchema,
-  itemName: z.string().min(1),
-  effect: ItemUseEffectSchema.shape.kind,
-  amountRestored: z.number().nonnegative(),
+  type: z.literal('ITEM_USED'), turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema, itemEntityId: EntityIdSchema, itemName: z.string().min(1),
+  effect: ItemUseEffectSchema.shape.kind, amountRestored: z.number().nonnegative(),
   remainingQuantity: z.number().int().nonnegative(),
 });
 
@@ -228,20 +213,30 @@ export const FurnitureActionFailedEventSchema = z.object({
 });
 
 export const ContainerLootedEventSchema = z.object({
-  type: z.literal('CONTAINER_LOOTED'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  containerId: EntityIdSchema,
-  containerName: z.string().min(1),
-  itemIds: z.array(EntityIdSchema),
-  penceGained: z.number().int().nonnegative(),
+  type: z.literal('CONTAINER_LOOTED'), turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema, containerId: EntityIdSchema, containerName: z.string().min(1),
+  itemIds: z.array(EntityIdSchema), penceGained: z.number().int().nonnegative(),
 });
 
 export const SoundEmittedEventSchema = z.object({
-  type: z.literal('SOUND_EMITTED'),
-  turn: z.number().int().nonnegative(),
-  origin: Point3DSchema,
-  decibels: z.number().int().nonnegative(),
-  sourceActorId: EntityIdSchema.optional(),
+  type: z.literal('SOUND_EMITTED'), turn: z.number().int().nonnegative(),
+  origin: Point3DSchema, decibels: z.number().int().nonnegative(), sourceActorId: EntityIdSchema.optional(),
+});
+
+export const WallBreachedEventSchema = z.object({
+  type: z.literal('WALL_BREACHED'), turn: z.number().int().nonnegative(),
+  target: Point3DSchema, breachSource: z.enum(['EXPLOSION', 'PILEDRIVER']),
+});
+
+export const ActorFellStratumEventSchema = z.object({
+  type: z.literal('ACTOR_FELL_STRATUM'), turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema, fromStratum: StratumIdSchema, toStratum: StratumIdSchema,
+  impactDamage: z.number().int().nonnegative(),
+});
+
+export const TrapTriggeredEventSchema = z.object({
+  type: z.literal('TRAP_TRIGGERED'), turn: z.number().int().nonnegative(),
+  trapEntityId: EntityIdSchema, trapKind: z.enum(['SPARK_TRIPWIRE', 'STEAM_MINE', 'SPRING_JAW']),
+  victimActorId: EntityIdSchema, at: Point3DSchema,
 });
 

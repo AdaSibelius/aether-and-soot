@@ -290,5 +290,25 @@
       "bgColor": "#0A0D0E",
       "shaderFlags": ["SPARK_GLINT"]
     }
+  },
+  {
+    "id": "item_clockwork_spark_trap",
+    "name": "Clockwork Spark Trap",
+    "description": "A tensioned flint-and-spring tripwire mechanism designed to emit high-heat sparks when triggered.",
+    "category": "MATERIAL",
+    "massGrams": 400,
+    "volumeMl": 300,
+    "stackable": true,
+    "penceValue": 15,
+    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "spawnWeight": 10,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "^",
+      "fgPrimary": "#E74C3C",
+      "fgSecondary": "#F39C12",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": ["SPARK_GLINT"]
+    }
   }
 ]

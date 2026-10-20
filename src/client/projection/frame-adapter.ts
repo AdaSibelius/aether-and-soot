@@ -134,6 +134,14 @@ export function projectWorldToVisualFrame(
           bgColor: '#0A0D0E',
           shaderFlags: [],
         };
+      } else if (tile?.terrainType === 'RUBBLE_PILE') {
+        baseVisual = {
+          glyph: ',',
+          fgPrimary: isVisible ? '#7F8C8D' : '#34495E',
+          fgSecondary: '#566573',
+          bgColor: '#0A0D0E',
+          shaderFlags: [],
+        };
       } else {
         baseVisual = {
           glyph: tile?.terrainType === 'BRASS_CATWALK' ? '=' : tile?.terrainType === 'IRON_GRATE' ? '≈' : '·',
