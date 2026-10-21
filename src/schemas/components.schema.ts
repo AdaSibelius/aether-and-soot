@@ -7,6 +7,7 @@ import {
   ItemCategorySchema,
   ItemUseEffectSchema,
   LimbSlotIdSchema,
+  LiquidTypeIdSchema,
   Point3DSchema,
   SocketTypeSchema,
   ToolQualityIdSchema,
@@ -123,6 +124,7 @@ export const ItemComponentSchema = z.object({
   unlocksRecipeId: BlueprintIdSchema.optional(),
   equipmentSpec: EquipmentSpecSchema.optional(),
   toolQualities: z.record(ToolQualityIdSchema, z.number().int().positive()).optional(),
+  coatedLiquid: z.object({ liquidType: LiquidTypeIdSchema, volumeMl: z.number().int().positive() }).optional(),
   penceValue: z.number().int().nonnegative().optional(),
   surgicalQuality: z.number().min(0).max(100).optional(),
 });

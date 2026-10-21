@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BlueprintIdSchema, EntityIdSchema, LimbSlotIdSchema } from './primitives.schema.js';
+import { BlueprintIdSchema, EntityIdSchema, LimbSlotIdSchema, LiquidTypeIdSchema } from './primitives.schema.js';
 
 export const EquipmentSlotSchema = z.enum([
   'WIELD',
@@ -31,6 +31,7 @@ export const EquipmentSpecSchema = z.object({
   installedModBlueprintIds: z.array(BlueprintIdSchema).default([]).optional(),
   loadedAmmo: z.object({ blueprintId: BlueprintIdSchema, count: z.number().int().nonnegative() }).optional(),
   weaponModSpec: WeaponModSpecSchema.optional(),
+  coatedLiquid: z.object({ liquidType: LiquidTypeIdSchema, volumeMl: z.number().int().positive() }).optional(),
 });
 export type EquipmentSpec = z.infer<typeof EquipmentSpecSchema>;
 

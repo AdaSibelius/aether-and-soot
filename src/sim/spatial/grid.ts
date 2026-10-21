@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EntityRecord } from '../../schemas/components.schema.js';
-import { EntityId, Point3D, StratumId, StratumIdSchema, TerrainTypeSchema } from '../../schemas/primitives.schema.js';
+import { EntityId, LiquidTypeIdSchema, Point3D, StratumId, StratumIdSchema, TerrainTypeSchema } from '../../schemas/primitives.schema.js';
 
 export const TileCellSchema = z.object({
   terrainType: TerrainTypeSchema,
@@ -8,6 +8,8 @@ export const TileCellSchema = z.object({
   blocksSight: z.boolean(),
   steamPressureKpa: z.number().nonnegative().default(0),
   coalDustDensity: z.number().min(0).max(1).default(0),
+  liquidType: LiquidTypeIdSchema.default('NONE').optional(),
+  liquidVolumeMl: z.number().int().nonnegative().default(0).optional(),
   explored: z.boolean().default(false),
 });
 export type TileCell = z.infer<typeof TileCellSchema>;
@@ -35,6 +37,8 @@ export function createStratumGrid(
         blocksSight: isBorder,
         steamPressureKpa: 0,
         coalDustDensity: 0,
+        liquidType: 'NONE',
+        liquidVolumeMl: 0,
         explored: false,
       });
     }

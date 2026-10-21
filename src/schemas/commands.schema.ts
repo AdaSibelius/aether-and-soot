@@ -18,6 +18,9 @@ import type {
   UninstallWeaponModCommand,
   LoadAmmoCommand,
   PryObstacleCommand,
+  CoatWeaponCommand,
+  ThrowFlaskCommand,
+  CleanSpillCommand,
 } from './domain-commands.schema.js';
 import {
   AcceptContractCommandSchema,
@@ -25,6 +28,8 @@ import {
   ApplyMomentumVectorCommandSchema,
   BreachTileCommandSchema,
   BuyFromMerchantCommandSchema,
+  CleanSpillCommandSchema,
+  CoatWeaponCommandSchema,
   CompleteContractCommandSchema,
   CraftRecipeCommandSchema,
   DropItemCommandSchema,
@@ -43,6 +48,7 @@ import {
   SetPostureCommandSchema,
   SmashTerrainCommandSchema,
   StockPedestalCommandSchema,
+  ThrowFlaskCommandSchema,
   ToggleDoorCommandSchema,
   TravelDistrictCommandSchema,
   TriggerSupplyShockCommandSchema,
@@ -59,6 +65,9 @@ export type {
   UninstallWeaponModCommand,
   LoadAmmoCommand,
   PryObstacleCommand,
+  CoatWeaponCommand,
+  ThrowFlaskCommand,
+  CleanSpillCommand,
 };
 export {
   EquipItemCommandSchema,
@@ -69,6 +78,8 @@ export {
   ApplyMomentumVectorCommandSchema,
   BreachTileCommandSchema,
   BuyFromMerchantCommandSchema,
+  CleanSpillCommandSchema,
+  CoatWeaponCommandSchema,
   CompleteContractCommandSchema,
   CraftRecipeCommandSchema,
   DropItemCommandSchema,
@@ -86,6 +97,7 @@ export {
   SellToMerchantCommandSchema,
   SetPostureCommandSchema,
   SmashTerrainCommandSchema,
+  ThrowFlaskCommandSchema,
   UninstallWeaponModCommandSchema,
   StockPedestalCommandSchema,
   ToggleDoorCommandSchema,
@@ -203,5 +215,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   UninstallWeaponModCommandSchema,
   LoadAmmoCommandSchema,
   PryObstacleCommandSchema,
+  CoatWeaponCommandSchema,
+  ThrowFlaskCommandSchema,
+  CleanSpillCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

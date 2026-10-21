@@ -4,10 +4,10 @@ import { EntityId, LimbSlotId, Point3D } from '../../schemas/primitives.schema.j
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { findBlockingEntityAtPoint, getTileCell, isWithinBounds } from '../spatial/grid.js';
-import { findPortalAtPoint } from '../spatial/portals.js';
 import { computeActorStepNoiseDb, emitAcousticPulse } from './stealth-acoustics.system.js';
-import { resolveToggleDoor, resolveTravelDistrict } from './transit.system.js';
+import { resolveToggleDoor } from './transit.system.js';
 import { resolveStepOnTraps } from './physics-traps.system.js';
+import { resolveStepOnLiquids } from './liquids.system.js';
 
 export interface SystemMovementResult {
   state: WorldState;
@@ -192,52 +192,11 @@ export function resolveMoveStep(
   nextState = trapRes.state;
   moveEvents.push(...trapRes.events);
 
+  const liquidRes = resolveStepOnLiquids(nextState, actorId, origin, targetPoint, state.turnCount + 1);
+  nextState = liquidRes.state;
+  moveEvents.push(...liquidRes.events);
+
   return { state: nextState, apSpent, events: moveEvents };
 }
 
-export function resolveUsePortal(state: WorldState, actorId: EntityId): SystemMovementResult {
-  const actor = state.entities[actorId];
-  if (!actor || !actor.position) return { state, events: [], apSpent: STANDARD_ACTION_AP };
-
-  const origin = actor.position;
-  const portalEntity = findPortalAtPoint(state.entities, origin);
-  if (!portalEntity || !portalEntity.portal) {
-    const gateEntity = Object.values(state.entities).find(
-      (e) => e.districtGate && e.position?.x === origin.x && e.position?.y === origin.y && e.position?.stratum === origin.stratum,
-    );
-    if (gateEntity?.districtGate) {
-      const transitRes = resolveTravelDistrict(state, actorId, gateEntity.districtGate.targetDistrictId);
-      return { state: transitRes.state, events: transitRes.events, apSpent: transitRes.apSpent };
-    }
-    return {
-      state, apSpent: STANDARD_ACTION_AP,
-      events: [{ type: 'PORTAL_FAILED', turn: state.turnCount + 1, actorId, reason: 'NO_PORTAL_AT_POSITION' }],
-    };
-  }
-
-  const dest = portalEntity.portal.target;
-  const blocker = findBlockingEntityAtPoint(state.entities, dest, actorId);
-  if (blocker) {
-    return {
-      state, apSpent: STANDARD_ACTION_AP,
-      events: [{ type: 'PORTAL_FAILED', turn: state.turnCount + 1, actorId, reason: 'DESTINATION_BLOCKED' }],
-    };
-  }
-
-  const apSpent = portalEntity.portal.apCost;
-  const updatedActor: EntityRecord = {
-    ...actor,
-    position: { ...origin, x: dest.x, y: dest.y, stratum: dest.stratum },
-  };
-
-  return {
-    state: { ...state, entities: { ...state.entities, [actorId]: updatedActor } },
-    apSpent,
-    events: [
-      {
-        type: 'STRATUM_CHANGED', turn: state.turnCount + 1, actorId,
-        portalEntityId: portalEntity.id, fromStratum: origin.stratum, toStratum: dest.stratum, destination: dest,
-      },
-    ],
-  };
-}
+export { resolveUsePortal } from './portal-transit.system.js';

@@ -33,6 +33,11 @@ import {
   resolvePryObstacle,
   resolveUninstallWeaponMod,
 } from '../systems/weapon-mods.system.js';
+import {
+  resolveCleanSpill,
+  resolveCoatWeapon,
+  resolveThrowFlask,
+} from '../systems/liquids.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -197,6 +202,15 @@ export function dispatchCommand(
       break;
     case 'PRY_OBSTACLE':
       apply(resolvePryObstacle(nextState, command.actorId, command.target, command.toolEntityId));
+      break;
+    case 'COAT_WEAPON':
+      apply(resolveCoatWeapon(nextState, command.actorId, command.weaponEntityId, command.liquidContainerId));
+      break;
+    case 'THROW_FLASK':
+      apply(resolveThrowFlask(nextState, command.actorId, command.target, command.flaskEntityId));
+      break;
+    case 'CLEAN_SPILL':
+      apply(resolveCleanSpill(nextState, command.actorId, command.target, command.toolEntityId));
       break;
   }
 

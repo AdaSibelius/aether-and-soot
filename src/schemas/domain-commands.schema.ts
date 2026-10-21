@@ -207,3 +207,27 @@ export const PryObstacleCommandSchema = z.object({
   toolEntityId: EntityIdSchema,
 });
 export type PryObstacleCommand = z.infer<typeof PryObstacleCommandSchema>;
+
+export const CoatWeaponCommandSchema = z.object({
+  type: z.literal('COAT_WEAPON'),
+  actorId: EntityIdSchema,
+  weaponEntityId: EntityIdSchema,
+  liquidContainerId: EntityIdSchema,
+});
+export type CoatWeaponCommand = z.infer<typeof CoatWeaponCommandSchema>;
+
+export const ThrowFlaskCommandSchema = z.object({
+  type: z.literal('THROW_FLASK'),
+  actorId: EntityIdSchema,
+  target: Point3DSchema,
+  flaskEntityId: EntityIdSchema,
+});
+export type ThrowFlaskCommand = z.infer<typeof ThrowFlaskCommandSchema>;
+
+export const CleanSpillCommandSchema = z.object({
+  type: z.literal('CLEAN_SPILL'),
+  actorId: EntityIdSchema,
+  target: Point3DSchema,
+  toolEntityId: EntityIdSchema,
+});
+export type CleanSpillCommand = z.infer<typeof CleanSpillCommandSchema>;

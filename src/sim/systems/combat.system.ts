@@ -120,7 +120,23 @@ export function resolveAttackActor(
   }
 
   const armor = target.combatStats?.armorReduction ?? 0;
-  const damageDealt = Math.max(1, eff.meleeDamage - armor);
+  let coatedBonusDmg = 0;
+  const wieldedId = attacker.inventory?.equippedSlots?.WIELD;
+  const wieldedItem = wieldedId ? workingState.entities[wieldedId] : undefined;
+  if (wieldedItem?.equipmentSpec?.coatedLiquid) {
+    const liquid = wieldedItem.equipmentSpec.coatedLiquid;
+    if (liquid.liquidType === 'NITRIC_ACID') coatedBonusDmg = 8;
+    else if (liquid.liquidType === 'WHALE_OIL') coatedBonusDmg = 4;
+    const cleanSpec = { ...wieldedItem.equipmentSpec, coatedLiquid: undefined };
+    const updatedWep: EntityRecord = {
+      ...wieldedItem,
+      equipmentSpec: cleanSpec,
+      item: wieldedItem.item ? { ...wieldedItem.item, equipmentSpec: cleanSpec, coatedLiquid: undefined } : undefined,
+    };
+    workingState = { ...workingState, entities: { ...workingState.entities, [wieldedId!]: updatedWep } };
+  }
+
+  const damageDealt = Math.max(1, eff.meleeDamage + coatedBonusDmg - armor);
   const dmgRes = resolveDamageLimb(workingState, targetId, targetSlot, damageDealt);
   workingState = dmgRes.state;
 

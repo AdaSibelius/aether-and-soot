@@ -153,5 +153,17 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] FORCED! ${ev.actorId} pried open ${ev.fromTerrain} into ${ev.toTerrain} using ${ev.toolEntityId} (Quality ${ev.toolQuality}).`;
     case 'WEAPON_MOD_ACTION_FAILED':
       return `[T${ev.turn}] Weapon modification failed for ${ev.actorId}: ${ev.reason}.`;
+    case 'LIQUID_SPILLED':
+      return `[T${ev.turn}] SPLASH! ${ev.volumeMl} mL of ${ev.liquidType} spilled across (${ev.target.x}, ${ev.target.y}).`;
+    case 'LIQUID_IGNITED':
+      return `[T${ev.turn}] CONFLAGRATION! ${ev.liquidType} ignited into blazing fire at (${ev.target.x}, ${ev.target.y}) (${ev.thermalDamage} thermal damage, ${ev.burnedVolumeMl} mL combusted)!`;
+    case 'ITEM_COATED':
+      return `[T${ev.turn}] ${ev.actorId} treated ${ev.itemEntityId} with a slick coating of ${ev.liquidType} (${ev.volumeMl} mL).`;
+    case 'ACID_CORROSION_TICK':
+      return `[T${ev.turn}] SIZZLE! Nitric acid seethes against ${ev.targetId} at (${ev.at.x}, ${ev.at.y}) (-${ev.damageInflicted} HP)!`;
+    case 'SURFACE_SLIPPED':
+      return `[T${ev.turn}] SLIP! ${ev.actorId} lost their footing on slick ${ev.liquidType} at (${ev.at.x}, ${ev.at.y})!`;
+    case 'LIQUID_ACTION_FAILED':
+      return `[T${ev.turn}] Chemical action failed for ${ev.actorId}: ${ev.reason}.`;
   }
 }

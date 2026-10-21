@@ -45,6 +45,14 @@ import {
   ObstaclePriedEventSchema,
   WeaponModActionFailedEventSchema,
 } from './weapon-mod-events.schema.js';
+import {
+  LiquidSpilledEventSchema,
+  LiquidIgnitedEventSchema,
+  ItemCoatedEventSchema,
+  AcidCorrosionTickEventSchema,
+  SurfaceSlippedEventSchema,
+  LiquidActionFailedEventSchema,
+} from './liquid-events.schema.js';
 
 export {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
@@ -79,6 +87,12 @@ export {
   AmmoLoadedEventSchema,
   ObstaclePriedEventSchema,
   WeaponModActionFailedEventSchema,
+  LiquidSpilledEventSchema,
+  LiquidIgnitedEventSchema,
+  ItemCoatedEventSchema,
+  AcidCorrosionTickEventSchema,
+  SurfaceSlippedEventSchema,
+  LiquidActionFailedEventSchema,
 };
 
 export const SimEventSchema = z.discriminatedUnion('type', [
@@ -153,5 +167,11 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   AmmoLoadedEventSchema,
   ObstaclePriedEventSchema,
   WeaponModActionFailedEventSchema,
+  LiquidSpilledEventSchema,
+  LiquidIgnitedEventSchema,
+  ItemCoatedEventSchema,
+  AcidCorrosionTickEventSchema,
+  SurfaceSlippedEventSchema,
+  LiquidActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

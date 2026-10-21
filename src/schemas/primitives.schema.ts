@@ -96,6 +96,15 @@ export const ToolQualityIdSchema = z.enum([
 ]);
 export type ToolQualityId = z.infer<typeof ToolQualityIdSchema>;
 
+export const LiquidTypeIdSchema = z.enum([
+  'NONE',
+  'BLOOD',
+  'WHALE_OIL',
+  'NITRIC_ACID',
+  'SLUICE_SLUDGE',
+]);
+export type LiquidTypeId = z.infer<typeof LiquidTypeIdSchema>;
+
 export const ItemCategorySchema = z.enum(['MATERIAL', 'CONSUMABLE', 'PROSTHETIC', 'COMMODITY', 'EQUIPMENT']);
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 

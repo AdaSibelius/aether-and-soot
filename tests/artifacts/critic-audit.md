@@ -7,7 +7,7 @@
   - Headless Determinism & Boundary Isolation: **25/25**
   - Spatial, Acoustic & Environmental Depth: **22/25**
   - NPC Ecological Parity vs Player: **18/25**
-  - Command Surface Playtest Coverage: **4/25**
+  - Command Surface Playtest Coverage: **3/25**
 - **Overall Assessment**: *Aether & Soot* exhibits exceptional deterministic headless rigor matching CDDA simulation fidelity and Caves of Qud tactile worldcraft, with complete Core/Shell separation.
 
 ## 2. Architectural & Modularity Health
@@ -18,11 +18,10 @@
 - `tests/scripts/playtester-serializer.ts`: **251 lines** (threshold: 230)
 - `src/client/main.tsx`: **250 lines** (threshold: 230)
 - `src/sim/systems/prosthetics.system.ts`: **250 lines** (threshold: 230)
+- `src/sim/core/engine.ts`: **249 lines** (threshold: 230)
 - `src/client/ui/TradeWindow.tsx`: **248 lines** (threshold: 230)
-- `src/sim/systems/pressure.system.ts`: **245 lines** (threshold: 230)
 - `src/sim/systems/character-archetypes.ts`: **244 lines** (threshold: 230)
 - `src/sim/systems/inventory.system.ts`: **244 lines** (threshold: 230)
-- `src/sim/systems/movement.system.ts`: **244 lines** (threshold: 230)
 - `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **240 lines** (threshold: 230)
 - `src/client/ui/ItemDossierCard.tsx`: **240 lines** (threshold: 230)
@@ -32,13 +31,14 @@
 - `src/client/ui/AnatomyWindow.tsx`: **237 lines** (threshold: 230)
 - `src/sim/spatial/building-prefabs.ts`: **236 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **235 lines** (threshold: 230)
-- `src/sim/core/engine.ts`: **235 lines** (threshold: 230)
+- `src/schemas/domain-commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/schemas/core-events.schema.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/dialogue-quest.system.ts`: **233 lines** (threshold: 230)
 - `src/sim/core/world.ts`: **232 lines** (threshold: 230)
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `tests/scripts/llm-playtester.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/AtlasWindow.tsx`: **231 lines** (threshold: 230)
+- `src/schemas/components.schema.ts`: **230 lines** (threshold: 230)
 
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
@@ -58,6 +58,8 @@
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `ACCEPT_CONTRACT`
 - `APPLY_MOMENTUM_VECTOR`
+- `CLEAN_SPILL`
+- `COAT_WEAPON`
 - `COMPLETE_CONTRACT`
 - `CRAFT_RECIPE`
 - `DAMAGE_LIMB`
@@ -80,6 +82,7 @@
 - `SET_POSTURE`
 - `SMASH_TERRAIN`
 - `STOCK_PEDESTAL`
+- `THROW_FLASK`
 - `TRAVEL_DISTRICT`
 - `TRIGGER_SUPPLY_SHOCK`
 - `UNINSTALL_WEAPON_MOD`

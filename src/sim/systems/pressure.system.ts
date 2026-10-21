@@ -1,23 +1,14 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { EntityId, Point3D } from '../../schemas/primitives.schema.js';
+import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
-import { getTileCell, isWithinBounds, setTileCell } from '../spatial/grid.js';
+import { getTileCell, setTileCell } from '../spatial/grid.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { resolveTriggerSupplyShock } from './economy.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
 import { emitAcousticPulse } from './stealth-acoustics.system.js';
 import { resolveBreachTile } from './physics-traps.system.js';
-
-export const COAL_DUST_IGNITION_THRESHOLD = 0.25;
-
-const CARDINAL_DELTAS: ReadonlyArray<{ dx: number; dy: number }> = [
-  { dx: 1, dy: 0 },
-  { dx: -1, dy: 0 },
-  { dx: 0, dy: 1 },
-  { dx: 0, dy: -1 },
-];
 
 export interface SystemPressureResult {
   readonly state: WorldState;
@@ -167,78 +158,4 @@ export function resolvePressurizeVessel(
   };
 }
 
-export function resolveEmitSpark(state: WorldState, target: Point3D): SystemPressureResult {
-  const grid = state.strata[target.stratum];
-  if (!grid || !isWithinBounds(grid, target.x, target.y)) {
-    return { state, events: [], apSpent: STANDARD_ACTION_AP };
-  }
-
-  const startCell = getTileCell(grid, target.x, target.y);
-  if (!startCell || startCell.coalDustDensity < COAL_DUST_IGNITION_THRESHOLD) {
-    return { state, events: [], apSpent: STANDARD_ACTION_AP };
-  }
-
-  // Flood-fill contiguous coal dust cloud above ignition threshold
-  const visited = new Set<string>();
-  const queue: Array<{ x: number; y: number }> = [{ x: target.x, y: target.y }];
-  const ignitedCoords: Array<{ x: number; y: number }> = [];
-
-  while (queue.length > 0) {
-    const curr = queue.shift()!;
-    const key = `${curr.x},${curr.y}`;
-    if (visited.has(key)) continue;
-    visited.add(key);
-
-    const cell = getTileCell(grid, curr.x, curr.y);
-    if (!cell || cell.blocksMovement || cell.coalDustDensity < COAL_DUST_IGNITION_THRESHOLD) {
-      continue;
-    }
-
-    ignitedCoords.push(curr);
-    for (const { dx, dy } of CARDINAL_DELTAS) {
-      const nx = curr.x + dx;
-      const ny = curr.y + dy;
-      if (isWithinBounds(grid, nx, ny)) {
-        queue.push({ x: nx, y: ny });
-      }
-    }
-  }
-
-  let updatedGrid = grid;
-  for (const pt of ignitedCoords) {
-    updatedGrid = setTileCell(updatedGrid, pt.x, pt.y, (c) => ({
-      ...c,
-      coalDustDensity: 0,
-      steamPressureKpa: c.steamPressureKpa + 55,
-    }));
-  }
-
-  const stateWithIgnition: WorldState = {
-    ...state,
-    strata: {
-      ...state.strata,
-      [target.stratum]: updatedGrid,
-    },
-  };
-
-  const ignitionNoise = emitAcousticPulse(
-    stateWithIgnition,
-    target,
-    100,
-    state.turnCount + 1,
-  );
-
-  return {
-    state: ignitionNoise.state,
-    apSpent: STANDARD_ACTION_AP,
-    events: [
-      {
-        type: 'COAL_DUST_IGNITED',
-        turn: state.turnCount + 1,
-        epicenter: target,
-        ignitedTileCount: ignitedCoords.length,
-      },
-      ...ignitionNoise.events,
-    ],
-  };
-}
+export { resolveEmitSpark, COAL_DUST_IGNITION_THRESHOLD } from './pyrotechnics.system.js';
