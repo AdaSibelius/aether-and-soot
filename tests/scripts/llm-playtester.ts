@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
 import { dispatchCommand } from '../../src/sim/core/engine.js';
@@ -14,6 +13,9 @@ import {
   getScenarioObjectives,
   PlaytestScenario,
 } from './playtester-scenarios.js';
+import { PlaytestMetrics, writeReport } from './playtest-report.js';
+
+export type { PlaytestMetrics };
 
 export interface PlaytestConfig {
   readonly mock: boolean;
@@ -23,23 +25,6 @@ export interface PlaytestConfig {
   readonly model: string;
   readonly reportPath: string;
   readonly scenario: PlaytestScenario;
-}
-
-export interface PlaytestMetrics {
-  turnsSurvived: number;
-  totalDecibels: number;
-  alertTransitions: { investigating: number; combat: number };
-  steamCloudsDeployed: number;
-  trapsTriggered: number;
-  hostilesAttacked: number;
-  damageDealt: number;
-  damageTaken: number;
-  itemsAcquired: number;
-  itemsUsed: number;
-  transitionsCompleted: number;
-  finalBloodPct: number;
-  uniqueTilesVisited: number;
-  causeOfDeath?: string;
 }
 
 export function parseCliArgs(argv: string[]): PlaytestConfig {
@@ -109,6 +94,8 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     steamCloudsDeployed: 0,
     trapsTriggered: 0,
     hostilesAttacked: 0,
+    attackHits: 0,
+    attackMisses: 0,
     damageDealt: 0,
     damageTaken: 0,
     itemsAcquired: 0,
@@ -170,7 +157,10 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     state = stepRes.state;
 
     const blockedEv = stepRes.events.find((e) => e.type === 'MOVEMENT_BLOCKED');
-    if (blockedEv && blockedEv.type === 'MOVEMENT_BLOCKED') {
+    const combatFailed = stepRes.events.find((e) => e.type === 'COMBAT_ACTION_FAILED');
+    if (combatFailed && combatFailed.type === 'COMBAT_ACTION_FAILED' && combatFailed.attackerId === playerId) {
+      lastSystemFeedback = `Attack failed (${combatFailed.reason}). Target must be adjacent (within 1 tile) to strike.`;
+    } else if (blockedEv && blockedEv.type === 'MOVEMENT_BLOCKED') {
       const dirDesc = command.type === 'MOVE_STEP'
         ? (command.dx > 0 ? 'East' : command.dx < 0 ? 'West' : command.dy > 0 ? 'South' : 'North')
         : 'target';
@@ -194,10 +184,16 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
       if (ev.type === 'COMBAT_ATTACK_RESOLVED') {
         if (ev.attackerId === playerId) {
           metrics.hostilesAttacked++;
-          metrics.damageDealt += ev.damageDealt;
+          if (ev.hit) {
+            metrics.attackHits++;
+            metrics.damageDealt += ev.damageDealt;
+          } else {
+            metrics.attackMisses++;
+          }
         }
         if (ev.targetId === playerId) metrics.damageTaken += ev.damageDealt;
       }
+      if (ev.type === 'COMBAT_ACTION_FAILED' && ev.attackerId === playerId) metrics.attackMisses++;
       if (ev.type === 'ITEM_PICKED_UP' || ev.type === 'MERCHANT_TRADE_COMPLETED') metrics.itemsAcquired++;
       if (ev.type === 'ITEM_USED') metrics.itemsUsed++;
       if (ev.type === 'STRATUM_CHANGED' || ev.type === 'DISTRICT_TRAVELED') metrics.transitionsCompleted++;
@@ -219,43 +215,6 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
   metrics.uniqueTilesVisited = visitedTiles.size;
   writeReport(config, metrics);
   return metrics;
-}
-
-function writeReport(config: PlaytestConfig, metrics: PlaytestMetrics): void {
-  const dir = path.dirname(config.reportPath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-  const status = metrics.causeOfDeath ? `DEFEATED (${metrics.causeOfDeath})` : 'SURVIVED';
-  const content = `# Aether & Soot — Headless Autonomous Playtest Report
-
-- **Timestamp**: ${new Date().toISOString()}
-- **Execution Mode**: ${config.mock ? 'Deterministic Mock Agent (--mock)' : `Local LLM (${config.model} @ ${config.endpoint})`}
-- **Scenario**: **${config.scenario.toUpperCase()}**
-- **Seed**: ${config.seed}
-- **Survival Status**: **${status}**
-
-## Emergent Sandbox Mechanics Metrics
-
-| Metric | Recorded Value | Evaluation Notes |
-| :--- | :--- | :--- |
-| **Turns Survived** | ${metrics.turnsSurvived} / ${config.maxTurns} | Longevity under autonomous navigation |
-| **Acoustic Decibels Emitted** | ${metrics.totalDecibels} dB | Footsteps, door actions, and steam releases |
-| **Guard Sound Investigations** | ${metrics.alertTransitions.investigating} | NPCs transitioning to INVESTIGATING |
-| **Guard Combat Engagements** | ${metrics.alertTransitions.combat} | NPCs acquiring visual lock in COMBAT |
-| **Steam Clouds Deployed** | ${metrics.steamCloudsDeployed} | Vented steam to obscure LOS |
-| **Clockwork Traps Triggered** | ${metrics.trapsTriggered} | Hidden tripwires / spring jaws stepped on |
-| **Hostiles Attacked** | ${metrics.hostilesAttacked} | Targeted melee / ranged strikes on hostiles |
-| **Damage Dealt (Player)** | ${metrics.damageDealt} HP | Targeted combat damage to hostiles |
-| **Damage Taken (Player)** | ${metrics.damageTaken} HP | Trauma sustained from hostiles or hazards |
-| **Items Acquired** | ${metrics.itemsAcquired} | Picked up from ground or bought from merchants |
-| **Items Used** | ${metrics.itemsUsed} | Consumed tonics or canisters |
-| **Transitions Completed** | ${metrics.transitionsCompleted} | Stratum portals or district gates traversed |
-| **Final Blood Volume** | ${metrics.finalBloodPct}% | Haemodynamic stability |
-| **Unique Tiles Visited** | ${metrics.uniqueTilesVisited} | Distinct spatial tiles explored |
-
-`;
-
-  fs.writeFileSync(config.reportPath, content, 'utf-8');
 }
 
 if (process.argv[1]?.endsWith('llm-playtester.ts')) {

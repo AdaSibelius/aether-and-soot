@@ -123,7 +123,7 @@ export function serializePlayerContext(
   }
   const consumable = player.inventory?.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect);
   if (consumable) contextualCommands.push(`{"action": "USE_ITEM", "itemId": "${consumable}"}`);
-  if (steam >= 20) contextualCommands.push('{"action": "VENT_STEAM", "pressureKpa": 30}');
+  if (steam >= 20) contextualCommands.push('{"action": "VENT_STEAM", "pressureKpa": 30} (Best used to break LOS and retreat; does not prevent adjacent melee counterattacks)');
 
   const primaryObj = options?.primaryObjective ?? 'Explore the district, uncover unvisited tiles, and survive.';
   const secDir = options?.secondaryDirective ?? 'Interact with closed doors (+), avoid armed traps (^), and vent steam (~) to break line-of-sight when hostiles (G) approach.';
