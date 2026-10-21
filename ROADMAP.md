@@ -13,11 +13,31 @@
 
 ---
 
-## 1. Active Implementation Plan: Future Gameplay Epics (Phases 37–39)
+## 1. Active Implementation Plan: Core Systemic Simulation Epics (Phases 37–46)
 
-- [ ] **Phase 37 (Issue #42)**: Audio & Soundscape Shell (`src/client/audio/`). WebAudio procedural synthesizer and sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps, footsteps).
-- [ ] **Phase 38**: Vehicles & Pneumatic Rail Transit. Moving multi-tile pneumatic carriages connecting Spire towers and Undercroft sluice tunnels.
-- [ ] **Phase 39**: Deep Faction Warfare & Territorial Influence. Dynamic turf wars between the Ironmongers' Cartel, Undercroft Syndicate, and Clockwork Guild with automated district takeovers.
+Inspired by deep systemic comparisons with *Cataclysm: Dark Days Ahead (CDDA)*, *Caves of Qud*, and *Arcostate*, Phases 37–46 prioritize tactile, turn-by-turn simulation depth inside `src/sim/` over peripheral presentation or abstract macro-wars. Every phase leverages the Phases 32–36 Local Hermes Suite (`hermes:scout`, `hermes:split`, `hermes:chronicler`, `hermes:testgen`, `generate:content`) to keep paid context consumption minimal.
+
+### Tier A: Anatomy, Cybernetic Bandwidth & Metabolic Alchemy (Phases 37–38)
+
+- [ ] **Phase 37: Boiler Governor Bandwidth, Active Prosthetic Abilities & Corpse Harvesting**: Pre-split `src/sim/systems/anatomy.system.ts` (293 lines) via `hermes:split` into `src/sim/systems/prosthetics.system.ts`. Add `governorCapacityKw` and `strainLoadKw` to `anatomy` (`components.schema.ts`) to gate installed augments; add `ACTIVATE_PROSTHETIC` command with turn cooldowns and steam costs (*Ocular Thermal Pulse*, *Pneumatic Dash*, *Hydraulic Ram*); equip elite NPCs with active prosthetics and allow harvesting damaged cybernetics from corpses using surgical tools.
+- [ ] **Phase 38: Alchemical Toxicity, Withdrawal, Pain Shock & Stamina Overclocking**: Create `src/sim/systems/metabolism.system.ts`. Add `toxicityPct` (0–100%), `painShock` (0–100), `stamina` (0–100), and timed `activeEffects[]` to `anatomy`. Implement Victorian combat alchemicals (*Laudanum Tincture*, *Aether-Salt Stimulant*, *Quicksilver Reflex Draught*) where crossing `toxicityPct >= 80%` triggers overdose side-effects followed by withdrawal debuffs. Use `generate:content` and `hermes:chronicler` for tonic blueprints and logs.
+
+### Tier B: Momentum Physics, Tactical Postures & Tool/Weapon Engineering (Phases 39–40)
+
+- [ ] **Phase 39: Multi-Tile Momentum Physics, Knockback Collisions & Stealth Postures**: Create `src/sim/systems/momentum.system.ts`. Concussive blasts, piledrivers, and harpoon pulls apply directional force vectors (`distanceTiles`, `massKg`) causing multi-tile knockback, wall/actor collision trauma, window smashing, and `ABYSS_DROP` plunges. Add `SET_POSTURE` (`STANDING`, `CROUCHED`, `BRACED`) affecting footstep `noiseDb`, directional furniture cover, and knockback resistance.
+- [ ] **Phase 40: CDDA Tool Qualities, Weapon Modifications & Loaded Pressure Chambers**: Pre-split `src/sim/systems/crafting.system.ts` (271 lines) if needed. Add `toolQualities: Record<ToolQualityId, number>` (`SURGERY`, `WRENCHING`, `PRYING`, `ALCHEMICAL`, `LOCKPICKING`) to `ItemBlueprintSchema` for crafting, surgery, and prying. Add `modSlots` and `loadedAmmo` to weapons (`src/sim/systems/weapon-mods.system.ts`) supporting attachable Victorian weapon mods (*Rifled Brass Barrel*, *Acoustic Baffler Silencer*, *High-Pressure Steam Receiver*) and specialized ammo (*Flechette Harpoons*, *Incendiary Phosphor Bolts*).
+
+### Tier C: Surface Liquid Chemistry, Squad Witness AI & Deep Exploration (Phases 41–44)
+
+- [ ] **Phase 41: Surface Liquid Pools, Chemical Reactions & Item Coating**: Extend `TileCellSchema` and `thermo.system.ts` with surface fluids (`liquidType: 'NONE' | 'BLOOD' | 'WHALE_OIL' | 'NITRIC_ACID' | 'SLUICE_SLUDGE'`, `liquidVolumeMl`). Support bleeding trails, slip hazards, spark-ignited whale oil fires, acid corrosion, weapon coating, and thrown flasks.
+- [ ] **Phase 42: Witness Attribution, Squad Callouts & Faction Grudge Memory**: Create `src/sim/systems/squad-witness.system.ts`. Gate theft/assault `factionReputation` penalties behind unblinded NPC line-of-sight (`WITNESS_CRIME_REPORTED`), rewarding smog occlusion and stealth. Add `EMIT_SQUAD_CALLOUT` (90 dB acoustic alert) for guards to rally nearby allied squadmates into flanking `COMBAT` states and record a persistent `grudgeTargetId`.
+- [ ] **Phase 43: Deep Sub-Undercroft Strata (`CATACOMBS` / Infinite Delve) & Derelict Pneumatic Monorail**: Expand vertical exploration beneath `UNDERCROFT` into procedural depth tiers (`depthLevel: 1..N` Chalk Catacombs & Pre-Victorian Clockwork Vaults) with scaling hazards and relic schematics. Connect underground districts via a rideable, coal-pressurized multi-tile **Subterranean Pneumatic Monorail Car**.
+- [ ] **Phase 44: Artificer Safehouse Deeds, Furniture Construction & Royal Society Codex**: Allow purchasing a **Freehold Workshop Deed** (or claiming an Undercroft vault) with persistent item/furniture storage (`SURGICAL_TABLE`, `ARTIFICER_BENCH`, `STEAM_CHARGER`), field construction/barricading (`BUILD_STRUCTURE`), and a `[K]` **Royal Society Naturalist's Codex** tracking discovered automatons, schematics, and alchemical reactions.
+
+### Tier D: Macro World & Presentation Polish (Deferred to Phases 45–46)
+
+- [ ] **Phase 45: Dynamic Turf Skirmishes & Economic Supply Escorts**: Grounded in Phase 42 squad AI and Phase 43 monorail cargo transit between factions.
+- [ ] **Phase 46: Procedural WebAudio Soundscape & Acoustic Synth Shell**: WebAudio synthesizer wired to finalized `SimEvent` triggers across Phases 37–45.
 
 ---
 

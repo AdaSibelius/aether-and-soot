@@ -3,9 +3,9 @@
 **Last Updated:** 2026-10-21
 
 ## Recent Commits
-- 6e625e7: docs(roadmap): mark Phases 32-36 complete and sync STATE.md for Phase 37
+- 97b5927: Reprioritize ROADMAP.md around Phases 37-46 core simulation systems and sync STATE.md
+- 3e356d5: docs(roadmap): mark Phases 32-36 complete and sync STATE.md for Phase 37
 - cd8d950: Add Output Economy rule and automated STATE.md tracker
-- 6697986: feat(tooling): implement Phase 36 hermes:split modularity ceiling splitter assistant
 
 ## Immediate Next Priority
-- **Phase 37 (Issue #42)**: Audio & Soundscape Shell (`src/client/audio/`). WebAudio procedural synthesizer and sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps, footsteps).
+- **Phase 37: Boiler Governor Bandwidth, Active Prosthetic Abilities & Corpse Harvesting**: Pre-split `src/sim/systems/anatomy.system.ts` (293 lines) via `hermes:split` into `src/sim/systems/prosthetics.system.ts`. Add `governorCapacityKw` and `strainLoadKw` to `anatomy` (`components.schema.ts`) to gate installed augments; add `ACTIVATE_PROSTHETIC` command with turn cooldowns and steam costs (*Ocular Thermal Pulse*, *Pneumatic Dash*, *Hydraulic Ram*); equip elite NPCs with active prosthetics and allow harvesting damaged cybernetics from corpses using surgical tools.
