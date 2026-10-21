@@ -2,13 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
 import { dispatchCommand } from '../../src/sim/core/engine.js';
-import { createInitialWorld, WorldState } from '../../src/sim/core/world.js';
+import { createInitialWorld } from '../../src/sim/core/world.js';
 import { generateVictorianDistrict } from '../../src/sim/spatial/generator.js';
 import {
   generateMockAction,
   parseLlmResponseToCommand,
   serializePlayerContext,
 } from './playtester-serializer.js';
+import {
+  applyPlaytestScenario,
+  getScenarioObjectives,
+  PlaytestScenario,
+} from './playtester-scenarios.js';
 
 export interface PlaytestConfig {
   readonly mock: boolean;
@@ -17,6 +22,7 @@ export interface PlaytestConfig {
   readonly endpoint: string;
   readonly model: string;
   readonly reportPath: string;
+  readonly scenario: PlaytestScenario;
 }
 
 export interface PlaytestMetrics {
@@ -25,8 +31,12 @@ export interface PlaytestMetrics {
   alertTransitions: { investigating: number; combat: number };
   steamCloudsDeployed: number;
   trapsTriggered: number;
+  hostilesAttacked: number;
   damageDealt: number;
   damageTaken: number;
+  itemsAcquired: number;
+  itemsUsed: number;
+  transitionsCompleted: number;
   finalBloodPct: number;
   uniqueTilesVisited: number;
   causeOfDeath?: string;
@@ -44,6 +54,7 @@ export function parseCliArgs(argv: string[]): PlaytestConfig {
     endpoint: process.env['LLM_ENDPOINT'] || getArg('--endpoint', 'http://localhost:8642/v1/chat/completions'),
     model: process.env['LLM_MODEL'] || getArg('--model', 'hermes-agent'),
     reportPath: getArg('--report', path.join(process.cwd(), 'tests/artifacts/playtest-report.md')),
+    scenario: (getArg('--scenario', 'explore') as PlaytestScenario),
   };
 }
 
@@ -88,7 +99,8 @@ async function queryLocalLlm(endpoint: string, model: string, prompt: string): P
 export async function runPlaytestSession(config: PlaytestConfig): Promise<PlaytestMetrics> {
   const playerId = EntityIdSchema.parse('actor_player');
   const baseWorld = createInitialWorld({ seed: config.seed, width: 48, height: 36 });
-  let state: WorldState = generateVictorianDistrict(baseWorld).state;
+  let state = applyPlaytestScenario(generateVictorianDistrict(baseWorld).state, config.scenario);
+  const scenarioObjs = getScenarioObjectives(config.scenario);
 
   const metrics: PlaytestMetrics = {
     turnsSurvived: 0,
@@ -96,8 +108,12 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     alertTransitions: { investigating: 0, combat: 0 },
     steamCloudsDeployed: 0,
     trapsTriggered: 0,
+    hostilesAttacked: 0,
     damageDealt: 0,
     damageTaken: 0,
+    itemsAcquired: 0,
+    itemsUsed: 0,
+    transitionsCompleted: 0,
     finalBloodPct: 100,
     uniqueTilesVisited: 0,
   };
@@ -134,6 +150,8 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
       const context = serializePlayerContext(state, playerId, {
         recentPositions: recentPositions.slice(-3),
         systemFeedback: lastSystemFeedback,
+        primaryObjective: scenarioObjs.primary,
+        secondaryDirective: scenarioObjs.secondary,
       });
       rawAction = await queryLocalLlm(config.endpoint, config.model, context);
       if (rawAction === '{}') rawAction = JSON.stringify(generateMockAction(state, playerId, recentPositions));
@@ -174,9 +192,15 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
       if (ev.type === 'TRAP_TRIGGERED') metrics.trapsTriggered++;
       if (ev.type === 'STEAM_VENTED') metrics.steamCloudsDeployed++;
       if (ev.type === 'COMBAT_ATTACK_RESOLVED') {
-        if (ev.attackerId === playerId) metrics.damageDealt += ev.damageDealt;
+        if (ev.attackerId === playerId) {
+          metrics.hostilesAttacked++;
+          metrics.damageDealt += ev.damageDealt;
+        }
         if (ev.targetId === playerId) metrics.damageTaken += ev.damageDealt;
       }
+      if (ev.type === 'ITEM_PICKED_UP' || ev.type === 'MERCHANT_TRADE_COMPLETED') metrics.itemsAcquired++;
+      if (ev.type === 'ITEM_USED') metrics.itemsUsed++;
+      if (ev.type === 'STRATUM_CHANGED' || ev.type === 'DISTRICT_TRAVELED') metrics.transitionsCompleted++;
     }
 
     for (const ent of Object.values(state.entities)) {
@@ -206,6 +230,7 @@ function writeReport(config: PlaytestConfig, metrics: PlaytestMetrics): void {
 
 - **Timestamp**: ${new Date().toISOString()}
 - **Execution Mode**: ${config.mock ? 'Deterministic Mock Agent (--mock)' : `Local LLM (${config.model} @ ${config.endpoint})`}
+- **Scenario**: **${config.scenario.toUpperCase()}**
 - **Seed**: ${config.seed}
 - **Survival Status**: **${status}**
 
@@ -219,8 +244,12 @@ function writeReport(config: PlaytestConfig, metrics: PlaytestMetrics): void {
 | **Guard Combat Engagements** | ${metrics.alertTransitions.combat} | NPCs acquiring visual lock in COMBAT |
 | **Steam Clouds Deployed** | ${metrics.steamCloudsDeployed} | Vented steam to obscure LOS |
 | **Clockwork Traps Triggered** | ${metrics.trapsTriggered} | Hidden tripwires / spring jaws stepped on |
+| **Hostiles Attacked** | ${metrics.hostilesAttacked} | Targeted melee / ranged strikes on hostiles |
 | **Damage Dealt (Player)** | ${metrics.damageDealt} HP | Targeted combat damage to hostiles |
-| **Damage Taken (Player)** | ${metrics.damageTaken} HP | Trauma sustained from hostiles or scalds |
+| **Damage Taken (Player)** | ${metrics.damageTaken} HP | Trauma sustained from hostiles or hazards |
+| **Items Acquired** | ${metrics.itemsAcquired} | Picked up from ground or bought from merchants |
+| **Items Used** | ${metrics.itemsUsed} | Consumed tonics or canisters |
+| **Transitions Completed** | ${metrics.transitionsCompleted} | Stratum portals or district gates traversed |
 | **Final Blood Volume** | ${metrics.finalBloodPct}% | Haemodynamic stability |
 | **Unique Tiles Visited** | ${metrics.uniqueTilesVisited} | Distinct spatial tiles explored |
 

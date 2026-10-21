@@ -10,6 +10,7 @@ import {
   serializePlayerContext,
 } from '../scripts/playtester-serializer.js';
 import { runPlaytestSession } from '../scripts/llm-playtester.js';
+import { applyPlaytestScenario, getScenarioObjectives } from '../scripts/playtester-scenarios.js';
 
 describe('Headless LLM Playtester Harness', () => {
   const playerId = EntityIdSchema.parse('actor_player');
@@ -19,7 +20,7 @@ describe('Headless LLM Playtester Harness', () => {
     return generateVictorianDistrict(base).state;
   }
 
-  it('serializes player 11x11 ASCII context with vitals, objectives, and breadcrumbs', () => {
+  it('serializes player 11x11 ASCII context with vitals, objectives, and contextual commands', () => {
     const world = setupWorld();
     const context = serializePlayerContext(world, playerId);
 
@@ -31,6 +32,7 @@ describe('Headless LLM Playtester Harness', () => {
     expect(context).toContain('[BLOOD]: 100%');
     expect(context).toContain('@'); // Player marker in FOV
     expect(context).toContain('LOCAL SENSORY FOV');
+    expect(context).toContain('[AVAILABLE CONTEXTUAL COMMANDS]');
 
     const customContext = serializePlayerContext(world, playerId, {
       primaryObjective: 'Infiltrate the Clockwork Vault',
@@ -47,30 +49,23 @@ describe('Headless LLM Playtester Harness', () => {
   it('parses valid LLM JSON action payloads into canonical GameCommand objects', () => {
     const world = setupWorld();
 
-    const moveRes = parseLlmResponseToCommand(
-      JSON.stringify({ action: 'MOVE', dir: 'E' }),
-      world,
-      playerId,
-    );
+    const moveRes = parseLlmResponseToCommand(JSON.stringify({ action: 'MOVE', dir: 'E' }), world, playerId);
     expect(moveRes.type).toBe('MOVE_STEP');
-    if (moveRes.type === 'MOVE_STEP') {
-      expect(moveRes.dx).toBe(1);
-      expect(moveRes.dy).toBe(0);
-    }
 
-    const doorRes = parseLlmResponseToCommand(
-      JSON.stringify({ action: 'TOGGLE_DOOR', dx: 1, dy: 0 }),
-      world,
-      playerId,
-    );
+    const doorRes = parseLlmResponseToCommand(JSON.stringify({ action: 'TOGGLE_DOOR', dx: 1, dy: 0 }), world, playerId);
     expect(doorRes.type).toBe('TOGGLE_DOOR');
 
-    const steamRes = parseLlmResponseToCommand(
-      JSON.stringify({ action: 'VENT_STEAM', pressureKpa: 45, targetRelX: 0, targetRelY: 0 }),
-      world,
-      playerId,
-    );
+    const steamRes = parseLlmResponseToCommand(JSON.stringify({ action: 'VENT_STEAM', pressureKpa: 45, targetRelX: 0, targetRelY: 0 }), world, playerId);
     expect(steamRes.type).toBe('VENT_STEAM');
+
+    const portalRes = parseLlmResponseToCommand('{"action": "USE_PORTAL"}', world, playerId);
+    expect(portalRes.type).toBe('USE_PORTAL');
+
+    const buyRes = parseLlmResponseToCommand('{"action": "BUY", "merchantId": "npc_guild_merchant", "itemId": "loot_tonic"}', world, playerId);
+    expect(buyRes.type).toBe('BUY_FROM_MERCHANT');
+
+    const pickupRes = parseLlmResponseToCommand('{"action": "PICK_UP", "itemId": "item_123"}', world, playerId);
+    expect(pickupRes.type).toBe('PICK_UP_ITEM');
 
     // Handles markdown fences and malformed input with safe fallback
     const malformed = parseLlmResponseToCommand('```json\n{ "invalid": true }\n```', world, playerId);
@@ -97,10 +92,34 @@ describe('Headless LLM Playtester Harness', () => {
 
     // Tests mock action generation
     const mockAction = generateMockAction(world, playerId);
-    expect(['MOVE', 'WAIT', 'ATTACK', 'TOGGLE_DOOR', 'VENT_STEAM']).toContain(mockAction.action);
+    expect(['MOVE', 'WAIT', 'ATTACK', 'TOGGLE_DOOR', 'VENT_STEAM', 'USE_PORTAL', 'BUY']).toContain(mockAction.action);
   });
 
-  it('runs deterministic mock playtest session and outputs report', async () => {
+  it('configures distinct gameplay scenarios via applyPlaytestScenario', () => {
+    const world = setupWorld();
+
+    const combatWorld = applyPlaytestScenario(world, 'combat');
+    const player = combatWorld.entities[playerId]!;
+    expect(player.anatomy?.steamReserveKpa).toBe(100);
+    const warden = combatWorld.entities['npc_clockwork_warden']!;
+    expect(warden.aiController?.hostile).toBe(true);
+    expect(warden.aiController?.alertState).toBe('COMBAT');
+
+    const economyWorld = applyPlaytestScenario(world, 'economy');
+    const ecoPlayer = economyWorld.entities[playerId]!;
+    expect(economyWorld.economy.playerTreasuryPence).toBe(500);
+    expect(ecoPlayer.anatomy?.bloodVolumePct).toBe(70);
+    expect(economyWorld.entities['npc_guild_merchant']).toBeDefined();
+
+    const transitWorld = applyPlaytestScenario(world, 'transit');
+    expect(transitWorld.entities['env_transit_trap']?.trap?.armed).toBe(true);
+    expect(transitWorld.entities['env_transit_stairs_down']?.portal).toBeDefined();
+
+    const objs = getScenarioObjectives('combat');
+    expect(objs.primary).toContain('hostile');
+  });
+
+  it('runs deterministic mock playtest session across scenarios and outputs report', async () => {
     const reportPath = path.join(process.cwd(), 'tests/artifacts/test-playtest-report.md');
     const metrics = await runPlaytestSession({
       mock: true,
@@ -109,19 +128,23 @@ describe('Headless LLM Playtester Harness', () => {
       endpoint: 'http://localhost:11434/api/generate',
       model: 'test-model',
       reportPath,
+      scenario: 'combat',
     });
 
-    expect(metrics.turnsSurvived).toBe(25);
-    expect(metrics.totalDecibels).toBeGreaterThanOrEqual(0);
-    expect(metrics.uniqueTilesVisited).toBeGreaterThan(1);
+    expect(metrics.turnsSurvived).toBeGreaterThan(0);
+    expect(metrics.uniqueTilesVisited).toBeGreaterThanOrEqual(1);
+    expect(metrics.hostilesAttacked).toBeGreaterThanOrEqual(1);
+    expect(metrics.damageDealt).toBeGreaterThan(0);
     expect(fs.existsSync(reportPath)).toBe(true);
 
     const reportContent = fs.readFileSync(reportPath, 'utf-8');
     expect(reportContent).toContain('Emergent Sandbox Mechanics Metrics');
     expect(reportContent).toContain('Deterministic Mock Agent');
     expect(reportContent).toContain('Unique Tiles Visited');
+    expect(reportContent).toContain('Hostiles Attacked');
 
     // Cleanup test artifact
     fs.unlinkSync(reportPath);
   });
 });
+

@@ -27,6 +27,9 @@ export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('VENT_STEAM'), pressureKpa: z.number().positive().default(50), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
   z.object({ action: z.literal('USE_ITEM'), itemId: z.string(), reasoning: z.string().optional() }),
   z.object({ action: z.literal('BREACH_TILE'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('USE_PORTAL'), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('BUY'), merchantId: z.string(), itemId: z.string(), quantity: z.number().int().positive().optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('PICK_UP'), itemId: z.string().optional(), reasoning: z.string().optional() }),
 ]);
 export type LlmActionPayload = z.infer<typeof LlmActionPayloadSchema>;
 
@@ -88,10 +91,8 @@ export function serializePlayerContext(
       else row += ' . ';
 
       if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) {
-        if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy}) -> Action: TOGGLE_DOOR`);
-        if (cell?.terrainType === 'WOODEN_DOOR_OPEN') adjacentInteractables.push(`Door (OPEN) at (${dx}, ${dy})`);
+        if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy}) -> TOGGLE_DOOR`);
         if (trap) adjacentInteractables.push(`Trap (${trap.trap?.trapKind}) at (${dx}, ${dy}) -> AVOID`);
-        if (boiler) adjacentInteractables.push(`Boiler (${boiler.pressureVessel?.currentPressureKpa} kPa) at (${dx}, ${dy})`);
       }
     }
     fovRows += `${row}\n`;
@@ -101,6 +102,28 @@ export function serializePlayerContext(
     .filter((e) => e.type === 'SOUND_EMITTED')
     .map((s) => `[Turn ${s.turn}] ${s.decibels} dB sound at (${s.origin.x - pos.x}, ${s.origin.y - pos.y})`)
     .slice(-3);
+
+  const contextualCommands: string[] = [];
+  const groundEntities = findEntitiesAtPoint(state.entities, pos);
+  if (groundEntities.some((e) => e.portal || e.districtGate)) contextualCommands.push('{"action": "USE_PORTAL"}');
+  const groundItem = groundEntities.find((e) => e.item);
+  if (groundItem) contextualCommands.push(`{"action": "PICK_UP", "itemId": "${groundItem.id}"}`);
+
+  for (const ent of Object.values(state.entities)) {
+    if (!ent.position || ent.position.stratum !== pos.stratum) continue;
+    const dx = ent.position.x - pos.x, dy = ent.position.y - pos.y;
+    if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) {
+      if (ent.actor && !ent.actor.isPlayer && ent.aiController?.hostile) {
+        contextualCommands.push(`{"action": "ATTACK", "targetId": "${ent.id}", "limb": "TORSO"}`);
+      }
+      if (ent.aiController?.role === 'MERCHANT' && ent.inventory?.containedEntityIds[0]) {
+        contextualCommands.push(`{"action": "BUY", "merchantId": "${ent.id}", "itemId": "${ent.inventory.containedEntityIds[0]}"}`);
+      }
+    }
+  }
+  const consumable = player.inventory?.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect);
+  if (consumable) contextualCommands.push(`{"action": "USE_ITEM", "itemId": "${consumable}"}`);
+  if (steam >= 20) contextualCommands.push('{"action": "VENT_STEAM", "pressureKpa": 30}');
 
   const primaryObj = options?.primaryObjective ?? 'Explore the district, uncover unvisited tiles, and survive.';
   const secDir = options?.secondaryDirective ?? 'Interact with closed doors (+), avoid armed traps (^), and vent steam (~) to break line-of-sight when hostiles (G) approach.';
@@ -118,7 +141,9 @@ ${recentSounds.length > 0 ? recentSounds.join('\n') : 'None in range.'}
 [VISIBLE THREATS]:
 ${visibleThreats.length > 0 ? visibleThreats.join('\n') : 'No visible threats.'}
 [ADJACENT INTERACTABLES]:
-${adjacentInteractables.length > 0 ? adjacentInteractables.join('\n') : 'None.'}`;
+${adjacentInteractables.length > 0 ? adjacentInteractables.join('\n') : 'None.'}
+[AVAILABLE CONTEXTUAL COMMANDS]:
+${contextualCommands.length > 0 ? contextualCommands.map((c) => `- ${c}`).join('\n') : '- {"action": "MOVE", "dir": "N|S|E|W"}\n- {"action": "WAIT"}'}`;
 }
 
 export function parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId = EntityIdSchema.parse('actor_player')): GameCommand {
@@ -145,14 +170,16 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
           if (p.action === 'VENT_STEAM') return { type: 'VENT_STEAM', actorId: playerId, target: { x: pos.x + p.targetRelX, y: pos.y + p.targetRelY, stratum: pos.stratum }, pressureReleasedKpa: p.pressureKpa };
           if (p.action === 'USE_ITEM') return { type: 'USE_ITEM', actorId: playerId, itemEntityId: EntityIdSchema.parse(p.itemId) };
           if (p.action === 'BREACH_TILE') return { type: 'BREACH_TILE', actorId: playerId, target: { x: pos.x + p.dx, y: pos.y + p.dy, stratum: pos.stratum } };
+          if (p.action === 'USE_PORTAL') return { type: 'USE_PORTAL', actorId: playerId };
+          if (p.action === 'BUY') return { type: 'BUY_FROM_MERCHANT', actorId: playerId, merchantId: EntityIdSchema.parse(p.merchantId), itemEntityId: EntityIdSchema.parse(p.itemId), ...(p.quantity ? { quantity: p.quantity } : {}) };
+          if (p.action === 'PICK_UP') return { type: 'PICK_UP_ITEM', actorId: playerId, ...(p.itemId ? { itemEntityId: EntityIdSchema.parse(p.itemId) } : {}) };
         }
 
         const actionStr = String(rawObj.action || '').toUpperCase();
-        if (actionStr === 'TOGGLE_DOOR') {
-          const tdx = Math.sign(Number(rawObj.dx ?? 0));
-          const tdy = Math.sign(Number(rawObj.dy ?? 0));
-          return { type: 'TOGGLE_DOOR', actorId: playerId, target: { x: pos.x + tdx, y: pos.y + tdy, stratum: pos.stratum } };
-        }
+        if (actionStr === 'TOGGLE_DOOR') return { type: 'TOGGLE_DOOR', actorId: playerId, target: { x: pos.x + Math.sign(Number(rawObj.dx ?? 0)), y: pos.y + Math.sign(Number(rawObj.dy ?? 0)), stratum: pos.stratum } };
+        if (actionStr === 'USE_PORTAL' || actionStr === 'PORTAL' || actionStr === 'TRANSIT') return { type: 'USE_PORTAL', actorId: playerId };
+        if (actionStr === 'BUY' && rawObj.merchantId && rawObj.itemId) return { type: 'BUY_FROM_MERCHANT', actorId: playerId, merchantId: EntityIdSchema.parse(rawObj.merchantId), itemEntityId: EntityIdSchema.parse(rawObj.itemId) };
+        if (actionStr === 'PICK_UP' || actionStr === 'LOOT') return { type: 'PICK_UP_ITEM', actorId: playerId, ...(rawObj.itemId ? { itemEntityId: EntityIdSchema.parse(rawObj.itemId) } : {}) };
 
         const dirStr = String(rawObj.dir || rawObj.direction || rawObj.heading || '');
         const normDir = normalizeDirection(dirStr);
@@ -161,14 +188,10 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
           return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
         }
 
-        if (actionStr === 'MOVE' || !actionStr) {
-          if (rawObj.dx !== undefined || rawObj.dy !== undefined || rawObj.x !== undefined || rawObj.y !== undefined) {
-            const rawDx = Number(rawObj.dx ?? rawObj.x ?? 0);
-            const rawDy = Number(rawObj.dy ?? rawObj.y ?? 0);
-            const dx = Math.abs(rawDx) <= 1 ? rawDx : Math.sign(rawDx - pos.x);
-            const dy = Math.abs(rawDy) <= 1 ? rawDy : Math.sign(rawDy - pos.y);
-            if (dx !== 0 || dy !== 0) return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
-          }
+        if ((actionStr === 'MOVE' || !actionStr) && (rawObj.dx !== undefined || rawObj.dy !== undefined || rawObj.x !== undefined || rawObj.y !== undefined)) {
+          const rawDx = Number(rawObj.dx ?? rawObj.x ?? 0), rawDy = Number(rawObj.dy ?? rawObj.y ?? 0);
+          const dx = Math.abs(rawDx) <= 1 ? rawDx : Math.sign(rawDx - pos.x), dy = Math.abs(rawDy) <= 1 ? rawDy : Math.sign(rawDy - pos.y);
+          if (dx !== 0 || dy !== 0) return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
         }
       }
     }
@@ -176,24 +199,30 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
     // 2. Resilient text fallbacks (e.g. "MOVE 0 1", "MOVE: 26,15", "MOVE: NORTH")
     const coordMatch = cleaned.match(/\bMOVE[^\d\-+]*?\(?\s*(-?\d+)[,\s:]+(-?\d+)\s*\)?/i);
     if (coordMatch) {
-      const n1 = Number(coordMatch[1]);
-      const n2 = Number(coordMatch[2]);
-      const dx = Math.abs(n1) <= 1 && Math.abs(n2) <= 1 ? n1 : Math.sign(n1 - pos.x);
-      const dy = Math.abs(n1) <= 1 && Math.abs(n2) <= 1 ? n2 : Math.sign(n2 - pos.y);
+      const n1 = Number(coordMatch[1]), n2 = Number(coordMatch[2]);
+      const dx = Math.abs(n1) <= 1 && Math.abs(n2) <= 1 ? n1 : Math.sign(n1 - pos.x), dy = Math.abs(n1) <= 1 && Math.abs(n2) <= 1 ? n2 : Math.sign(n2 - pos.y);
       if (dx !== 0 || dy !== 0) return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
     }
 
     const textDirMatch = cleaned.match(/\bMOVE[^\w]*?["']?([A-Za-z]+)["']?/i);
     if (textDirMatch && textDirMatch[1]) {
       const norm = normalizeDirection(textDirMatch[1]);
-      if (norm && DIR_VECTORS[norm]) {
-        const [dx, dy] = DIR_VECTORS[norm]!;
-        return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
-      }
+      if (norm && DIR_VECTORS[norm]) return { type: 'MOVE_STEP', actorId: playerId, dx: DIR_VECTORS[norm]![0], dy: DIR_VECTORS[norm]![1] };
     }
 
-    if (/\b(VENT|STEAM)\b/i.test(cleaned)) {
-      return { type: 'VENT_STEAM', actorId: playerId, target: { x: pos.x, y: pos.y, stratum: pos.stratum }, pressureReleasedKpa: 30 };
+    if (/\b(VENT|STEAM)\b/i.test(cleaned)) return { type: 'VENT_STEAM', actorId: playerId, target: { x: pos.x, y: pos.y, stratum: pos.stratum }, pressureReleasedKpa: 30 };
+    if (/\b(PORTAL|STAIRS|TRANSIT|ENTER)\b/i.test(cleaned)) return { type: 'USE_PORTAL', actorId: playerId };
+    if (/\b(BUY|PURCHASE)\b/i.test(cleaned)) {
+      const m = Object.values(state.entities).find((e) => e.aiController?.role === 'MERCHANT' && e.position?.stratum === pos.stratum && Math.abs(e.position.x - pos.x) <= 1 && Math.abs(e.position.y - pos.y) <= 1);
+      if (m?.inventory?.containedEntityIds[0]) return { type: 'BUY_FROM_MERCHANT', actorId: playerId, merchantId: m.id, itemEntityId: m.inventory.containedEntityIds[0] };
+    }
+    if (/\b(HEAL|USE)\b/i.test(cleaned) && player.inventory) {
+      const itm = player.inventory.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect);
+      if (itm) return { type: 'USE_ITEM', actorId: playerId, itemEntityId: itm };
+    }
+    if (/\b(ATTACK|STRIKE)\b/i.test(cleaned)) {
+      const h = Object.values(state.entities).find((e) => e.actor && !e.actor.isPlayer && e.aiController?.hostile && e.position?.stratum === pos.stratum && Math.abs(e.position.x - pos.x) <= 1 && Math.abs(e.position.y - pos.y) <= 1);
+      if (h) return { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: h.id, targetSlot: 'TORSO' };
     }
   } catch {
     return fallback;
@@ -207,20 +236,29 @@ export function generateMockAction(
   recentPositions?: ReadonlyArray<{ x: number; y: number }>,
 ): LlmActionPayload {
   const player = state.entities[playerId];
-  if (!player || !player.position) return { action: 'WAIT' };
-  const pos = player.position;
-  const grid = state.strata[pos.stratum];
+  if (!player?.position) return { action: 'WAIT' };
+  const pos = player.position, grid = state.strata[pos.stratum];
   if (!grid) return { action: 'WAIT' };
 
   for (const ent of Object.values(state.entities)) {
     if (ent.actor && !ent.actor.isPlayer && ent.aiController?.hostile && ent.position && ent.position.stratum === pos.stratum) {
-      const dx = ent.position.x - pos.x;
-      const dy = ent.position.y - pos.y;
-      if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
-        return { action: 'ATTACK', targetId: ent.id, limb: 'TORSO', reasoning: 'Mock: Melee adjacent hostile guard' };
-      }
-      if (Math.abs(dx) <= 4 && Math.abs(dy) <= 4 && (player.anatomy?.steamReserveKpa ?? 0) >= 30) {
-        return { action: 'VENT_STEAM', pressureKpa: 30, targetRelX: 0, targetRelY: 0, reasoning: 'Mock: Vent steam cloud for visual cover' };
+      const dx = ent.position.x - pos.x, dy = ent.position.y - pos.y;
+      if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) return { action: 'ATTACK', targetId: ent.id, limb: 'TORSO', reasoning: 'Mock: Attack' };
+      if (Math.abs(dx) <= 4 && Math.abs(dy) <= 4 && (player.anatomy?.steamReserveKpa ?? 0) >= 30) return { action: 'VENT_STEAM', pressureKpa: 30, targetRelX: 0, targetRelY: 0, reasoning: 'Mock: Vent steam' };
+    }
+  }
+
+  if (findEntitiesAtPoint(state.entities, pos).some((e) => e.portal || e.districtGate)) return { action: 'USE_PORTAL', reasoning: 'Mock: Portal' };
+
+  if ((player.anatomy?.bloodVolumePct ?? 100) < 85 && player.inventory) {
+    const itm = player.inventory.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect?.kind === 'RESTORE_BLOOD');
+    if (itm) return { action: 'USE_ITEM', itemId: itm, reasoning: 'Mock: Heal' };
+  }
+
+  for (const ent of Object.values(state.entities)) {
+    if (ent.aiController?.role === 'MERCHANT' && ent.inventory?.containedEntityIds[0] && ent.position?.stratum === pos.stratum) {
+      if (Math.abs(ent.position.x - pos.x) <= 1 && Math.abs(ent.position.y - pos.y) <= 1) {
+        return { action: 'BUY', merchantId: ent.id, itemId: ent.inventory.containedEntityIds[0], reasoning: 'Mock: Buy' };
       }
     }
   }
@@ -228,23 +266,12 @@ export function generateMockAction(
   const validMoves: Array<{ dir: 'N' | 'S' | 'E' | 'W'; unvisited: boolean }> = [];
   for (const [dir, [dx, dy]] of Object.entries(DIR_VECTORS)) {
     if (dx !== 0 && dy !== 0) continue;
-    const tx = pos.x + dx;
-    const ty = pos.y + dy;
-    const point: Point3D = { x: tx, y: ty, stratum: pos.stratum };
-    const ents = findEntitiesAtPoint(state.entities, point);
-    const cell = getTileCell(grid, tx, ty);
-    if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') {
-      return { action: 'TOGGLE_DOOR', dx, dy, reasoning: 'Mock: Open adjacent closed door' };
-    }
-    if (ents.some((e) => e.trap?.armed)) continue;
-    if (cell && !cell.blocksMovement && !ents.some((e) => e.position?.blocksMovement)) {
-      const wasRecent = recentPositions?.some((p) => p.x === tx && p.y === ty) ?? false;
-      validMoves.push({ dir: dir as 'N' | 'S' | 'E' | 'W', unvisited: !wasRecent });
-    }
+    const tx = pos.x + dx, ty = pos.y + dy, point: Point3D = { x: tx, y: ty, stratum: pos.stratum };
+    const ents = findEntitiesAtPoint(state.entities, point), cell = getTileCell(grid, tx, ty);
+    if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') return { action: 'TOGGLE_DOOR', dx, dy, reasoning: 'Mock: Door' };
+    if (!cell || cell.blocksMovement || ents.some((e) => e.position?.blocksMovement || e.trap?.armed)) continue;
+    validMoves.push({ dir: dir as 'N' | 'S' | 'E' | 'W', unvisited: !recentPositions?.some((p) => p.x === tx && p.y === ty) });
   }
   const preferred = validMoves.find((m) => m.unvisited) ?? validMoves[0];
-  if (preferred) {
-    return { action: 'MOVE', dir: preferred.dir, reasoning: 'Mock: Advance to open tile' };
-  }
-  return { action: 'WAIT', reasoning: 'Mock: Stand ground' };
+  return preferred ? { action: 'MOVE', dir: preferred.dir, reasoning: 'Mock: Move' } : { action: 'WAIT', reasoning: 'Mock: Wait' };
 }
