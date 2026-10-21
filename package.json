@@ -20,6 +20,8 @@
     "hermes:scout:mock": "tsx tests/scripts/hermes-scout.ts --mock",
     "hermes:chronicler": "tsx tests/scripts/hermes-chronicler.ts",
     "hermes:chronicler:mock": "tsx tests/scripts/hermes-chronicler.ts --mock",
+    "hermes:testgen": "tsx tests/scripts/hermes-testgen.ts",
+    "hermes:testgen:mock": "tsx tests/scripts/hermes-testgen.ts --mock",
     "verify": "npm run typecheck && npm run check:boundaries && npm run validate:data && npm run test:sim"
   },
   "dependencies": {
