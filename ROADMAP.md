@@ -12,14 +12,20 @@
 
 ---
 
-## 1. Active Implementation Plan: Ready for Next Feature Epic / Milestone
+## 1. Active Implementation Plan: Local Hermes Zero-Token Automation & Engineering Epics (Phases 32–36)
 
-All scheduled milestone phases (Phases 1–31) across the headless simulation core, procedural generation, tactile Qud-style UI shell, and CDDA emergent sandbox epics are complete and verified with 0 errors across 26 test suites (112 tests).
+To minimize compounding input context and output generation token costs on paid frontier models, Phases 32–36 establish an autonomous, local Hermes-driven companion tooling suite in `tests/scripts/`. Every output is governed by strict Zod validation and `npm run verify`.
 
-### Potential Future Epics
-- **Audio & Soundscape Shell**: WebAudio procedural synthesizer / sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps).
-- **Vehicles & Pneumatic Rail Transit**: Moving multi-tile pneumatic carriages connecting Spire towers and Undercroft sluice tunnels.
-- **Deep Faction Warfare & Territorial Influence**: Dynamic turf wars between the Ironmongers' Cartel, Undercroft Syndicate, and Clockwork Guild with automated district takeovers.
+- [ ] **Phase 32 (Issue #37)**: Local Hermes Codebase Scout & Pre-Flight Impact Analyzer (`tests/scripts/hermes-scout.ts`, `npm run hermes:scout`). Compiles the mandatory 5-point Pre-Flight Impact Analysis locally without polluting Gemini's context with raw multi-file reads.
+- [ ] **Phase 33 (Issue #38)**: Self-Healing Deterministic Unit Test Generator (`tests/scripts/hermes-testgen.ts`, `npm run hermes:testgen`). Generates Vitest suites with a local `tsc` + `vitest` compiler error feedback loop.
+- [ ] **Phase 34 (Issue #39)**: Exhaustive `SimEvent` Chronicler & Boilerplate Generator (`tests/scripts/hermes-chronicler.ts`, `npm run hermes:chronicler`). Synchronizes `src/schemas/events.schema.ts` variants with `EventFormatter.ts` switch cases and Victorian logs.
+- [ ] **Phase 35 (Issue #40)**: Full-Spectrum Declarative Blueprint & Prefab Factory (`tests/scripts/hermes-content-generator.ts`, `tests/scripts/hermes-content-normalizers.ts`). Expands bulk local generation to prosthetics, districts, gases, and ASCII building prefabs.
+- [ ] **Phase 36 (Issue #41)**: Modularity Ceiling Splitter Assistant (`tests/scripts/hermes-split.ts`, `npm run hermes:split`). Automatically extracts sub-domain functions from near-cap files (>=240 lines) to enforce the 300-line modularity ceiling.
+
+### Future Gameplay Epics (Queued Post-Automation)
+- **Audio & Soundscape Shell (Phase 37)**: WebAudio procedural synthesizer / sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps).
+- **Vehicles & Pneumatic Rail Transit (Phase 38)**: Moving multi-tile pneumatic carriages connecting Spire towers and Undercroft sluice tunnels.
+- **Deep Faction Warfare & Territorial Influence (Phase 39)**: Dynamic turf wars between the Ironmongers' Cartel, Undercroft Syndicate, and Clockwork Guild with automated district takeovers.
 
 ---
 
