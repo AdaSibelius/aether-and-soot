@@ -136,5 +136,12 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'TOXICITY_OVERDOSE':
       return `[T${ev.turn}] OVERDOSE! ${ev.actorId}'s veins seethe with ${ev.toxicityPct}% toxicity (-${ev.bloodVolumeLost}% blood, -${ev.damageInflicted} HP)!`;
     case 'WITHDRAWAL_ONSET':
-      return `[T${ev.turn}] WITHDRAWAL! ${ev.actorId} suffers tremors as ${ev.effectId} crashes (-${ev.penaltyAp} AP)!`;  }
+      return `[T${ev.turn}] WITHDRAWAL! ${ev.actorId} suffers tremors as ${ev.effectId} crashes (-${ev.penaltyAp} AP)!`;
+    case 'POSTURE_CHANGED':
+      return `[T${ev.turn}] ${ev.actorId} transitioned stance from ${ev.previousPosture} to ${ev.newPosture}.`;
+    case 'ENTITY_KNOCKED_BACK':
+      return `[T${ev.turn}] IMPACT! ${ev.entityId} was hurled ${ev.distanceTraveled} tiles backwards to (${ev.endPosition.x}, ${ev.endPosition.y})!`;
+    case 'MOMENTUM_COLLISION_IMPACT':
+      return `[T${ev.turn}] CRUSHING COLLISION! ${ev.primaryEntityId} slammed into ${ev.obstacleType === 'ENTITY' ? ev.collidedWithEntityId ?? 'another entity' : ev.obstacleType} at (${ev.impactPosition.x}, ${ev.impactPosition.y}) (${ev.damageInflicted} trauma)!`;
+  }
 }

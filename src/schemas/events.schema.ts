@@ -33,6 +33,11 @@ import {
   AlchemicalConsumedEventSchema, ToxicityOverdoseEventSchema,
   WithdrawalOnsetEventSchema, StaminaDepletedEventSchema,
 } from './metabolism-events.schema.js';
+import {
+  PostureChangedEventSchema,
+  EntityKnockedBackEventSchema,
+  MomentumCollisionImpactEventSchema,
+} from './momentum-events.schema.js';
 
 export {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
@@ -59,6 +64,9 @@ export {
   CyberneticHarvestedEventSchema, HarvestActionFailedEventSchema,
   AlchemicalConsumedEventSchema, ToxicityOverdoseEventSchema,
   WithdrawalOnsetEventSchema, StaminaDepletedEventSchema,
+  PostureChangedEventSchema,
+  EntityKnockedBackEventSchema,
+  MomentumCollisionImpactEventSchema,
 };
 
 export const SimEventSchema = z.discriminatedUnion('type', [
@@ -125,5 +133,8 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ToxicityOverdoseEventSchema,
   WithdrawalOnsetEventSchema,
   StaminaDepletedEventSchema,
+  PostureChangedEventSchema,
+  EntityKnockedBackEventSchema,
+  MomentumCollisionImpactEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

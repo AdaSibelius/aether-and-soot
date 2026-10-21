@@ -19,10 +19,14 @@ export const PositionComponentSchema = Point3DSchema.extend({
 });
 export type PositionComponent = z.infer<typeof PositionComponentSchema>;
 
+export const PostureSchema = z.enum(['STANDING', 'CROUCHED', 'BRACED']);
+export type Posture = z.infer<typeof PostureSchema>;
+
 export const ActorEnergyComponentSchema = z.object({
   energy: z.number().int(),
   speed: z.number().int().min(10).default(100),
   isPlayer: z.boolean().default(false),
+  posture: PostureSchema.default('STANDING').optional(),
 });
 export type ActorEnergyComponent = z.infer<typeof ActorEnergyComponentSchema>;
 

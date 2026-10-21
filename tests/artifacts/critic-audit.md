@@ -56,6 +56,7 @@
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `ACCEPT_CONTRACT`
+- `APPLY_MOMENTUM_VECTOR`
 - `COMPLETE_CONTRACT`
 - `CRAFT_RECIPE`
 - `DAMAGE_LIMB`
@@ -72,6 +73,7 @@
 - `REST_AT_BED`
 - `SALVAGE_ITEM`
 - `SELL_TO_MERCHANT`
+- `SET_POSTURE`
 - `SMASH_TERRAIN`
 - `STOCK_PEDESTAL`
 - `TRAVEL_DISTRICT`

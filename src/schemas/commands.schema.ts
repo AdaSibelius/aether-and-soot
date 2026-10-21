@@ -12,10 +12,13 @@ import {
 import type {
   ActivateProstheticCommand,
   HarvestCorpseCommand,
+  SetPostureCommand,
+  ApplyMomentumVectorCommand,
 } from './domain-commands.schema.js';
 import {
   AcceptContractCommandSchema,
   ActivateProstheticCommandSchema,
+  ApplyMomentumVectorCommandSchema,
   BreachTileCommandSchema,
   BuyFromMerchantCommandSchema,
   CompleteContractCommandSchema,
@@ -30,6 +33,7 @@ import {
   RestAtBedCommandSchema,
   SalvageItemCommandSchema,
   SellToMerchantCommandSchema,
+  SetPostureCommandSchema,
   SmashTerrainCommandSchema,
   StockPedestalCommandSchema,
   ToggleDoorCommandSchema,
@@ -41,6 +45,8 @@ import {
 export type {
   ActivateProstheticCommand,
   HarvestCorpseCommand,
+  SetPostureCommand,
+  ApplyMomentumVectorCommand,
 };
 export {
   EquipItemCommandSchema,
@@ -48,6 +54,7 @@ export {
   FireRangedWeaponCommandSchema,
   AcceptContractCommandSchema,
   ActivateProstheticCommandSchema,
+  ApplyMomentumVectorCommandSchema,
   BreachTileCommandSchema,
   BuyFromMerchantCommandSchema,
   CompleteContractCommandSchema,
@@ -62,6 +69,7 @@ export {
   RestAtBedCommandSchema,
   SalvageItemCommandSchema,
   SellToMerchantCommandSchema,
+  SetPostureCommandSchema,
   SmashTerrainCommandSchema,
   StockPedestalCommandSchema,
   ToggleDoorCommandSchema,
@@ -173,5 +181,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   BreachTileCommandSchema,
   ActivateProstheticCommandSchema,
   HarvestCorpseCommandSchema,
+  SetPostureCommandSchema,
+  ApplyMomentumVectorCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

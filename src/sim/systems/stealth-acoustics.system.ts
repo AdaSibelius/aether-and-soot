@@ -43,6 +43,10 @@ export function computeActorStepNoiseDb(
     totalDb += 10; // Overencumbered rattling gear
   }
 
+  if (actor.actor?.posture === 'CROUCHED') {
+    totalDb = Math.max(1, Math.floor(totalDb / 2));
+  }
+
   return totalDb;
 }
 
@@ -133,5 +137,20 @@ export function canActorSpotTarget(
     visionRadius,
   );
 
-  return isPointVisible(visibleTiles, target.position);
+  if (!isPointVisible(visibleTiles, target.position)) return false;
+
+  if (target.actor?.posture === 'CROUCHED') {
+    const offsets: ReadonlyArray<readonly [number, number]> = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    const hasLowCover = offsets.some(([dx, dy]) => {
+      const cx = target.position!.x + dx;
+      const cy = target.position!.y + dy;
+      if (cx < 0 || cx >= grid.width || cy < 0 || cy >= grid.height) return false;
+      const cell = grid.cells[cy * grid.width + cx];
+      return cell?.terrainType === 'RUBBLE_PILE' || cell?.terrainType === 'SMASHED_WINDOW_FRAME';
+    });
+    const dist = Math.max(Math.abs(observer.position.x - target.position.x), Math.abs(observer.position.y - target.position.y));
+    if (hasLowCover && dist > 3) return false;
+  }
+
+  return true;
 }

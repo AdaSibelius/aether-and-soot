@@ -7,6 +7,7 @@ import {
   LimbSlotIdSchema,
   Point3DSchema,
 } from './primitives.schema.js';
+import { PostureSchema } from './components.schema.js';
 
 export const StockPedestalCommandSchema = z.object({
   type: z.literal('STOCK_PEDESTAL'),
@@ -156,3 +157,21 @@ export const HarvestCorpseCommandSchema = z.object({
   toolEntityId: EntityIdSchema,
 });
 export type HarvestCorpseCommand = z.infer<typeof HarvestCorpseCommandSchema>;
+
+export const SetPostureCommandSchema = z.object({
+  type: z.literal('SET_POSTURE'),
+  actorId: EntityIdSchema,
+  posture: PostureSchema,
+});
+export type SetPostureCommand = z.infer<typeof SetPostureCommandSchema>;
+
+export const ApplyMomentumVectorCommandSchema = z.object({
+  type: z.literal('APPLY_MOMENTUM_VECTOR'),
+  targetId: EntityIdSchema,
+  dx: z.number().int().min(-1).max(1),
+  dy: z.number().int().min(-1).max(1),
+  distanceTiles: z.number().int().min(1),
+  massKg: z.number().positive().optional(),
+  sourceEntityId: EntityIdSchema.optional(),
+});
+export type ApplyMomentumVectorCommand = z.infer<typeof ApplyMomentumVectorCommandSchema>;

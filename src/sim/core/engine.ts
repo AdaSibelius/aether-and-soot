@@ -26,6 +26,7 @@ import { resolveLootContainer } from '../systems/container.system.js';
 import { resolveBreachCommand } from '../systems/physics-traps.system.js';
 import { decrementProstheticCooldowns, resolveActivateProsthetic } from '../systems/prosthetics.system.js';
 import { resolveHarvestCorpse } from '../systems/surgery.system.js';
+import { resolveApplyMomentumVector, resolveSetPosture } from '../systems/momentum.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -173,6 +174,12 @@ export function dispatchCommand(
     case 'HARVEST_CORPSE':
       apply(resolveHarvestCorpse(nextState, command.actorId, command.corpseEntityId, command.toolEntityId, command.slot));
       break;
+    case 'SET_POSTURE':
+      apply(resolveSetPosture(nextState, command.actorId, command.posture, nextState.turnCount + 1));
+      break;
+    case 'APPLY_MOMENTUM_VECTOR':
+      apply(resolveApplyMomentumVector(nextState, command.targetId, command.dx, command.dy, command.distanceTiles, command.massKg, nextState.turnCount + 1, command.sourceEntityId));
+      break;
   }
 
   const npcTick = advanceNpcTurns(nextState, rng);
@@ -183,7 +190,12 @@ export function dispatchCommand(
   nextState = thermoTick.state;
   systemEvents = [...systemEvents, ...thermoTick.events];
 
-  const actingActorId = command.type === 'ATTACK_ACTOR' ? command.attackerId : command.actorId;
+  const actingActorId =
+    command.type === 'ATTACK_ACTOR'
+      ? command.attackerId
+      : command.type === 'APPLY_MOMENTUM_VECTOR'
+        ? (command.sourceEntityId ?? command.targetId)
+        : command.actorId;
   nextState = decrementProstheticCooldowns(nextState, actingActorId);
   const scheduled = advanceTurnSchedule(nextState, actingActorId, apSpent, systemEvents, rng);
 

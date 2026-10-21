@@ -56,7 +56,7 @@ export function advanceMetabolismTick(state: WorldState): {
     let actorEnergy = entity.actor?.energy ?? 0;
 
     const remainingEffects: typeof anatomy.activeEffects = [];
-    for (const eff of anatomy.activeEffects) {
+    for (const eff of anatomy.activeEffects ?? []) {
       const remainingTurns = eff.durationTurns - 1;
       if (remainingTurns <= 0) {
         if (isStimulantEffect(eff.effectId)) {
