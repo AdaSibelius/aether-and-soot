@@ -7,35 +7,30 @@
 > - **Phases 18–24 (Completed — Issues #23–#29)**: Expanded the world into large scrolling districts (`48x36`), procedural building archetypes with smashable windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, CDDA-style Character Creation, wielded weapons & wearable pocketed armor, interactive containers (`LOCKER`, `CRATE`, `BOOKSHELF`) with tangible currency pouches (`Crown Pence Pouch`), and grounded trade with live Chirurgeon/Fixer spawns and dialogue-to-market wiring.
 > - **Phases 25–28 (Completed — Issues #30–#33)**: Connected fuel-driven boiler stoking & pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
 > - **Phases 29–31 (Completed — Issues #34–#36 — Emergent Systemic Sandbox Epics)**: Elevated *Aether & Soot* to true *CDDA* / *Caves of Qud* emergent systemic depth through acoustic decibel propagation & smog stealth, diurnal shift clocks & background district catch-up, and structural wall breaching, multi-strata gravity falls & clockwork traps.
+> - **Phases 32–36 (Completed — Issues #37–#41 — Local Zero-Token Automation Tooling)**: Companion tooling suite for local LLM routing (`hermes:scout`, `hermes:testgen`, `hermes:chronicler`, `generate:content`, `hermes:split`) with strict Zod validation, deterministic AST extraction, and anti-tautological test invariants.
 >
 > Every phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
 
 ---
 
-## 1. Active Implementation Plan: Local Hermes/Ollama Zero-Token Automation (Phases 32–36)
+## 1. Active Implementation Plan: Future Gameplay Epics (Phases 37–39)
 
-To minimize compounding input context and output generation token costs on paid frontier models, Phases 32–36 establish an autonomous, local companion tooling suite in `tests/scripts/`. Every output is governed by strict Zod validation, deterministic-first Node AST extraction, and `npm run verify`.
-
-### Architectural Invariants & Model Routing
-- **Tier 1 (Code/AST Tools)**: `hermes:scout`, `hermes:testgen`, and `hermes:split` default to `gemma4:12b-extended` (fallback: `hermes-agent` / `hermes3:8b`).
-- **Tier 2 (Fast Flavor/JSON Tools)**: `hermes:chronicler`, `generate:content`, and `playtest` default to `hermes3:8b` (fallback: `hermes-agent`).
-- **Anti-Tautological Invariant**: `hermes:testgen` isolates compiler/type errors (`tsc --noEmit`) from domain test assertions (`vitest run`), strictly forbidding the LLM from mutating `expect()` targets to falsely pass tests.
-- **Deterministic-First Invariant**: `hermes:scout` and `hermes:split` extract line counts, exports, and function slices deterministically via Node; local models are invoked purely for synthesis and import reconciliation.
-
-- [ ] **Phase 32 (Issue #37)**: Local Codebase Scout & Pre-Flight Impact Analyzer (`tests/scripts/hermes-scout.ts`, `npm run hermes:scout`). Compiles the mandatory 5-point Pre-Flight Impact Analysis locally without polluting Gemini's context with raw multi-file reads. Defaults to `gemma4:12b-extended`.
-- [ ] **Phase 33 (Issue #38)**: Self-Healing Deterministic Unit Test Generator (`tests/scripts/hermes-testgen.ts`, `npm run hermes:testgen`). Generates Vitest suites with compiler-only error recovery and anti-tautological test protection. Defaults to `gemma4:12b-extended`.
-- [ ] **Phase 34 (Issue #39)**: Exhaustive `SimEvent` Chronicler & Boilerplate Generator (`tests/scripts/hermes-chronicler.ts`, `npm run hermes:chronicler`). Synchronizes `src/schemas/events.schema.ts` variants with `EventFormatter.ts` switch cases and Victorian logs. Defaults to `hermes3:8b`.
-- [ ] **Phase 35 (Issue #40)**: Full-Spectrum Declarative Blueprint & Prefab Factory (`tests/scripts/hermes-content-generator.ts`, `tests/scripts/hermes-content-normalizers.ts`). Expands bulk local generation to prosthetics, districts, gases, and ASCII building prefabs. Defaults to `hermes3:8b`.
-- [ ] **Phase 36 (Issue #41)**: Modularity Ceiling Splitter Assistant (`tests/scripts/hermes-split.ts`, `npm run hermes:split`). Uses deterministic AST slicing to extract sub-domain functions from near-cap files (>=240 lines) to enforce the 300-line modularity ceiling. Defaults to `gemma4:12b-extended`.
-
-### Future Gameplay Epics (Queued Post-Automation)
-- **Audio & Soundscape Shell (Phase 37)**: WebAudio procedural synthesizer / sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps).
-- **Vehicles & Pneumatic Rail Transit (Phase 38)**: Moving multi-tile pneumatic carriages connecting Spire towers and Undercroft sluice tunnels.
-- **Deep Faction Warfare & Territorial Influence (Phase 39)**: Dynamic turf wars between the Ironmongers' Cartel, Undercroft Syndicate, and Clockwork Guild with automated district takeovers.
+- [ ] **Phase 37 (Issue #42)**: Audio & Soundscape Shell (`src/client/audio/`). WebAudio procedural synthesizer and sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps, footsteps).
+- [ ] **Phase 38**: Vehicles & Pneumatic Rail Transit. Moving multi-tile pneumatic carriages connecting Spire towers and Undercroft sluice tunnels.
+- [ ] **Phase 39**: Deep Faction Warfare & Territorial Influence. Dynamic turf wars between the Ironmongers' Cartel, Undercroft Syndicate, and Clockwork Guild with automated district takeovers.
 
 ---
 
-## 2. Archive: Completed Phases (Phases 7–31)
+## 2. Archive: Completed Tooling & Systems (Phases 32–36)
+- [x] **Phase 32 (Issue #37 — Completed)**: Local Codebase Scout & Pre-Flight Impact Analyzer (`tests/scripts/hermes-scout.ts`, `npm run hermes:scout`). Compiles the mandatory 5-point Pre-Flight Impact Analysis locally without polluting Gemini's context with raw multi-file reads. Defaults to `gemma4:12b-extended`.
+- [x] **Phase 33 (Issue #38 — Completed)**: Self-Healing Deterministic Unit Test Generator (`tests/scripts/hermes-testgen.ts`, `npm run hermes:testgen`). Generates Vitest suites with compiler-only error recovery and anti-tautological test protection. Defaults to `gemma4:12b-extended`.
+- [x] **Phase 34 (Issue #39 — Completed)**: Exhaustive `SimEvent` Chronicler & Boilerplate Generator (`tests/scripts/hermes-chronicler.ts`, `npm run hermes:chronicler`). Synchronizes `src/schemas/events.schema.ts` variants with `EventFormatter.ts` switch cases and Victorian logs. Defaults to `hermes3:8b`.
+- [x] **Phase 35 (Issue #40 — Completed)**: Full-Spectrum Declarative Blueprint & Prefab Factory (`tests/scripts/hermes-content-generator.ts`, `tests/scripts/hermes-content-normalizers.ts`). Expands bulk local generation to prosthetics, districts, gases, and ASCII building prefabs. Defaults to `hermes3:8b`.
+- [x] **Phase 36 (Issue #41 — Completed)**: Modularity Ceiling Splitter Assistant (`tests/scripts/hermes-split.ts`, `npm run hermes:split`). Uses deterministic AST slicing to extract sub-domain functions from near-cap files (>=240 lines) to enforce the 300-line modularity ceiling. Defaults to `gemma4:12b-extended`.
+
+---
+
+## 3. Archive: Completed Gameplay Phases (Phases 7–31)
 - **Phase 7 (Issue #12 — Completed)**: World Items, Ground Spawning & True Inventory Management (`src/sim/systems/inventory.system.ts`, `src/sim/systems/item-spawner.ts`).
 - **Phase 8 (Issue #13 — Completed)**: Multi-Building District ProcGen, Doors & Inter-District Transit (`src/sim/spatial/district-layout.ts`, `src/sim/systems/transit.system.ts`).
 - **Phase 9 (Issue #14 — Completed)**: Artificer Crafting, Salvage & Steam Workbenches (`src/sim/systems/crafting.system.ts`, `data/items/recipes.json`).
