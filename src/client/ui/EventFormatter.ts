@@ -143,5 +143,15 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] IMPACT! ${ev.entityId} was hurled ${ev.distanceTraveled} tiles backwards to (${ev.endPosition.x}, ${ev.endPosition.y})!`;
     case 'MOMENTUM_COLLISION_IMPACT':
       return `[T${ev.turn}] CRUSHING COLLISION! ${ev.primaryEntityId} slammed into ${ev.obstacleType === 'ENTITY' ? ev.collidedWithEntityId ?? 'another entity' : ev.obstacleType} at (${ev.impactPosition.x}, ${ev.impactPosition.y}) (${ev.damageInflicted} trauma)!`;
+    case 'WEAPON_MOD_INSTALLED':
+      return `[T${ev.turn}] UPGRADE! ${ev.actorId} attached ${ev.modBlueprintId} to ${ev.weaponEntityId} (${ev.remainingModSlots} slots remaining).`;
+    case 'WEAPON_MOD_UNINSTALLED':
+      return `[T${ev.turn}] ${ev.actorId} detached ${ev.modBlueprintId} from ${ev.weaponEntityId}.`;
+    case 'AMMO_LOADED':
+      return `[T${ev.turn}] ${ev.actorId} loaded ${ev.ammoCount}x ${ev.ammoBlueprintId} into ${ev.weaponEntityId}.`;
+    case 'OBSTACLE_PRIED':
+      return `[T${ev.turn}] FORCED! ${ev.actorId} pried open ${ev.fromTerrain} into ${ev.toTerrain} using ${ev.toolEntityId} (Quality ${ev.toolQuality}).`;
+    case 'WEAPON_MOD_ACTION_FAILED':
+      return `[T${ev.turn}] Weapon modification failed for ${ev.actorId}: ${ev.reason}.`;
   }
 }

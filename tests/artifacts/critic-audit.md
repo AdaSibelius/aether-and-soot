@@ -32,6 +32,7 @@
 - `src/client/ui/AnatomyWindow.tsx`: **237 lines** (threshold: 230)
 - `src/sim/spatial/building-prefabs.ts`: **236 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **235 lines** (threshold: 230)
+- `src/sim/core/engine.ts`: **235 lines** (threshold: 230)
 - `src/schemas/core-events.schema.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/dialogue-quest.system.ts`: **233 lines** (threshold: 230)
 - `src/sim/core/world.ts`: **232 lines** (threshold: 230)
@@ -64,9 +65,12 @@
 - `EMIT_SPARK`
 - `HIRE_COMPANION`
 - `INSTALL_PROSTHETIC`
+- `INSTALL_WEAPON_MOD`
+- `LOAD_AMMO`
 - `LOOT_CONTAINER`
 - `PAY_CHIRURGEON_HEAL`
 - `PRESSURIZE_VESSEL`
+- `PRY_OBSTACLE`
 - `REFILL_STEAM`
 - `REMOVE_PROSTHETIC`
 - `REPAIR_LIMB`
@@ -78,6 +82,7 @@
 - `STOCK_PEDESTAL`
 - `TRAVEL_DISTRICT`
 - `TRIGGER_SUPPLY_SHOCK`
+- `UNINSTALL_WEAPON_MOD`
 
 ## 4. Systemic Depth & NPC Agency Critique (vs. CDDA / Qud / Arcostate)
 - **Current NPC Agency Parity**:

@@ -9,6 +9,7 @@ import {
   LimbSlotIdSchema,
   Point3DSchema,
   SocketTypeSchema,
+  ToolQualityIdSchema,
   VisualGlyphSpecSchema,
 } from './primitives.schema.js';
 import { EquipmentSlotSchema, EquipmentSpecSchema } from './equipment.schema.js';
@@ -121,6 +122,7 @@ export const ItemComponentSchema = z.object({
   useEffect: ItemUseEffectSchema.optional(),
   unlocksRecipeId: BlueprintIdSchema.optional(),
   equipmentSpec: EquipmentSpecSchema.optional(),
+  toolQualities: z.record(ToolQualityIdSchema, z.number().int().positive()).optional(),
   penceValue: z.number().int().nonnegative().optional(),
   surgicalQuality: z.number().min(0).max(100).optional(),
 });

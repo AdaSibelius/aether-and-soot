@@ -87,6 +87,15 @@ export type LimbSlotId = z.infer<typeof LimbSlotIdSchema>;
 export const SocketTypeSchema = z.enum(['POWER_SOURCE', 'ACTUATOR', 'OPTIC_SENSOR']);
 export type SocketType = z.infer<typeof SocketTypeSchema>;
 
+export const ToolQualityIdSchema = z.enum([
+  'SURGERY',
+  'WRENCHING',
+  'PRYING',
+  'ALCHEMICAL',
+  'LOCKPICKING',
+]);
+export type ToolQualityId = z.infer<typeof ToolQualityIdSchema>;
+
 export const ItemCategorySchema = z.enum(['MATERIAL', 'CONSUMABLE', 'PROSTHETIC', 'COMMODITY', 'EQUIPMENT']);
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 

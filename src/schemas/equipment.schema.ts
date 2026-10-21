@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EntityIdSchema, LimbSlotIdSchema } from './primitives.schema.js';
+import { BlueprintIdSchema, EntityIdSchema, LimbSlotIdSchema } from './primitives.schema.js';
 
 export const EquipmentSlotSchema = z.enum([
   'WIELD',
@@ -8,6 +8,15 @@ export const EquipmentSlotSchema = z.enum([
   'BACK_WEAR',
 ]);
 export type EquipmentSlot = z.infer<typeof EquipmentSlotSchema>;
+
+export const WeaponModSpecSchema = z.object({
+  modType: z.enum(['BARREL', 'SILENCER', 'RECEIVER', 'CHAMBER']),
+  rangeModifier: z.number().int().default(0),
+  damageModifier: z.number().int().default(0),
+  noiseDecibelModifier: z.number().int().default(0),
+  steamCostModifier: z.number().int().default(0),
+});
+export type WeaponModSpec = z.infer<typeof WeaponModSpecSchema>;
 
 export const EquipmentSpecSchema = z.object({
   equipSlot: EquipmentSlotSchema,
@@ -18,6 +27,10 @@ export const EquipmentSpecSchema = z.object({
   rangedRange: z.number().int().nonnegative().default(0),
   rangedDamage: z.number().int().nonnegative().default(0),
   rangedSteamCostKpa: z.number().int().nonnegative().default(0),
+  modSlots: z.number().int().nonnegative().default(0).optional(),
+  installedModBlueprintIds: z.array(BlueprintIdSchema).default([]).optional(),
+  loadedAmmo: z.object({ blueprintId: BlueprintIdSchema, count: z.number().int().nonnegative() }).optional(),
+  weaponModSpec: WeaponModSpecSchema.optional(),
 });
 export type EquipmentSpec = z.infer<typeof EquipmentSpecSchema>;
 

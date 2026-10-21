@@ -38,6 +38,13 @@ import {
   EntityKnockedBackEventSchema,
   MomentumCollisionImpactEventSchema,
 } from './momentum-events.schema.js';
+import {
+  WeaponModInstalledEventSchema,
+  WeaponModUninstalledEventSchema,
+  AmmoLoadedEventSchema,
+  ObstaclePriedEventSchema,
+  WeaponModActionFailedEventSchema,
+} from './weapon-mod-events.schema.js';
 
 export {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
@@ -67,6 +74,11 @@ export {
   PostureChangedEventSchema,
   EntityKnockedBackEventSchema,
   MomentumCollisionImpactEventSchema,
+  WeaponModInstalledEventSchema,
+  WeaponModUninstalledEventSchema,
+  AmmoLoadedEventSchema,
+  ObstaclePriedEventSchema,
+  WeaponModActionFailedEventSchema,
 };
 
 export const SimEventSchema = z.discriminatedUnion('type', [
@@ -136,5 +148,10 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   PostureChangedEventSchema,
   EntityKnockedBackEventSchema,
   MomentumCollisionImpactEventSchema,
+  WeaponModInstalledEventSchema,
+  WeaponModUninstalledEventSchema,
+  AmmoLoadedEventSchema,
+  ObstaclePriedEventSchema,
+  WeaponModActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

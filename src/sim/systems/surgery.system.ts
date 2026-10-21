@@ -53,11 +53,13 @@ export function resolveHarvestCorpse(
 
   const tool = state.entities[toolEntityId];
   const toolCarried = actor.inventory?.containedEntityIds.includes(toolEntityId) || actor.inventory?.equippedSlots?.WIELD === toolEntityId;
-  const toolQuality = tool?.item?.surgicalQuality ?? (
-    tool?.item?.blueprintId.includes('scalpel') ? 90 :
-    tool?.item?.blueprintId.includes('saw') ? 75 :
-    tool?.item?.blueprintId.includes('wrench') ? 35 : undefined
-  );
+  const toolQuality = tool?.item?.toolQualities?.SURGERY !== undefined
+    ? Math.min(100, tool.item.toolQualities.SURGERY * 35)
+    : (tool?.item?.surgicalQuality ?? (
+      tool?.item?.blueprintId.includes('scalpel') ? 90 :
+      tool?.item?.blueprintId.includes('saw') ? 75 :
+      tool?.item?.blueprintId.includes('wrench') ? 35 : undefined
+    ));
   if (!tool || !toolCarried || toolQuality === undefined) {
     return failHarvest(state, actorId, corpseEntityId, 'LACKS_SURGICAL_TOOL');
   }

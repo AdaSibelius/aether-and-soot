@@ -27,6 +27,12 @@ import { resolveBreachCommand } from '../systems/physics-traps.system.js';
 import { decrementProstheticCooldowns, resolveActivateProsthetic } from '../systems/prosthetics.system.js';
 import { resolveHarvestCorpse } from '../systems/surgery.system.js';
 import { resolveApplyMomentumVector, resolveSetPosture } from '../systems/momentum.system.js';
+import {
+  resolveInstallWeaponMod,
+  resolveLoadAmmo,
+  resolvePryObstacle,
+  resolveUninstallWeaponMod,
+} from '../systems/weapon-mods.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -179,6 +185,18 @@ export function dispatchCommand(
       break;
     case 'APPLY_MOMENTUM_VECTOR':
       apply(resolveApplyMomentumVector(nextState, command.targetId, command.dx, command.dy, command.distanceTiles, command.massKg, nextState.turnCount + 1, command.sourceEntityId));
+      break;
+    case 'INSTALL_WEAPON_MOD':
+      apply(resolveInstallWeaponMod(nextState, command.actorId, command.weaponEntityId, command.modEntityId));
+      break;
+    case 'UNINSTALL_WEAPON_MOD':
+      apply(resolveUninstallWeaponMod(nextState, command.actorId, command.weaponEntityId, command.modBlueprintId));
+      break;
+    case 'LOAD_AMMO':
+      apply(resolveLoadAmmo(nextState, command.actorId, command.weaponEntityId, command.ammoEntityId));
+      break;
+    case 'PRY_OBSTACLE':
+      apply(resolvePryObstacle(nextState, command.actorId, command.target, command.toolEntityId));
       break;
   }
 

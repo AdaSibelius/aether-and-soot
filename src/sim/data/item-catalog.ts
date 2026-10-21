@@ -84,6 +84,7 @@ export function createItemEntity(
       unlocksRecipeId: blueprint.unlocksRecipeId,
       penceValue: blueprint.penceValue,
       ...(blueprint.surgicalQuality !== undefined ? { surgicalQuality: blueprint.surgicalQuality } : {}),
+      ...(blueprint.toolQualities ? { toolQualities: blueprint.toolQualities } : {}),
       ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),
     },
     ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),

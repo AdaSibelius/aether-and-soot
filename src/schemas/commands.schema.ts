@@ -14,6 +14,10 @@ import type {
   HarvestCorpseCommand,
   SetPostureCommand,
   ApplyMomentumVectorCommand,
+  InstallWeaponModCommand,
+  UninstallWeaponModCommand,
+  LoadAmmoCommand,
+  PryObstacleCommand,
 } from './domain-commands.schema.js';
 import {
   AcceptContractCommandSchema,
@@ -26,9 +30,12 @@ import {
   DropItemCommandSchema,
   HarvestCorpseCommandSchema,
   HireCompanionCommandSchema,
+  InstallWeaponModCommandSchema,
+  LoadAmmoCommandSchema,
   LootContainerCommandSchema,
   PayChirurgeonHealCommandSchema,
   PickUpItemCommandSchema,
+  PryObstacleCommandSchema,
   RepairLimbCommandSchema,
   RestAtBedCommandSchema,
   SalvageItemCommandSchema,
@@ -39,6 +46,7 @@ import {
   ToggleDoorCommandSchema,
   TravelDistrictCommandSchema,
   TriggerSupplyShockCommandSchema,
+  UninstallWeaponModCommandSchema,
   UseItemCommandSchema,
 } from './domain-commands.schema.js';
 
@@ -47,6 +55,10 @@ export type {
   HarvestCorpseCommand,
   SetPostureCommand,
   ApplyMomentumVectorCommand,
+  InstallWeaponModCommand,
+  UninstallWeaponModCommand,
+  LoadAmmoCommand,
+  PryObstacleCommand,
 };
 export {
   EquipItemCommandSchema,
@@ -62,15 +74,19 @@ export {
   DropItemCommandSchema,
   HarvestCorpseCommandSchema,
   HireCompanionCommandSchema,
+  InstallWeaponModCommandSchema,
+  LoadAmmoCommandSchema,
   LootContainerCommandSchema,
   PayChirurgeonHealCommandSchema,
   PickUpItemCommandSchema,
+  PryObstacleCommandSchema,
   RepairLimbCommandSchema,
   RestAtBedCommandSchema,
   SalvageItemCommandSchema,
   SellToMerchantCommandSchema,
   SetPostureCommandSchema,
   SmashTerrainCommandSchema,
+  UninstallWeaponModCommandSchema,
   StockPedestalCommandSchema,
   ToggleDoorCommandSchema,
   TravelDistrictCommandSchema,
@@ -183,5 +199,9 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   HarvestCorpseCommandSchema,
   SetPostureCommandSchema,
   ApplyMomentumVectorCommandSchema,
+  InstallWeaponModCommandSchema,
+  UninstallWeaponModCommandSchema,
+  LoadAmmoCommandSchema,
+  PryObstacleCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

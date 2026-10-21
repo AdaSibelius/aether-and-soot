@@ -175,3 +175,35 @@ export const ApplyMomentumVectorCommandSchema = z.object({
   sourceEntityId: EntityIdSchema.optional(),
 });
 export type ApplyMomentumVectorCommand = z.infer<typeof ApplyMomentumVectorCommandSchema>;
+
+export const InstallWeaponModCommandSchema = z.object({
+  type: z.literal('INSTALL_WEAPON_MOD'),
+  actorId: EntityIdSchema,
+  weaponEntityId: EntityIdSchema,
+  modEntityId: EntityIdSchema,
+});
+export type InstallWeaponModCommand = z.infer<typeof InstallWeaponModCommandSchema>;
+
+export const UninstallWeaponModCommandSchema = z.object({
+  type: z.literal('UNINSTALL_WEAPON_MOD'),
+  actorId: EntityIdSchema,
+  weaponEntityId: EntityIdSchema,
+  modBlueprintId: BlueprintIdSchema,
+});
+export type UninstallWeaponModCommand = z.infer<typeof UninstallWeaponModCommandSchema>;
+
+export const LoadAmmoCommandSchema = z.object({
+  type: z.literal('LOAD_AMMO'),
+  actorId: EntityIdSchema,
+  weaponEntityId: EntityIdSchema,
+  ammoEntityId: EntityIdSchema,
+});
+export type LoadAmmoCommand = z.infer<typeof LoadAmmoCommandSchema>;
+
+export const PryObstacleCommandSchema = z.object({
+  type: z.literal('PRY_OBSTACLE'),
+  actorId: EntityIdSchema,
+  target: Point3DSchema,
+  toolEntityId: EntityIdSchema,
+});
+export type PryObstacleCommand = z.infer<typeof PryObstacleCommandSchema>;

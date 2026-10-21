@@ -1,3 +1,4 @@
+import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { SeededRNG } from '../core/rng.js';
@@ -7,6 +8,7 @@ import { computeVisibleTiles, isPointVisible } from '../spatial/fov.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { getEquipmentSpec } from './equipment.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
+import { emitAcousticPulse } from './stealth-acoustics.system.js';
 
 function failBallistics(state: WorldState, actorId: EntityId, reason: string) {
   return {
@@ -43,6 +45,9 @@ export function resolveFireRangedWeapon(
   }
 
   const wieldedItem = state.entities[wieldedId];
+  if (!wieldedItem) {
+    return failBallistics(state, actorId, 'Wielded item not found.');
+  }
   const spec = getEquipmentSpec(wieldedItem);
   if (!spec || spec.rangedRange <= 0) {
     return failBallistics(state, actorId, 'Wielded item is not a ranged weapon.');
@@ -107,6 +112,30 @@ export function resolveFireRangedWeapon(
   const hit = hitRoll < 0.85;
   const turn = state.turnCount + 1;
 
+  // Consume loaded ammo if present and calculate ammo bonus damage
+  let ammoBonusDamage = 0;
+  const loadedAmmo = wieldedItem.equipmentSpec?.loadedAmmo;
+  if (loadedAmmo && loadedAmmo.count > 0) {
+    if (loadedAmmo.blueprintId.includes('flechette')) ammoBonusDamage += 6;
+    if (loadedAmmo.blueprintId.includes('incendiary') || loadedAmmo.blueprintId.includes('phosphor')) ammoBonusDamage += 10;
+
+    const nextCount = loadedAmmo.count - 1;
+    const updatedLoaded = nextCount > 0 ? { ...loadedAmmo, count: nextCount } : undefined;
+    const updatedWep: EntityRecord = {
+      ...wieldedItem,
+      equipmentSpec: { ...spec, loadedAmmo: updatedLoaded },
+      item: wieldedItem.item ? { ...wieldedItem.item, equipmentSpec: { ...spec, loadedAmmo: updatedLoaded } } : undefined,
+    };
+    nextState = { ...nextState, entities: { ...nextState.entities, [wieldedId]: updatedWep } };
+  }
+
+  const isSilenced = wieldedItem.equipmentSpec?.installedModBlueprintIds?.some(
+    (id) => id.includes('baffler') || id.includes('silencer'),
+  );
+  const shotNoiseDb = isSilenced ? 50 : 75;
+  const acoustic = emitAcousticPulse(nextState, actor.position, shotNoiseDb, turn, actorId);
+  nextState = acoustic.state;
+
   if (!hit) {
     const remainingHp = Object.values(target.anatomy.limbs)
       .reduce((sum, l) => sum + (l && !l.amputated ? l.hp : 0), 0);
@@ -125,12 +154,12 @@ export function resolveFireRangedWeapon(
         damageDealt: 0,
         remainingTargetHp: remainingHp,
         steamSpentKpa: spec.rangedSteamCostKpa,
-      }],
+      }, ...acoustic.events],
     };
   }
 
   const targetArmor = target.combatStats?.armorReduction ?? 0;
-  const damageDealt = Math.max(1, spec.rangedDamage - targetArmor);
+  const damageDealt = Math.max(1, spec.rangedDamage + ammoBonusDamage - targetArmor);
   const dmgRes = resolveDamageLimb(nextState, targetId, targetSlot, damageDealt);
   nextState = dmgRes.state;
 
@@ -158,6 +187,6 @@ export function resolveFireRangedWeapon(
   return {
     state: nextState,
     apSpent: STANDARD_ACTION_AP,
-    events: [attackEvent, ...dmgRes.events, ...defeatRes.events],
+    events: [attackEvent, ...dmgRes.events, ...defeatRes.events, ...acoustic.events],
   };
 }
