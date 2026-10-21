@@ -29,7 +29,7 @@ flowchart TD
 
     subgraph SimCore["2. Pure Headless Simulation Core (src/sim/)"]
         E1["dispatchCommand()\n(src/sim/core/engine.ts)"]
-        Sys["Domain Systems\n(anatomy, combat, ballistics, thermo, mortality...)"]
+        Sys["Domain Systems\n(anatomy, combat, ballistics, thermo, traps...)"]
         W1["WorldState\n(Flat, 100% JSON-serializable)"]
         PRNG["SeededRNG\n(xoshiro128** state tuple)"]
     end
@@ -52,7 +52,7 @@ flowchart TD
 
 ### Why Headless Core / Presentation Shell Separation Exists
 - **Zero Browser Dependencies in Core (`src/sim/` and `src/schemas/`)**: No imports from `pixi.js`, `preact`, `window`, `document`, or DOM globals are permitted.
-- **Sub-Second Test Execution**: 23 test suites (102 tests) covering 5-district procgen, cellular automata, ballistics, and cartel economies run in **<800ms** in Node.js without spinning up headless browser overhead.
+- **Sub-Second Test Execution**: 26 test suites (112 tests) covering 5-district procgen, cellular automata, ballistics, stealth acoustics, NPC diurnal shifts, and trap physics run in **<900ms** in Node.js without spinning up headless browser overhead.
 - **Strict Unidirectional Mutability**: The presentation shell (`src/client/`) only holds `Readonly<WorldState>`. State mutations can only happen by dispatching a validated `GameCommand` to `dispatchCommand()`.
 
 ### Why Deterministic PRNG & Flat Relational ECS Are Non-Negotiable
@@ -62,7 +62,7 @@ flowchart TD
 
 ### Why The Hard Modularity Ceiling (<= 250 Lines per File) Exists
 - Long source files cause LLMs to drop context, hallucinate imports, or produce truncated edit blocks.
-- Every `.ts` and `.tsx` file is bounded to **<= 250 lines** (hard automated ceiling: 300 lines enforced by `tests/scripts/check-boundaries.ts`). When a domain system grows, logic is proactively extracted into dedicated sibling modules (e.g. `surgical-context.ts`, `crafting-utils.ts`, `boiler-stoking.system.ts`).
+- Every `.ts` and `.tsx` file is bounded to **<= 250 lines** (hard automated ceiling: 300 lines enforced by `tests/scripts/check-boundaries.ts`). When a domain system grows, logic is proactively extracted into dedicated sibling modules (e.g. `stealth-acoustics.system.ts`, `npc-ecology.system.ts`, `physics-traps.system.ts`).
 
 ### Why Event Sourcing (`SimEvent`) Is Used
 - Every state change emits a strongly-typed `SimEvent` into `state.eventLog`.
@@ -77,15 +77,16 @@ flowchart TD
 - **Targeted Damage & Amputation**: Attacks specifically target limb slots. When limb HP hits 0, the limb is amputated.
   - Arm amputation/damage reduces melee damage and combat accuracy.
   - Leg amputation increases movement action point (AP) costs from 100 to 160 AP.
+  - Ocular Mount destruction blinds the actor, clamping FOV vision radius to 1 unless restored with an optic prosthetic.
   - Torso or Head destruction results in immediate defeat.
 - **Haemodynamic Blood System**: Actors track `bloodVolumePct` (0–100%). Wounds cause bleeding; amputations cause severe acute haemorrhage. Falling to 0% blood volume results in fatal exsanguination.
 - **Coagulant Tonics**: Consuming Dr. Halloway's Coagulant Tonic stops active blood loss and restores blood volume.
 - **Pneumatic Cybernetic Prosthetics**: Amputated or augmented slots can receive socketed steam prosthetics:
-  - `prosthetic_pneumatic_leg_mk1`: Restores locomotion and grants -15 AP movement speed.
-  - `prosthetic_clockwork_ocular_lens`: Expands FOV radius through soot and smog.
-  - `prosthetic_pneumatic_piledriver_arm`: Heavy hydraulic arm for high-impact melee trauma.
+  - `prosthetic_pneumatic_leg_mk1`: Restores locomotion, grants -15 AP movement speed, and provides 50% fall shock absorption.
+  - `prosthetic_clockwork_ocular_lens`: Restores vision and expands FOV radius through soot and smog.
+  - `prosthetic_pneumatic_piledriver_arm`: Heavy hydraulic arm for high-impact melee trauma and structural wall breaching.
   - `prosthetic_boiler_core_furnace`: Thoracic internal boiler boosting heat stability and max steam reservoir.
-  - `prosthetic_clockwork_gyrostabilizer_leg`: Precision counter-rotating flywheels for brisk locomotion.
+  - `prosthetic_clockwork_gyrostabilizer_leg`: Silent counter-rotating flywheels for brisk locomotion without acoustic noise.
 - **Surgical Context & Sterile Bonuses**: Installing or removing prosthetics in the field inflicts 15–20% blood loss shock. Performing surgery while adjacent to a `SURGICAL_TABLE` or having the `DISGRACED_CHIRURGEON` profession reduces surgical blood loss to 0%.
 
 ### 3.2. Cellular Automata Thermodynamics & Pyrotechnics
@@ -94,22 +95,50 @@ flowchart TD
   - `coalDustDensity`: Suspended particulate coal dust.
 - **Vertical Gas Portals**: Rising steam naturally vents upward from `UNDERCROFT` to `STREET` through portals marked `conductsGas: true` (manholes, floor grates).
 - **Thermal Scald Hazards**: Actors standing in tiles with `steamPressureKpa >= 25 kPa` suffer thermal scald damage to their torso every turn. Insulated clothing (e.g. Asbestos Foundry Coat) provides steam resistance.
-- **Foundry Boilers & Ruptures**: Pressure vessels accumulate steam. Exceeding `maxPressureKpa` causes explosive vessel rupture, venting hundreds of kPa into surrounding tiles, inflicting blast trauma and triggering cartel coal shortages.
+- **Foundry Boilers & Ruptures**: Pressure vessels accumulate steam. Exceeding `maxPressureKpa` causes explosive vessel rupture, breaching adjacent soot brick walls, venting hundreds of kPa into surrounding tiles, and inflicting blast trauma.
 - **Pyrotechnic Dust Explosions**: Emitting a spark (`EMIT_SPARK`) into a contiguous cloud of coal dust (`density >= 0.25`) ignites the cloud in a chain-reaction explosion that consumes the dust and flashes it into high-pressure steam.
 - **Steam Reserves & Stoking**: High-tier prosthetics and weapons consume steam from `anatomy.steamReserveKpa`. Players stoke steam for free when adjacent to an active boiler, or consume portable steam canisters and anthracite coal briquettes.
 
-### 3.3. Tactical Combat & Ballistics
+### 3.3. Acoustic Propagation, Smog Occlusion Stealth & Sensory AI
+- **Decibel Sound Propagation**: Physical actions emit acoustic pulses (`SOUND_EMITTED`) with inverse-distance falloff:
+  - Smashing glass windows: `85 dB`
+  - Pneumatic gunfire: `95 dB`
+  - Boiler ruptures: `120 dB`
+  - Movement footsteps: Base `10 dB`, increased by heavy/pneumatic prosthetics (`noiseDb`) or reduced by silent clockwork flywheels.
+- **Sensory NPC State Machine**: NPCs transition dynamically through `IDLE`, `INVESTIGATING`, and `COMBAT`. Sounds lure out-of-sight guards to inspect `lastKnownTargetPos`.
+- **Smog & Steam Occlusion**: High-density particulate clouds (`steamPressureKpa >= 20 kPa` or `coalDustDensity >= 0.3`) completely block line of sight, allowing players to vent steam or stir coal dust to break pursuit and evade enemy gunfire.
+- **Ocular Blindness**: Actors whose `OCULAR_MOUNT` is amputated (without an installed optic prosthetic) are clamped to a visual radius of 1 tile, requiring acoustic cues or touch to navigate.
+
+### 3.4. Diurnal Shift Clocks, Autonomous Ecology & District Catch-Up
+- **100-Turn Victorian Shift Clocks**: Districts cycle through 4 distinct 25-turn shift phases:
+  - `DAWN_WHISTLE` (Turns 0–24)
+  - `FOUNDRY_SHIFT` (Turns 25–49)
+  - `GASLIGHT_CURFEW` (Turns 50–74)
+  - `GRAVEYARD_WATCH` (Turns 75–99)
+- **Autonomous NPC Schedules**: During `FOUNDRY_SHIFT`, workers and shopkeepers pathfind to their `workAnchor` and restock trade pedestals. During `GRAVEYARD_WATCH`, citizens retire to their `restAnchor`.
+- **Ecology & Medical Triage**: Wounded NPCs (`bloodVolumePct <= 60%`) carry and self-administer Coagulant Tonics. If critically injured (`bloodVolumePct <= 50%`) with no tonics, their goal transitions to `SEEK_MEDICAL` as they seek out the nearest Chirurgeon or Surgical Table.
+- **Deterministic District Catch-Up**: Cached districts in `state.savedDistricts` fast-forward elapsed turns upon re-entry, decaying suspended steam and coal dust and snapping scheduled NPCs to their active shift coordinates.
+
+### 3.5. Structural Breaching, Multi-Strata Gravity Falls & Traps
+- **Destructible Architecture**: High-magnitude concussive forces (boiler ruptures or pneumatic piledriver strikes) breach rigid `SOOT_BRICK_WALL` structures into traversable `RUBBLE_PILE` debris, venting trapped steam clouds and opening new infiltration routes.
+- **Multi-Strata Gravity Falls**: Pushing or knocking an actor into an `ABYSS_DROP` on the `SPIRE` catwalk causes a multi-strata plunge down to the `STREET` below. Falls inflict 20 HP blunt trauma to both legs; socketed pneumatic leg prosthetics absorb 50% of fall impact.
+- **Deployable Clockwork Traps**: Players and artificers craft and place hidden mechanical traps:
+  - `SPARK_TRIPWIRE`: Emits a friction spark when stepped on, detonating flammable coal dust pockets.
+  - `SPRING_JAW`: Snaps shut on unsuspecting limbs, inflicting heavy bone and tissue damage.
+  - `STEAM_MINE`: High-pressure pneumatic mine that blasts intruders with concussive scalding steam.
+
+### 3.6. Tactical Combat & Ballistics
 - **Turn Scheduling**: Actions spend Action Points (AP). Standard turn is 100 AP. Speed modifications alter turn frequency relative to the global clock.
 - **Targeted Melee**: Attackers target specific limbs (`1`–`6` hotkeys in Look Mode or contextual click), calculating damage against targeted armor reduction.
 - **Pneumatic Ballistics**: Ranged weapons (e.g. Pneumatic Harpoon Rifle) consume compressed steam reserve, trace 8-octant Bresenham line-of-sight and range, verify lack of intervening obstacles, and apply targeted impact damage.
 
-### 3.4. Unified Mortality & Victorian Coroner's Morgue
-- **Unified Mortality Pipeline**: Fatal conditions (`TORSO.hp <= 0`, `HEAD.hp <= 0`, or `bloodVolumePct <= 0`) uniformly resolve through `resolveActorDefeatIfFatal()` across melee, ranged fire, steam scalds, and boiler explosions.
+### 3.7. Unified Mortality & Victorian Coroner's Morgue
+- **Unified Mortality Pipeline**: Fatal conditions (`TORSO.hp <= 0`, `HEAD.hp <= 0`, or `bloodVolumePct <= 0`) uniformly resolve through `resolveActorDefeatIfFatal()` across melee, ranged fire, steam scalds, falls, and boiler explosions.
 - **Loot & Economy Drops**: Defeated NPCs drop all carried satchel inventory, installed prosthetics, and a minted Crown Pence pouch on their coordinate before being removed from the simulation.
 - **Player State Preservation**: Upon player death, `actor_player` is preserved in `WorldState.entities` rather than purged.
 - **Coroner's Inquest (Morgue Screen)**: Triggers an obituary screen presenting autopsy findings (thoracic rupture, decapitation, exsanguination), turn count, death coordinate, and inventory effects, with a `[New Character / Re-Embark (N)]` restart loop.
 
-### 3.5. Dynamic Cartel Economy, Trade & Dialogue
+### 3.8. Dynamic Cartel Economy, Trade & Dialogue
 - **Macro-Tick Simulation**: Every 100 turns, an economic macro-tick updates supply and demand across factions (`IRONMONGERS_CARTEL`, `CLOCKWORK_GUILD`, `UNDERCROFT_SYNDICATE`, `CROWN_CONSTABULARY`).
 - **Dynamic Commodity Pricing**: Market prices for Anthracite Coal, Brass Gears, Rubber, and Aether Salt fluctuate based on local district scarcity and supply shocks.
 - **Grounded Storefront Pedestals**: Merchants stock physical `tradePedestal` entities in shops. Players interact with pedestals or NPCs directly to buy and sell.
@@ -118,12 +147,12 @@ flowchart TD
   - Companion recruitment for hired muscle.
   - Chirurgeon medical services to suture amputated limbs and replenish blood volume.
 
-### 3.6. Artificer Crafting & Scrap Salvage
-- **Schematic Workbenches**: Adjacent Artificer Benches and Alchemical Stills enable crafting tonics, steam canisters, commodities, and cybernetics.
+### 3.9. Artificer Crafting & Scrap Salvage
+- **Schematic Workbenches**: Adjacent Artificer Benches and Alchemical Stills enable crafting tonics, steam canisters, commodities, traps, and cybernetics.
 - **Equipped Gear Drop & Salvage Stat Fix**: Dropping or salvaging wielded weapons or worn armor automatically unequips them first, cleanly reversing `meleeDamageBonus`, `armorBonus`, and `storageVolumeBonusMl` without leaving ghost stat bonuses.
 - **Manuals & Knowledge**: Schematic Manuals found in libraries or bookshelves permanently unlock high-tier recipes when read.
 
-### 3.7. Procedural World Generation & District Biomes
+### 3.10. Procedural World Generation & District Biomes
 - **5 Overworld Districts**:
   1. `spitalfields_works`: Industrial foundry district with heavy boilers, smog, and Ironmongers' workshops.
   2. `fleet_ditch`: Canal slums with high sewage, black-market fixers, and Undercroft Syndicate outposts.
@@ -133,7 +162,7 @@ flowchart TD
 - **Multi-Room Strata Dungeons (`48x36`)**:
   - `UNDERCROFT`: Carved subterranean sewer mazes with sluice corridors, brick chambers, Syndicate dens, and steam vents.
   - `SPIRE`: Elevated brass catwalk networks connecting tower platforms across open abyss drops.
-- **District Transit & Caching**: Stepping on a `DISTRICT_GATE` (`Ω`) transitions the player across districts. Visited districts are preserved in `state.savedDistricts` so dropped items and building alterations persist on return.
+- **District Transit & Caching**: Stepping on a `DISTRICT_GATE` (`Ω`) transitions the player across districts. Visited districts are preserved in `state.savedDistricts` with atmospheric decay and shift-anchor catch-up.
 
 ---
 
@@ -143,12 +172,13 @@ To provide complete transparency for future AI agents and contributors, here is 
 
 | System | Current Implementation Reality | Current Scope Limitations |
 | :--- | :--- | :--- |
-| **World Persistence** | Active district is simulated live in memory. Inactive districts are frozen in `state.savedDistricts` and rehydrated upon transit. | Inactive districts do not run background cellular automata or NPC movements while the player is away. |
-| **NPC AI** | NPCs have role-based AI (`CITIZEN`, `MERCHANT`, `FIXER`, `CHIRURGEON`, `GUARD`, `BEAST`, `CULTIST`), Dijkstra/Chebyshev pathfinding, and targeted attacks. | NPCs do not have complex day/night schedules or needs (they do not sleep, eat, or migrate between districts autonomously). |
-| **Combat & LOS** | Full 8-octant shadowcasting FOV, targeted limb combat, armor damage reduction, and ranged ballistics. | No stealth light levels, cover mechanics, or directional facing cones. |
-| **Grounded Trade** | Merchants own physical storefront pedestal entities. Prices react dynamically to supply shocks and transactions. | Autonomous NPCs do not wander into shops to purchase items off pedestals. |
+| **World Persistence** | Active district simulated live in memory. Inactive districts are cached in `state.savedDistricts` and execute deterministic delta catch-up (gas decay, scheduled NPC anchor snapping) upon transit. | Catch-up is analytical; off-screen districts do not simulate full turn-by-turn combat while the player is away. |
+| **NPC AI & Ecology** | NPCs feature role-based AI, 4-quadrant diurnal shift schedules (work/rest), self-medication, medical triage pathfinding, sound investigation, and merchant pedestal restocking. | NPCs do not yet migrate between different districts independently. |
+| **Combat & Sensory Stealth** | Full 8-octant shadowcasting FOV, particulate smog/steam LOS attenuation, ocular blindness clamping, acoustic decibel propagation, targeted limb combat, knockback, and deployable traps. | No directional cone facing mechanics or lighting levels beyond line-of-sight and smog opacity. |
+| **Physics & Destruction** | Structural soot brick walls can be breached into rubble piles via concussive forces. Actors knocked into Spire abyss chasms plunge down to the Street stratum with fall trauma. | Wood/metal furniture is currently destroyed or looted rather than splintered into physical physics debris. |
+| **Grounded Trade** | Merchants own physical storefront pedestal entities. Prices react dynamically to supply shocks, and shopkeepers restock pedestals during active work shifts. | Autonomous non-player citizens do not yet barter or buy items off pedestals. |
 | **ProcGen** | Seed-deterministic layout carving with pre-fab building archetypes, openable doors, interactive furniture, and stratum dungeons. | World layout is generated per district on initial entry; there is no continuous seamless world streaming without gate transitions. |
-| **Presentation Shell** | PixiJS v8 Canvas rendering, custom GLSL CRT scanline shader, Preact tactical HUD modals, and full keyboard routing. | No WebAudio sound effects or musical soundtrack currently implemented. |
+| **Presentation Shell** | PixiJS v8 Canvas rendering, custom GLSL CRT scanline shader, Preact tactical HUD modals, and full keyboard routing. | No WebAudio sound effects or musical soundtrack currently wired to client triggers. |
 
 ---
 
@@ -186,4 +216,4 @@ npm run verify
 1. **`npm run typecheck`**: Strict TypeScript verification (`noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`).
 2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all 105 source files.
 3. **`npm run validate:data`**: Validates all declarative JSON blueprints in `data/` against Zod schemas.
-4. **`npm run test:sim`**: Executes all 23 headless deterministic test suites (102 tests).
+4. **`npm run test:sim`**: Executes all 26 headless deterministic test suites (112 tests).

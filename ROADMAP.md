@@ -6,75 +6,24 @@
 > - **Phases 13–17 (Completed — Issues #18–#22)**: Delivered the *Caves of Qud* full-window modal UI shell (`[I]` Satchel, `[A]` Vitruvian Anatomy & Grafts, `[C]` Artificer Schematic Bench, `[M]` Dual-Column Exchange & Factions, `[W]` Multi-Stratum World Atlas) and keyboard `[L]` Look/Target cursor mode.
 > - **Phases 18–24 (Completed — Issues #23–#29)**: Expanded the world into large scrolling districts (`48x36`), procedural building archetypes with smashable windows and readable schematic manuals, interactive NPC dialogue & procedural faction contracts, CDDA-style Character Creation, wielded weapons & wearable pocketed armor, interactive containers (`LOCKER`, `CRATE`, `BOOKSHELF`) with tangible currency pouches (`Crown Pence Pouch`), and grounded trade with live Chirurgeon/Fixer spawns and dialogue-to-market wiring.
 > - **Phases 25–28 (Completed — Issues #30–#33)**: Connected fuel-driven boiler stoking & pyrotechnics, a 5-district procedural Overworld City Grid, full `48x36` Undercroft sewer dungeons & Spire catwalk networks, and unified mortality across all damage sources with a Victorian Morgue screen and expanded cybernetics.
-> - **Phases 29–31 (Active — Issues #34–#36 — Emergent Systemic Sandbox Epics)**: Elevates *Aether & Soot* to true *CDDA* / *Caves of Qud* emergent systemic depth through acoustic propagation & smog stealth, diurnal shift clocks & background district catch-up, and structural wall breaching, multi-strata gravity falls & clockwork traps.
+> - **Phases 29–31 (Completed — Issues #34–#36 — Emergent Systemic Sandbox Epics)**: Elevated *Aether & Soot* to true *CDDA* / *Caves of Qud* emergent systemic depth through acoustic decibel propagation & smog stealth, diurnal shift clocks & background district catch-up, and structural wall breaching, multi-strata gravity falls & clockwork traps.
 >
 > Every phase is engineered to be **handed off to an independent AI agent** without violating the **300-line file ceiling** (`AGENTS.md` Rule 2.2) or breaking `npm run verify`.
 
 ---
 
-## 1. Active Implementation Plan: Phases 29–31 (Emergent Systemic Sandbox Epics)
+## 1. Active Implementation Plan: Ready for Next Feature Epic / Milestone
 
-### Phase 29: Acoustic Propagation, Smog Occlusion Stealth & Sensory AI (Issue #34)
-- **Goal**: Replace binary omniscient NPC awareness with **CDDA-style Acoustic Decibel Propagation** and **Dynamic Particulate Sight Attenuation** so steam clouds, coal dust, prosthetic noise tradeoffs, ocular blindness, and acoustic decoys create emergent stealth and heist gameplay.
-- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines** (hard ceiling: 300 lines). Extract sensory and acoustic rules into `src/sim/systems/stealth-acoustics.system.ts`.
-- **Files to Create / Modify**:
-  - **Modify** `src/schemas/components.schema.ts`, `src/schemas/domain-events.schema.ts`, & `src/schemas/events.schema.ts`:
-    - Add `alertState: z.enum(['IDLE', 'INVESTIGATING', 'COMBAT']).default('IDLE')` and `lastKnownTargetPos: Point3DSchema.optional()` to `AiControllerComponentSchema`.
-    - Add `noiseDb: z.number().int().nonnegative().default(0)` to `ProstheticSpecComponentSchema` (e.g. loud pneumatic limbs vs silent clockwork limbs).
-    - Add `SOUND_EMITTED` event (`origin: Point3DSchema`, `decibels: z.number().int().nonnegative()`, `sourceActorId: EntityIdSchema.optional()`).
-  - **Modify** `src/sim/spatial/fov.ts`:
-    - Treat tiles with `steamPressureKpa >= 20` or `coalDustDensity >= 0.3` as opaque sight blockers (`isOpaque`).
-    - Clamp actor FOV radius to `1` if `OCULAR_MOUNT` has `amputated: true` without an installed optic prosthetic.
-  - **Create** `src/sim/systems/stealth-acoustics.system.ts` (**<= 200 lines**):
-    - Implement `computeActorStepNoiseDb(state, actorId)`, `emitAcousticPulse(state, origin, decibels, turn, sourceActorId?)` (alerting NPCs within hearing range to set `alertState: 'INVESTIGATING'` and `lastKnownTargetPos: origin`), and `canActorSpotTarget(state, observerId, targetId)`.
-  - **Modify** `src/sim/systems/ai.system.ts`, `src/sim/systems/movement.system.ts`, & `src/sim/systems/pressure.system.ts`:
-    - Emit sound pulses on noisy movement, window smashing (`85 dB`), ranged gunfire (`95 dB`), and boiler ruptures (`120 dB`).
-    - Update `ai.system.ts` so NPCs only engage in `COMBAT` when `canActorSpotTarget` is true, and otherwise pathfind toward `lastKnownTargetPos` while `INVESTIGATING`.
-  - **Create** `tests/sim/stealth-acoustics.test.ts`: Deterministic tests verifying: (a) venting steam breaks NPC line-of-sight, (b) amputating an NPC's `OCULAR_MOUNT` blinds them to radius 1, and (c) smashing a window or walking with noisy pneumatic prosthetics lures an out-of-sight guard to `lastKnownTargetPos`.
-- **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 29). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 29: Acoustic Propagation, Smog Occlusion Stealth & Sensory AI (Issue #34)** by creating `src/sim/systems/stealth-acoustics.system.ts` and `tests/sim/stealth-acoustics.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
+All scheduled milestone phases (Phases 1–31) across the headless simulation core, procedural generation, tactile Qud-style UI shell, and CDDA emergent sandbox epics are complete and verified with 0 errors across 26 test suites (112 tests).
+
+### Potential Future Epics
+- **Audio & Soundscape Shell**: WebAudio procedural synthesizer / sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps).
+- **Vehicles & Pneumatic Rail Transit**: Moving multi-tile pneumatic carriages connecting Spire towers and Undercroft sluice tunnels.
+- **Deep Faction Warfare & Territorial Influence**: Dynamic turf wars between the Ironmongers' Cartel, Undercroft Syndicate, and Clockwork Guild with automated district takeovers.
 
 ---
 
-### Phase 30: Diurnal Shift Clocks, Autonomous NPC Ecology & Background District Catch-Up (Issue #35)
-- **Goal**: Bring districts to life with a **Victorian Industrial Shift Clock** (`DAWN_WHISTLE`, `FOUNDRY_SHIFT`, `GASLIGHT_CURFEW`, `GRAVEYARD_WATCH`), autonomous NPC self-preservation and storefront restocking, and a **Deterministic Delta Catch-Up Solver** when returning to cached districts in `state.savedDistricts`.
-- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines**. Create `src/sim/systems/npc-ecology.system.ts` and `src/sim/systems/district-catchup.system.ts` so `ai.system.ts` and `transit.system.ts` stay well below 250 lines.
-- **Files to Create / Modify**:
-  - **Modify** `src/schemas/components.schema.ts` & `src/sim/core/world.ts`:
-    - Define `NpcScheduleComponentSchema` (`workAnchor: Point3DSchema`, `restAnchor: Point3DSchema`, `currentGoal: z.enum(['WORK', 'REST', 'PATROL', 'SEEK_MEDICAL']).default('WORK')`) and attach `schedule: NpcScheduleComponentSchema.optional()` to `EntityComponentsSchema`.
-    - Add `lastSimulatedTurn: z.number().int().nonnegative().default(0)` to `DistrictStateSnapshotSchema` and export `getShiftPhase(turnCount: number): 'DAWN_WHISTLE' | 'FOUNDRY_SHIFT' | 'GASLIGHT_CURFEW' | 'GRAVEYARD_WATCH'`.
-  - **Create** `src/sim/systems/npc-ecology.system.ts` (**<= 200 lines**):
-    - Wounded NPCs (`bloodVolumePct <= 60`) automatically consume carried `RESTORE_BLOOD` tonics; if `bloodVolumePct <= 50` with no tonic, set `currentGoal: 'SEEK_MEDICAL'` and path toward the nearest `CHIRURGEON` or `SURGICAL_TABLE`.
-    - During `GRAVEYARD_WATCH` (turns 75–99 of each 100-turn cycle), non-guard scheduled NPCs path toward `restAnchor`; during `FOUNDRY_SHIFT`, they path toward `workAnchor` and merchants restock adjacent empty `tradePedestal` entities from their inventory.
-  - **Create** `src/sim/systems/district-catchup.system.ts` (**<= 150 lines**) & wire into `src/sim/systems/transit.system.ts`:
-    - When `resolveTravelDistrict` rehydrates a snapshot from `state.savedDistricts`, compute `elapsedTurns = state.turnCount - snapshot.lastSimulatedTurn`, decay residual steam/coal-dust proportional to `elapsedTurns`, and snap scheduled NPCs to their active shift anchor (`workAnchor` vs `restAnchor`).
-  - **Create** `tests/sim/npc-ecology-catchup.test.ts`: Deterministic tests verifying wounded NPC self-medication, diurnal shift transitions, merchant pedestal restocking, and elapsed-turn district catch-up on transit.
-- **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 30). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 30: Diurnal Shift Clocks, Autonomous NPC Ecology & Background District Catch-Up (Issue #35)** by creating `src/sim/systems/npc-ecology.system.ts`, `src/sim/systems/district-catchup.system.ts`, and `tests/sim/npc-ecology-catchup.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
-
----
-
-### Phase 31: Structural Wall Breaching, Multi-Strata Gravity Falls & Clockwork Traps (Issue #36)
-- **Goal**: Turn district architecture and vertical strata into an interactive physics sandbox with destructible `SOOT_BRICK_WALL` -> `RUBBLE_PILE` breaching, pneumatic knockback across `SPIRE` `ABYSS_DROP` chasms (triggering multi-strata gravity falls with leg trauma and pneumatic shock absorption), and deployable clockwork traps (`SPARK_TRIPWIRE`, `STEAM_MINE`, `SPRING_JAW`).
-- **Architectural Constraint**: Keep every `.ts`/`.tsx` file **<= 250 lines**. Create `src/sim/systems/physics-traps.system.ts`.
-- **Files to Create / Modify**:
-  - **Modify** `src/schemas/primitives.schema.ts`, `src/schemas/components.schema.ts`, `src/schemas/commands.schema.ts`, & `src/schemas/domain-events.schema.ts`:
-    - Add `'RUBBLE_PILE'` to `TerrainTypeSchema`.
-    - Add `TrapComponentSchema` (`trapKind: z.enum(['SPARK_TRIPWIRE', 'STEAM_MINE', 'SPRING_JAW'])`, `armed: z.boolean().default(true)`, `damageMagnitude: z.number().int().nonnegative().default(20)`) and attach `trap: TrapComponentSchema.optional()` to `EntityComponentsSchema`.
-    - Add `WALL_BREACHED`, `ACTOR_FELL_STRATUM`, and `TRAP_TRIGGERED` events.
-  - **Create** `src/sim/systems/physics-traps.system.ts` (**<= 220 lines**):
-    - `resolveBreachTile(state, targetPoint, turn)`: Converts `SOOT_BRICK_WALL` into walkable `RUBBLE_PILE`, allowing gas and actors to pass through (triggered by boiler ruptures in `pressure.system.ts` or heavy piledriver strikes).
-    - `resolveKnockbackAndGravityFall(state, actorId, dx, dy, turn)`: Pushes actor 1 tile; if pushed onto `ABYSS_DROP` in `SPIRE`, drops the actor to `STREET` at `(x, y)`, dealing 20 HP damage to `LEFT_LEG` and `RIGHT_LEG` (reduced by 50% if a pneumatic leg prosthetic is installed with `steamReserveKpa >= 15`).
-    - `resolveStepOnTraps(state, actorId, point, turn)`: Triggers armed `trap` entities when an actor steps onto `point` (`SPARK_TRIPWIRE` invokes `resolveEmitSpark` to ignite coal dust; `SPRING_JAW` damages a leg limb).
-  - **Modify** `data/items/materials.json`, `data/items/recipes.json`, & `src/client/projection/frame-adapter.ts`:
-    - Add craftable `item_clockwork_spark_trap` and render `RUBBLE_PILE` as `,` (`#7F8C8D`).
-  - **Create** `tests/sim/physics-traps-falls.test.ts`: Deterministic tests verifying wall breaching + steam flooding, Spire-to-Street gravity fall + pneumatic leg mitigation, and spark tripwire coal-dust ignition.
-- **Copy-Paste Prompt for AI Agent**:
-  > Read `AGENTS.md`, `ARCHITECTURE.md`, and `ROADMAP.md` (Phase 31). Output the 5-point Pre-Flight Impact Analysis Checklist, then implement **Phase 31: Structural Wall Breaching, Multi-Strata Gravity Falls & Clockwork Traps (Issue #36)** by creating `src/sim/systems/physics-traps.system.ts` and `tests/sim/physics-traps-falls.test.ts`. Keep all files <= 250 lines and run `npm run verify` until all 4 checks pass with 0 errors.
-
----
-
-## 2. Archive: Completed Phases (Phases 7–28)
+## 2. Archive: Completed Phases (Phases 7–31)
 - **Phase 7 (Issue #12 — Completed)**: World Items, Ground Spawning & True Inventory Management (`src/sim/systems/inventory.system.ts`, `src/sim/systems/item-spawner.ts`).
 - **Phase 8 (Issue #13 — Completed)**: Multi-Building District ProcGen, Doors & Inter-District Transit (`src/sim/spatial/district-layout.ts`, `src/sim/systems/transit.system.ts`).
 - **Phase 9 (Issue #14 — Completed)**: Artificer Crafting, Salvage & Steam Workbenches (`src/sim/systems/crafting.system.ts`, `data/items/recipes.json`).
@@ -97,3 +46,6 @@
 - **Phase 26 (Issue #31 — Completed)**: Procedural Overworld City Grid & Distinct District Biomes (`data/districts/whitechapel_ward.json`, `data/districts/limehouse_docks.json`, `tests/sim/overworld-biomes.test.ts`).
 - **Phase 27 (Issue #32 — Completed)**: Undercroft Sewer Dungeons & Spire Catwalk Networks (`src/sim/spatial/strata-dungeons.ts`, `tests/sim/strata-dungeons.test.ts`).
 - **Phase 28 (Issue #33 — Completed)**: Unified Mortality, Equipped-Gear Drop/Salvage Fix, Morgue Screen & Cybernetics (`src/sim/systems/mortality.system.ts`, `src/client/ui/MorgueModal.tsx`, `tests/sim/mortality-cybernetics.test.ts`).
+- **Phase 29 (Issue #34 — Completed)**: Acoustic Decibel Propagation, Smog Occlusion Stealth & Sensory AI (`src/sim/systems/stealth-acoustics.system.ts`, `tests/sim/stealth-acoustics.test.ts`).
+- **Phase 30 (Issue #35 — Completed)**: Diurnal Shift Clocks, Autonomous NPC Ecology & Background District Catch-Up (`src/sim/systems/npc-ecology.system.ts`, `src/sim/systems/district-catchup.system.ts`, `tests/sim/npc-ecology-catchup.test.ts`).
+- **Phase 31 (Issue #36 — Completed)**: Structural Wall Breaching, Multi-Strata Gravity Falls & Clockwork Traps (`src/sim/systems/physics-traps.system.ts`, `tests/sim/physics-traps-falls.test.ts`).
