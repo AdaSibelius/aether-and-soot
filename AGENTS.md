@@ -29,7 +29,10 @@ When creating or expanding declarative blueprints, items, consumables, materials
 - The generator automatically coerces attributes and validates all entries against Zod schemas in `src/schemas/blueprint.schema.ts` before appending them to `data/`.
 - Use `--mock` mode during tests or CI.
 
-### Rule 1.4: Tiered Local Model Routing & Safety Invariants
+### Rule 1.4: Output Economy
+When modifying an existing file longer than 50 lines, output ONLY the specific functions or interfaces being changed. DO NOT output the entire unmodified file contents. Assume the user will apply the diff.
+
+### Rule 1.5: Tiered Local Model Routing & Safety Invariants
 All local tooling (`tests/scripts/hermes-*.ts`) supports `--model <name>`, `process.env.LLM_MODEL`, and `process.env.LLM_ENDPOINT` (defaulting to `http://localhost:8642/v1/chat/completions`):
 - **Tier 1 (Code, AST & Context-Heavy Tasks)**: Tools performing code structure, parsing, or test synthesis (`hermes:scout`, `hermes:testgen`, `hermes:split`) default to `gemma4:12b-extended` (falling back to `hermes-agent` / `hermes3:8b`).
 - **Tier 2 (Fast Flavor, JSON & Dialogue Tasks)**: Tools generating barks, narrative logs, and blueprints (`hermes:chronicler`, `generate:content`, `playtest`) default to `hermes3:8b` (falling back to `hermes-agent`).
