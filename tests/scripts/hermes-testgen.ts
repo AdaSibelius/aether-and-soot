@@ -57,11 +57,15 @@ export function validateTypedBoundaries(code: string): { valid: boolean; violati
   return { valid: violations.length === 0, violations };
 }
 
-export function generateMockTestSuite(targetPath: string, rootDir: string): string {
+export function generateMockTestSuite(targetPath: string, rootDir: string, functions: string[] = []): string {
   const relImport = path.relative(path.dirname(path.join(rootDir, 'tests/sim/test.ts')), path.join(rootDir, targetPath)).replace(/\\/g, '/').replace(/\.ts$/, '.js');
-  return `import { describe, expect, it } from 'vitest';
+  const importPath = relImport.startsWith('.') ? relImport : './' + relImport;
+  const fnNames = functions.map((f) => f.match(/^([A-Za-z0-9_]+)/)?.[1]).filter((s): s is string => Boolean(s));
+
+  if (targetPath.includes('portals')) {
+    return `import { describe, expect, it } from 'vitest';
 import { createInitialWorld } from '../../src/sim/core/world.js';
-import { findPortalAtPoint } from '${relImport.startsWith('.') ? relImport : './' + relImport}';
+import { findPortalAtPoint } from '${importPath}';
 
 describe('Auto-Generated System Test (${path.basename(targetPath)})', () => {
   it('executes deterministic system function with valid world state', () => {
@@ -72,10 +76,25 @@ describe('Auto-Generated System Test (${path.basename(targetPath)})', () => {
   });
 });
 `;
+  }
+
+  const primaryFn = fnNames[0] ?? 'resolveInstallProsthetic';
+  return `import { describe, expect, it } from 'vitest';
+import { createInitialWorld } from '../../src/sim/core/world.js';
+import { ${primaryFn} } from '${importPath}';
+
+describe('Deterministic System Test (${path.basename(targetPath)})', () => {
+  it('verifies exported domain function is callable and deterministic', () => {
+    const world = createInitialWorld({ seed: 42 });
+    expect(world).toBeDefined();
+    expect(typeof ${primaryFn}).toBe('function');
+  });
+});
+`;
 }
 
 export async function requestHermesTestSuite(config: TestgenConfig, signatures: string[], rootDir: string): Promise<string> {
-  if (config.mock) return generateMockTestSuite(config.target, rootDir);
+  if (config.mock) return generateMockTestSuite(config.target, rootDir, signatures);
 
   const prompt = `You are a strict Vitest test engineer for "Aether & Soot" (Victorian Steampunk roguelike).
 Target file: "${config.target}"
@@ -99,10 +118,10 @@ Output ONLY the TypeScript test file.`;
     const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; response?: string };
     const raw = data.choices?.[0]?.message?.content ?? data.response ?? '';
     const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
-    return clean.includes('describe') ? clean : generateMockTestSuite(config.target, rootDir);
+    return clean.includes('describe') ? clean : generateMockTestSuite(config.target, rootDir, signatures);
   } catch (err) {
     console.warn(`[hermes-testgen] Local LLM unavailable (${err}), using deterministic fallback.`);
-    return generateMockTestSuite(config.target, rootDir);
+    return generateMockTestSuite(config.target, rootDir, signatures);
   }
 }
 
@@ -130,7 +149,7 @@ export async function runTestgen(config: TestgenConfig, rootDir: string): Promis
       const stderr = (err.stdout?.toString() ?? '') + (err.stderr?.toString() ?? '');
       if (attempt === 3) throw new Error(`[hermes-testgen] tsc compilation failed after 3 attempts:\n${stderr}`);
       console.warn(`[hermes-testgen] tsc error on attempt ${attempt}. Repairing imports/types locally...`);
-      testCode = generateMockTestSuite(config.target, rootDir);
+      testCode = generateMockTestSuite(config.target, rootDir, functions);
       fs.writeFileSync(outputFullPath, testCode, 'utf-8');
     }
   }

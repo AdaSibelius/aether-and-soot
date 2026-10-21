@@ -101,6 +101,8 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       steamReserveKpa: 100,
       maxSteamReserveKpa: 100,
       unlockedRecipeIds: [],
+      governorCapacityKw: 100,
+      strainLoadKw: 0,
     },
     inventory: {
       containedEntityIds: [striderLegId, ocularMonocleId],

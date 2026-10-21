@@ -83,6 +83,7 @@ export function createItemEntity(
       useEffect: blueprint.useEffect,
       unlocksRecipeId: blueprint.unlocksRecipeId,
       penceValue: blueprint.penceValue,
+      ...(blueprint.surgicalQuality !== undefined ? { surgicalQuality: blueprint.surgicalQuality } : {}),
       ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),
     },
     ...(blueprint.equipment ? { equipmentSpec: blueprint.equipment } : {}),
@@ -125,6 +126,7 @@ export function createEntityFromBlueprint(
         fovRadiusBonus: prostheticBp.fovRadiusBonus,
         pressureRatingKpa: prostheticBp.pressureRatingKpa,
         noiseDb: prostheticBp.noiseDb,
+        ...(prostheticBp.activeAbility ? { activeAbility: { ...prostheticBp.activeAbility, cooldownRemaining: 0 } } : {}),
       },
     };
     return position ? { ...base, position: { ...position, blocksMovement: false, blocksSight: false } } : base;

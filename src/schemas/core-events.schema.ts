@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  BlueprintIdSchema,
   CommodityIdSchema,
   EntityIdSchema,
   FactionIdSchema,
@@ -101,6 +102,55 @@ export const ProstheticActionFailedEventSchema = z.object({
     'SLOT_MISMATCH',
     'SLOT_ALREADY_OCCUPIED',
     'NO_PROSTHETIC_INSTALLED',
+    'NO_ACTIVE_ABILITY',
+    'GOVERNOR_OVERLOADED',
+    'INSUFFICIENT_STEAM',
+    'ABILITY_ON_COOLDOWN',
+    'INVALID_TARGET',
+  ]),
+});
+
+export const ProstheticActivatedEventSchema = z.object({
+  type: z.literal('PROSTHETIC_ACTIVATED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+  abilityId: z.string().min(1),
+  steamCost: z.number().nonnegative(),
+  details: z.string().optional(),
+});
+
+export const GovernorOverloadedEventSchema = z.object({
+  type: z.literal('GOVERNOR_OVERLOADED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  governorCapacityKw: z.number(),
+  strainLoadKw: z.number(),
+});
+
+export const CyberneticHarvestedEventSchema = z.object({
+  type: z.literal('CYBERNETIC_HARVESTED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  corpseEntityId: EntityIdSchema,
+  prostheticEntityId: EntityIdSchema,
+  prostheticBlueprintId: BlueprintIdSchema,
+  slot: LimbSlotIdSchema,
+  itemDamagePct: z.number().nonnegative().default(0),
+  toolQuality: z.string().optional(),
+});
+
+export const HarvestActionFailedEventSchema = z.object({
+  type: z.literal('HARVEST_ACTION_FAILED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  corpseEntityId: EntityIdSchema,
+  reason: z.enum([
+    'CORPSE_NOT_FOUND',
+    'NOT_DEAD',
+    'NO_PROSTHETIC',
+    'LACKS_SURGICAL_TOOL',
+    'TOO_DISTANT',
   ]),
 });
 

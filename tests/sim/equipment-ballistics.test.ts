@@ -14,7 +14,7 @@ function createDummyTarget(id: EntityId, x: number, y: number, stratum: StratumI
     visual: { glyph: 'A', fgPrimary: '#e74c3c', fgSecondary: '#c0392b', bgColor: '#000000', shaderFlags: [] },
     position: { x, y, stratum, blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 100, isPlayer: false },
-    anatomy: { bloodVolumePct: 100, steamReserveKpa: 50, maxSteamReserveKpa: 100, unlockedRecipeIds: [], limbs },
+    anatomy: { bloodVolumePct: 100, steamReserveKpa: 50, maxSteamReserveKpa: 100, governorCapacityKw: 100, strainLoadKw: 0, unlockedRecipeIds: [], limbs },
   };
 }
 

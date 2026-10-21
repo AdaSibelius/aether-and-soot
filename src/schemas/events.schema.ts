@@ -22,6 +22,8 @@ import {
   ProstheticRemovedEventSchema, SteamRefilledEventSchema, SteamRefillFailedEventSchema, SteamVentedEventSchema, SteamVentFailedEventSchema,
   StorefrontSaleCompletedEventSchema, StratumChangedEventSchema,
   SupplyShockTriggeredEventSchema, ThermalScaldEventSchema, VesselRupturedEventSchema,
+  ProstheticActivatedEventSchema, GovernorOverloadedEventSchema,
+  CyberneticHarvestedEventSchema, HarvestActionFailedEventSchema,
 } from './core-events.schema.js';
 import {
   EquipmentActionFailedEventSchema, ItemEquippedEventSchema,
@@ -49,6 +51,8 @@ export {
   SupplyShockTriggeredEventSchema, ThermalScaldEventSchema, VesselRupturedEventSchema,
   EquipmentActionFailedEventSchema, ItemEquippedEventSchema,
   ItemUnequippedEventSchema, RangedAttackResolvedEventSchema,
+  ProstheticActivatedEventSchema, GovernorOverloadedEventSchema,
+  CyberneticHarvestedEventSchema, HarvestActionFailedEventSchema,
 };
 
 export const SimEventSchema = z.discriminatedUnion('type', [
@@ -107,5 +111,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   WallBreachedEventSchema,
   ActorFellStratumEventSchema,
   TrapTriggeredEventSchema,
+  ProstheticActivatedEventSchema,
+  GovernorOverloadedEventSchema,
+  CyberneticHarvestedEventSchema,
+  HarvestActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

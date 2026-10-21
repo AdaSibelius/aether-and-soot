@@ -168,7 +168,9 @@ export async function runChronicler(config: ChroniclerConfig, rootDir: string): 
     console.log(`[hermes-chronicler] Successfully injected ${generatedCases.length} cases into ${config.target} and verified tsc.`);
   } catch (err) {
     fs.writeFileSync(targetPath, content, 'utf-8');
-    throw new Error(`[hermes-chronicler] tsc --noEmit failed after injection, reverted: ${err}`);
+    const execErr = err as { stdout?: Buffer | string; stderr?: Buffer | string };
+    const detail = execErr.stdout?.toString() || execErr.stderr?.toString() || '';
+    throw new Error(`[hermes-chronicler] tsc --noEmit failed after injection, reverted: ${err} ${detail}`);
   }
 
   return { missing, injectedCount: generatedCases.length };

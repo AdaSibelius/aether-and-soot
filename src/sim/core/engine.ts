@@ -24,6 +24,8 @@ import { resolveEquipItem, resolveUnequipItem } from '../systems/equipment.syste
 import { resolveFireRangedWeapon } from '../systems/ballistics.system.js';
 import { resolveLootContainer } from '../systems/container.system.js';
 import { resolveBreachCommand } from '../systems/physics-traps.system.js';
+import { decrementProstheticCooldowns, resolveActivateProsthetic } from '../systems/prosthetics.system.js';
+import { resolveHarvestCorpse } from '../systems/surgery.system.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
 import { WorldState } from './world.js';
@@ -165,6 +167,12 @@ export function dispatchCommand(
     case 'BREACH_TILE':
       apply(resolveBreachCommand(nextState, command.actorId, command.target));
       break;
+    case 'ACTIVATE_PROSTHETIC':
+      apply(resolveActivateProsthetic(nextState, command.actorId, command.slot, command.direction, command.target, command.targetEntityId));
+      break;
+    case 'HARVEST_CORPSE':
+      apply(resolveHarvestCorpse(nextState, command.actorId, command.corpseEntityId, command.toolEntityId, command.slot));
+      break;
   }
 
   const npcTick = advanceNpcTurns(nextState, rng);
@@ -176,6 +184,7 @@ export function dispatchCommand(
   systemEvents = [...systemEvents, ...thermoTick.events];
 
   const actingActorId = command.type === 'ATTACK_ACTOR' ? command.attackerId : command.actorId;
+  nextState = decrementProstheticCooldowns(nextState, actingActorId);
   const scheduled = advanceTurnSchedule(nextState, actingActorId, apSpent, systemEvents, rng);
 
   let finalState = scheduled.state;

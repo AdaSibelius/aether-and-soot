@@ -119,5 +119,14 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] PLUMMET! ${ev.actorId} fell from ${ev.fromStratum} to ${ev.toStratum} (${ev.impactDamage} impact damage)!`;
     case 'TRAP_TRIGGERED':
       return `[T${ev.turn}] TRAP TRIGGERED! ${ev.victimActorId} tripped a ${ev.trapKind} at (${ev.at.x}, ${ev.at.y})!`;
+
+    case 'CYBERNETIC_HARVESTED':
+      return `[T${ev.turn}] ${ev.actorId} surgically extracted ${ev.prostheticBlueprintId} from ${ev.corpseEntityId} (${ev.toolQuality} quality, ${ev.itemDamagePct}% item trauma)!`;
+    case 'GOVERNOR_OVERLOADED':
+      return `[T${ev.turn}] BOILER GOVERNOR OVERLOADED! ${ev.actorId}'s augments demand ${ev.strainLoadKw} kW against ${ev.governorCapacityKw} kW capacity!`;
+    case 'HARVEST_ACTION_FAILED':
+      return `[T${ev.turn}] Surgical excision failed on ${ev.corpseEntityId}: ${ev.reason}.`;
+    case 'PROSTHETIC_ACTIVATED':
+      return `[T${ev.turn}] ${ev.actorId} activated ${ev.abilityId} on ${ev.slot} (-${ev.steamCost} kPa steam)!`;
   }
 }

@@ -11,6 +11,12 @@ import {
 } from './primitives.schema.js';
 import { EquipmentSpecSchema } from './equipment.schema.js';
 
+export const BlueprintActiveAbilitySchema = z.object({
+  id: z.string().min(1),
+  steamCost: z.number().nonnegative(),
+  cooldownTurns: z.number().int().nonnegative(),
+});
+
 export const ProstheticBlueprintSchema = z.object({
   id: BlueprintIdSchema,
   name: z.string().min(1),
@@ -24,6 +30,7 @@ export const ProstheticBlueprintSchema = z.object({
   fovRadiusBonus: z.number().int().default(0),
   pressureRatingKpa: z.number().positive(),
   noiseDb: z.number().int().nonnegative().default(0),
+  activeAbility: BlueprintActiveAbilitySchema.optional(),
   visual: VisualGlyphSpecSchema,
 });
 export type ProstheticBlueprint = z.infer<typeof ProstheticBlueprintSchema>;
@@ -80,6 +87,7 @@ export const ItemBlueprintSchema = z
     unlocksRecipeId: BlueprintIdSchema.optional(),
     equipment: EquipmentSpecSchema.optional(),
     penceValue: z.number().int().nonnegative().optional(),
+    surgicalQuality: z.number().min(0).max(100).optional(),
     spawnStrata: z.array(StratumIdSchema).default([]),
     spawnWeight: z.number().int().nonnegative().default(0),
     spawnQuantityMax: z.number().int().positive().default(1),

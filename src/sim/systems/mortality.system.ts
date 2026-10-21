@@ -36,8 +36,9 @@ export function resolveActorDefeatIfFatal(
 
   const turn = state.turnCount + 1;
   const dropSet = new Set<EntityId>(target.inventory?.containedEntityIds ?? []);
+  const hasInstalledCybernetics = Object.values(target.anatomy?.limbs ?? {}).some((l) => l?.installedProstheticEntityId);
 
-  if (target.anatomy) {
+  if (target.anatomy && target.actor.isPlayer) {
     for (const limb of Object.values(target.anatomy.limbs)) {
       if (limb?.installedProstheticEntityId) {
         dropSet.add(limb.installedProstheticEntityId);
@@ -55,6 +56,21 @@ export function resolveActorDefeatIfFatal(
     if (pencePouch) {
       nextEntities[penceDropId] = pencePouch;
       droppedEntityIds.push(penceDropId);
+    }
+    if (hasInstalledCybernetics) {
+      const corpseDropId = EntityIdSchema.parse(`corpse_${targetId}_t${turn}`);
+      const corpseEntity: EntityRecord = {
+        id: corpseDropId,
+        name: `Corpse of ${target.name}`,
+        visual: { glyph: '%', fgPrimary: '#99A3A4', fgSecondary: '#5D6D7E', bgColor: '#0A0D0E', shaderFlags: [] },
+        position: target.position ? { ...target.position, blocksMovement: false, blocksSight: false } : undefined,
+        anatomy: {
+          ...target.anatomy!,
+          bloodVolumePct: 0,
+        },
+      };
+      nextEntities[corpseDropId] = corpseEntity;
+      droppedEntityIds.push(corpseDropId);
     }
     nextEntities = withoutEntity(nextEntities, targetId);
   }

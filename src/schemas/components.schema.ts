@@ -35,6 +35,14 @@ export const PortalComponentSchema = z.object({
 });
 export type PortalComponent = z.infer<typeof PortalComponentSchema>;
 
+export const ActiveAbilitySchema = z.object({
+  id: z.string().min(1),
+  steamCost: z.number().nonnegative(),
+  cooldownTurns: z.number().int().nonnegative(),
+  cooldownRemaining: z.number().int().nonnegative().default(0),
+});
+export type ActiveAbility = z.infer<typeof ActiveAbilitySchema>;
+
 export const ProstheticSpecComponentSchema = z.object({
   blueprintId: BlueprintIdSchema,
   targetLimbSlot: LimbSlotIdSchema,
@@ -46,6 +54,7 @@ export const ProstheticSpecComponentSchema = z.object({
   fovRadiusBonus: z.number().int().default(0),
   pressureRatingKpa: z.number().positive(),
   noiseDb: z.number().int().nonnegative().default(0),
+  activeAbility: ActiveAbilitySchema.optional(),
 });
 export type ProstheticSpecComponent = z.infer<typeof ProstheticSpecComponentSchema>;
 
@@ -71,6 +80,8 @@ export const AnatomyComponentSchema = z.object({
   steamReserveKpa: z.number().nonnegative().default(100),
   maxSteamReserveKpa: z.number().positive().default(100),
   unlockedRecipeIds: z.array(BlueprintIdSchema).default([]),
+  governorCapacityKw: z.number().nonnegative().default(100),
+  strainLoadKw: z.number().nonnegative().default(0),
 });
 export type AnatomyComponent = z.infer<typeof AnatomyComponentSchema>;
 
@@ -96,6 +107,7 @@ export const ItemComponentSchema = z.object({
   unlocksRecipeId: BlueprintIdSchema.optional(),
   equipmentSpec: EquipmentSpecSchema.optional(),
   penceValue: z.number().int().nonnegative().optional(),
+  surgicalQuality: z.number().min(0).max(100).optional(),
 });
 export type ItemComponent = z.infer<typeof ItemComponentSchema>;
 

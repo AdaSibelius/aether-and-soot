@@ -33,11 +33,27 @@ export function parseSplitArgs(argv: string[]): SplitConfig {
 }
 
 export function extractFunctionBlock(content: string, name: string): { block: string; start: number; end: number } | undefined {
-  const pattern = new RegExp(`(?:export\\s+(?:async\\s+)?function\\s+${name}|export\\s+const\\s+${name}\\s*=|export\\s+type\\s+${name}\\s*=|export\\s+interface\\s+${name})`);
+  const pattern = new RegExp(`(?:export\\s+)?(?:async\\s+)?(?:function|const|type|interface)\\s+${name}\\b`);
   const match = pattern.exec(content);
   if (!match) return undefined;
 
   const start = match.index;
+  const isTypeAlias = /^(?:export\s+)?type\s+/.test(content.slice(start, start + 30).trim());
+  if (isTypeAlias) {
+    let depth = 0;
+    for (let i = start; i < content.length; i++) {
+      const ch = content[i];
+      if (ch === '{' || ch === '(' || ch === '[' || ch === '<') depth++;
+      else if (ch === '}' || ch === ')' || ch === ']' || ch === '>') depth--;
+      else if (ch === ';' && depth === 0) {
+        let end = i + 1;
+        if (content[end] === '\n') end++;
+        return { block: content.slice(start, end).trim(), start, end };
+      }
+    }
+    return undefined;
+  }
+
   const isFunction = content.slice(start, start + 50).includes('function');
   let bodyBrace = -1;
 
@@ -104,7 +120,12 @@ export function extractFunctionBlock(content: string, name: string): { block: st
   return undefined;
 }
 
-export function reconcileTargetImports(sourceImports: string[], code: string, _relSourcePath?: string): string[] {
+export function reconcileTargetImports(
+  sourceImports: string[],
+  code: string,
+  relSourcePath?: string,
+  sourceExports: string[] = [],
+): string[] {
   const needed: string[] = [];
   for (const imp of sourceImports) {
     const names = imp.match(/\{([^}]+)\}/);
@@ -117,6 +138,12 @@ export function reconcileTargetImports(sourceImports: string[], code: string, _r
       }
     }
   }
+  if (relSourcePath && sourceExports.length > 0) {
+    const fromSource = sourceExports.filter((s) => new RegExp(`\\b${s}\\b`).test(code));
+    if (fromSource.length > 0) {
+      needed.push(`import { ${fromSource.join(', ')} } from '${relSourcePath}';`);
+    }
+  }
   return needed;
 }
 
@@ -124,6 +151,7 @@ export function performFileSplit(
   sourceContent: string,
   targetRelPath: string,
   functionNames: string[],
+  relSourcePath?: string,
 ): { updatedSource: string; targetContent: string; extractedCount: number } {
   const importMatches = sourceContent.matchAll(/import\s+[\s\S]*?\s+from\s+['"][^'"]+['"];/g);
   const sourceImports: string[] = [];
@@ -141,13 +169,42 @@ export function performFileSplit(
     }
   }
 
+  let foundInternal = true;
+  while (foundInternal) {
+    foundInternal = false;
+    const internalCandidateMatches = Array.from(currentSource.matchAll(/(?:^|\n)\s*(?:(?:async\s+)?function|type|interface)\s+([a-zA-Z0-9_$]+)/g));
+    for (const match of internalCandidateMatches) {
+      const candidateName = match[1];
+      if (!candidateName || functionNames.includes(candidateName)) continue;
+      const refInExtracted = extractedBlocks.some((b) => new RegExp(`\\b${candidateName}\\b`).test(b));
+      if (refInExtracted) {
+        const blockData = extractFunctionBlock(currentSource, candidateName);
+        if (blockData) {
+          const withoutBlock = currentSource.slice(0, blockData.start) + currentSource.slice(blockData.end);
+          if (!new RegExp(`\\b${candidateName}\\b`).test(withoutBlock)) {
+            extractedBlocks.unshift(blockData.block);
+            currentSource = withoutBlock;
+            foundInternal = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  const exportMatches = currentSource.matchAll(/export\s+(?:interface|type|function|const)\s+([a-zA-Z0-9_$]+)/g);
+  const sourceExports = Array.from(exportMatches).map((m) => m[1] ?? '').filter((s) => s.length > 0 && !functionNames.includes(s));
+
   const combinedExtracted = extractedBlocks.join('\n\n');
-  const targetImports = reconcileTargetImports(sourceImports, combinedExtracted, targetRelPath);
+  const targetImports = reconcileTargetImports(sourceImports, combinedExtracted, relSourcePath, sourceExports);
   const targetContent = `${targetImports.join('\n')}\n\n${combinedExtracted}\n`;
+
+  const remainingCodeWithoutImports = currentSource.replace(/import\s+[\s\S]*?\s+from\s+['"][^'"]+['"];?\n?/g, '');
+  const updatedSourceImports = reconcileTargetImports(sourceImports, remainingCodeWithoutImports);
 
   const relImport = targetRelPath.startsWith('.') ? targetRelPath : './' + targetRelPath;
   const barrelExport = `\nexport { ${functionNames.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';\n`;
-  const updatedSource = currentSource.trim() + '\n' + barrelExport;
+  const updatedSource = `${updatedSourceImports.join('\n')}\n\n${remainingCodeWithoutImports.trim()}\n${barrelExport}`;
 
   return { updatedSource, targetContent, extractedCount: extractedBlocks.length };
 }
@@ -164,7 +221,15 @@ export async function runSplit(config: SplitConfig, rootDir: string): Promise<{
   const sourceLinesBefore = sourceContent.split('\n').length;
 
   const relTargetFromSource = path.relative(path.dirname(sourceFullPath), targetFullPath).replace(/\\/g, '/');
-  const { updatedSource, targetContent, extractedCount } = performFileSplit(sourceContent, relTargetFromSource, config.extract);
+  let relSourceFromTarget = path.relative(path.dirname(targetFullPath), sourceFullPath).replace(/\\/g, '/').replace(/\.ts$/, '.js');
+  if (!relSourceFromTarget.startsWith('.')) relSourceFromTarget = './' + relSourceFromTarget;
+
+  const { updatedSource, targetContent, extractedCount } = performFileSplit(
+    sourceContent,
+    relTargetFromSource,
+    config.extract,
+    relSourceFromTarget,
+  );
 
   const sourceLinesAfter = updatedSource.split('\n').length;
   const targetLines = targetContent.split('\n').length;
@@ -187,8 +252,10 @@ export async function runSplit(config: SplitConfig, rootDir: string): Promise<{
   } catch (err: unknown) {
     fs.writeFileSync(sourceFullPath, sourceContent, 'utf-8');
     if (fs.existsSync(targetFullPath)) fs.unlinkSync(targetFullPath);
+    const execErr = err as { stdout?: Buffer | string; stderr?: Buffer | string };
+    const detail = execErr.stdout?.toString() || execErr.stderr?.toString() || '';
     const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`[hermes-split] Verification failed after split, reverted files: ${msg}`);
+    throw new Error(`[hermes-split] Verification failed after split, reverted files: ${msg} ${detail}`);
   }
 
   return { sourceLinesBefore, sourceLinesAfter, targetLines, extractedCount };

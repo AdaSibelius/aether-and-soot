@@ -201,6 +201,25 @@ export const BreachTileCommandSchema = z.object({
   type: z.literal('BREACH_TILE'), actorId: EntityIdSchema, target: Point3DSchema,
 });
 
+export const ActivateProstheticCommandSchema = z.object({
+  type: z.literal('ACTIVATE_PROSTHETIC'),
+  actorId: EntityIdSchema,
+  slot: LimbSlotIdSchema,
+  direction: z.object({ dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1) }).optional(),
+  target: Point3DSchema.optional(),
+  targetEntityId: EntityIdSchema.optional(),
+});
+export type ActivateProstheticCommand = z.infer<typeof ActivateProstheticCommandSchema>;
+
+export const HarvestCorpseCommandSchema = z.object({
+  type: z.literal('HARVEST_CORPSE'),
+  actorId: EntityIdSchema,
+  corpseEntityId: EntityIdSchema,
+  slot: LimbSlotIdSchema.optional(),
+  toolEntityId: EntityIdSchema,
+});
+export type HarvestCorpseCommand = z.infer<typeof HarvestCorpseCommandSchema>;
+
 export const GameCommandSchema = z.discriminatedUnion('type', [
   MoveStepCommandSchema,
   UsePortalCommandSchema,
@@ -236,6 +255,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   FireRangedWeaponCommandSchema,
   LootContainerCommandSchema,
   BreachTileCommandSchema,
+  ActivateProstheticCommandSchema,
+  HarvestCorpseCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
 
