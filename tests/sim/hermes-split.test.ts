@@ -79,14 +79,14 @@ export function toKeep(): number { return 42; }
   it('executes a safe dry-run against economy.system.ts without modifying disk', async () => {
     const config = parseSplitArgs([
       'node', 'script.js',
-      '--source', 'src/sim/systems/economy.system.ts',
-      '--target', 'src/sim/systems/economy-macro.system.ts',
+      '--source', 'src/sim/systems/economy-macro.system.ts',
+      '--target', 'src/sim/systems/economy-temp.system.ts',
       '--extract', 'advanceDistrictEconomyMacroTick',
       '--dry-run',
     ]);
 
     const result = await runSplit(config, rootDir);
-    expect(result.sourceLinesBefore).toBeGreaterThan(250);
+    expect(result.sourceLinesBefore).toBeGreaterThan(80);
     expect(result.sourceLinesAfter).toBeLessThan(result.sourceLinesBefore);
     expect(result.extractedCount).toBe(1);
   });

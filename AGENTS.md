@@ -40,6 +40,9 @@ All local tooling (`tests/scripts/hermes-*.ts`) supports `--model <name>`, `proc
 - **Anti-Tautological Test Invariant**: In `hermes:testgen`, the self-healing retry loop strictly separates `tsc --noEmit` compiler/type/import fixes from `vitest run` assertion failures. The local LLM may fix syntax, imports, and mock shapes, but is FORBIDDEN from rewriting domain `expect(...)` values simply to force tests green.
 - **Mandatory Delegation**: As each tool comes online, agents MUST delegate codebase scouting (`hermes:scout`), bulk blueprints (`generate:content`), unit test scaffolding (`hermes:testgen`), event formatting (`hermes:chronicler`), and file splitting (`hermes:split`) rather than hand-authoring them in paid context.
 
+### Rule 1.6: Mandatory Post-Phase Critique Loop
+At the end of every phase (after `npm run verify`), run `npm run hermes:critic` and `npm run sync:state` so the 4-scenario playtest audit and self-directed prescriptions from `tests/artifacts/critic-audit.md` are automatically embedded into `STATE.md` before the next phase begins.
+
 ---
 
 ## 2. Non-Negotiable Architectural Guardrails

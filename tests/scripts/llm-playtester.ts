@@ -103,6 +103,7 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     transitionsCompleted: 0,
     finalBloodPct: 100,
     uniqueTilesVisited: 0,
+    commandHistogram: {},
   };
 
   const prevAlerts = new Map<string, string>();
@@ -154,6 +155,7 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
       console.log(`[llm-playtester] Turn ${turn + 1}: ${command.type}`);
     }
     const stepRes = dispatchCommand(state, command);
+    metrics.commandHistogram[command.type] = (metrics.commandHistogram[command.type] ?? 0) + 1;
     state = stepRes.state;
 
     const blockedEv = stepRes.events.find((e) => e.type === 'MOVEMENT_BLOCKED');

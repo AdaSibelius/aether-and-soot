@@ -28,6 +28,7 @@ export interface PlaytestMetrics {
   transitionsCompleted: number;
   finalBloodPct: number;
   uniqueTilesVisited: number;
+  commandHistogram: Record<string, number>;
   causeOfDeath?: string;
 }
 
@@ -36,6 +37,11 @@ export function writeReport(config: PlaytestReportConfig, metrics: PlaytestMetri
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
   const status = metrics.causeOfDeath ? `DEFEATED (${metrics.causeOfDeath})` : 'SURVIVED';
+  const histogramRows = Object.entries(metrics.commandHistogram ?? {})
+    .sort((a, b) => b[1] - a[1])
+    .map(([cmd, count]) => `| \`${cmd}\` | ${count} |`)
+    .join('\n');
+
   const content = `# Aether & Soot — Headless Autonomous Playtest Report
 
 - **Timestamp**: ${new Date().toISOString()}
@@ -65,6 +71,11 @@ export function writeReport(config: PlaytestReportConfig, metrics: PlaytestMetri
 | **Final Blood Volume** | ${metrics.finalBloodPct}% | Haemodynamic stability |
 | **Unique Tiles Visited** | ${metrics.uniqueTilesVisited} | Distinct spatial tiles explored |
 
+## Command Dispatch Histogram
+
+| Command Type | Dispatches |
+| :--- | :--- |
+${histogramRows || '| None | 0 |'}
 `;
 
   fs.writeFileSync(config.reportPath, content, 'utf-8');
