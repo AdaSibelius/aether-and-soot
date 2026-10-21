@@ -12,15 +12,21 @@
 
 ---
 
-## 1. Active Implementation Plan: Local Hermes Zero-Token Automation & Engineering Epics (Phases 32–36)
+## 1. Active Implementation Plan: Local Hermes/Ollama Zero-Token Automation (Phases 32–36)
 
-To minimize compounding input context and output generation token costs on paid frontier models, Phases 32–36 establish an autonomous, local Hermes-driven companion tooling suite in `tests/scripts/`. Every output is governed by strict Zod validation and `npm run verify`.
+To minimize compounding input context and output generation token costs on paid frontier models, Phases 32–36 establish an autonomous, local companion tooling suite in `tests/scripts/`. Every output is governed by strict Zod validation, deterministic-first Node AST extraction, and `npm run verify`.
 
-- [ ] **Phase 32 (Issue #37)**: Local Hermes Codebase Scout & Pre-Flight Impact Analyzer (`tests/scripts/hermes-scout.ts`, `npm run hermes:scout`). Compiles the mandatory 5-point Pre-Flight Impact Analysis locally without polluting Gemini's context with raw multi-file reads.
-- [ ] **Phase 33 (Issue #38)**: Self-Healing Deterministic Unit Test Generator (`tests/scripts/hermes-testgen.ts`, `npm run hermes:testgen`). Generates Vitest suites with a local `tsc` + `vitest` compiler error feedback loop.
-- [ ] **Phase 34 (Issue #39)**: Exhaustive `SimEvent` Chronicler & Boilerplate Generator (`tests/scripts/hermes-chronicler.ts`, `npm run hermes:chronicler`). Synchronizes `src/schemas/events.schema.ts` variants with `EventFormatter.ts` switch cases and Victorian logs.
-- [ ] **Phase 35 (Issue #40)**: Full-Spectrum Declarative Blueprint & Prefab Factory (`tests/scripts/hermes-content-generator.ts`, `tests/scripts/hermes-content-normalizers.ts`). Expands bulk local generation to prosthetics, districts, gases, and ASCII building prefabs.
-- [ ] **Phase 36 (Issue #41)**: Modularity Ceiling Splitter Assistant (`tests/scripts/hermes-split.ts`, `npm run hermes:split`). Automatically extracts sub-domain functions from near-cap files (>=240 lines) to enforce the 300-line modularity ceiling.
+### Architectural Invariants & Model Routing
+- **Tier 1 (Code/AST Tools)**: `hermes:scout`, `hermes:testgen`, and `hermes:split` default to `gemma4:12b-extended` (fallback: `hermes-agent` / `hermes3:8b`).
+- **Tier 2 (Fast Flavor/JSON Tools)**: `hermes:chronicler`, `generate:content`, and `playtest` default to `hermes3:8b` (fallback: `hermes-agent`).
+- **Anti-Tautological Invariant**: `hermes:testgen` isolates compiler/type errors (`tsc --noEmit`) from domain test assertions (`vitest run`), strictly forbidding the LLM from mutating `expect()` targets to falsely pass tests.
+- **Deterministic-First Invariant**: `hermes:scout` and `hermes:split` extract line counts, exports, and function slices deterministically via Node; local models are invoked purely for synthesis and import reconciliation.
+
+- [ ] **Phase 32 (Issue #37)**: Local Codebase Scout & Pre-Flight Impact Analyzer (`tests/scripts/hermes-scout.ts`, `npm run hermes:scout`). Compiles the mandatory 5-point Pre-Flight Impact Analysis locally without polluting Gemini's context with raw multi-file reads. Defaults to `gemma4:12b-extended`.
+- [ ] **Phase 33 (Issue #38)**: Self-Healing Deterministic Unit Test Generator (`tests/scripts/hermes-testgen.ts`, `npm run hermes:testgen`). Generates Vitest suites with compiler-only error recovery and anti-tautological test protection. Defaults to `gemma4:12b-extended`.
+- [ ] **Phase 34 (Issue #39)**: Exhaustive `SimEvent` Chronicler & Boilerplate Generator (`tests/scripts/hermes-chronicler.ts`, `npm run hermes:chronicler`). Synchronizes `src/schemas/events.schema.ts` variants with `EventFormatter.ts` switch cases and Victorian logs. Defaults to `hermes3:8b`.
+- [ ] **Phase 35 (Issue #40)**: Full-Spectrum Declarative Blueprint & Prefab Factory (`tests/scripts/hermes-content-generator.ts`, `tests/scripts/hermes-content-normalizers.ts`). Expands bulk local generation to prosthetics, districts, gases, and ASCII building prefabs. Defaults to `hermes3:8b`.
+- [ ] **Phase 36 (Issue #41)**: Modularity Ceiling Splitter Assistant (`tests/scripts/hermes-split.ts`, `npm run hermes:split`). Uses deterministic AST slicing to extract sub-domain functions from near-cap files (>=240 lines) to enforce the 300-line modularity ceiling. Defaults to `gemma4:12b-extended`.
 
 ### Future Gameplay Epics (Queued Post-Automation)
 - **Audio & Soundscape Shell (Phase 37)**: WebAudio procedural synthesizer / sound event trigger pipeline wired to `SimEvent` turn logs (`SOUND_EMITTED`, boiler ruptures, trap snaps).
