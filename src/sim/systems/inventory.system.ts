@@ -19,6 +19,7 @@ import {
 import { resolveUseManual } from './furniture.system.js';
 import { resolveUnequipItem } from './equipment.system.js';
 import type { EquipmentSlot } from './equipment.system.js';
+import { applyItemUseEffect } from './metabolism.system.js';
 
 export const PICKUP_AP = STANDARD_ACTION_AP;
 export const DROP_AP = 50;
@@ -202,23 +203,15 @@ export function resolveUseItem(
   const effect = itemComp.useEffect;
   if (!effect) return createInventoryFailureResult(state, actorId, 'USE', 'NOT_CONSUMABLE', itemEntityId);
 
-  const anatomy = actor.anatomy;
-  let nextAnatomy = anatomy;
-  let amountRestored = 0;
-  switch (effect.kind) {
-    case 'RESTORE_BLOOD': {
-      const next = Math.min(100, anatomy.bloodVolumePct + effect.magnitude);
-      amountRestored = next - anatomy.bloodVolumePct;
-      nextAnatomy = { ...anatomy, bloodVolumePct: next };
-      break;
-    }
-    case 'RESTORE_STEAM': {
-      const next = Math.min(anatomy.maxSteamReserveKpa, anatomy.steamReserveKpa + effect.magnitude);
-      amountRestored = next - anatomy.steamReserveKpa;
-      nextAnatomy = { ...anatomy, steamReserveKpa: next };
-      break;
-    }
-  }
+  const { nextAnatomy, amountRestored, alchemicalEvents } = applyItemUseEffect(
+    actor.anatomy,
+    effect,
+    actorId,
+    state.turnCount + 1,
+    itemEntityId,
+    item.name,
+    itemComp.blueprintId,
+  );
 
   const remainingQuantity = itemComp.quantity - 1;
   const entities: Record<string, EntityRecord> =
@@ -242,6 +235,9 @@ export function resolveUseItem(
   return {
     state: { ...state, entities },
     apSpent: USE_ITEM_AP,
-    events: [{ type: 'ITEM_USED', turn: state.turnCount + 1, actorId, itemEntityId, itemName: item.name, effect: effect.kind, amountRestored, remainingQuantity }],
+    events: [
+      { type: 'ITEM_USED', turn: state.turnCount + 1, actorId, itemEntityId, itemName: item.name, effect: effect.kind, amountRestored, remainingQuantity },
+      ...alchemicalEvents,
+    ],
   };
 }

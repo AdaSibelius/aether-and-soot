@@ -183,7 +183,7 @@ describe('Phase 37: Governor Bandwidth, Active Prosthetics & Corpse Harvesting',
       visual: { glyph: '%', fgPrimary: '#99A3A4', fgSecondary: '#5D6D7E', bgColor: '#0A0D0E', shaderFlags: [] },
       position: { x: pPos.x + 1, y: pPos.y, stratum: pPos.stratum, blocksMovement: false, blocksSight: false },
       anatomy: {
-        bloodVolumePct: 0, steamReserveKpa: 0, maxSteamReserveKpa: 100, governorCapacityKw: 100, strainLoadKw: 0, unlockedRecipeIds: [],
+        bloodVolumePct: 0, steamReserveKpa: 0, maxSteamReserveKpa: 100, governorCapacityKw: 100, strainLoadKw: 0, unlockedRecipeIds: [], toxicityPct: 0, painShock: 0, stamina: 100, activeEffects: [],
         limbs: { OCULAR_MOUNT: { slot: 'OCULAR_MOUNT', hp: 0, maxHp: 10, amputated: false, installedProstheticEntityId: monocleId } },
       },
     };

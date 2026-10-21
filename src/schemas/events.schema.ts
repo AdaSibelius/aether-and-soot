@@ -29,6 +29,10 @@ import {
   EquipmentActionFailedEventSchema, ItemEquippedEventSchema,
   ItemUnequippedEventSchema, RangedAttackResolvedEventSchema,
 } from './equipment.schema.js';
+import {
+  AlchemicalConsumedEventSchema, ToxicityOverdoseEventSchema,
+  WithdrawalOnsetEventSchema, StaminaDepletedEventSchema,
+} from './metabolism-events.schema.js';
 
 export {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
@@ -53,6 +57,8 @@ export {
   ItemUnequippedEventSchema, RangedAttackResolvedEventSchema,
   ProstheticActivatedEventSchema, GovernorOverloadedEventSchema,
   CyberneticHarvestedEventSchema, HarvestActionFailedEventSchema,
+  AlchemicalConsumedEventSchema, ToxicityOverdoseEventSchema,
+  WithdrawalOnsetEventSchema, StaminaDepletedEventSchema,
 };
 
 export const SimEventSchema = z.discriminatedUnion('type', [
@@ -115,5 +121,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   GovernorOverloadedEventSchema,
   CyberneticHarvestedEventSchema,
   HarvestActionFailedEventSchema,
+  AlchemicalConsumedEventSchema,
+  ToxicityOverdoseEventSchema,
+  WithdrawalOnsetEventSchema,
+  StaminaDepletedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

@@ -91,7 +91,11 @@ export const ItemCategorySchema = z.enum(['MATERIAL', 'CONSUMABLE', 'PROSTHETIC'
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 export const ItemUseEffectSchema = z.object({
-  kind: z.enum(['RESTORE_BLOOD', 'RESTORE_STEAM']),
-  magnitude: z.number().positive(),
+  kind: z.enum(['RESTORE_BLOOD', 'RESTORE_STEAM', 'ALCHEMICAL']),
+  magnitude: z.number().default(0),
+  toxicityDelta: z.number().optional(),
+  staminaRestore: z.number().optional(),
+  painRelief: z.number().optional(),
+  appliedEffectId: z.string().optional(),
 });
 export type ItemUseEffect = z.infer<typeof ItemUseEffectSchema>;

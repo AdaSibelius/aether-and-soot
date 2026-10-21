@@ -62,6 +62,110 @@ export function generateMockTestSuite(targetPath: string, rootDir: string, funct
   const importPath = relImport.startsWith('.') ? relImport : './' + relImport;
   const fnNames = functions.map((f) => f.match(/^([A-Za-z0-9_]+)/)?.[1]).filter((s): s is string => Boolean(s));
 
+  if (targetPath.includes('metabolism')) {
+    return `import { describe, expect, it } from 'vitest';
+import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
+import { createInitialWorld } from '../../src/sim/core/world.js';
+import {
+  advanceMetabolismTick,
+  applyItemUseEffect,
+} from '${importPath}';
+
+describe('Deterministic Metabolism System Test', () => {
+  it('triggers TOXICITY_OVERDOSE and inflicts penalties when toxicity crosses 80%', () => {
+    const world = createInitialWorld({ seed: 42 });
+    const playerId = EntityIdSchema.parse('actor_player');
+    const player = world.entities[playerId];
+    expect(player?.anatomy).toBeDefined();
+
+    // Set player toxicity directly to the overdose threshold
+    const primedWorld = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [playerId]: {
+          ...player!,
+          anatomy: {
+            ...player!.anatomy!,
+            toxicityPct: 85,
+            bloodVolumePct: 100,
+          },
+        },
+      },
+    };
+
+    const tick = advanceMetabolismTick(primedWorld);
+    const overdoseEv = tick.events.find((e) => e.type === 'TOXICITY_OVERDOSE');
+    expect(overdoseEv).toBeDefined();
+    if (overdoseEv && overdoseEv.type === 'TOXICITY_OVERDOSE') {
+      expect(overdoseEv.actorId).toBe(playerId);
+      expect(overdoseEv.toxicityPct).toBe(85);
+      expect(overdoseEv.bloodVolumeLost).toBeGreaterThan(0);
+    }
+
+    const updatedPlayer = tick.state.entities[playerId];
+    expect(updatedPlayer?.anatomy?.bloodVolumePct).toBeLessThan(100);
+    // Toxicity decays by 1 per turn
+    expect(updatedPlayer?.anatomy?.toxicityPct).toBe(84);
+  });
+
+  it('triggers WITHDRAWAL_ONSET when a stimulant effect expires', () => {
+    const world = createInitialWorld({ seed: 42 });
+    const playerId = EntityIdSchema.parse('actor_player');
+    const player = world.entities[playerId];
+
+    const buffedWorld = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [playerId]: {
+          ...player!,
+          anatomy: {
+            ...player!.anatomy!,
+            activeEffects: [{ effectId: 'stim_aether_rush', durationTurns: 1, magnitude: 25 }],
+          },
+        },
+      },
+    };
+
+    const tick = advanceMetabolismTick(buffedWorld);
+    const withdrawalEv = tick.events.find((e) => e.type === 'WITHDRAWAL_ONSET');
+    expect(withdrawalEv).toBeDefined();
+    if (withdrawalEv && withdrawalEv.type === 'WITHDRAWAL_ONSET') {
+      expect(withdrawalEv.actorId).toBe(playerId);
+      expect(withdrawalEv.effectId).toBe('stim_aether_rush');
+      expect(withdrawalEv.penaltyAp).toBe(25);
+    }
+
+    const updatedPlayer = tick.state.entities[playerId];
+    expect(updatedPlayer?.anatomy?.activeEffects.length).toBe(0);
+  });
+
+  it('applies alchemical consumption and evaluates overdose threshold during item use', () => {
+    const world = createInitialWorld({ seed: 42 });
+    const playerId = EntityIdSchema.parse('actor_player');
+    const playerAnatomy = world.entities[playerId]!.anatomy!;
+
+    const result = applyItemUseEffect(
+      { ...playerAnatomy, toxicityPct: 70 },
+      { kind: 'ALCHEMICAL', magnitude: 25, toxicityDelta: 20, staminaRestore: 30, appliedEffectId: 'stim_aether_rush' },
+      playerId,
+      1,
+    );
+
+    expect(result.nextAnatomy.toxicityPct).toBe(90);
+    expect(result.nextAnatomy.activeEffects.some((e) => e.effectId === 'stim_aether_rush')).toBe(true);
+
+    const alchemicalEv = result.alchemicalEvents.find((e) => e.type === 'ALCHEMICAL_CONSUMED');
+    expect(alchemicalEv).toBeDefined();
+
+    const overdoseEv = result.alchemicalEvents.find((e) => e.type === 'TOXICITY_OVERDOSE');
+    expect(overdoseEv).toBeDefined();
+  });
+});
+`;
+  }
+
   if (targetPath.includes('portals')) {
     return `import { describe, expect, it } from 'vitest';
 import { createInitialWorld } from '../../src/sim/core/world.js';

@@ -103,6 +103,10 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
       unlockedRecipeIds: [],
       governorCapacityKw: 100,
       strainLoadKw: 0,
+      toxicityPct: 0,
+      painShock: 0,
+      stamina: 100,
+      activeEffects: [],
     },
     inventory: {
       containedEntityIds: [striderLegId, ocularMonocleId],

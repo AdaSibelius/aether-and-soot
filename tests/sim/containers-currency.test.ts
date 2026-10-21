@@ -194,6 +194,10 @@ describe('Phase 23: Interactive Containers & Tangible Currency', () => {
             maxSteamReserveKpa: 100,
             governorCapacityKw: 100,
             strainLoadKw: 0,
+            toxicityPct: 0,
+            painShock: 0,
+            stamina: 100,
+            activeEffects: [],
             limbs: {
               HEAD: { slot: 'HEAD', hp: 1, maxHp: 20, amputated: false },
               TORSO: { slot: 'TORSO', hp: 1, maxHp: 40, amputated: false },

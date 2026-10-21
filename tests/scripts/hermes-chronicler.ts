@@ -78,8 +78,20 @@ export function findMissingEvents(allEvents: string[], handled: Set<string>): st
 }
 
 export function generateMockCase(eventType: string): string {
-  const words = eventType.toLowerCase().split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  return `    case '${eventType}':\n      return \`[T\${ev.turn}] Victorian chronicle: ${words}.\`;`;
+  switch (eventType) {
+    case 'ALCHEMICAL_CONSUMED':
+      return `    case 'ALCHEMICAL_CONSUMED':\n      return \`[T\${ev.turn}] \${ev.actorId} imbibed alchemical draught (Toxicity +\${ev.toxicityDelta}%, Stamina \${ev.staminaDelta >= 0 ? '+' : ''}\${ev.staminaDelta}, Pain -\${ev.painRelief}).\`;`;
+    case 'TOXICITY_OVERDOSE':
+      return `    case 'TOXICITY_OVERDOSE':\n      return \`[T\${ev.turn}] OVERDOSE! \${ev.actorId}'s veins seethe with \${ev.toxicityPct}% toxicity (-\${ev.bloodVolumeLost}% blood, -\${ev.damageInflicted} HP)!\`;`;
+    case 'WITHDRAWAL_ONSET':
+      return `    case 'WITHDRAWAL_ONSET':\n      return \`[T\${ev.turn}] WITHDRAWAL! \${ev.actorId} suffers tremors as \${ev.effectId} crashes (-\${ev.penaltyAp} AP)!\`;`;
+    case 'STAMINA_DEPLETED':
+      return `    case 'STAMINA_DEPLETED':\n      return \`[T\${ev.turn}] COLLAPSE! \${ev.actorId}'s stamina is entirely spent!\`;`;
+    default: {
+      const words = eventType.toLowerCase().split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return `    case '${eventType}':\n      return \`[T\${ev.turn}] Victorian chronicle: ${words}.\`;`;
+    }
+  }
 }
 
 export async function requestHermesCase(eventType: string, config: ChroniclerConfig): Promise<string> {

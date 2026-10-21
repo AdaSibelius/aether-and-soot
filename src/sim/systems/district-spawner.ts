@@ -12,6 +12,10 @@ export function createDefaultNpcAnatomy(torsoHp = 45, limbHp = 25): AnatomyCompo
     maxSteamReserveKpa: 100,
     governorCapacityKw: 100,
     strainLoadKw: 0,
+    toxicityPct: 0,
+    painShock: 0,
+    stamina: 100,
+    activeEffects: [],
     limbs: {
       HEAD: { slot: 'HEAD', hp: limbHp, maxHp: limbHp, amputated: false },
       TORSO: { slot: 'TORSO', hp: torsoHp, maxHp: torsoHp, amputated: false },

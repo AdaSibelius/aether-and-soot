@@ -2,6 +2,7 @@ import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { advanceDistrictEconomyMacroTick } from '../systems/economy.system.js';
+import { advanceMetabolismTick } from '../systems/metabolism.system.js';
 import { SeededRNG } from './rng.js';
 import { WorldState } from './world.js';
 
@@ -19,8 +20,9 @@ export function advanceTurnSchedule(
   newEvents: readonly SimEvent[],
   rng: SeededRNG,
 ): { state: WorldState; allEvents: SimEvent[] } {
-  const actorRecord = state.entities[actorId];
-  const updatedEntities: Record<string, EntityRecord> = { ...state.entities };
+  const metaRes = advanceMetabolismTick(state);
+  const updatedEntities: Record<string, EntityRecord> = { ...metaRes.state.entities };
+  const actorRecord = updatedEntities[actorId];
 
   if (actorRecord?.actor) {
     updatedEntities[actorId] = {
@@ -35,7 +37,7 @@ export function advanceTurnSchedule(
   const nextTurn = state.turnCount + 1;
   let nextMacroTick = state.macroTickCount;
   let nextEconomy = state.economy;
-  const combinedEvents: SimEvent[] = [...newEvents];
+  const combinedEvents: SimEvent[] = [...newEvents, ...metaRes.events];
 
   if (nextTurn % MACRO_TICK_INTERVAL === 0) {
     nextMacroTick += 1;

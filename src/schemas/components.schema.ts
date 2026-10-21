@@ -74,6 +74,13 @@ export const LimbStatusSchema = z.object({
 });
 export type LimbStatus = z.infer<typeof LimbStatusSchema>;
 
+export const ActiveEffectSchema = z.object({
+  effectId: z.string().min(1),
+  durationTurns: z.number().int().nonnegative(),
+  magnitude: z.number(),
+});
+export type ActiveEffect = z.infer<typeof ActiveEffectSchema>;
+
 export const AnatomyComponentSchema = z.object({
   limbs: z.record(LimbSlotIdSchema, LimbStatusSchema),
   bloodVolumePct: z.number().min(0).max(100).default(100),
@@ -82,6 +89,10 @@ export const AnatomyComponentSchema = z.object({
   unlockedRecipeIds: z.array(BlueprintIdSchema).default([]),
   governorCapacityKw: z.number().nonnegative().default(100),
   strainLoadKw: z.number().nonnegative().default(0),
+  toxicityPct: z.number().min(0).max(100).default(0),
+  painShock: z.number().min(0).max(100).default(0),
+  stamina: z.number().min(0).max(100).default(100),
+  activeEffects: z.array(ActiveEffectSchema).default([]),
 });
 export type AnatomyComponent = z.infer<typeof AnatomyComponentSchema>;
 

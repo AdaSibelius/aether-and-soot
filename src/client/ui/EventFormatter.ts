@@ -128,5 +128,13 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Surgical excision failed on ${ev.corpseEntityId}: ${ev.reason}.`;
     case 'PROSTHETIC_ACTIVATED':
       return `[T${ev.turn}] ${ev.actorId} activated ${ev.abilityId} on ${ev.slot} (-${ev.steamCost} kPa steam)!`;
-  }
+
+    case 'ALCHEMICAL_CONSUMED':
+      return `[T${ev.turn}] ${ev.actorId} imbibed alchemical draught (Toxicity +${ev.toxicityDelta}%, Stamina ${ev.staminaDelta >= 0 ? '+' : ''}${ev.staminaDelta}, Pain -${ev.painRelief}).`;
+    case 'STAMINA_DEPLETED':
+      return `[T${ev.turn}] COLLAPSE! ${ev.actorId}'s stamina is entirely spent!`;
+    case 'TOXICITY_OVERDOSE':
+      return `[T${ev.turn}] OVERDOSE! ${ev.actorId}'s veins seethe with ${ev.toxicityPct}% toxicity (-${ev.bloodVolumeLost}% blood, -${ev.damageInflicted} HP)!`;
+    case 'WITHDRAWAL_ONSET':
+      return `[T${ev.turn}] WITHDRAWAL! ${ev.actorId} suffers tremors as ${ev.effectId} crashes (-${ev.penaltyAp} AP)!`;  }
 }

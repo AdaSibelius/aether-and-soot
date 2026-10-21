@@ -83,13 +83,50 @@ export function generateMockContent(config: ContentGeneratorConfig): unknown[] {
     }));
   }
   if (config.type === 'consumables') {
-    return Array.from({ length: config.count }, (_, i) => ({
-      id: `item_hermes_tonic_${i + 1}`, name: `Alchemical Tincture #${i + 1}`,
-      description: `Victorian phial for ${config.theme}.`, category: 'CONSUMABLE',
-      massGrams: 200, volumeMl: 200, stackable: true, useEffect: { kind: 'RESTORE_BLOOD', magnitude: 25 },
-      spawnStrata: ['STREET'], spawnWeight: 15, spawnQuantityMax: 2,
-      visual: { glyph: '!', fgPrimary: '#E74C3C', fgSecondary: '#922B21', bgColor: '#0A0D0E', shaderFlags: [] },
-    }));
+    const combatAlchemicals = [
+      {
+        id: 'item_laudanum_tincture',
+        name: 'Laudanum Tincture',
+        description: 'A dark, bitter opiate tincture. Dulces acute pain and shock while courting toxic dependency.',
+        category: 'CONSUMABLE',
+        massGrams: 180, volumeMl: 150, stackable: true,
+        useEffect: { kind: 'ALCHEMICAL', magnitude: 15, toxicityDelta: 20, painRelief: 40, appliedEffectId: 'laudanum_sedation' },
+        spawnStrata: ['UNDERCROFT', 'STREET', 'SPIRE'], spawnWeight: 14, spawnQuantityMax: 2,
+        visual: { glyph: '!', fgPrimary: '#8E44AD', fgSecondary: '#5B2C6F', bgColor: '#0A0D0E', shaderFlags: [] },
+      },
+      {
+        id: 'item_aether_salt_stimulant',
+        name: 'Aether-Salt Stimulant',
+        description: 'Volatile crystalline salts suspended in spirit. Overclocks physical stamina, courting rapid toxicity and withdrawal tremors.',
+        category: 'CONSUMABLE',
+        massGrams: 160, volumeMl: 120, stackable: true,
+        useEffect: { kind: 'ALCHEMICAL', magnitude: 25, toxicityDelta: 25, staminaRestore: 50, appliedEffectId: 'stim_aether_rush' },
+        spawnStrata: ['STREET', 'SPIRE'], spawnWeight: 12, spawnQuantityMax: 2,
+        visual: { glyph: '!', fgPrimary: '#3498DB', fgSecondary: '#1B4F72', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM'] },
+      },
+      {
+        id: 'item_quicksilver_reflex_draught',
+        name: 'Quicksilver Reflex Draught',
+        description: 'Metallic mercury suspension accelerating synaptic twitch reflexes under dangerous metabolic strain.',
+        category: 'CONSUMABLE',
+        massGrams: 220, volumeMl: 140, stackable: true,
+        useEffect: { kind: 'ALCHEMICAL', magnitude: 30, toxicityDelta: 30, staminaRestore: 40, appliedEffectId: 'stim_quicksilver_haste' },
+        spawnStrata: ['STREET', 'SPIRE'], spawnWeight: 10, spawnQuantityMax: 1,
+        visual: { glyph: '!', fgPrimary: '#BDC3C7', fgSecondary: '#7F8C8D', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
+      },
+      {
+        id: 'item_black_bile_emetic',
+        name: 'Black-Bile Emetic',
+        description: 'Violent apothecary purgative that expels systemic toxins at the price of raw physical exhaustion.',
+        category: 'CONSUMABLE',
+        massGrams: 200, volumeMl: 180, stackable: true,
+        useEffect: { kind: 'ALCHEMICAL', magnitude: 0, toxicityDelta: -40, staminaRestore: -20, painRelief: -10 },
+        spawnStrata: ['UNDERCROFT', 'STREET'], spawnWeight: 15, spawnQuantityMax: 2,
+        visual: { glyph: '!', fgPrimary: '#17202A', fgSecondary: '#2C3E50', bgColor: '#0A0D0E', shaderFlags: [] },
+      },
+    ];
+
+    return combatAlchemicals.slice(0, config.count);
   }
   return Array.from({ length: config.count }, (_, i) => ({
     id: `recipe_hermes_fitting_${i + 1}`, name: `Craft Precision Fitting #${i + 1}`,
