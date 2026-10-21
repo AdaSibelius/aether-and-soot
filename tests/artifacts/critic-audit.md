@@ -18,14 +18,15 @@
 - `tests/scripts/playtester-serializer.ts`: **251 lines** (threshold: 230)
 - `src/client/main.tsx`: **250 lines** (threshold: 230)
 - `src/sim/systems/prosthetics.system.ts`: **250 lines** (threshold: 230)
-- `src/sim/core/engine.ts`: **249 lines** (threshold: 230)
 - `src/client/ui/TradeWindow.tsx`: **248 lines** (threshold: 230)
 - `src/sim/systems/character-archetypes.ts`: **244 lines** (threshold: 230)
 - `src/sim/systems/inventory.system.ts`: **244 lines** (threshold: 230)
+- `src/schemas/components.schema.ts`: **243 lines** (threshold: 230)
 - `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **240 lines** (threshold: 230)
 - `src/client/ui/ItemDossierCard.tsx`: **240 lines** (threshold: 230)
 - `src/client/ui/CharacterCreatorModal.tsx`: **239 lines** (threshold: 230)
+- `src/schemas/commands.schema.ts`: **239 lines** (threshold: 230)
 - `src/sim/systems/transit.system.ts`: **239 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
 - `src/client/ui/AnatomyWindow.tsx`: **237 lines** (threshold: 230)
@@ -38,7 +39,6 @@
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `tests/scripts/llm-playtester.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/AtlasWindow.tsx`: **231 lines** (threshold: 230)
-- `src/schemas/components.schema.ts`: **230 lines** (threshold: 230)
 
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:

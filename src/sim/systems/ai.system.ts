@@ -8,6 +8,7 @@ import { resolveNpcEcologyAction } from './npc-ecology.system.js';
 import { resolveAttackActor } from './combat.system.js';
 import { sortEntitiesById } from './inventory-utils.js';
 import { resolveMoveStep } from './movement.system.js';
+import { resolveEmitSquadCallout } from './squad-witness.system.js';
 
 export { createDefaultNpcAnatomy, createProceduralDistrictContracts, spawnDistrictNpcs } from './district-spawner.js';
 
@@ -39,10 +40,12 @@ export function advanceNpcTurns(
     const npc = workingState.entities[initialNpc.id];
     if (!npc?.actor || !npc.aiController || !npc.position) continue;
 
+    const player = Object.values(workingState.entities).find((e) => e.actor?.isPlayer);
     const gainedEnergy = npc.actor.energy + npc.actor.speed;
     const rep = workingState.economy.factionReputation[npc.aiController.factionId] ?? 0;
     const isCompanion = Boolean(npc.aiController.companionOfActorId);
-    const isHostile = !isCompanion && (npc.aiController.hostile || rep <= HOSTILE_REPUTATION_THRESHOLD);
+    const hasGrudgeOnPlayer = Boolean(player && npc.aiController.grudgeTargetId === player.id);
+    const isHostile = !isCompanion && (npc.aiController.hostile || rep <= HOSTILE_REPUTATION_THRESHOLD || hasGrudgeOnPlayer);
 
     if (gainedEnergy < STANDARD_ACTION_AP) {
       workingState = {
@@ -59,7 +62,6 @@ export function advanceNpcTurns(
       continue;
     }
 
-    const player = Object.values(workingState.entities).find((e) => e.actor?.isPlayer);
     let apSpent = STANDARD_ACTION_AP;
     let nextAlertState = npc.aiController.alertState;
     let nextLastKnownTargetPos = npc.aiController.lastKnownTargetPos;
@@ -113,6 +115,11 @@ export function advanceNpcTurns(
       player.position.stratum === npc.position.stratum &&
       canActorSpotTarget(workingState, npc.id, player.id)
     ) {
+      if (npc.aiController.alertState !== 'COMBAT' && npc.aiController.squadId) {
+        const callout = resolveEmitSquadCallout(workingState, npc.id, player.id, 'Target sighted! Rally to me!');
+        workingState = callout.state;
+        events.push(...callout.events);
+      }
       nextAlertState = 'COMBAT';
       nextLastKnownTargetPos = {
         x: player.position.x,

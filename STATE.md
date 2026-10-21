@@ -3,12 +3,12 @@
 **Last Updated:** 2026-10-21
 
 ## Recent Commits
+- 1254a5c: Update STATE.md for Phase 41
 - 8f7d366: Implement Phase 41: Surface Liquid Pools, Chemical Reactions & Item Coating
 - 3ad97ce: Implement Phase 40: CDDA Tool Qualities, Weapon Modifications & Loaded Chambers
-- 379a064: Implement Phase 39: Momentum Physics, Knockback Collisions & Stealth Postures
 
 ## Immediate Next Priority
-- **Phase 42: Witness Attribution, Squad Callouts & Faction Grudge Memory**: Create `src/sim/systems/squad-witness.system.ts`. Gate theft/assault `factionReputation` penalties behind unblinded NPC line-of-sight (`WITNESS_CRIME_REPORTED`), rewarding smog occlusion and stealth. Add `EMIT_SQUAD_CALLOUT` (90 dB acoustic alert) for guards to rally nearby allied squadmates into flanking `COMBAT` states and record a persistent `grudgeTargetId`.
+- **Phase 43: Deep Sub-Undercroft Strata (`CATACOMBS` / Infinite Delve) & Derelict Pneumatic Monorail**: Expand vertical exploration beneath `UNDERCROFT` into procedural depth tiers (`depthLevel: 1..N` Chalk Catacombs & Pre-Victorian Clockwork Vaults) with scaling hazards and relic schematics. Connect underground districts via a rideable, coal-pressurized multi-tile **Subterranean Pneumatic Monorail Car**.
 
 ## 5. Self-Directed Prescriptions for Next Phase
 - **P1: NPC Combat Cybernetics & Tonic Usage**: Grant hostile humanoids and cybernetic enforcers the ability to trigger installed limb prosthetics and consume medical tonics when blood drops below 70%.

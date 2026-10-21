@@ -3,6 +3,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
+import { processCrimeWitnesses } from './squad-witness.system.js';
 import {
   computeCarriedVolumeMl,
   findMergeableStack,
@@ -173,7 +174,7 @@ export function resolveLootContainer(
   };
   nextEntities[containerId] = updatedContainer;
 
-  const nextState: WorldState = {
+  let nextState: WorldState = {
     ...state,
     entities: nextEntities,
     economy: {
@@ -181,6 +182,13 @@ export function resolveLootContainer(
       playerTreasuryPence: state.economy.playerTreasuryPence + penceGained,
     },
   };
+
+  const witnessEvents: SimEvent[] = [];
+  if (container.aiController?.factionId) {
+    const witnessRes = processCrimeWitnesses(nextState, actorId, container.aiController.factionId, 'THEFT');
+    nextState = witnessRes.state;
+    witnessEvents.push(...witnessRes.events);
+  }
 
   const lootedEvent: SimEvent = {
     type: 'CONTAINER_LOOTED',
@@ -194,7 +202,7 @@ export function resolveLootContainer(
 
   return {
     state: nextState,
-    events: [lootedEvent],
+    events: [lootedEvent, ...witnessEvents],
     apSpent: STANDARD_ACTION_AP,
   };
 }

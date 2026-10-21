@@ -165,5 +165,13 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] SLIP! ${ev.actorId} lost their footing on slick ${ev.liquidType} at (${ev.at.x}, ${ev.at.y})!`;
     case 'LIQUID_ACTION_FAILED':
       return `[T${ev.turn}] Chemical action failed for ${ev.actorId}: ${ev.reason}.`;
+    case 'WITNESS_CRIME_REPORTED':
+      return `[T${ev.turn}] ALARM! ${ev.witnessId} witnessed ${ev.crime} by ${ev.perpetratorId} (Faction ${ev.factionId} ${ev.reputationPenalty} rep)!`;
+    case 'SQUAD_CALLOUT_EMITTED':
+      return `[T${ev.turn}] SHOUT! [${ev.squadId}] ${ev.callerId} barks: "${ev.calloutMessage}" (${ev.noiseDb} dB)!`;
+    case 'SQUADMATE_RALLIED':
+      return `[T${ev.turn}] RALLIED! Squadmate ${ev.squadmateId} heard the call from ${ev.callerId} and enters combat against ${ev.targetId}!`;
+    case 'GRUDGE_ACQUIRED':
+      return `[T${ev.turn}] GRUDGE! ${ev.holderId} marked ${ev.targetId} for retribution: ${ev.reason}.`;
   }
 }

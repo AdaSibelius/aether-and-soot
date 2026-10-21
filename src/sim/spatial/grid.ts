@@ -10,6 +10,7 @@ export const TileCellSchema = z.object({
   coalDustDensity: z.number().min(0).max(1).default(0),
   liquidType: LiquidTypeIdSchema.default('NONE').optional(),
   liquidVolumeMl: z.number().int().nonnegative().default(0).optional(),
+  smokePpm: z.number().int().nonnegative().default(0).optional(),
   explored: z.boolean().default(false),
 });
 export type TileCell = z.infer<typeof TileCellSchema>;
@@ -39,6 +40,7 @@ export function createStratumGrid(
         coalDustDensity: 0,
         liquidType: 'NONE',
         liquidVolumeMl: 0,
+        smokePpm: 0,
         explored: false,
       });
     }

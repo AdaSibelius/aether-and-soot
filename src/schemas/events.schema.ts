@@ -53,6 +53,26 @@ import {
   SurfaceSlippedEventSchema,
   LiquidActionFailedEventSchema,
 } from './liquid-events.schema.js';
+export type {
+  WitnessCrimeReportedEvent,
+  SquadCalloutEmittedEvent,
+  SquadmateRalliedEvent,
+  GrudgeAcquiredEvent,
+  WitnessEvent,
+} from './witness-events.schema.js';
+export {
+  WitnessCrimeReportedEventSchema,
+  SquadCalloutEmittedEventSchema,
+  SquadmateRalliedEventSchema,
+  GrudgeAcquiredEventSchema,
+  WitnessEventSchema,
+} from './witness-events.schema.js';
+import {
+  WitnessCrimeReportedEventSchema,
+  SquadCalloutEmittedEventSchema,
+  SquadmateRalliedEventSchema,
+  GrudgeAcquiredEventSchema,
+} from './witness-events.schema.js';
 
 export {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
@@ -173,5 +193,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   AcidCorrosionTickEventSchema,
   SurfaceSlippedEventSchema,
   LiquidActionFailedEventSchema,
+  WitnessCrimeReportedEventSchema,
+  SquadCalloutEmittedEventSchema,
+  SquadmateRalliedEventSchema,
+  GrudgeAcquiredEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

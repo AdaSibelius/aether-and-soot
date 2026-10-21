@@ -22,6 +22,20 @@ import type {
   ThrowFlaskCommand,
   CleanSpillCommand,
 } from './domain-commands.schema.js';
+export type {
+  EmitSquadCalloutCommand,
+  ReportCrimeCommand,
+  WitnessCommand,
+} from './witness-commands.schema.js';
+export {
+  EmitSquadCalloutCommandSchema,
+  ReportCrimeCommandSchema,
+  WitnessCommandSchema,
+} from './witness-commands.schema.js';
+import {
+  EmitSquadCalloutCommandSchema,
+  ReportCrimeCommandSchema,
+} from './witness-commands.schema.js';
 import {
   AcceptContractCommandSchema,
   ActivateProstheticCommandSchema,
@@ -218,5 +232,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   CoatWeaponCommandSchema,
   ThrowFlaskCommandSchema,
   CleanSpillCommandSchema,
+  EmitSquadCalloutCommandSchema,
+  ReportCrimeCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

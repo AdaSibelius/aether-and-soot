@@ -24,11 +24,21 @@ export type PositionComponent = z.infer<typeof PositionComponentSchema>;
 export const PostureSchema = z.enum(['STANDING', 'CROUCHED', 'BRACED']);
 export type Posture = z.infer<typeof PostureSchema>;
 
+export const WitnessMemoryEntrySchema = z.object({
+  perpetratorId: EntityIdSchema,
+  crime: z.enum(['THEFT', 'ASSAULT', 'TRESPASS']),
+  turn: z.number().int().nonnegative(),
+});
+export type WitnessMemoryEntry = z.infer<typeof WitnessMemoryEntrySchema>;
+
 export const ActorEnergyComponentSchema = z.object({
   energy: z.number().int(),
   speed: z.number().int().min(10).default(100),
   isPlayer: z.boolean().default(false),
   posture: PostureSchema.default('STANDING').optional(),
+  squadId: z.string().optional(),
+  grudgeTargetId: EntityIdSchema.optional(),
+  witnessMemory: z.array(WitnessMemoryEntrySchema).default([]).optional(),
 });
 export type ActorEnergyComponent = z.infer<typeof ActorEnergyComponentSchema>;
 
@@ -154,6 +164,9 @@ export const AiControllerComponentSchema = z.object({
   dialogueId: z.string().optional(),
   alertState: z.enum(['IDLE', 'INVESTIGATING', 'COMBAT']).default('IDLE'),
   lastKnownTargetPos: Point3DSchema.optional(),
+  grudgeTargetId: EntityIdSchema.optional(),
+  squadId: z.string().optional(),
+  witnessMemory: z.array(WitnessMemoryEntrySchema).default([]).optional(),
 });
 export type AiControllerComponent = z.infer<typeof AiControllerComponentSchema>;
 

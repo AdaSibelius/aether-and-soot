@@ -6,6 +6,7 @@ import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { resolveDamageLimb, SystemAnatomyResult } from './anatomy.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
+import { processCrimeWitnesses } from './squad-witness.system.js';
 
 export const MELEE_ATTACK_AP = STANDARD_ACTION_AP;
 export const FACTION_ATTACK_REPUTATION_PENALTY = -15;
@@ -89,25 +90,32 @@ export function resolveAttackActor(
   let workingState = state;
 
   // Provoke faction NPCs and apply reputation penalty when player attacks a faction member
+  const witnessEvents: SimEvent[] = [];
   if (target.aiController) {
     const factionId = target.aiController.factionId;
     const isPlayerAttack = Boolean(attacker.actor?.isPlayer);
-    const currentRep = workingState.economy.factionReputation[factionId] ?? 0;
-    const nextRep = isPlayerAttack
-      ? Math.max(-100, Math.min(100, currentRep + FACTION_ATTACK_REPUTATION_PENALTY))
-      : currentRep;
 
     workingState = {
       ...workingState,
-      economy: {
-        ...workingState.economy,
-        factionReputation: { ...workingState.economy.factionReputation, [factionId]: nextRep },
-      },
       entities: {
         ...workingState.entities,
-        [targetId]: { ...target, aiController: { ...target.aiController, hostile: true } },
+        [targetId]: {
+          ...target,
+          aiController: {
+            ...target.aiController,
+            hostile: true,
+            grudgeTargetId: attackerId,
+            lastKnownTargetPos: attacker.position ? { ...attacker.position } : target.aiController.lastKnownTargetPos,
+          },
+        },
       },
     };
+
+    if (isPlayerAttack) {
+      const witnessRes = processCrimeWitnesses(workingState, attackerId, factionId, 'ASSAULT');
+      workingState = witnessRes.state;
+      witnessEvents.push(...witnessRes.events);
+    }
   }
 
   const hit = rng.nextInt(1, 100) <= eff.accuracyPct;
@@ -115,7 +123,7 @@ export function resolveAttackActor(
     return {
       state: workingState,
       apSpent: MELEE_ATTACK_AP,
-      events: [{ type: 'COMBAT_ATTACK_RESOLVED', turn, attackerId, targetId, targetSlot, hit: false, damageDealt: 0 }],
+      events: [...witnessEvents, { type: 'COMBAT_ATTACK_RESOLVED', turn, attackerId, targetId, targetSlot, hit: false, damageDealt: 0 }],
     };
   }
 
@@ -141,6 +149,7 @@ export function resolveAttackActor(
   workingState = dmgRes.state;
 
   const events: SimEvent[] = [
+    ...witnessEvents,
     { type: 'COMBAT_ATTACK_RESOLVED', turn, attackerId, targetId, targetSlot, hit: true, damageDealt },
     ...dmgRes.events,
   ];
