@@ -31,6 +31,7 @@ const STRATA_ORDER: readonly { id: StratumId; label: string; altitude: string }[
   { id: 'SPIRE', label: 'SPIRE', altitude: '+40m Catwalks' },
   { id: 'STREET', label: 'STREET', altitude: '0m Cobblestones' },
   { id: 'UNDERCROFT', label: 'UNDERCROFT', altitude: '-15m Sewers' },
+  { id: 'CATACOMBS', label: 'CATACOMBS', altitude: '-45m Crypts' },
 ];
 
 export function AtlasWindow({ state, actorId, onCommand }: AtlasWindowProps) {

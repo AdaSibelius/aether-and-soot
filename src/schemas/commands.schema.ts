@@ -9,7 +9,37 @@ import {
   UnequipItemCommandSchema,
   FireRangedWeaponCommandSchema,
 } from './equipment.schema.js';
-import type {
+import {
+  BoardMonorailCommandSchema,
+  LaunchMonorailCommandSchema,
+  DescendCatacombsCommandSchema,
+} from './transit-commands.schema.js';
+export {
+  BoardMonorailCommandSchema,
+  LaunchMonorailCommandSchema,
+  DescendCatacombsCommandSchema,
+} from './transit-commands.schema.js';
+export type {
+  BoardMonorailCommand,
+  LaunchMonorailCommand,
+  DescendCatacombsCommand,
+} from './transit-commands.schema.js';
+export type {
+  EmitSquadCalloutCommand,
+  ReportCrimeCommand,
+  WitnessCommand,
+} from './witness-commands.schema.js';
+import {
+  EmitSquadCalloutCommandSchema,
+  ReportCrimeCommandSchema,
+  WitnessCommandSchema,
+} from './witness-commands.schema.js';
+export {
+  EmitSquadCalloutCommandSchema,
+  ReportCrimeCommandSchema,
+  WitnessCommandSchema,
+};
+export type {
   ActivateProstheticCommand,
   HarvestCorpseCommand,
   SetPostureCommand,
@@ -22,20 +52,6 @@ import type {
   ThrowFlaskCommand,
   CleanSpillCommand,
 } from './domain-commands.schema.js';
-export type {
-  EmitSquadCalloutCommand,
-  ReportCrimeCommand,
-  WitnessCommand,
-} from './witness-commands.schema.js';
-export {
-  EmitSquadCalloutCommandSchema,
-  ReportCrimeCommandSchema,
-  WitnessCommandSchema,
-} from './witness-commands.schema.js';
-import {
-  EmitSquadCalloutCommandSchema,
-  ReportCrimeCommandSchema,
-} from './witness-commands.schema.js';
 import {
   AcceptContractCommandSchema,
   ActivateProstheticCommandSchema,
@@ -70,19 +86,6 @@ import {
   UseItemCommandSchema,
 } from './domain-commands.schema.js';
 
-export type {
-  ActivateProstheticCommand,
-  HarvestCorpseCommand,
-  SetPostureCommand,
-  ApplyMomentumVectorCommand,
-  InstallWeaponModCommand,
-  UninstallWeaponModCommand,
-  LoadAmmoCommand,
-  PryObstacleCommand,
-  CoatWeaponCommand,
-  ThrowFlaskCommand,
-  CleanSpillCommand,
-};
 export {
   EquipItemCommandSchema,
   UnequipItemCommandSchema,
@@ -234,5 +237,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   CleanSpillCommandSchema,
   EmitSquadCalloutCommandSchema,
   ReportCrimeCommandSchema,
+  BoardMonorailCommandSchema,
+  LaunchMonorailCommandSchema,
+  DescendCatacombsCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

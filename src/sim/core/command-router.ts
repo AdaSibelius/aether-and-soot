@@ -21,6 +21,8 @@ import { resolveApplyMomentumVector, resolveSetPosture } from '../systems/moment
 import { resolveInstallWeaponMod, resolveLoadAmmo, resolvePryObstacle, resolveUninstallWeaponMod } from '../systems/weapon-mods.system.js';
 import { resolveCleanSpill, resolveCoatWeapon, resolveThrowFlask } from '../systems/liquids.system.js';
 import { resolveEmitSquadCallout, resolveReportCrime } from '../systems/squad-witness.system.js';
+import { resolveBoardMonorail, resolveLaunchMonorail } from '../systems/monorail.system.js';
+import { resolveDescendCatacombs } from '../spatial/catacombs.js';
 import { SeededRNG } from './rng.js';
 import { WorldState } from './world.js';
 
@@ -125,6 +127,12 @@ export function routeDomainCommand(
       return { ...resolveEmitSquadCallout(state, command.actorId, command.targetId, command.alertMessage), handled: true };
     case 'REPORT_CRIME':
       return { ...resolveReportCrime(state, command.witnessId, command.perpetratorId, command.crime), handled: true };
+    case 'BOARD_MONORAIL':
+      return { ...resolveBoardMonorail(state, command.actorId, command.monorailEntityId), handled: true };
+    case 'LAUNCH_MONORAIL':
+      return { ...resolveLaunchMonorail(state, command.actorId, command.monorailEntityId, command.destinationDistrictId), handled: true };
+    case 'DESCEND_CATACOMBS':
+      return { ...resolveDescendCatacombs(state, command.actorId, command.stairEntityId), handled: true };
     default:
       return { state, events: [], handled: false };
   }

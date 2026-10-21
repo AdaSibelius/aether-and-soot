@@ -90,7 +90,7 @@ export function advanceThermodynamicsTick(state: WorldState): {
   state: WorldState;
   events: SimEvent[];
 } {
-  const strataNames: StratumId[] = ['UNDERCROFT', 'STREET', 'SPIRE'];
+  const strataNames: StratumId[] = ['CATACOMBS', 'UNDERCROFT', 'STREET', 'SPIRE'];
   const nextStrata: Record<string, StratumGrid> = { ...state.strata };
 
   for (const s of strataNames) {
@@ -102,6 +102,7 @@ export function advanceThermodynamicsTick(state: WorldState): {
 
   // Transfer 30% of steam upward through gas-conducting portals (e.g. Undercroft -> Street)
   const stratumElevation: Record<StratumId, number> = {
+    CATACOMBS: -1,
     UNDERCROFT: 0,
     STREET: 1,
     SPIRE: 2,

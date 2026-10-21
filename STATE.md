@@ -3,12 +3,12 @@
 **Last Updated:** 2026-10-21
 
 ## Recent Commits
+- d3a7da9: Update STATE.md for Phase 42
 - d7d7659: Implement Phase 42: Witness Attribution, Squad Callouts & Faction Grudge Memory
 - 1254a5c: Update STATE.md for Phase 41
-- 8f7d366: Implement Phase 41: Surface Liquid Pools, Chemical Reactions & Item Coating
 
 ## Immediate Next Priority
-- **Phase 43: Deep Sub-Undercroft Strata (`CATACOMBS` / Infinite Delve) & Derelict Pneumatic Monorail**: Expand vertical exploration beneath `UNDERCROFT` into procedural depth tiers (`depthLevel: 1..N` Chalk Catacombs & Pre-Victorian Clockwork Vaults) with scaling hazards and relic schematics. Connect underground districts via a rideable, coal-pressurized multi-tile **Subterranean Pneumatic Monorail Car**.
+- **Phase 44: Artificer Safehouse Deeds, Furniture Construction & Royal Society Codex**: Allow purchasing a **Freehold Workshop Deed** (or claiming an Undercroft vault) with persistent item/furniture storage (`SURGICAL_TABLE`, `ARTIFICER_BENCH`, `STEAM_CHARGER`), field construction/barricading (`BUILD_STRUCTURE`), and a `[K]` **Royal Society Naturalist's Codex** tracking discovered automatons, schematics, and alchemical reactions.
 
 ## 5. Self-Directed Prescriptions for Next Phase
 - **P1: NPC Combat Cybernetics & Tonic Usage**: Grant hostile humanoids and cybernetic enforcers the ability to trigger installed limb prosthetics and consume medical tonics when blood drops below 70%.

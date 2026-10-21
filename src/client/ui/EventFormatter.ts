@@ -173,5 +173,15 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] RALLIED! Squadmate ${ev.squadmateId} heard the call from ${ev.callerId} and enters combat against ${ev.targetId}!`;
     case 'GRUDGE_ACQUIRED':
       return `[T${ev.turn}] GRUDGE! ${ev.holderId} marked ${ev.targetId} for retribution: ${ev.reason}.`;
+    case 'MONORAIL_BOARDED':
+      return `[T${ev.turn}] ${ev.actorId} boarded pneumatic monorail ${ev.monorailEntityId} (${ev.passengersCount} aboard).`;
+    case 'MONORAIL_LAUNCHED':
+      return `[T${ev.turn}] PNEUMATIC RUSH! Monorail ${ev.monorailEntityId} fired toward ${ev.destinationDistrictId} at ${ev.speedMph} mph (${ev.steamPressureKpa} kPa)!`;
+    case 'MONORAIL_ARRIVED':
+      return `[T${ev.turn}] Monorail ${ev.monorailEntityId} arrived at ${ev.destinationDistrictId} with ${ev.passengers.length} passengers.`;
+    case 'CATACOMBS_DEPTH_DESCENDED':
+      return `[T${ev.turn}] DELVE! ${ev.actorId} descended to Catacombs Depth ${ev.toDepth} (${ev.tierName}).`;
+    case 'MONORAIL_ACTION_FAILED':
+      return `[T${ev.turn}] Monorail operation failed for ${ev.actorId}: ${ev.reason}.`;
   }
 }

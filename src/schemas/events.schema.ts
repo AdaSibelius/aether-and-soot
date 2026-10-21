@@ -53,6 +53,27 @@ import {
   SurfaceSlippedEventSchema,
   LiquidActionFailedEventSchema,
 } from './liquid-events.schema.js';
+import {
+  MonorailBoardedEventSchema,
+  MonorailLaunchedEventSchema,
+  MonorailArrivedEventSchema,
+  CatacombsDepthDescendedEventSchema,
+  TransitActionFailedEventSchema2,
+} from './transit-events.schema.js';
+export type {
+  MonorailBoardedEvent,
+  MonorailLaunchedEvent,
+  MonorailArrivedEvent,
+  CatacombsDepthDescendedEvent,
+  MonorailActionFailedEvent,
+} from './transit-events.schema.js';
+export {
+  MonorailBoardedEventSchema,
+  MonorailLaunchedEventSchema,
+  MonorailArrivedEventSchema,
+  CatacombsDepthDescendedEventSchema,
+  TransitActionFailedEventSchema2,
+} from './transit-events.schema.js';
 export type {
   WitnessCrimeReportedEvent,
   SquadCalloutEmittedEvent,
@@ -197,5 +218,10 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   SquadCalloutEmittedEventSchema,
   SquadmateRalliedEventSchema,
   GrudgeAcquiredEventSchema,
+  MonorailBoardedEventSchema,
+  MonorailLaunchedEventSchema,
+  MonorailArrivedEventSchema,
+  CatacombsDepthDescendedEventSchema,
+  TransitActionFailedEventSchema2,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

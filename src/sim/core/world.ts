@@ -66,6 +66,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
   const rng = new SeededRNG(config.seed);
 
   const strata: Record<StratumId, z.infer<typeof StratumGridSchema>> = {
+    CATACOMBS: createStratumGrid('CATACOMBS', width, height),
     UNDERCROFT: createStratumGrid('UNDERCROFT', width, height),
     STREET: createStratumGrid('STREET', width, height),
     SPIRE: createStratumGrid('SPIRE', width, height),

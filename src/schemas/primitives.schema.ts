@@ -6,7 +6,7 @@ export type EntityId = z.infer<typeof EntityIdSchema>;
 export const BlueprintIdSchema = z.string().min(1).brand<'BlueprintId'>();
 export type BlueprintId = z.infer<typeof BlueprintIdSchema>;
 
-export const StratumIdSchema = z.enum(['UNDERCROFT', 'STREET', 'SPIRE']);
+export const StratumIdSchema = z.enum(['UNDERCROFT', 'STREET', 'SPIRE', 'CATACOMBS']);
 export type StratumId = z.infer<typeof StratumIdSchema>;
 
 export const FactionIdSchema = z.enum([
@@ -45,6 +45,7 @@ export type Point2D = z.infer<typeof Point2DSchema>;
 
 export const Point3DSchema = Point2DSchema.extend({
   stratum: StratumIdSchema,
+  depthLevel: z.number().int().positive().optional(),
 });
 export type Point3D = z.infer<typeof Point3DSchema>;
 
