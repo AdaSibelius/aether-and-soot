@@ -21,6 +21,12 @@ Before modifying any file or creating a new feature, you **MUST** output a conci
 4. **File Size & Modularity Check**: List the current line counts (`wc -l`) of every file you plan to touch. If any target file will exceed **250 lines** (or is already near the **300-line hard fail limit**, such as `anatomy.system.ts`, `economy.system.ts`, or `generator.ts`), state the name of the new sub-module you will extract.
 5. **Client / HUD Impact (`src/client/`)**: Does `projectWorldToVisualFrame` or `formatEventMessage` in `HudLayout.tsx` need to handle new visual flags or `SimEvent` variants?
 
+### Rule 1.3: Zero Paid Token Content Rule (Use Local Hermes for Content Generation)
+When creating or expanding declarative blueprints, items, consumables, materials, crafting recipes, or NPC dialogue/barks in `data/`, **DO NOT** use paid Gemini context tokens to hand-write large bulk JSON records.
+- Run `npm run generate:content` or query the local Hermes endpoint (`http://localhost:8642/v1/chat/completions`) via `tests/scripts/hermes-content-generator.ts`.
+- The generator automatically coerces attributes and validates all entries against Zod schemas in `src/schemas/blueprint.schema.ts` before appending them to `data/`.
+- Use `--mock` mode during tests or CI.
+
 ---
 
 ## 2. Non-Negotiable Architectural Guardrails

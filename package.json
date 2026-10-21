@@ -14,6 +14,8 @@
     "check:boundaries": "tsx tests/scripts/check-boundaries.ts",
     "playtest": "tsx tests/scripts/llm-playtester.ts",
     "playtest:mock": "tsx tests/scripts/llm-playtester.ts --mock",
+    "generate:content": "tsx tests/scripts/hermes-content-generator.ts",
+    "generate:content:mock": "tsx tests/scripts/hermes-content-generator.ts --mock",
     "verify": "npm run typecheck && npm run check:boundaries && npm run validate:data && npm run test:sim"
   },
   "dependencies": {

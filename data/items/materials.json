@@ -7,7 +7,10 @@
     "massGrams": 180,
     "volumeMl": 120,
     "stackable": true,
-    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnStrata": [
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 30,
     "spawnQuantityMax": 4,
     "visual": {
@@ -15,7 +18,9 @@
       "fgPrimary": "#D4AF37",
       "fgSecondary": "#8B6914",
       "bgColor": "#0A0D0E",
-      "shaderFlags": ["SPARK_GLINT"]
+      "shaderFlags": [
+        "SPARK_GLINT"
+      ]
     }
   },
   {
@@ -26,7 +31,10 @@
     "massGrams": 90,
     "volumeMl": 150,
     "stackable": true,
-    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET"
+    ],
     "spawnWeight": 25,
     "spawnQuantityMax": 3,
     "visual": {
@@ -45,7 +53,10 @@
     "massGrams": 40,
     "volumeMl": 30,
     "stackable": true,
-    "spawnStrata": ["UNDERCROFT", "SPIRE"],
+    "spawnStrata": [
+      "UNDERCROFT",
+      "SPIRE"
+    ],
     "spawnWeight": 15,
     "spawnQuantityMax": 5,
     "visual": {
@@ -53,7 +64,9 @@
       "fgPrimary": "#5DADE2",
       "fgSecondary": "#AED6F1",
       "bgColor": "#0A0D0E",
-      "shaderFlags": ["SPARK_GLINT"]
+      "shaderFlags": [
+        "SPARK_GLINT"
+      ]
     }
   },
   {
@@ -64,7 +77,10 @@
     "massGrams": 1200,
     "volumeMl": 400,
     "stackable": true,
-    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET"
+    ],
     "spawnWeight": 20,
     "spawnQuantityMax": 2,
     "visual": {
@@ -83,8 +99,15 @@
     "massGrams": 250,
     "volumeMl": 200,
     "stackable": true,
-    "useEffect": { "kind": "RESTORE_BLOOD", "magnitude": 25 },
-    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "useEffect": {
+      "kind": "RESTORE_BLOOD",
+      "magnitude": 25
+    },
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 12,
     "spawnQuantityMax": 2,
     "visual": {
@@ -103,8 +126,15 @@
     "massGrams": 800,
     "volumeMl": 900,
     "stackable": true,
-    "useEffect": { "kind": "RESTORE_STEAM", "magnitude": 40 },
-    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "useEffect": {
+      "kind": "RESTORE_STEAM",
+      "magnitude": 40
+    },
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 10,
     "spawnQuantityMax": 1,
     "visual": {
@@ -112,7 +142,9 @@
       "fgPrimary": "#E5E8E8",
       "fgSecondary": "#CD7F32",
       "bgColor": "#0A0D0E",
-      "shaderFlags": ["PULSE_STEAM"]
+      "shaderFlags": [
+        "PULSE_STEAM"
+      ]
     }
   },
   {
@@ -124,7 +156,10 @@
     "volumeMl": 600,
     "stackable": false,
     "unlocksRecipeId": "recipe_pneumatic_leg_mk1",
-    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnStrata": [
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 8,
     "spawnQuantityMax": 1,
     "visual": {
@@ -144,7 +179,10 @@
     "volumeMl": 500,
     "stackable": false,
     "unlocksRecipeId": "recipe_clockwork_ocular_lens",
-    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnStrata": [
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 8,
     "spawnQuantityMax": 1,
     "visual": {
@@ -152,7 +190,9 @@
       "fgPrimary": "#5DADE2",
       "fgSecondary": "#2E86C1",
       "bgColor": "#0A0D0E",
-      "shaderFlags": ["SPARK_GLINT"]
+      "shaderFlags": [
+        "SPARK_GLINT"
+      ]
     }
   },
   {
@@ -173,7 +213,10 @@
       "rangedDamage": 0,
       "rangedSteamCostKpa": 0
     },
-    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET"
+    ],
     "spawnWeight": 15,
     "spawnQuantityMax": 1,
     "visual": {
@@ -202,7 +245,10 @@
       "rangedDamage": 18,
       "rangedSteamCostKpa": 12
     },
-    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnStrata": [
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 10,
     "spawnQuantityMax": 1,
     "visual": {
@@ -210,7 +256,9 @@
       "fgPrimary": "#E67E22",
       "fgSecondary": "#D35400",
       "bgColor": "#0A0D0E",
-      "shaderFlags": ["SPARK_GLINT"]
+      "shaderFlags": [
+        "SPARK_GLINT"
+      ]
     }
   },
   {
@@ -231,7 +279,10 @@
       "rangedDamage": 0,
       "rangedSteamCostKpa": 0
     },
-    "spawnStrata": ["UNDERCROFT", "STREET"],
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET"
+    ],
     "spawnWeight": 12,
     "spawnQuantityMax": 1,
     "visual": {
@@ -260,7 +311,10 @@
       "rangedDamage": 0,
       "rangedSteamCostKpa": 0
     },
-    "spawnStrata": ["STREET", "SPIRE"],
+    "spawnStrata": [
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 15,
     "spawnQuantityMax": 1,
     "visual": {
@@ -280,7 +334,11 @@
     "volumeMl": 150,
     "stackable": true,
     "penceValue": 18,
-    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 20,
     "spawnQuantityMax": 1,
     "visual": {
@@ -288,7 +346,9 @@
       "fgPrimary": "#F4D03F",
       "fgSecondary": "#D4AC0D",
       "bgColor": "#0A0D0E",
-      "shaderFlags": ["SPARK_GLINT"]
+      "shaderFlags": [
+        "SPARK_GLINT"
+      ]
     }
   },
   {
@@ -300,7 +360,11 @@
     "volumeMl": 300,
     "stackable": true,
     "penceValue": 15,
-    "spawnStrata": ["UNDERCROFT", "STREET", "SPIRE"],
+    "spawnStrata": [
+      "UNDERCROFT",
+      "STREET",
+      "SPIRE"
+    ],
     "spawnWeight": 10,
     "spawnQuantityMax": 1,
     "visual": {
@@ -308,7 +372,51 @@
       "fgPrimary": "#E74C3C",
       "fgSecondary": "#F39C12",
       "bgColor": "#0A0D0E",
-      "shaderFlags": ["SPARK_GLINT"]
+      "shaderFlags": [
+        "SPARK_GLINT"
+      ]
+    }
+  },
+  {
+    "id": "mat_soot_pipe",
+    "name": "Chimney Soot Smoke Pipe",
+    "description": "A section of old brass pipe used to expel soot from gas lamps.",
+    "category": "MATERIAL",
+    "massGrams": 50,
+    "volumeMl": 200,
+    "stackable": true,
+    "spawnStrata": [
+      "STREET"
+    ],
+    "spawnWeight": 30,
+    "spawnQuantityMax": 1,
+    "visual": {
+      "glyph": "+",
+      "fgPrimary": "#8B8B8B",
+      "fgSecondary": "#A9A9A9",
+      "bgColor": "#3A3A3A",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "mat_gas_vent",
+    "name": "Soot-Rimmed Gas Vent",
+    "description": "A cast iron gas vent leading up to a chimney. Filled with soot on the inside.",
+    "category": "MATERIAL",
+    "massGrams": 100,
+    "volumeMl": 350,
+    "stackable": false,
+    "spawnStrata": [
+      "STREET"
+    ],
+    "spawnWeight": 15,
+    "spawnQuantityMax": 2,
+    "visual": {
+      "glyph": "v",
+      "fgPrimary": "#454343",
+      "fgSecondary": "#7B7B72",
+      "bgColor": "#B3A06E",
+      "shaderFlags": []
     }
   }
 ]

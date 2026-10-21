@@ -161,4 +161,6 @@ Located in `tests/scripts/`, this suite exercises end-to-end emergence by drivin
 | `tests/scripts/playtester-scenarios.ts` | $\le 200$ | Injects isolated test setups (`explore`, `combat`, `economy`, `transit`) and scenario-specific directives. |
 | `tests/scripts/playtest-report.ts` | $\le 100$ | Formats comprehensive telemetry markdown reports in `tests/artifacts/playtest-report.md`. |
 | `tests/scripts/llm-playtester.ts` | $\le 250$ | Main CLI entry point. Executes turn loops against Ollama / Hermes endpoints or deterministic mock agents. |
+| `tests/scripts/hermes-content-generator.ts` | $\le 250$ | Offloads bulk declarative JSON blueprint generation (materials, consumables, recipes) to local Hermes with Zod validation. |
 | `tests/sim/playtester-harness.test.ts` | — | Unit tests verifying that action payloads serialize and resolve into valid simulation commands. |
+| `tests/sim/hermes-content.test.ts` | — | Unit tests verifying CLI parsing, mock content generation, and blueprint schema validation. |

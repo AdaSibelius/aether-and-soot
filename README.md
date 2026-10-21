@@ -249,3 +249,23 @@ npm run playtest:mock
 # Run live against local Hermes or Ollama endpoint
 LLM_ENDPOINT=http://localhost:8642/v1/chat/completions API_KEY=aether-dev-key npm run playtest -- --scenario economy --turns 30
 ```
+
+---
+
+## 8. Zero-Token Content Generation (Hermes Artificer)
+
+To conserve paid LLM context tokens during world-building, *Aether & Soot* includes an offline content generator in `tests/scripts/hermes-content-generator.ts`.
+
+### Why It Exists
+- Generates bulk declarative JSON data (materials, consumables, crafting recipes) using the local, free Hermes model gateway (`http://localhost:8642`).
+- Automatically coerces types, strips invalid LLM tokens, and validates all generated blueprints against strict Zod schemas (`ItemBlueprintSchema`, `CraftingRecipeBlueprintSchema`).
+- Appends clean records directly into `data/items/materials.json` or `data/items/recipes.json` without burning developer or Gemini tokens.
+
+### Usage
+```bash
+# Generate deterministic mock items (no network calls, CI-safe)
+npm run generate:content:mock -- --type materials --count 3
+
+# Generate live Victorian materials using local Hermes and append to data/
+LLM_ENDPOINT=http://localhost:8642/v1/chat/completions API_KEY=aether-dev-key npm run generate:content -- --type materials --count 2 --theme "Whitechapel gas lanterns and soot pipes" --append
+```
