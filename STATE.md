@@ -3,9 +3,9 @@
 **Last Updated:** 2026-10-21
 
 ## Recent Commits
+- 8f7d366: Implement Phase 41: Surface Liquid Pools, Chemical Reactions & Item Coating
 - 3ad97ce: Implement Phase 40: CDDA Tool Qualities, Weapon Modifications & Loaded Chambers
 - 379a064: Implement Phase 39: Momentum Physics, Knockback Collisions & Stealth Postures
-- 52e95f6: Add hermes:critic 4-scenario benchmark loop and pre-split legacy hotspots
 
 ## Immediate Next Priority
 - **Phase 42: Witness Attribution, Squad Callouts & Faction Grudge Memory**: Create `src/sim/systems/squad-witness.system.ts`. Gate theft/assault `factionReputation` penalties behind unblinded NPC line-of-sight (`WITNESS_CRIME_REPORTED`), rewarding smog occlusion and stealth. Add `EMIT_SQUAD_CALLOUT` (90 dB acoustic alert) for guards to rally nearby allied squadmates into flanking `COMBAT` states and record a persistent `grudgeTargetId`.
