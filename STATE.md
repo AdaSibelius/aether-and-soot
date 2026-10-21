@@ -3,9 +3,9 @@
 **Last Updated:** 2026-10-21
 
 ## Recent Commits
+- d7d7659: Implement Phase 42: Witness Attribution, Squad Callouts & Faction Grudge Memory
 - 1254a5c: Update STATE.md for Phase 41
 - 8f7d366: Implement Phase 41: Surface Liquid Pools, Chemical Reactions & Item Coating
-- 3ad97ce: Implement Phase 40: CDDA Tool Qualities, Weapon Modifications & Loaded Chambers
 
 ## Immediate Next Priority
 - **Phase 43: Deep Sub-Undercroft Strata (`CATACOMBS` / Infinite Delve) & Derelict Pneumatic Monorail**: Expand vertical exploration beneath `UNDERCROFT` into procedural depth tiers (`depthLevel: 1..N` Chalk Catacombs & Pre-Victorian Clockwork Vaults) with scaling hazards and relic schematics. Connect underground districts via a rideable, coal-pressurized multi-tile **Subterranean Pneumatic Monorail Car**.
