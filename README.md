@@ -214,6 +214,38 @@ npm run verify
 ```
 
 1. **`npm run typecheck`**: Strict TypeScript verification (`noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`).
-2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all 105 source files.
+2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all 117 source files.
 3. **`npm run validate:data`**: Validates all declarative JSON blueprints in `data/` against Zod schemas.
-4. **`npm run test:sim`**: Executes all 26 headless deterministic test suites (112 tests).
+4. **`npm run test:sim`**: Executes all 27 headless deterministic test suites (116 tests).
+
+---
+
+## 7. Headless Autonomous LLM Playtester Suite
+
+To validate systemic emergence without requiring human manual playthroughs, *Aether & Soot* includes an autonomous, headless LLM playtester in `tests/scripts/`.
+
+### Why It Exists
+- **Sandbox Emergence Testing**: Evaluates how complex, interacting systems (acoustic decibels, smog sight attenuation, trap triggers, steam deployment, wound stabilization, trade) function together across 30–500 turns.
+- **Autonomous Regression Discovery**: Detects stuck oscillation loops, pathfinding bumps, economic stalls, and lethal balance regressions in an isolated, headless simulation.
+
+### Architecture & Data Flow
+1. **Context Serializer (`tests/scripts/playtester-serializer.ts`)**: Generates an 11x11 relative ASCII FOV grid centered on the player `@`, vitals (Blood %, Steam kPa), recent acoustic sound emissions, breadcrumb history `[Recent Steps: ...]`, engine bump feedback `[SYSTEM FEEDBACK: ...]`, and dynamic `[AVAILABLE CONTEXTUAL COMMANDS]`.
+2. **Autonomous Agent**:
+   - **Local LLM Endpoint**: Sends prompts to a local Ollama instance or local OpenAI-compatible container (e.g. Hermes Gateway at `http://localhost:8642/v1/chat/completions`).
+   - **Deterministic Mock Agent (`--mock`)**: A rule-based fallback agent for fast CI verification that explores unvisited tiles, disarms/avoids traps, vents steam if hostiles are in range, and trades/heals when wounded.
+3. **Resilient Command Parser**: Parses JSON payloads (`{"action": "MOVE", "dir": "N"}`, `{"action": "BUY", ...}`, `{"action": "VENT_STEAM", ...}`) and natural language fallbacks into strict `GameCommand` objects.
+4. **Scenarios (`tests/scripts/playtester-scenarios.ts`)**:
+   - `explore`: Open-ended district reconnaissance and hazard avoidance.
+   - `combat`: Engages an alert Clockwork Automaton Warden at close range with high boiler steam.
+   - `economy`: Isolates the player in an Apothecary shop with wounded vitals to verify merchant purchases and tonic consumption.
+   - `transit`: Tests navigation through traps and locked security doors to reach vertical stratum stairs.
+5. **Telemetry Reporter (`tests/scripts/playtest-report.ts`)**: Generates comprehensive markdown summaries in `tests/artifacts/playtest-report.md` tracking decibels emitted, alert transitions, steam clouds deployed, combat hits/misses, damage dealt/taken, items acquired/used, and unique tiles visited.
+
+### Execution Commands
+```bash
+# Run CI-friendly deterministic mock agent (zero network calls, 100 turns)
+npm run playtest:mock
+
+# Run live against local Hermes or Ollama endpoint
+LLM_ENDPOINT=http://localhost:8642/v1/chat/completions API_KEY=aether-dev-key npm run playtest -- --scenario economy --turns 30
+```

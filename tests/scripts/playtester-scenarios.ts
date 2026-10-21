@@ -20,8 +20,8 @@ export function getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjec
       };
     case 'economy':
       return {
-        primary: 'Acquire healing tonics from the adjacent merchant or ground cache to stabilize haemodynamics.',
-        secondary: 'Use BUY commands to purchase tonics and USE_ITEM commands to restore blood volume.',
+        primary: 'Purchase the Coagulant Tonic from the adjacent Apothecary Chirurgeon (M) and consume it to heal blood volume from 70%.',
+        secondary: 'Use BUY to acquire "loot_merchant_tonic", then use USE_ITEM on "loot_merchant_tonic" to heal vitals.',
       };
     case 'transit':
       return {
@@ -80,9 +80,17 @@ export function applyPlaytestScenario(state: WorldState, scenario: PlaytestScena
       };
     }
   } else if (scenario === 'economy') {
+    // Remove all portals and gates to isolate the player in the apothecary shop
+    for (const [id, ent] of Object.entries(nextEntities)) {
+      if (ent.portal || ent.districtGate) {
+        delete nextEntities[id];
+      }
+    }
+
     const merchantId = EntityIdSchema.parse('npc_guild_merchant');
     const mX = pos.x + 1;
     const mY = pos.y;
+    grid = setTileCell(grid, pos.x, pos.y, (c) => ({ ...c, terrainType: 'COBBLESTONE_FLOOR', blocksMovement: false, blocksSight: false }));
     grid = setTileCell(grid, mX, mY, (c) => ({ ...c, terrainType: 'COBBLESTONE_FLOOR', blocksMovement: false, blocksSight: false }));
 
     const tonicId = EntityIdSchema.parse('loot_merchant_tonic');
@@ -101,13 +109,14 @@ export function applyPlaytestScenario(state: WorldState, scenario: PlaytestScena
     };
 
     const merchant = nextEntities[merchantId] ?? {
-      id: merchantId, name: 'Royal Exchange Quartermaster',
+      id: merchantId, name: 'Apothecary Chirurgeon',
       visual: { glyph: 'M', fgPrimary: '#F4D03F', fgSecondary: '#D4AF37', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
       actor: { energy: 0, speed: 80, isPlayer: false },
     };
 
     nextEntities[merchantId] = {
       ...merchant,
+      name: 'Apothecary Chirurgeon',
       position: { x: mX, y: mY, stratum: pos.stratum, blocksMovement: true, blocksSight: false },
       aiController: { factionId: 'CLOCKWORK_GUILD', role: 'MERCHANT', hostile: false, alertState: 'IDLE' },
       inventory: { containedEntityIds: [tonicId], maxMassGrams: 30000, maxVolumeMl: 30000, currentMassGrams: 750 },

@@ -148,3 +148,17 @@ Follow this exact 6-step sequence whenever adding a new command or system:
    - Create or extend a `.test.ts` file using `createInitialWorld({ seed: <fixed_int> })` and assert both the emitted `SimEvent` and resulting `WorldState`.
 6. **Run `npm run verify`**:
    - Confirm `typecheck`, `check:boundaries`, `validate:data`, and `test:sim` all exit with `0`.
+
+---
+
+## 5. Tooling: Autonomous Headless LLM Playtester Pipeline
+
+Located in `tests/scripts/`, this suite exercises end-to-end emergence by driving the headless engine with local LLMs or rule-based mock agents.
+
+| File | Lines | Responsibility |
+| :--- | :---: | :--- |
+| `tests/scripts/playtester-serializer.ts` | $\le 280$ | Formats relative 11x11 ASCII FOV, vitals, acoustic history, contextual menus, and parses LLM outputs into `GameCommand`. |
+| `tests/scripts/playtester-scenarios.ts` | $\le 200$ | Injects isolated test setups (`explore`, `combat`, `economy`, `transit`) and scenario-specific directives. |
+| `tests/scripts/playtest-report.ts` | $\le 100$ | Formats comprehensive telemetry markdown reports in `tests/artifacts/playtest-report.md`. |
+| `tests/scripts/llm-playtester.ts` | $\le 250$ | Main CLI entry point. Executes turn loops against Ollama / Hermes endpoints or deterministic mock agents. |
+| `tests/sim/playtester-harness.test.ts` | — | Unit tests verifying that action payloads serialize and resolve into valid simulation commands. |
