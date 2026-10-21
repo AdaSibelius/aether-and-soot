@@ -12,6 +12,8 @@
     "test:watch": "vitest",
     "validate:data": "tsx tests/scripts/validate-data.ts",
     "check:boundaries": "tsx tests/scripts/check-boundaries.ts",
+    "playtest": "tsx tests/scripts/llm-playtester.ts",
+    "playtest:mock": "tsx tests/scripts/llm-playtester.ts --mock",
     "verify": "npm run typecheck && npm run check:boundaries && npm run validate:data && npm run test:sim"
   },
   "dependencies": {
