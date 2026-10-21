@@ -6,8 +6,7 @@ import { computeActorFovRadius, computeVisibleTiles } from '../../src/sim/spatia
 import { findEntitiesAtPoint, getTileCell } from '../../src/sim/spatial/grid.js';
 
 export const DIR_VECTORS: Record<string, [number, number]> = {
-  N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0],
-  NE: [1, -1], NW: [-1, -1], SE: [1, 1], SW: [-1, 1],
+  N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0], NE: [1, -1], NW: [-1, -1], SE: [1, 1], SW: [-1, 1],
 };
 
 const CARDINAL_MAP: Record<string, string> = {
@@ -23,28 +22,28 @@ export function normalizeDirection(raw: string): string | undefined {
 export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('MOVE'), dir: z.enum(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']), reasoning: z.string().optional() }),
   z.object({ action: z.literal('WAIT'), reasoning: z.string().optional() }),
-  z.object({
-    action: z.literal('ATTACK'),
-    targetId: z.string(),
-    limb: z.enum(['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG']).optional(),
-    reasoning: z.string().optional(),
-  }),
+  z.object({ action: z.literal('ATTACK'), targetId: z.string(), limb: z.enum(['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG']).optional(), reasoning: z.string().optional() }),
   z.object({ action: z.literal('TOGGLE_DOOR'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
-  z.object({
-    action: z.literal('VENT_STEAM'),
-    pressureKpa: z.number().positive().default(50),
-    targetRelX: z.number().int().default(0),
-    targetRelY: z.number().int().default(0),
-    reasoning: z.string().optional(),
-  }),
+  z.object({ action: z.literal('VENT_STEAM'), pressureKpa: z.number().positive().default(50), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
   z.object({ action: z.literal('USE_ITEM'), itemId: z.string(), reasoning: z.string().optional() }),
   z.object({ action: z.literal('BREACH_TILE'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
 ]);
 export type LlmActionPayload = z.infer<typeof LlmActionPayloadSchema>;
 
-export function serializePlayerContext(state: WorldState, playerId: EntityId = EntityIdSchema.parse('actor_player')): string {
+export interface ContextSerializationOptions {
+  readonly recentPositions?: ReadonlyArray<{ x: number; y: number }> | undefined;
+  readonly systemFeedback?: string | undefined;
+  readonly primaryObjective?: string | undefined;
+  readonly secondaryDirective?: string | undefined;
+}
+
+export function serializePlayerContext(
+  state: WorldState,
+  playerId: EntityId = EntityIdSchema.parse('actor_player'),
+  options?: ContextSerializationOptions,
+): string {
   const player = state.entities[playerId];
-  if (!player || !player.position) return '[ERROR]: Player entity unavailable.';
+  if (!player?.position) return '[ERROR]: Player entity unavailable.';
   const pos = player.position;
   const grid = state.strata[pos.stratum];
   if (!grid) return '[ERROR]: Stratum grid unavailable.';
@@ -53,8 +52,7 @@ export function serializePlayerContext(state: WorldState, playerId: EntityId = E
   const visible = computeVisibleTiles(grid, pos.x, pos.y, fovRadius);
   const shift = getShiftPhase(state.turnCount);
   const blood = player.anatomy?.bloodVolumePct ?? 100;
-  const steam = player.anatomy?.steamReserveKpa ?? 0;
-  const maxSteam = player.anatomy?.maxSteamReserveKpa ?? 100;
+  const steam = player.anatomy?.steamReserveKpa ?? 0, maxSteam = player.anatomy?.maxSteamReserveKpa ?? 100;
 
   let fovRows = '   -5 -4 -3 -2 -1  0 +1 +2 +3 +4 +5\n';
   const visibleThreats: string[] = [];
@@ -79,21 +77,20 @@ export function serializePlayerContext(state: WorldState, playerId: EntityId = E
         row += enemy.aiController?.hostile ? ' G ' : ' N ';
         const alert = enemy.aiController?.alertState ?? 'IDLE';
         visibleThreats.push(`${enemy.name} (id: '${enemy.id}') at rel (${dx}, ${dy}) | Alert: ${alert}`);
-      } else if (trap) { row += ' ^ '; }
-      else if (boiler) { row += ' B '; }
-      else if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') { row += ' + '; }
-      else if (cell?.terrainType === 'WOODEN_DOOR_OPEN') { row += " ' "; }
-      else if (cell?.steamPressureKpa && cell.steamPressureKpa >= 20) { row += ' ~ '; }
-      else if (cell?.coalDustDensity && cell.coalDustDensity >= 0.3) { row += ' ~ '; }
-      else if (cell?.terrainType === 'SOOT_BRICK_WALL') { row += ' # '; }
-      else if (cell?.terrainType === 'RUBBLE_PILE') { row += ' , '; }
-      else if (cell?.terrainType === 'ABYSS_DROP') { row += ' O '; }
-      else { row += ' . '; }
+      } else if (trap) row += ' ^ ';
+      else if (boiler) row += ' B ';
+      else if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') row += ' + ';
+      else if (cell?.terrainType === 'WOODEN_DOOR_OPEN') row += " ' ";
+      else if ((cell?.steamPressureKpa ?? 0) >= 20 || (cell?.coalDustDensity ?? 0) >= 0.3) row += ' ~ ';
+      else if (cell?.terrainType === 'SOOT_BRICK_WALL') row += ' # ';
+      else if (cell?.terrainType === 'RUBBLE_PILE') row += ' , ';
+      else if (cell?.terrainType === 'ABYSS_DROP') row += ' O ';
+      else row += ' . ';
 
       if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) {
-        if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy})`);
+        if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy}) -> Action: TOGGLE_DOOR`);
         if (cell?.terrainType === 'WOODEN_DOOR_OPEN') adjacentInteractables.push(`Door (OPEN) at (${dx}, ${dy})`);
-        if (trap) adjacentInteractables.push(`Trap (${trap.trap?.trapKind}) at (${dx}, ${dy})`);
+        if (trap) adjacentInteractables.push(`Trap (${trap.trap?.trapKind}) at (${dx}, ${dy}) -> AVOID`);
         if (boiler) adjacentInteractables.push(`Boiler (${boiler.pressureVessel?.currentPressureKpa} kPa) at (${dx}, ${dy})`);
       }
     }
@@ -105,11 +102,18 @@ export function serializePlayerContext(state: WorldState, playerId: EntityId = E
     .map((s) => `[Turn ${s.turn}] ${s.decibels} dB sound at (${s.origin.x - pos.x}, ${s.origin.y - pos.y})`)
     .slice(-3);
 
+  const primaryObj = options?.primaryObjective ?? 'Explore the district, uncover unvisited tiles, and survive.';
+  const secDir = options?.secondaryDirective ?? 'Interact with closed doors (+), avoid armed traps (^), and vent steam (~) to break line-of-sight when hostiles (G) approach.';
+  const recentSteps = options?.recentPositions?.length ? options.recentPositions.map((p) => `(${p.x},${p.y})`).join(', ') : 'None';
+  const feedbackBlock = options?.systemFeedback ? `[SYSTEM FEEDBACK]: ${options.systemFeedback}\n` : '';
+
   return `=== AETHER & SOOT [Turn ${state.turnCount} | Shift: ${shift}] ===
+Primary Objective: ${primaryObj}
+Secondary Directive: ${secDir}
 [STRATUM]: ${pos.stratum} | [POS]: (${pos.x}, ${pos.y}) | [BLOOD]: ${blood}% | [STEAM]: ${steam}/${maxSteam} kPa
-[LOCAL SENSORY FOV (11x11 Grid, Relative Centered on '@')]:
-${fovRows}
-[RECENT ACOUSTIC SOUNDS]:
+[Recent Steps: ${recentSteps}]
+${feedbackBlock}[LOCAL SENSORY FOV (11x11 Grid, Relative Centered on '@')]:
+${fovRows}[RECENT ACOUSTIC SOUNDS]:
 ${recentSounds.length > 0 ? recentSounds.join('\n') : 'None in range.'}
 [VISIBLE THREATS]:
 ${visibleThreats.length > 0 ? visibleThreats.join('\n') : 'No visible threats.'}
@@ -118,9 +122,8 @@ ${adjacentInteractables.length > 0 ? adjacentInteractables.join('\n') : 'None.'}
 }
 
 export function parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId = EntityIdSchema.parse('actor_player')): GameCommand {
-  const fallback: GameCommand = { type: 'WAIT_TURN', actorId: playerId };
-  const player = state.entities[playerId];
-  if (!player || !player.position) return fallback;
+  const fallback: GameCommand = { type: 'WAIT_TURN', actorId: playerId }, player = state.entities[playerId];
+  if (!player?.position) return fallback;
   const pos = player.position;
 
   try {
@@ -198,7 +201,11 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
   return fallback;
 }
 
-export function generateMockAction(state: WorldState, playerId: EntityId = EntityIdSchema.parse('actor_player')): LlmActionPayload {
+export function generateMockAction(
+  state: WorldState,
+  playerId: EntityId = EntityIdSchema.parse('actor_player'),
+  recentPositions?: ReadonlyArray<{ x: number; y: number }>,
+): LlmActionPayload {
   const player = state.entities[playerId];
   if (!player || !player.position) return { action: 'WAIT' };
   const pos = player.position;
@@ -218,6 +225,7 @@ export function generateMockAction(state: WorldState, playerId: EntityId = Entit
     }
   }
 
+  const validMoves: Array<{ dir: 'N' | 'S' | 'E' | 'W'; unvisited: boolean }> = [];
   for (const [dir, [dx, dy]] of Object.entries(DIR_VECTORS)) {
     if (dx !== 0 && dy !== 0) continue;
     const tx = pos.x + dx;
@@ -228,11 +236,15 @@ export function generateMockAction(state: WorldState, playerId: EntityId = Entit
     if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') {
       return { action: 'TOGGLE_DOOR', dx, dy, reasoning: 'Mock: Open adjacent closed door' };
     }
-    const trap = ents.find((e) => e.trap?.armed);
-    if (trap) continue;
+    if (ents.some((e) => e.trap?.armed)) continue;
     if (cell && !cell.blocksMovement && !ents.some((e) => e.position?.blocksMovement)) {
-      return { action: 'MOVE', dir: dir as 'N' | 'S' | 'E' | 'W', reasoning: 'Mock: Advance to open tile' };
+      const wasRecent = recentPositions?.some((p) => p.x === tx && p.y === ty) ?? false;
+      validMoves.push({ dir: dir as 'N' | 'S' | 'E' | 'W', unvisited: !wasRecent });
     }
+  }
+  const preferred = validMoves.find((m) => m.unvisited) ?? validMoves[0];
+  if (preferred) {
+    return { action: 'MOVE', dir: preferred.dir, reasoning: 'Mock: Advance to open tile' };
   }
   return { action: 'WAIT', reasoning: 'Mock: Stand ground' };
 }

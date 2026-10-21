@@ -28,6 +28,7 @@ export interface PlaytestMetrics {
   damageDealt: number;
   damageTaken: number;
   finalBloodPct: number;
+  uniqueTilesVisited: number;
   causeOfDeath?: string;
 }
 
@@ -53,30 +54,13 @@ async function queryLocalLlm(endpoint: string, model: string, prompt: string): P
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     const apiKey = process.env['API_KEY'] || process.env['LLM_API_KEY'];
-    if (apiKey) {
-      headers['Authorization'] = `Bearer ${apiKey}`;
-    }
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 
     const systemPrompt = 'You are playing Aether & Soot, a Victorian roguelike. Return ONLY JSON matching schema (action: MOVE/WAIT/ATTACK/TOGGLE_DOOR/VENT_STEAM/BREACH_TILE):\n\n';
     const isOpenAi = endpoint.includes('/v1/') || endpoint.endsWith('/completions');
     const body = isOpenAi
-      ? JSON.stringify({
-          model,
-          messages: [
-            {
-              role: 'user',
-              content: `${systemPrompt}${prompt}`,
-            },
-          ],
-          temperature: 0.2,
-        })
-      : JSON.stringify({
-          model,
-          prompt: `${systemPrompt}${prompt}`,
-          format: 'json',
-          stream: false,
-          options: { temperature: 0.2 },
-        });
+      ? JSON.stringify({ model, messages: [{ role: 'user', content: `${systemPrompt}${prompt}` }], temperature: 0.2 })
+      : JSON.stringify({ model, prompt: `${systemPrompt}${prompt}`, format: 'json', stream: false, options: { temperature: 0.2 } });
 
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -115,15 +99,22 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     damageDealt: 0,
     damageTaken: 0,
     finalBloodPct: 100,
+    uniqueTilesVisited: 0,
   };
 
   const prevAlerts = new Map<string, string>();
+  const recentPositions: Array<{ x: number; y: number }> = [];
+  const visitedTiles = new Set<string>();
+  let lastSystemFeedback: string | undefined;
 
   for (let turn = 0; turn < config.maxTurns; turn++) {
     const player = state.entities[playerId];
     if (!player || !player.anatomy) {
       metrics.causeOfDeath = 'PLAYER_NOT_FOUND';
       break;
+    }
+    if (player.position) {
+      visitedTiles.add(`${player.position.x},${player.position.y},${player.position.stratum}`);
     }
     metrics.finalBloodPct = player.anatomy.bloodVolumePct;
     if (player.anatomy.bloodVolumePct <= 0) {
@@ -138,19 +129,45 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     metrics.turnsSurvived = turn + 1;
     let rawAction = '';
     if (config.mock) {
-      rawAction = JSON.stringify(generateMockAction(state, playerId));
+      rawAction = JSON.stringify(generateMockAction(state, playerId, recentPositions));
     } else {
-      const context = serializePlayerContext(state, playerId);
+      const context = serializePlayerContext(state, playerId, {
+        recentPositions: recentPositions.slice(-3),
+        systemFeedback: lastSystemFeedback,
+      });
       rawAction = await queryLocalLlm(config.endpoint, config.model, context);
-      if (rawAction === '{}') rawAction = JSON.stringify(generateMockAction(state, playerId));
+      if (rawAction === '{}') rawAction = JSON.stringify(generateMockAction(state, playerId, recentPositions));
     }
 
     const command = parseLlmResponseToCommand(rawAction, state, playerId);
+    let invalidFeedback: string | undefined;
+    if (command.type === 'WAIT_TURN' && !/\bwait\b/i.test(rawAction)) {
+      invalidFeedback = 'Last action was unrecognized. Defaulted to WAIT_TURN.';
+    }
+
     if (!config.mock && turn < 15) {
       console.log(`[llm-playtester] Turn ${turn + 1}: ${command.type}`);
     }
     const stepRes = dispatchCommand(state, command);
     state = stepRes.state;
+
+    const blockedEv = stepRes.events.find((e) => e.type === 'MOVEMENT_BLOCKED');
+    if (blockedEv && blockedEv.type === 'MOVEMENT_BLOCKED') {
+      const dirDesc = command.type === 'MOVE_STEP'
+        ? (command.dx > 0 ? 'East' : command.dx < 0 ? 'West' : command.dy > 0 ? 'South' : 'North')
+        : 'target';
+      lastSystemFeedback = `Last action failed. Attempted to move ${dirDesc}, but path was obstructed by solid wall or obstacle.`;
+    } else {
+      lastSystemFeedback = invalidFeedback;
+    }
+
+    if (player.position) {
+      const last = recentPositions[recentPositions.length - 1];
+      if (!last || last.x !== player.position.x || last.y !== player.position.y) {
+        recentPositions.push({ x: player.position.x, y: player.position.y });
+        if (recentPositions.length > 5) recentPositions.shift();
+      }
+    }
 
     for (const ev of stepRes.events) {
       if (ev.type === 'SOUND_EMITTED') metrics.totalDecibels += ev.decibels;
@@ -175,6 +192,7 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     }
   }
 
+  metrics.uniqueTilesVisited = visitedTiles.size;
   writeReport(config, metrics);
   return metrics;
 }
@@ -204,6 +222,7 @@ function writeReport(config: PlaytestConfig, metrics: PlaytestMetrics): void {
 | **Damage Dealt (Player)** | ${metrics.damageDealt} HP | Targeted combat damage to hostiles |
 | **Damage Taken (Player)** | ${metrics.damageTaken} HP | Trauma sustained from hostiles or scalds |
 | **Final Blood Volume** | ${metrics.finalBloodPct}% | Haemodynamic stability |
+| **Unique Tiles Visited** | ${metrics.uniqueTilesVisited} | Distinct spatial tiles explored |
 
 `;
 

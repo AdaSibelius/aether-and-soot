@@ -19,15 +19,29 @@ describe('Headless LLM Playtester Harness', () => {
     return generateVictorianDistrict(base).state;
   }
 
-  it('serializes player 11x11 ASCII context with vitals and shift clock', () => {
+  it('serializes player 11x11 ASCII context with vitals, objectives, and breadcrumbs', () => {
     const world = setupWorld();
     const context = serializePlayerContext(world, playerId);
 
     expect(context).toContain('=== AETHER & SOOT');
+    expect(context).toContain('Primary Objective:');
+    expect(context).toContain('Secondary Directive:');
+    expect(context).toContain('[Recent Steps: None]');
     expect(context).toContain('[STRATUM]: STREET');
     expect(context).toContain('[BLOOD]: 100%');
     expect(context).toContain('@'); // Player marker in FOV
     expect(context).toContain('LOCAL SENSORY FOV');
+
+    const customContext = serializePlayerContext(world, playerId, {
+      primaryObjective: 'Infiltrate the Clockwork Vault',
+      secondaryDirective: 'Silent approach',
+      recentPositions: [{ x: 10, y: 12 }, { x: 11, y: 12 }],
+      systemFeedback: 'Last action failed. Wall was obstructed.',
+    });
+    expect(customContext).toContain('Primary Objective: Infiltrate the Clockwork Vault');
+    expect(customContext).toContain('Secondary Directive: Silent approach');
+    expect(customContext).toContain('[Recent Steps: (10,12), (11,12)]');
+    expect(customContext).toContain('[SYSTEM FEEDBACK]: Last action failed. Wall was obstructed.');
   });
 
   it('parses valid LLM JSON action payloads into canonical GameCommand objects', () => {
@@ -99,11 +113,13 @@ describe('Headless LLM Playtester Harness', () => {
 
     expect(metrics.turnsSurvived).toBe(25);
     expect(metrics.totalDecibels).toBeGreaterThanOrEqual(0);
+    expect(metrics.uniqueTilesVisited).toBeGreaterThan(1);
     expect(fs.existsSync(reportPath)).toBe(true);
 
     const reportContent = fs.readFileSync(reportPath, 'utf-8');
     expect(reportContent).toContain('Emergent Sandbox Mechanics Metrics');
     expect(reportContent).toContain('Deterministic Mock Agent');
+    expect(reportContent).toContain('Unique Tiles Visited');
 
     // Cleanup test artifact
     fs.unlinkSync(reportPath);
