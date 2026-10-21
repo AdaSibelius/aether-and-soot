@@ -10,12 +10,18 @@ export const DIR_VECTORS: Record<string, [number, number]> = {
   NE: [1, -1], NW: [-1, -1], SE: [1, 1], SW: [-1, 1],
 };
 
+const CARDINAL_MAP: Record<string, string> = {
+  NORTH: 'N', UP: 'N', SOUTH: 'S', DOWN: 'S', EAST: 'E', RIGHT: 'E', WEST: 'W', LEFT: 'W',
+  NORTHEAST: 'NE', NORTHWEST: 'NW', SOUTHEAST: 'SE', SOUTHWEST: 'SW',
+};
+
+export function normalizeDirection(raw: string): string | undefined {
+  const norm = raw.trim().toUpperCase().replace(/[^A-Z]/g, '');
+  return DIR_VECTORS[norm] ? norm : CARDINAL_MAP[norm];
+}
+
 export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('MOVE'),
-    dir: z.enum(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']),
-    reasoning: z.string().optional(),
-  }),
+  z.object({ action: z.literal('MOVE'), dir: z.enum(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']), reasoning: z.string().optional() }),
   z.object({ action: z.literal('WAIT'), reasoning: z.string().optional() }),
   z.object({
     action: z.literal('ATTACK'),
@@ -23,12 +29,7 @@ export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
     limb: z.enum(['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG']).optional(),
     reasoning: z.string().optional(),
   }),
-  z.object({
-    action: z.literal('TOGGLE_DOOR'),
-    dx: z.number().int().min(-1).max(1),
-    dy: z.number().int().min(-1).max(1),
-    reasoning: z.string().optional(),
-  }),
+  z.object({ action: z.literal('TOGGLE_DOOR'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
   z.object({
     action: z.literal('VENT_STEAM'),
     pressureKpa: z.number().positive().default(50),
@@ -37,12 +38,7 @@ export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
     reasoning: z.string().optional(),
   }),
   z.object({ action: z.literal('USE_ITEM'), itemId: z.string(), reasoning: z.string().optional() }),
-  z.object({
-    action: z.literal('BREACH_TILE'),
-    dx: z.number().int().min(-1).max(1),
-    dy: z.number().int().min(-1).max(1),
-    reasoning: z.string().optional(),
-  }),
+  z.object({ action: z.literal('BREACH_TILE'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
 ]);
 export type LlmActionPayload = z.infer<typeof LlmActionPayloadSchema>;
 
@@ -126,32 +122,75 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
   const player = state.entities[playerId];
   if (!player || !player.position) return fallback;
   const pos = player.position;
+
   try {
     const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+    // 1. Structured JSON parsing
     const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) return fallback;
-    const parsed = LlmActionPayloadSchema.safeParse(JSON.parse(match[0]));
-    if (!parsed.success) return fallback;
-    const p = parsed.data;
-    if (p.action === 'MOVE') {
-      const vec = DIR_VECTORS[p.dir] ?? [0, 0];
-      return { type: 'MOVE_STEP', actorId: playerId, dx: vec[0], dy: vec[1] };
+    if (match) {
+      let rawObj: any;
+      try { rawObj = JSON.parse(match[0]); } catch { rawObj = JSON.parse(match[0].replace(/'/g, '"')); }
+      if (rawObj && typeof rawObj === 'object') {
+        const parsed = LlmActionPayloadSchema.safeParse(rawObj);
+        if (parsed.success) {
+          const p = parsed.data;
+          if (p.action === 'MOVE') return { type: 'MOVE_STEP', actorId: playerId, dx: DIR_VECTORS[p.dir]![0], dy: DIR_VECTORS[p.dir]![1] };
+          if (p.action === 'WAIT') return fallback;
+          if (p.action === 'ATTACK') return { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: EntityIdSchema.parse(p.targetId), targetSlot: (p.limb as LimbSlotId) ?? 'TORSO' };
+          if (p.action === 'TOGGLE_DOOR') return { type: 'TOGGLE_DOOR', actorId: playerId, target: { x: pos.x + p.dx, y: pos.y + p.dy, stratum: pos.stratum } };
+          if (p.action === 'VENT_STEAM') return { type: 'VENT_STEAM', actorId: playerId, target: { x: pos.x + p.targetRelX, y: pos.y + p.targetRelY, stratum: pos.stratum }, pressureReleasedKpa: p.pressureKpa };
+          if (p.action === 'USE_ITEM') return { type: 'USE_ITEM', actorId: playerId, itemEntityId: EntityIdSchema.parse(p.itemId) };
+          if (p.action === 'BREACH_TILE') return { type: 'BREACH_TILE', actorId: playerId, target: { x: pos.x + p.dx, y: pos.y + p.dy, stratum: pos.stratum } };
+        }
+
+        const actionStr = String(rawObj.action || '').toUpperCase();
+        if (actionStr === 'TOGGLE_DOOR') {
+          const tdx = Math.sign(Number(rawObj.dx ?? 0));
+          const tdy = Math.sign(Number(rawObj.dy ?? 0));
+          return { type: 'TOGGLE_DOOR', actorId: playerId, target: { x: pos.x + tdx, y: pos.y + tdy, stratum: pos.stratum } };
+        }
+
+        const dirStr = String(rawObj.dir || rawObj.direction || rawObj.heading || '');
+        const normDir = normalizeDirection(dirStr);
+        if (normDir && DIR_VECTORS[normDir]) {
+          const [dx, dy] = DIR_VECTORS[normDir]!;
+          return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
+        }
+
+        if (actionStr === 'MOVE' || !actionStr) {
+          if (rawObj.dx !== undefined || rawObj.dy !== undefined || rawObj.x !== undefined || rawObj.y !== undefined) {
+            const rawDx = Number(rawObj.dx ?? rawObj.x ?? 0);
+            const rawDy = Number(rawObj.dy ?? rawObj.y ?? 0);
+            const dx = Math.abs(rawDx) <= 1 ? rawDx : Math.sign(rawDx - pos.x);
+            const dy = Math.abs(rawDy) <= 1 ? rawDy : Math.sign(rawDy - pos.y);
+            if (dx !== 0 || dy !== 0) return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
+          }
+        }
+      }
     }
-    if (p.action === 'WAIT') return fallback;
-    if (p.action === 'ATTACK') {
-      return { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: EntityIdSchema.parse(p.targetId), targetSlot: (p.limb as LimbSlotId) ?? 'TORSO' };
+
+    // 2. Resilient text fallbacks (e.g. "MOVE 0 1", "MOVE: 26,15", "MOVE: NORTH")
+    const coordMatch = cleaned.match(/\bMOVE[^\d\-+]*?\(?\s*(-?\d+)[,\s:]+(-?\d+)\s*\)?/i);
+    if (coordMatch) {
+      const n1 = Number(coordMatch[1]);
+      const n2 = Number(coordMatch[2]);
+      const dx = Math.abs(n1) <= 1 && Math.abs(n2) <= 1 ? n1 : Math.sign(n1 - pos.x);
+      const dy = Math.abs(n1) <= 1 && Math.abs(n2) <= 1 ? n2 : Math.sign(n2 - pos.y);
+      if (dx !== 0 || dy !== 0) return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
     }
-    if (p.action === 'TOGGLE_DOOR') {
-      return { type: 'TOGGLE_DOOR', actorId: playerId, target: { x: pos.x + p.dx, y: pos.y + p.dy, stratum: pos.stratum } };
+
+    const textDirMatch = cleaned.match(/\bMOVE[^\w]*?["']?([A-Za-z]+)["']?/i);
+    if (textDirMatch && textDirMatch[1]) {
+      const norm = normalizeDirection(textDirMatch[1]);
+      if (norm && DIR_VECTORS[norm]) {
+        const [dx, dy] = DIR_VECTORS[norm]!;
+        return { type: 'MOVE_STEP', actorId: playerId, dx, dy };
+      }
     }
-    if (p.action === 'VENT_STEAM') {
-      return { type: 'VENT_STEAM', actorId: playerId, target: { x: pos.x + p.targetRelX, y: pos.y + p.targetRelY, stratum: pos.stratum }, pressureReleasedKpa: p.pressureKpa };
-    }
-    if (p.action === 'USE_ITEM') {
-      return { type: 'USE_ITEM', actorId: playerId, itemEntityId: EntityIdSchema.parse(p.itemId) };
-    }
-    if (p.action === 'BREACH_TILE') {
-      return { type: 'BREACH_TILE', actorId: playerId, target: { x: pos.x + p.dx, y: pos.y + p.dy, stratum: pos.stratum } };
+
+    if (/\b(VENT|STEAM)\b/i.test(cleaned)) {
+      return { type: 'VENT_STEAM', actorId: playerId, target: { x: pos.x, y: pos.y, stratum: pos.stratum }, pressureReleasedKpa: 30 };
     }
   } catch {
     return fallback;

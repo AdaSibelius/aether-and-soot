@@ -62,6 +62,25 @@ describe('Headless LLM Playtester Harness', () => {
     const malformed = parseLlmResponseToCommand('```json\n{ "invalid": true }\n```', world, playerId);
     expect(malformed.type).toBe('WAIT_TURN');
 
+    // Tests resilient LLM output variations observed in local Hermes sessions
+    const dirNorth = parseLlmResponseToCommand('{"action": "MOVE", "direction": "NORTH"}', world, playerId);
+    expect(dirNorth).toEqual({ type: 'MOVE_STEP', actorId: playerId, dx: 0, dy: -1 });
+
+    const deltaObj = parseLlmResponseToCommand('MOVE {"dx": 1, "dy": 0}', world, playerId);
+    expect(deltaObj).toEqual({ type: 'MOVE_STEP', actorId: playerId, dx: 1, dy: 0 });
+
+    const textVector = parseLlmResponseToCommand('MOVE 0 1', world, playerId);
+    expect(textVector).toEqual({ type: 'MOVE_STEP', actorId: playerId, dx: 0, dy: 1 });
+
+    const textDirection = parseLlmResponseToCommand('MOVE: "w"', world, playerId);
+    expect(textDirection).toEqual({ type: 'MOVE_STEP', actorId: playerId, dx: -1, dy: 0 });
+
+    const caseInsensitiveDoor = parseLlmResponseToCommand('{"action": "toggle_door", "dx": -1, "dy": 0}', world, playerId);
+    expect(caseInsensitiveDoor.type).toBe('TOGGLE_DOOR');
+
+    const coordPair = parseLlmResponseToCommand('MOVE: 26, 15', world, playerId);
+    expect(coordPair.type).toBe('MOVE_STEP');
+
     // Tests mock action generation
     const mockAction = generateMockAction(world, playerId);
     expect(['MOVE', 'WAIT', 'ATTACK', 'TOGGLE_DOOR', 'VENT_STEAM']).toContain(mockAction.action);
