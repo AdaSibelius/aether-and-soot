@@ -226,8 +226,9 @@ describe('Phase 23: Interactive Containers & Tangible Currency', () => {
 
     // Check that dropped items include a crown pence pouch
     if (defeatEvent && defeatEvent.type === 'ACTOR_DEFEATED') {
-      const droppedPouch = defeatEvent.droppedEntityIds
-        .map((id) => res.state.entities[id])
+      const droppedIds = defeatEvent.droppedEntityIds ?? [];
+      const droppedPouch = droppedIds
+        .map((id: string) => res.state.entities[id])
         .find((e) => e?.item?.blueprintId === 'item_crown_pence_pouch');
       expect(droppedPouch).toBeDefined();
       expect(droppedPouch?.item?.penceValue).toBe(18);

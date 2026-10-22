@@ -17,6 +17,7 @@ import { RNGStateSchema, SeededRNG } from './rng.js';
 
 import { FactionContractSchema } from '../../schemas/contracts.schema.js';
 import { CodexEntryRecordSchema, SafehouseDeedRecordSchema } from '../../schemas/safehouse-records.schema.js';
+import { EscortConvoyRecordSchema, GuildAuditRecordSchema, TurfSectorRecordSchema } from '../../schemas/skirmish-records.schema.js';
 
 export const SavedDistrictSnapshotSchema = z.object({
   strata: z.object({ UNDERCROFT: StratumGridSchema, STREET: StratumGridSchema, SPIRE: StratumGridSchema }),
@@ -52,6 +53,9 @@ export const WorldStateSchema = z.object({
   contracts: z.array(FactionContractSchema).default([]),
   safehouses: z.record(z.string(), SafehouseDeedRecordSchema).default({}),
   codex: z.record(z.string(), CodexEntryRecordSchema).default({}),
+  turf: z.record(z.string(), TurfSectorRecordSchema).default({}),
+  convoys: z.record(z.string(), EscortConvoyRecordSchema).default({}),
+  audits: z.record(z.string(), GuildAuditRecordSchema).default({}),
   eventLog: z.array(SimEventSchema),
   savedDistricts: z.record(z.string(), SavedDistrictSnapshotSchema).default({}),
 });
@@ -222,6 +226,9 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     contracts: [],
     safehouses: {},
     codex: {},
+    turf: {},
+    convoys: {},
+    audits: {},
     eventLog: [],
     savedDistricts: {},
   };

@@ -30,6 +30,18 @@ import {
   resolveStoreItemInStructure,
 } from '../systems/safehouse.system.js';
 import { resolveConsultCodex } from '../systems/codex.system.js';
+import {
+  processActorTurfCombat,
+  recordTacticalCoverManeuver,
+  resolveInitiateTurfSkirmish,
+} from '../systems/skirmish-turf.system.js';
+import {
+  processCompanionEscortAssignment,
+  processCraftSupplyConvoyPrep,
+  processDropItemDelivery,
+  resolvePrepareSupplyConvoy,
+} from '../systems/supply-escort.system.js';
+import { resolveAuditSafehouseDeed } from '../systems/politics-audit.system.js';
 import { SeededRNG } from './rng.js';
 import { WorldState } from './world.js';
 
@@ -46,8 +58,11 @@ export function routeDomainCommand(
   rng: SeededRNG,
 ): CommandRouteResult {
   switch (command.type) {
-    case 'VENT_STEAM':
-      return { ...resolveVentSteam(state, command.actorId, command.target, command.pressureReleasedKpa, command.bypassReserveCheck), handled: true };
+    case 'VENT_STEAM': {
+      const ventRes = resolveVentSteam(state, command.actorId, command.target, command.pressureReleasedKpa, command.bypassReserveCheck);
+      const coverRes = recordTacticalCoverManeuver(ventRes.state, command.actorId, 'VENT_STEAM_COVER', `${command.pressureReleasedKpa} kPa released`);
+      return { ...coverRes, events: [...ventRes.events, ...coverRes.events], handled: true };
+    }
     case 'DAMAGE_LIMB':
       return { ...resolveDamageLimb(state, command.targetId, command.slot, command.damage), handled: true };
     case 'INSTALL_PROSTHETIC':
@@ -70,22 +85,39 @@ export function routeDomainCommand(
       return { ...resolveTriggerSupplyShock(state, command.commodity, command.supplyDelta, command.factionAffected, command.reputationDelta), handled: true };
     case 'PICK_UP_ITEM':
       return { ...resolvePickupItem(state, command.actorId, command.itemEntityId), handled: true };
-    case 'DROP_ITEM':
-      return { ...resolveDropItem(state, command.actorId, command.itemEntityId, command.quantity), handled: true };
+    case 'DROP_ITEM': {
+      const dropRes = resolveDropItem(state, command.actorId, command.itemEntityId, command.quantity);
+      const actor = state.entities[command.actorId];
+      if (actor?.position) {
+        const deliveryRes = processDropItemDelivery(dropRes.state, command.actorId, command.itemEntityId, actor.position);
+        return { ...deliveryRes, events: [...dropRes.events, ...deliveryRes.events], handled: true };
+      }
+      return { ...dropRes, handled: true };
+    }
     case 'USE_ITEM':
       return { ...resolveUseItem(state, command.actorId, command.itemEntityId), handled: true };
     case 'TOGGLE_DOOR':
       return { ...resolveToggleDoor(state, command.actorId, command.target), handled: true };
     case 'TRAVEL_DISTRICT':
       return { ...resolveTravelDistrict(state, command.actorId, command.targetDistrictId), handled: true };
-    case 'CRAFT_RECIPE':
-      return { ...resolveCraftRecipe(state, command.actorId, command.recipeId), handled: true };
+    case 'CRAFT_RECIPE': {
+      const craftRes = resolveCraftRecipe(state, command.actorId, command.recipeId);
+      const craftedItemEvent = craftRes.events.find((e) => e.type === 'ITEM_CRAFTED');
+      if (craftedItemEvent && craftedItemEvent.type === 'ITEM_CRAFTED') {
+        const prepRes = processCraftSupplyConvoyPrep(craftRes.state, command.actorId, command.recipeId, craftedItemEvent.outputEntityId);
+        return { ...prepRes, events: [...craftRes.events, ...prepRes.events], handled: true };
+      }
+      return { ...craftRes, handled: true };
+    }
     case 'SALVAGE_ITEM':
       return { ...resolveSalvageItem(state, command.actorId, command.itemEntityId), handled: true };
     case 'REPAIR_LIMB':
       return { ...resolveRepairLimb(state, command.actorId, command.slot), handled: true };
-    case 'ATTACK_ACTOR':
-      return { ...resolveAttackActor(state, command.attackerId, command.targetId, command.targetSlot, rng), handled: true };
+    case 'ATTACK_ACTOR': {
+      const atkRes = resolveAttackActor(state, command.attackerId, command.targetId, command.targetSlot, rng);
+      const turfRes = processActorTurfCombat(atkRes.state, command.attackerId, command.targetId);
+      return { ...turfRes, events: [...atkRes.events, ...turfRes.events], handled: true };
+    }
     case 'SMASH_TERRAIN':
       return { ...resolveSmashTerrain(state, command.actorId, command.target), handled: true };
     case 'REST_AT_BED':
@@ -94,8 +126,11 @@ export function routeDomainCommand(
       return { ...resolveAcceptContract(state, command.actorId, command.contractId), handled: true };
     case 'COMPLETE_CONTRACT':
       return { ...resolveCompleteContract(state, command.actorId, command.contractId), handled: true };
-    case 'HIRE_COMPANION':
-      return { ...resolveHireCompanion(state, command.actorId, command.npcId), handled: true };
+    case 'HIRE_COMPANION': {
+      const hireRes = resolveHireCompanion(state, command.actorId, command.npcId);
+      const escortRes = processCompanionEscortAssignment(hireRes.state, command.actorId, command.npcId);
+      return { ...escortRes, events: [...hireRes.events, ...escortRes.events], handled: true };
+    }
     case 'PAY_CHIRURGEON_HEAL':
       return { ...resolvePayChirurgeonHeal(state, command.actorId, command.chirurgeonId), handled: true };
     case 'EQUIP_ITEM':
@@ -150,6 +185,12 @@ export function routeDomainCommand(
       return { ...resolveRetrieveItemFromStructure(state, command), handled: true };
     case 'CONSULT_CODEX':
       return { ...resolveConsultCodex(state, command), handled: true };
+    case 'INITIATE_TURF_SKIRMISH':
+      return { ...resolveInitiateTurfSkirmish(state, command), handled: true };
+    case 'PREPARE_SUPPLY_CONVOY':
+      return { ...resolvePrepareSupplyConvoy(state, command), handled: true };
+    case 'AUDIT_SAFEHOUSE_DEED':
+      return { ...resolveAuditSafehouseDeed(state, command), handled: true };
     default:
       return { state, events: [], handled: false };
   }
