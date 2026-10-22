@@ -184,6 +184,24 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'MONORAIL_ACTION_FAILED':
       return `[T${ev.turn}] Monorail operation failed for ${ev.actorId}: ${ev.reason}.`;
 
+    case 'ACTOR_TURF_STATE_CHANGED':
+      return `[T${ev.turn}] Victorian chronicle: Actor Turf State Changed.`;
+    case 'CONVOY_DELIVERY_CONFIRMED':
+      return `[T${ev.turn}] Victorian chronicle: Convoy Delivery Confirmed.`;
+    case 'CONVOY_ESCORT_ASSIGNED':
+      return `[T${ev.turn}] Victorian chronicle: Convoy Escort Assigned.`;
+    case 'CONVOY_PREPARATION_STARTED':
+      return `[T${ev.turn}] Victorian chronicle: Convoy Preparation Started.`;
+    case 'NPC_GOAL_CHANGED':
+      return `[T${ev.turn}] Victorian chronicle: Npc Goal Changed.`;
+    case 'SAFEHOUSE_AUDIT_COMPLETED':
+      return `[T${ev.turn}] Victorian chronicle: Safehouse Audit Completed.`;
+    case 'TACTICAL_MANEUVER_RECORDED':
+      return `[T${ev.turn}] Victorian chronicle: Tactical Maneuver Recorded.`;
+    case 'TURF_CONTESTED':
+      return `[T${ev.turn}] Victorian chronicle: Turf Contested.`;
+    case 'TURF_CONTROL_CHANGED':
+      return `[T${ev.turn}] Victorian chronicle: Turf Control Changed.`;
 case 'CODEX_CONSULTED':
       return `[T${ev.turn}] The ancient tome reveals its secrets, knowledge gained at a price.`;
 case 'CODEX_ENTRY_DISCOVERED':

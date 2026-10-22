@@ -7,6 +7,7 @@ import { computeProstheticFovBonus } from '../systems/anatomy.system.js';
 import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
 import { decrementProstheticCooldowns } from '../systems/prosthetics.system.js';
+import { processActorTurfMovement, recordTacticalCoverManeuver } from '../systems/skirmish-turf.system.js';
 import { routeDomainCommand } from './command-router.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
@@ -35,17 +36,31 @@ export function dispatchCommand(
 
   switch (command.type) {
     case 'MOVE_STEP': {
+      const oldActor = nextState.entities[command.actorId];
+      const oldPos = oldActor?.position ? { ...oldActor.position } : undefined;
       const res = resolveMoveStep(nextState, command.actorId, command.dx, command.dy);
       nextState = res.state;
       systemEvents = res.events;
       apSpent = res.apSpent;
+      const newActor = nextState.entities[command.actorId];
+      if (oldPos && newActor?.position) {
+        const turfMove = processActorTurfMovement(nextState, command.actorId, oldPos, newActor.position);
+        nextState = turfMove.state;
+        systemEvents = [...systemEvents, ...turfMove.events];
+      }
       break;
     }
     case 'USE_PORTAL': {
+      const pActor = nextState.entities[command.actorId];
+      const fromStratum = pActor?.position?.stratum;
       const res = resolveUsePortal(nextState, command.actorId);
       nextState = res.state;
       systemEvents = res.events;
       apSpent = res.apSpent;
+      const toStratum = nextState.entities[command.actorId]?.position?.stratum;
+      const portalManeuver = recordTacticalCoverManeuver(nextState, command.actorId, 'PORTAL_TACTICAL_ESCAPE', `${fromStratum} -> ${toStratum}`);
+      nextState = portalManeuver.state;
+      systemEvents = [...systemEvents, ...portalManeuver.events];
       break;
     }
     case 'WAIT_TURN': {

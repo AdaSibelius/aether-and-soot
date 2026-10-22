@@ -1,9 +1,26 @@
-import { z } from 'zod';
 import { GameCommand } from '../../src/schemas/commands.schema.js';
-import { EntityId, EntityIdSchema, LimbSlotId } from '../../src/schemas/primitives.schema.js';
+import {
+  BlueprintIdSchema,
+  EntityId,
+  EntityIdSchema,
+  FactionIdSchema,
+  LimbSlotId,
+} from '../../src/schemas/primitives.schema.js';
 import { getShiftPhase, WorldState } from '../../src/sim/core/world.js';
 import { computeActorFovRadius, computeVisibleTiles } from '../../src/sim/spatial/fov.js';
 import { findEntitiesAtPoint, getTileCell } from '../../src/sim/spatial/grid.js';
+import {
+  LIMB_ENUM,
+  STRUCTURE_ENUM,
+  LlmActionPayloadSchema,
+  LlmActionPayload,
+} from './playtester-actions.js';
+export {
+  LIMB_ENUM,
+  STRUCTURE_ENUM,
+  LlmActionPayloadSchema,
+};
+export type { LlmActionPayload };
 
 export const DIR_VECTORS: Record<string, [number, number]> = {
   N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0], NE: [1, -1], NW: [-1, -1], SE: [1, 1], SW: [-1, 1],
@@ -17,34 +34,6 @@ export function normalizeDirection(raw: string): string | undefined {
   const norm = raw.trim().toUpperCase().replace(/[^A-Z]/g, '');
   return DIR_VECTORS[norm] ? norm : CARDINAL_MAP[norm];
 }
-
-const LIMB_ENUM = z.enum(['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG']);
-const STRUCTURE_ENUM = z.enum(['SURGICAL_TABLE', 'ARTIFICER_BENCH', 'STEAM_CHARGER', 'BARRICADE_WOOD', 'BARRICADE_IRON']);
-
-export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('MOVE'), dir: z.enum(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('WAIT'), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('ATTACK'), targetId: z.string(), limb: LIMB_ENUM.optional(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('TOGGLE_DOOR'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('VENT_STEAM'), pressureKpa: z.number().positive().default(50), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('USE_ITEM'), itemId: z.string(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('BREACH_TILE'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('USE_PORTAL'), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('BUY'), merchantId: z.string(), itemId: z.string(), quantity: z.number().int().positive().optional(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('PICK_UP'), itemId: z.string().optional(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('ACTIVATE_PROSTHETIC'), slot: LIMB_ENUM, targetRelX: z.number().int().optional(), targetRelY: z.number().int().optional(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('HARVEST_CORPSE'), corpseId: z.string(), toolId: z.string(), slot: LIMB_ENUM.optional(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('ACCEPT_CONTRACT'), contractId: z.string(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('APPLY_MOMENTUM_VECTOR'), targetId: z.string(), dx: z.number().int(), dy: z.number().int(), distanceTiles: z.number().int().positive().default(2), massKg: z.number().positive().default(70), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('CLEAN_SPILL'), toolId: z.string(), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('COAT_WEAPON'), weaponId: z.string(), containerId: z.string(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('CLAIM_WORKSHOP_DEED'), claimVault: z.boolean().optional(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('BUILD_STRUCTURE'), structureType: STRUCTURE_ENUM, targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('STORE_ITEM'), structureId: z.string(), itemId: z.string(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('RETRIEVE_ITEM'), structureId: z.string(), itemId: z.string(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('CONSULT_CODEX'), entryId: z.string().optional(), reasoning: z.string().optional() }),
-]);
-export type LlmActionPayload = z.infer<typeof LlmActionPayloadSchema>;
 
 export interface ContextSerializationOptions {
   readonly recentPositions?: ReadonlyArray<{ x: number; y: number }> | undefined;
@@ -195,6 +184,14 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
             case 'STORE_ITEM': return { type: 'STORE_ITEM_IN_STRUCTURE', actorId: playerId, structureEntityId: EntityIdSchema.parse(p.structureId), itemEntityId: EntityIdSchema.parse(p.itemId) };
             case 'RETRIEVE_ITEM': return { type: 'RETRIEVE_ITEM_FROM_STRUCTURE', actorId: playerId, structureEntityId: EntityIdSchema.parse(p.structureId), itemEntityId: EntityIdSchema.parse(p.itemId) };
             case 'CONSULT_CODEX': return { type: 'CONSULT_CODEX', actorId: playerId, entryId: p.entryId };
+            case 'DROP_ITEM': return { type: 'DROP_ITEM', actorId: playerId, itemEntityId: EntityIdSchema.parse(p.itemId), ...(p.quantity ? { quantity: p.quantity } : {}) };
+            case 'CRAFT_RECIPE': return { type: 'CRAFT_RECIPE', actorId: playerId, recipeId: BlueprintIdSchema.parse(p.recipeId) };
+            case 'COMPLETE_CONTRACT': return { type: 'COMPLETE_CONTRACT', actorId: playerId, contractId: EntityIdSchema.parse(p.contractId) };
+            case 'DAMAGE_LIMB': return { type: 'DAMAGE_LIMB', actorId: playerId, targetId: EntityIdSchema.parse(p.targetId), slot: p.slot as LimbSlotId, damage: p.damage };
+            case 'HIRE_COMPANION': return { type: 'HIRE_COMPANION', actorId: playerId, npcId: EntityIdSchema.parse(p.npcId) };
+            case 'INITIATE_TURF_SKIRMISH': return { type: 'INITIATE_TURF_SKIRMISH', actorId: playerId, turfId: p.turfId };
+            case 'PREPARE_SUPPLY_CONVOY': return { type: 'PREPARE_SUPPLY_CONVOY', actorId: playerId, cargoItemId: EntityIdSchema.parse(p.cargoItemId), clientFactionId: FactionIdSchema.parse(p.clientFactionId), destinationDistrictId: p.destinationDistrictId, ...(p.rewardPence !== undefined ? { rewardPence: p.rewardPence } : {}) };
+            case 'AUDIT_SAFEHOUSE_DEED': return { type: 'AUDIT_SAFEHOUSE_DEED', actorId: playerId, inspectorId: EntityIdSchema.parse(p.inspectorId), deedId: p.deedId };
           }
         }
         const normDir = normalizeDirection(String(rawObj.dir || rawObj.direction || ''));

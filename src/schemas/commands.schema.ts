@@ -39,6 +39,21 @@ export type {
   ClaimWorkshopDeedCommand, BuildStructureCommand,
   StoreItemInStructureCommand, RetrieveItemFromStructureCommand, ConsultCodexCommand,
 } from './safehouse-commands.schema.js';
+import {
+  InitiateTurfSkirmishCommandSchema,
+  PrepareSupplyConvoyCommandSchema,
+  AuditSafehouseDeedCommandSchema,
+} from './skirmish-commands.schema.js';
+export {
+  InitiateTurfSkirmishCommandSchema,
+  PrepareSupplyConvoyCommandSchema,
+  AuditSafehouseDeedCommandSchema,
+} from './skirmish-commands.schema.js';
+export type {
+  InitiateTurfSkirmishCommand,
+  PrepareSupplyConvoyCommand,
+  AuditSafehouseDeedCommand,
+} from './skirmish-commands.schema.js';
 export type {
   ActivateProstheticCommand,
   HarvestCorpseCommand,
@@ -67,39 +82,17 @@ import {
 } from './domain-commands.schema.js';
 
 export {
-  EquipItemCommandSchema,
-  UnequipItemCommandSchema,
-  FireRangedWeaponCommandSchema,
-  AcceptContractCommandSchema,
-  ActivateProstheticCommandSchema,
-  ApplyMomentumVectorCommandSchema,
-  BreachTileCommandSchema,
-  BuyFromMerchantCommandSchema,
-  CleanSpillCommandSchema,
-  CoatWeaponCommandSchema,
-  CompleteContractCommandSchema,
-  CraftRecipeCommandSchema,
-  DropItemCommandSchema,
-  HarvestCorpseCommandSchema,
-  HireCompanionCommandSchema,
-  InstallWeaponModCommandSchema,
-  LoadAmmoCommandSchema,
-  LootContainerCommandSchema,
-  PayChirurgeonHealCommandSchema,
-  PickUpItemCommandSchema,
-  PryObstacleCommandSchema,
-  RepairLimbCommandSchema,
-  RestAtBedCommandSchema,
-  SalvageItemCommandSchema,
-  SellToMerchantCommandSchema,
-  SetPostureCommandSchema,
-  SmashTerrainCommandSchema,
-  ThrowFlaskCommandSchema,
-  UninstallWeaponModCommandSchema,
-  StockPedestalCommandSchema,
-  ToggleDoorCommandSchema,
-  TravelDistrictCommandSchema,
-  TriggerSupplyShockCommandSchema,
+  EquipItemCommandSchema, UnequipItemCommandSchema, FireRangedWeaponCommandSchema,
+  AcceptContractCommandSchema, ActivateProstheticCommandSchema, ApplyMomentumVectorCommandSchema,
+  BreachTileCommandSchema, BuyFromMerchantCommandSchema, CleanSpillCommandSchema,
+  CoatWeaponCommandSchema, CompleteContractCommandSchema, CraftRecipeCommandSchema,
+  DropItemCommandSchema, HarvestCorpseCommandSchema, HireCompanionCommandSchema,
+  InstallWeaponModCommandSchema, LoadAmmoCommandSchema, LootContainerCommandSchema,
+  PayChirurgeonHealCommandSchema, PickUpItemCommandSchema, PryObstacleCommandSchema,
+  RepairLimbCommandSchema, RestAtBedCommandSchema, SalvageItemCommandSchema,
+  SellToMerchantCommandSchema, SetPostureCommandSchema, SmashTerrainCommandSchema,
+  ThrowFlaskCommandSchema, UninstallWeaponModCommandSchema, StockPedestalCommandSchema,
+  ToggleDoorCommandSchema, TravelDistrictCommandSchema, TriggerSupplyShockCommandSchema,
   UseItemCommandSchema,
 };
 
@@ -225,5 +218,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   StoreItemInStructureCommandSchema,
   RetrieveItemFromStructureCommandSchema,
   ConsultCodexCommandSchema,
+  InitiateTurfSkirmishCommandSchema,
+  PrepareSupplyConvoyCommandSchema,
+  AuditSafehouseDeedCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

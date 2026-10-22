@@ -37,7 +37,7 @@ Inspired by deep systemic comparisons with *Cataclysm: Dark Days Ahead (CDDA)*, 
 
 ### Tier D: Macro World & Presentation Polish (Deferred to Phases 45–46)
 
-- [ ] **Phase 45: Dynamic Turf Skirmishes, Economic Supply Escorts & Royal Society Politics**: Grounded in Phase 42 squad AI and Phase 43 monorail cargo transit between factions. Introduce autonomous Royal Society guild inspectors and rival artificers who audit safehouses, react to workshop deeds, and emit `NPC_GOAL_CHANGED` telemetry.
+- [x] **Phase 45: Dynamic Turf Skirmishes, Economic Supply Escorts & Royal Society Politics** (Issue #42): Grounded in Phase 42 squad AI and Phase 43 monorail cargo transit between factions. Introduced autonomous Royal Society guild inspectors and rival artificers who audit safehouses, react to workshop deeds, and emit NPC_GOAL_CHANGED telemetry. Implemented dynamic contested turf territory control, convoy preparation/escort/delivery confirmation, and complete serialization in playtester-serializer.ts with deterministic tests in tests/sim/phase45-turf-escort-politics.test.ts.
 - [ ] **Phase 46: Procedural WebAudio Soundscape & Acoustic Synth Shell**: WebAudio synthesizer wired to finalized `SimEvent` triggers across Phases 37–45.
 
 ### Tier E: Emergent Systemic Backlog (Critic Suggestions)
