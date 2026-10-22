@@ -33,12 +33,24 @@ Inspired by deep systemic comparisons with *Cataclysm: Dark Days Ahead (CDDA)*, 
 - [x] **Phase 42: Witness Attribution, Squad Callouts & Faction Grudge Memory**: Create `src/sim/systems/squad-witness.system.ts`. Gate theft/assault `factionReputation` penalties behind unblinded NPC line-of-sight (`WITNESS_CRIME_REPORTED`), rewarding smog occlusion and stealth. Add `EMIT_SQUAD_CALLOUT` (90 dB acoustic alert) for guards to rally nearby allied squadmates into flanking `COMBAT` states and record a persistent `grudgeTargetId`.
 - [x] **Phase 43: Deep Sub-Undercroft Strata (`CATACOMBS` / Infinite Delve) & Derelict Pneumatic Monorail**: Expand vertical exploration beneath `UNDERCROFT` into procedural depth tiers (`depthLevel: 1..N` Chalk Catacombs & Pre-Victorian Clockwork Vaults) with scaling hazards and relic schematics. Connect underground districts via a rideable, coal-pressurized multi-tile **Subterranean Pneumatic Monorail Car**.
 - [x] **Phase 44: Artificer Safehouse Deeds, Furniture Construction & Royal Society Codex**: Allow purchasing a **Freehold Workshop Deed** (or claiming an Undercroft vault) with persistent item/furniture storage (`SURGICAL_TABLE`, `ARTIFICER_BENCH`, `STEAM_CHARGER`), field construction/barricading (`BUILD_STRUCTURE`), and a `[K]` **Royal Society Naturalist's Codex** tracking discovered automatons, schematics, and alchemical reactions. Discovered Codex entries trigger emergent NPC curiosity, hostility, or trade reactions. Ensure `playtester-serializer.ts` provides complete command/state serialization coverage for Phase 44 deeds, structures, and Codex queries with deterministic unit tests in `tests/sim/`.
-  - *Post-Phase Critic Agency Expansion*: Link `COMPLETE_CONTRACT` to deed ownership validation, expand safehouse crafting/mod pipelines with exclusive recipe/mod slots, and persist limb-injury state observations across NPC dialogue memory.
+  - *Post-Phase Critic Agency Expansion & Cross-Wiring*: Link `COMPLETE_CONTRACT` to deed ownership validation (unlocking `CRAFT_RECIPE`), wire `VENT_STEAM` to steam-charging furniture and `COAT_WEAPON` mechanics, verify `DAMAGE_LIMB` and `VENT_STEAM` interactions with steam-charging furniture are logged, and persist limb-injury state observations across NPC dialogue memory. Seed autonomous Royal Society guild inspectors and rival artificers auditing workshop deeds/guarding vaults with `[K]` Codex reactivity and `NPC_GOAL_CHANGED` telemetry hooks (bridging into Phase 45). Add unit/integration tests for Undercroft vault claim flow and barricading.
 
 ### Tier D: Macro World & Presentation Polish (Deferred to Phases 45–46)
 
 - [ ] **Phase 45: Dynamic Turf Skirmishes, Economic Supply Escorts & Royal Society Politics**: Grounded in Phase 42 squad AI and Phase 43 monorail cargo transit between factions. Introduce autonomous Royal Society guild inspectors and rival artificers who audit safehouses, react to workshop deeds, and emit `NPC_GOAL_CHANGED` telemetry.
 - [ ] **Phase 46: Procedural WebAudio Soundscape & Acoustic Synth Shell**: WebAudio synthesizer wired to finalized `SimEvent` triggers across Phases 37–45.
+
+### Tier E: Emergent Systemic Backlog (Critic Suggestions)
+
+This serves as the permanent holding area for validated, out-of-scope systemic ideas waiting to be scheduled into a formal phase.
+
+#### Flagship NPC Concepts & Narrative Agency
+- **Flagship NPC Systems & Branching Storylines**: Develop a cohort of bespoke flagship NPCs who serve as architectural archetypes for branching narrative arcs, deep backstories, actionable motives, and rich dialogue trees.
+- **Dynamic World Seeding & Autonomous Simulation**: Seed flagship NPCs across city districts and strata where they react dynamically to world-state changes, player deeds, and peer NPCs. NPCs self-navigate between districts and progress their personal narratives when the player is not present.
+
+#### Emergent Community Concepts & Systemic Complexity
+- **Systemic Ambition & Factional Pursuits**: Introduce rich systemic objectives (contracts, schematics, rare codices) that NPCs actively pursue. NPCs hold personal ambitions feeding into larger underground factions and high-strata conspiracies.
+- **Emergent Communities & Organic Economies**: Multi-agent NPC interactions drive emergent local communities, mutual-aid networks, and fluctuating black-market economies without rigid event scripting.
 
 ---
 
