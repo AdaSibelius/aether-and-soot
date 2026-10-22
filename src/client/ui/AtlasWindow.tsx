@@ -20,11 +20,11 @@ interface DistrictInfo {
 }
 
 const DISTRICT_ROSTER: readonly DistrictInfo[] = [
-  { id: BlueprintIdSchema.parse('district_spitalfields_soot_works'), name: 'Spitalfields Soot-Works', dominantStratum: 'STREET', cartel: 'Ironmongers Cartel', smog: '65% Particulate', description: 'Bessemer furnaces, smokeless coal silos, and arterial transit gates.' },
-  { id: BlueprintIdSchema.parse('district_fleet_ditch_undercroft'), name: 'Fleet Ditch Undercroft', dominantStratum: 'UNDERCROFT', cartel: 'Undercroft Syndicate', smog: '85% Toxic Miasma', description: 'Flooded subterranean sewers, sump scavenger camps, and illicit aether stills.' },
-  { id: BlueprintIdSchema.parse('district_belgravia_brass_spires'), name: 'Belgravia Brass Spires', dominantStratum: 'SPIRE', cartel: 'Clockwork Guild', smog: '15% High-Altitude', description: 'Sky-high brass catwalks, pneumatic freight lifts, and aristocratic towers.' },
-  { id: BlueprintIdSchema.parse('district_whitechapel_ward'), name: 'Whitechapel Quarantine Ward', dominantStratum: 'STREET', cartel: 'Crown Constabulary', smog: '55% Hospital Carbolic', description: 'Quarantine checkpoints, surgical infirmaries, and convalescent wards.' },
-  { id: BlueprintIdSchema.parse('district_limehouse_docks'), name: 'Limehouse Steam-Docks', dominantStratum: 'STREET', cartel: 'Ironmongers Cartel', smog: '70% River Smog', description: 'Thames coal wharves, arterial steam cranes, and contraband export warehouses.' },
+  { id: BlueprintIdSchema.parse('district_spitalfields_soot_works'), name: 'Spitalfields Smelting Works', dominantStratum: 'STREET', cartel: 'Ironmongers Cartel', smog: '65% Particulate', description: 'Bessemer furnaces, slag mounds, and arterial transit gates.' },
+  { id: BlueprintIdSchema.parse('district_fleet_ditch_undercroft'), name: 'Chalk-Vault Catacombs', dominantStratum: 'UNDERCROFT', cartel: 'Undercroft Syndicate', smog: '85% Toxic Miasma', description: 'Flooded subterranean chalk vaults, sluice gates, and illicit aether stills.' },
+  { id: BlueprintIdSchema.parse('district_belgravia_brass_spires'), name: 'Gilded Spire Assembly', dominantStratum: 'SPIRE', cartel: 'Clockwork Guild', smog: '15% High-Altitude', description: 'Sky-high brass catwalks, gothic colonnades, and aristocratic towers.' },
+  { id: BlueprintIdSchema.parse('district_whitechapel_ward'), name: 'Blackfriars Rookeries', dominantStratum: 'STREET', cartel: 'Crown Constabulary', smog: '55% Hospital Carbolic', description: 'Wrought iron alleys, quarantine checkpoints, and surgical infirmaries.' },
+  { id: BlueprintIdSchema.parse('district_limehouse_docks'), name: 'Limehouse Docks', dominantStratum: 'STREET', cartel: 'Ironmongers Cartel', smog: '70% River Smog', description: 'Thames timber wharves, canal sluices, and contraband export warehouses.' },
 ];
 
 const STRATA_ORDER: readonly { id: StratumId; label: string; altitude: string }[] = [

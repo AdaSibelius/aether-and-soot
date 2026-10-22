@@ -9,8 +9,9 @@ import {
   carveRoom,
 } from './district-layout.js';
 import { populateDistrictArchetypes } from './building-prefabs.js';
+import { seedDistrictArchitecture } from './architectural-features.js';
 import { generateSpireCatwalks, generateUndercroftDungeon } from './strata-dungeons.js';
-import { getTileCell, isWithinBounds, setTileCell, StratumGrid } from './grid.js';
+import { setTileCell } from './grid.js';
 
 export const DISTRICT_ADJACENCY: Record<string, { west: string; east: string }> = {
   district_spitalfields_soot_works: { west: 'district_fleet_ditch_undercroft', east: 'district_belgravia_brass_spires' },
@@ -168,8 +169,9 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
     },
   };
 
+  const criticalLandmarks = [westGatePos, eastGatePos, center, liftPos, boilerPos];
   const archetypes = populateDistrictArchetypes(street, newEntities, width, height);
-  street = archetypes.grid;
+  street = seedDistrictArchitecture(archetypes.grid, currDistrict, rng, criticalLandmarks);
   const finalEntities = archetypes.entities;
 
   return {
@@ -194,29 +196,4 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   };
 }
 
-/**
- * Breadth-First Search (BFS) walkability check between two points on a single StratumGrid.
- */
-export function hasWalkablePath(grid: StratumGrid, start: Point2D, goal: Point2D): boolean {
-  if (!isWithinBounds(grid, start.x, start.y) || !isWithinBounds(grid, goal.x, goal.y)) return false;
-  const visited = new Set<string>();
-  const queue: Point2D[] = [start];
-  const deltas = [{ dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 }];
-
-  while (queue.length > 0) {
-    const curr = queue.shift()!;
-    if (curr.x === goal.x && curr.y === goal.y) return true;
-    const key = `${curr.x},${curr.y}`;
-    if (visited.has(key)) continue;
-    visited.add(key);
-
-    for (const { dx, dy } of deltas) {
-      const nx = curr.x + dx;
-      const ny = curr.y + dy;
-      if (!isWithinBounds(grid, nx, ny)) continue;
-      const cell = getTileCell(grid, nx, ny);
-      if (cell && !cell.blocksMovement) queue.push({ x: nx, y: ny });
-    }
-  }
-  return false;
-}
+export { hasWalkablePath } from './district-layout.js';
