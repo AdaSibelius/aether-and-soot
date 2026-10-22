@@ -41,7 +41,7 @@ export function generateArchitecturalTypologies(
   const entities = { ...initialEntities };
   const doors: Record<string, Point2D> = {};
   const keyPositions: Record<string, Point2D> = {};
-  const centerY = Math.floor(height / 2);
+  const centerY = height >= 36 ? 18 : Math.floor(height / 2);
 
   // 1. Victorian Apothecary & Chirurgeon Clinic (Top-Right)
   const apothDoor = { x: 38, y: 12 };
