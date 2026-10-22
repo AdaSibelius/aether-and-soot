@@ -13,7 +13,6 @@
 ## 2. Architectural & Modularity Health
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
-- `src/sim/systems/character-archetypes.ts`: **244 lines** (threshold: 230)
 - `src/sim/systems/inventory.system.ts`: **244 lines** (threshold: 230)
 - `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **240 lines** (threshold: 230)
@@ -23,11 +22,11 @@
 - `src/schemas/events.schema.ts`: **238 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
 - `src/client/ui/AnatomyWindow.tsx`: **237 lines** (threshold: 230)
-- `src/sim/spatial/building-prefabs.ts`: **236 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **235 lines** (threshold: 230)
 - `src/sim/systems/safehouse.system.ts`: **235 lines** (threshold: 230)
 - `src/schemas/domain-commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/schemas/core-events.schema.ts`: **233 lines** (threshold: 230)
+- `src/sim/spatial/architectural-typologies.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/dialogue-quest.system.ts`: **233 lines** (threshold: 230)
 - `src/client/main.tsx`: **232 lines** (threshold: 230)
 - `src/client/ui/AtlasWindow.tsx`: **232 lines** (threshold: 230)
@@ -84,63 +83,36 @@
 > **AGENT DIRECTIVE:** The systemic analysis below is theoretical. Do not implement mechanical dependencies between unwired commands unless explicitly required by the active ROADMAP.
 
 
-### Observed telemetry
-- **Active commands:** `ATTACK_ACTOR`, `MOVE_STEP`, `USE_PORTAL`, `VENT_STEAM`
-- **Unwired (schema-defined) commands:** `LOOT_CONTAINER`, `PAY_CHIRURGEON_HEAL`, `PRESSURIZE_VESSEL`, `PRY_OBSTACLE`, `REFILL_STEAM`, `REMOVE_PROSTHETIC`, `REPAIR_LIMB`, `REST_AT_BED`
+**Active command surface.** The four active verbs cover combat, locomotion, teleportation/portal use, and environmental steam venting. This is a compact set compared to the verb-rich action taxonomies of CDDA or Qud, but it does not by itself indicate shallowness — the engine supports additional actions (the unwired list) that are planned for later integration. The presence of **VENT_STEAM** suggests an environmental system with feedback, which is a depth signal.
 
-### Systemic depth
-The active command set is narrow but coherent: combat (`ATTACK_ACTOR`), locomotion (`MOVE_STEP`), portal use (`USE_PORTAL`), and environmental steam management (`VENT_STEAM`). This mirrors the tight action surface of early roguelikes, but the telemetry does not show a broad range of crafting, social, or exploration mechanics that typically define systemic depth in CDDA or Qud. In CDDA, agents can craft, trade, and modify the world through a wide array of actions; Qud's procedural generation is coupled with emergent item interactions. Aether & Soot's current telemetry suggests a focused mechanic set rather than the sprawling systemic layering seen in those titles.
+**Unwired commands as a design gap.** The eight unwired domain events are present in the schema (`src/schemas/domain-events.schema.ts:243`) but do not appear in active telemetry. In observed data there is no evidence of mechanical coupling between these commands and player input or NPC triggers. This indicates that the feature surface exists on paper but has not been wired into the action loop — a gap that, from a systemic depth standpoint, means the engine supports more than it currently exposes. CDDA exposes a similarly large verb set directly; Qud ties skills to mutations and environmental states in a tightly coupled way. Aether & Soot's current exposure is narrower, but the unwired list shows intent for deeper systems (healing, repair, pressure management) that are not yet realized.
 
-### NPC agency
-The observed telemetry contains no NPC-specific commands (e.g., `NPC_SPEAK`, `NPC_FOLLOW`, `NPC_TRADE`). In CDDA, NPCs have autonomous behaviors and can be recruited or turned against the player; Qud's NPCs exhibit procedural dialogue and emergent social dynamics. Aether & Soot's current telemetry shows passive or absent NPC presence, indicating that NPC agency is minimal at present. The schema does include unwired utility commands (`LOOT_CONTAINER`, `PAY_CHIRURGEON_HEAL`, etc.), but without associated NPC triggers the design lacks a visible agent loop. Compared to Arcostate's documented emphasis on player-driven social systems, Aether & Soot's NPC layer is underdeveloped relative to its architectural ambitions.
+**NPC agency.** **ATTACK_ACTOR** is the only NPC-related verb in the active set, and no telemetry shows NPC patrols, dialogue, or state machines. In contrast, CDDA has a robust NPC behavior layer (quests, wandering, combat AI), Qud has NPCs with goals and mutations, and Arcostate (a simpler roguelike) typically has static or minimally interactive NPCs. Aether & Soot's telemetry suggests NPC agency is currently limited to being an attack target — the game appears to prioritize player-driven action over emergent NPC behavior. The unwired commands (e.g., **PRESSURIZE_VESSEL**, **REMOVE_PROSTHETIC**) are not tied to NPCs in observed data, reinforcing that the current NPC layer is minimal.
 
-### Design comparison
-- **CDDA:** Broad action set + autonomous NPCs with environmental interaction.
-- **Qud:** Procedural generation + emergent item/agent interactions; telemetry would show more varied command types.
-- **Arcostate:** Strong player-NPC dialogue and social mechanics.
-
-Aether & Soot's current telemetry leans toward a thematic, architecture-driven core loop (portals, steam vents, prosthetics) rather than the broad systemic breadth of CDDA/Qud. The Phase 47 biome expansion is a deliberate step toward world depth, but NPC agency remains a gap.
+**Design comparison summary.** Aether & Soot trades the broad, tightly-coupled action webs of CDDA/Qud for a more focused set of player verbs with planned-but-unwired extensions. Its NPC agency is lighter than both CDDA and Qud, which may be intentional given the Victorian roguelike's emphasis on player exploration and survival rather than simulation. The unwired command list is a signal of future systemic depth (healing, repair, pressure) that, if wired, could close the gap to Qud-like complexity — but only if the design team commits to mechanical integration.
 
 ## 5. Self-Directed Prescriptions for Next Phase (P1, P2, P3)
 
-### P1 — Expand `TerrainTypeSchema` and `VisualGlyphSpec`
-Add the following architectural types to `TerrainTypeSchema` with their glyphs:
+**P1 — Procedural multi-room floorplan generation with interior zoning.** Build a room-template engine that generates rooms on a grid and assigns one of five structural zones: **reception** (entry/transition), **workshop** (workstations), **vault** (secure storage), **surgical bay** (medical hazards + bleed effects), **storage** (loot containers). Enforce adjacency rules: workshop adjacent to storage, vault separated from reception by at least one door, surgical bay near a vent or water source. Each generated room must contain at least one landmark micro-location (e.g., a clocktower spire or pump housing) for outdoor integration. Wire **VENT_STEAM** to boilerhouse/slag furnace rooms and to any surgical bay that requires steam for healing.
 
-| Type | Glyph |
-|------|-------|
-| `WROUGHT_IRON_FENCE` | `▓` |
-| `BRASS_STEAM_PIPE` | `┼` |
-| `GASLAMP_POST` | `☼` |
-| `TIMBER_PIER` | `═` |
-| `SLAG_MOUND` | `▲` |
-| `CANAL_SLUICE` | `≈` |
-| `GOTHIC_COLONNADE` | `Ω` |
-| Wall box-drawing: `╬`, `║`, `═` |
+**P2 — Six building archetypes with distinctive Victorian typology.** Design each archetype as a prefab with a fixed interior layout and a unique landmark micro-location:
+1. *Victorian Apothecary & Chirurgeon Clinic* — sterile white/green palette, surgical bay with bleeding hazards, loot containers for reagents, steam venting.
+2. *Clockwork Pawnshop & Cartel Bank* — metallic interiors, vault with lockable containers, pawnshop displays, clockwork mechanisms as **PRY_OBSTACLE**.
+3. *Steam Boilerhouse & Slag Furnace* — heavy industrial, high heat, **PRESSURIZE_VESSEL** and **REFILL_STEAM** pressure points, slag obstacles.
+4. *Tenement Rookeries* — cramped, low-ceiling rooms, shared reception, storage of scraps, **REMOVE_PROSTHETIC**/**REPAIR_LIMB** workstations.
+5. *Pneumatic Monorail Depot* — elevated track zones, loading/receiving bays, maintenance rooms with tool racks.
+6. *Guild Artisan Workshop* — tool racks, **REMOVE_PROSTHETIC**/**REPAIR_LIMB** stations, storage for crafted goods.
 
-`VisualGlyphSpec` should map each glyph to a visual layer (base terrain, edge highlight, emissive overlay). This schema expansion supports the Phase 47 biome rendering without inventing mechanical dependencies on existing commands.
+Each archetype must include at least one outdoor landmark (**water pump station**, **clocktower**, **canal lock**, or **Spire rooftop greenhouse**) as a micro-location.
 
-### P2 — Implement 5 district biomes
-Each biome carries a dual-color palette and a set of shader flags:
-
-1. **Limehouse Docks** — palette: dark teal `#0a3d2e` / rust orange `#b35a2f`; shader flags: `GASLIGHT_RADIANCE` + `SOOT_OCCLUSION`; steam vents, dock-side lighting.
-2. **Spitalfields Smelting Works** — palette: soot gray `#2e2e2e` / molten gold `#c9a84c`; shader flags: `GASLIGHT_RADIANCE` + `SPARK_GLINT`; furnace glow and heat distortion.
-3. **Gilded Spire Assembly** — palette: brass gold `#d4a017` / cream `#f5e6c0`; shader flags: `GASLIGHT_RADIANCE` + `SOOT_OCCLUSION`; ornate chandelier light, metallic sheen.
-4. **Blackfriars Rookeries** — palette: deep purple `#3b1f5e` / iron black `#1a1a1a`; shader flags: `SOOT_OCCLUSION` + `SPARK_GLINT`; shadowy narrow alleys, faint candlelight.
-5. **Chalk-Vault Catacombs** — palette: bone white `#e8dcc8` / charcoal `#1c1c1c`; shader flags: `GASLIGHT_RADIANCE` + `SOOT_OCCLUSION`; dim eerie glow, dust motes.
-
-These biomes are rendered via the expanded glyph set and should be wired to the active `VENT_STEAM` and `LOOT_CONTAINER` systems for environmental feedback.
-
-### P3 — Deepen systemic depth and NPC agency
-- **Expand the active command set** with emergent NPC interactions (e.g., `NPC_OFFER`, `NPC_ASK`) that reference the biome visuals (`GASLAMP_POST` lighting, `SLAG_MOUND` obstacles). These are independent additions, not dependencies on unwired commands.
-- **Integrate biome shaders into mechanics:** `VENT_STEAM` should scale with `GASLIGHT_RADIANCE` in dock/spire biomes; `PRY_OBSTACLE` should interact with `SLAG_MOUND` and `CANAL_SLUICE` terrain; `LOOT_CONTAINER` should be tied to `GOTHIC_COLONNADE` or `TIMBER_PIER` loot caches.
-- **NPC agency:** introduce passive NPCs that can be recruited via `PAY_CHIRURGEON_HEAL` (healing as a trade-off) and whose presence modifies the local shader state (e.g., `SOOT_OCCLUSION` increases near NPC clusters). This raises player-driven social dynamics without inventing mechanical dependencies between the unwired commands.
+**P3 — Wiring the unwired commands into the building engine and telemetry hooks.** Map the eight unwired domain events (per `src/schemas/domain-events.schema.ts:243`) to specific room functions within the prefab engine: **LOOT_CONTAINER** → storage rooms; **PAY_CHIRURGEON_HEAL** → surgical bay healing triggers; **PRESSURIZE_VESSEL** → boilerhouse/slag furnace pressure puzzles; **PRY_OBSTACLE** → clockwork/monorail obstacles; **REFILL_STEAM** → pump station and boilerhouse refueling; **REMOVE_PROSTHETIC**, **REPAIR_LIMB** → prosthetic workstations in tenement/guild rooms; **REST_AT_BED** → reception or dedicated rest area. Add telemetry hooks for NPC interaction with the surgical bay (healing/damage events) and for environmental feedback from **VENT_STEAM**. Ensure that P1's zoning constraints are reflected in the telemetry so that player actions (**MOVE_STEP**, **USE_PORTAL**) can be validated against room boundaries.
 
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
-Implement **Phase 47: Procedural Architectural Biomes, Topography & Extended CP437/Unicode Glyph Visuals**: Expand `TerrainTypeSchema` and `VisualGlyphSpec` with rich Victorian/Steampunk architectural types (`WROUGHT_IRON_FENCE` `▓`, `BRASS_STEAM_PIPE` `┼`, `GASLAMP_POST` `☼`, `TIMBER_PIER` `═`, `SLAG_MOUND` `▲`, `CANAL_SLUICE` `≈`, `GOTHIC_COLONNADE` `Ω`, and connecting wall box-drawing glyphs `╬`/`║`/`═`). Implement 5 visually distinct district biomes (*Limehouse Docks*, *Spitalfields Smelting Works*, *Gilded Spire Assembly*, *Blackfriars Rookeries*, *Chalk-Vault Catacombs*) with customized dual-color palettes and shader flags (`GASLIGHT_RADIANCE`, `SOOT_OCCLUSION`, `SPARK_GLINT`). adhering to AGENTS.md and ARCHITECTURE.md:
+Implement **Phase 48: Multi-Room Building Prefab Engine, Architectural Typology & Landmark Micro-Locations**: Create procedural multi-room floorplan generation with structural interior zoning (reception, workshop, vault, surgical bay, storage). Build 6 distinctive building archetypes (*Victorian Apothecary & Chirurgeon Clinic*, *Clockwork Pawnshop & Cartel Bank*, *Steam Boilerhouse & Slag Furnace*, *Tenement Rookeries*, *Pneumatic Monorail Depot*, *Guild Artisan Workshop*) and outdoor street landmarks (water pump stations, street-corner clocktowers, sunken canal locks, Spire rooftop greenhouses). adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
-2. Pre-split any src/ hotspot >= 245 lines (`src/sim/systems/character-archetypes.ts` (244 lines)) via `npm run hermes:split`.
+2. Pre-split any src/ hotspot >= 245 lines (`src/sim/systems/inventory.system.ts` (244 lines)) via `npm run hermes:split`.
 3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `LOOT_CONTAINER`, `PAY_CHIRURGEON_HEAL`, `PRESSURIZE_VESSEL`, `PRY_OBSTACLE`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
 4. Delegate blueprints (`generate:content`), event logs (`hermes:chronicler`), and test scaffolding (`hermes:testgen`) to local models.
 5. Run `npm run verify`, `npm run hermes:critic`, and `npm run sync:state`, then output the next copy-pasteable prompt.

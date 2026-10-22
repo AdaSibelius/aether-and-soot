@@ -76,7 +76,7 @@ export function placeArchitecturalFeature(
   }));
 }
 
-function canPlaceWithoutSevering(
+export function canPlaceWithoutSevering(
   grid: StratumGrid,
   x: number,
   y: number,
@@ -111,8 +111,10 @@ export function seedDistrictArchitecture(
 
   // 1. Gaslamps framing the central street plaza
   const lampPositions = [
-    { x: centerX - 1, y: centerY - 1 },
-    { x: centerX + 1, y: centerY - 1 },
+    { x: centerX - 2, y: centerY - 1 },
+    { x: centerX + 2, y: centerY - 1 },
+    { x: centerX - 2, y: centerY + 1 },
+    { x: centerX + 2, y: centerY + 1 },
   ];
   for (const lp of lampPositions) {
     const existing = getTileCell(updated, lp.x, lp.y);
