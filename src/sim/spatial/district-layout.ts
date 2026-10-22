@@ -1,5 +1,5 @@
 import { Point2D, StratumId } from '../../schemas/primitives.schema.js';
-import { createStratumGrid, isWithinBounds, setTileCell, StratumGrid, TileCell } from './grid.js';
+import { createStratumGrid, getTileCell, isWithinBounds, setTileCell, StratumGrid, TileCell } from './grid.js';
 
 export interface CarvedBuilding {
   readonly name: string;
@@ -136,4 +136,31 @@ export function carveBuildingWithDoor(
   }
 
   return next;
+}
+
+/**
+ * Breadth-First Search (BFS) walkability check between two points on a single StratumGrid.
+ */
+export function hasWalkablePath(grid: StratumGrid, start: Point2D, goal: Point2D): boolean {
+  if (!isWithinBounds(grid, start.x, start.y) || !isWithinBounds(grid, goal.x, goal.y)) return false;
+  const visited = new Set<string>();
+  const queue: Point2D[] = [start];
+  const deltas = [{ dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 }];
+
+  while (queue.length > 0) {
+    const curr = queue.shift()!;
+    if (curr.x === goal.x && curr.y === goal.y) return true;
+    const key = `${curr.x},${curr.y}`;
+    if (visited.has(key)) continue;
+    visited.add(key);
+
+    for (const { dx, dy } of deltas) {
+      const nx = curr.x + dx;
+      const ny = curr.y + dy;
+      if (!isWithinBounds(grid, nx, ny)) continue;
+      const cell = getTileCell(grid, nx, ny);
+      if (cell && !cell.blocksMovement) queue.push({ x: nx, y: ny });
+    }
+  }
+  return false;
 }

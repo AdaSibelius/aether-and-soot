@@ -34,8 +34,18 @@ export const ShaderFlagSchema = z.enum([
   'HEAT_SHIMMER',
   'SPARK_GLINT',
   'SOOT_OCCLUSION',
+  'GASLIGHT_RADIANCE',
 ]);
 export type ShaderFlag = z.infer<typeof ShaderFlagSchema>;
+
+export const BiomeIdSchema = z.enum([
+  'LIMEHOUSE_DOCKS',
+  'SPITALFIELDS_SMELTING_WORKS',
+  'GILDED_SPIRE_ASSEMBLY',
+  'BLACKFRIARS_ROOKERIES',
+  'CHALK_VAULT_CATACOMBS',
+]);
+export type BiomeId = z.infer<typeof BiomeIdSchema>;
 
 export const Point2DSchema = z.object({
   x: z.number().int().nonnegative(),
@@ -61,6 +71,24 @@ export const TerrainTypeSchema = z.enum([
   'SMASHED_WINDOW_FRAME',
   'RUBBLE_PILE',
   'ABYSS_DROP',
+  'WROUGHT_IRON_FENCE',
+  'BRASS_STEAM_PIPE',
+  'GASLAMP_POST',
+  'TIMBER_PIER',
+  'SLAG_MOUND',
+  'CANAL_SLUICE',
+  'GOTHIC_COLONNADE',
+  'WALL_CROSS',
+  'WALL_VERTICAL',
+  'WALL_HORIZONTAL',
+  'WALL_CORNER_NW',
+  'WALL_CORNER_NE',
+  'WALL_CORNER_SW',
+  'WALL_CORNER_SE',
+  'WALL_TEE_NORTH',
+  'WALL_TEE_SOUTH',
+  'WALL_TEE_EAST',
+  'WALL_TEE_WEST',
 ]);
 export type TerrainType = z.infer<typeof TerrainTypeSchema>;
 

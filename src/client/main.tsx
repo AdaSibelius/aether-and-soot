@@ -10,7 +10,7 @@ import { spawnDistrictNpcs } from '../sim/systems/ai.system.js';
 import { spawnDistrictItems } from '../sim/systems/item-spawner.js';
 import { applyCharacterCreation } from '../sim/systems/character-archetypes.js';
 import { handleGameKeydown } from './input/keyboard-router.js';
-import { projectWorldToVisualFrame, VisualGridFrame } from './projection/frame-adapter.js';
+import { projectWorldToVisualFrame } from './projection/frame-adapter.js';
 import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer } from './renderer/glyph-stage.js';
 import { CharacterModalShell, ModalWindowId } from './ui/CharacterModalShell.js';
 import { CharacterCreatorModal } from './ui/CharacterCreatorModal.js';
@@ -19,23 +19,9 @@ import { HudLayout } from './ui/HudLayout.js';
 import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
 import { QuickActionBar } from './ui/QuickActionBar.js';
 import { SystemMenuModal } from './ui/SystemMenuModal.js';
-import { getSoundscapeManager, SoundscapeManager } from './audio/soundscape-manager.js';
-
-import {
-  clampLookCursor,
-  cycleModalWindow,
-  findAdjacentDialogueNpc,
-  findAdjacentDoorTarget,
-  findEntityAtLookCursor,
-} from './client-interactions.js';
-
-export interface DebugSimBridge {
-  getState: () => Readonly<WorldState>;
-  getVisualFrame: () => VisualGridFrame;
-  dispatch: (cmd: GameCommand) => void;
-  serialize: () => string;
-  soundscape?: SoundscapeManager;
-}
+import { getSoundscapeManager } from './audio/soundscape-manager.js';
+import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor,  } from './client-interactions.js';
+import type { DebugSimBridge } from './client-debug-bridge.js';
 
 declare global {
   interface Window { __DEBUG_SIM__?: DebugSimBridge; }
@@ -242,3 +228,4 @@ async function bootstrapClient(): Promise<void> {
 
 void bootstrapClient();
 
+export type { DebugSimBridge } from './client-debug-bridge.js';

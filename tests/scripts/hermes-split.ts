@@ -204,7 +204,12 @@ export function performFileSplit(
   const updatedSourceImports = reconcileTargetImports(sourceImports, remainingCodeWithoutImports);
 
   const relImport = targetRelPath.startsWith('.') ? targetRelPath : './' + targetRelPath;
-  const barrelExport = `\nexport { ${functionNames.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';\n`;
+  const isTypeOnly = extractedBlocks.every((b) => /^(?:export\s+)?(?:type|interface)\b/.test(b.trim()));
+  const barrelExport = `\nexport ${isTypeOnly ? 'type ' : ''}{ ${functionNames.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';\n`;
+  const usedInSource = functionNames.filter((n) => new RegExp(`\\b${n}\\b`).test(remainingCodeWithoutImports));
+  if (usedInSource.length > 0) {
+    updatedSourceImports.push(`import ${isTypeOnly ? 'type ' : ''}{ ${usedInSource.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';`);
+  }
   const updatedSource = `${updatedSourceImports.join('\n')}\n\n${remainingCodeWithoutImports.trim()}\n${barrelExport}`;
 
   return { updatedSource, targetContent, extractedCount: extractedBlocks.length };

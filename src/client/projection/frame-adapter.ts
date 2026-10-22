@@ -3,6 +3,8 @@ import { StratumId, VisualGlyphSpec } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { computeVisibleTiles, pointKey } from '../../sim/spatial/fov.js';
 import { computeProstheticFovBonus } from '../../sim/systems/anatomy.system.js';
+import { resolveBiomeTerrainVisual, resolveDistrictBiome } from './biome-palette.js';
+import { resolveConnectingWallGlyph, WALL_BOX_GLYPHS } from './wall-connections.js';
 
 export const DEFAULT_VIEWPORT_WIDTH = 24;
 export const DEFAULT_VIEWPORT_HEIGHT = 20;
@@ -68,6 +70,8 @@ export function projectWorldToVisualFrame(
   const cameraX = Math.max(0, Math.min(grid.width - viewportWidth, originX - Math.floor(viewportWidth / 2)));
   const cameraY = Math.max(0, Math.min(grid.height - viewportHeight, originY - Math.floor(viewportHeight / 2)));
 
+  const districtBiome = resolveDistrictBiome(state.currentDistrictId, activeStratum);
+
   const cells: RenderCellFrame[] = [];
   for (let vy = 0; vy < viewportHeight; vy++) {
     for (let vx = 0; vx < viewportWidth; vx++) {
@@ -77,81 +81,24 @@ export function projectWorldToVisualFrame(
       const isVisible = visibleSet.has(pointKey(worldX, worldY));
       const isExplored = isVisible || (tile?.explored ?? false);
 
-      let baseVisual: VisualGlyphSpec;
-      if (!isExplored) {
-        baseVisual = {
-          glyph: ' ',
-          fgPrimary: '#17202A',
-          fgSecondary: '#050708',
-          bgColor: '#050708',
-          shaderFlags: [],
-        };
-      } else if (tile?.terrainType === 'SOOT_BRICK_WALL') {
-        baseVisual = {
-          glyph: '#',
-          fgPrimary: isVisible ? '#99A3A4' : '#34495E',
-          fgSecondary: isVisible ? '#BA4A00' : '#2C3E50',
-          bgColor: '#17202A',
-          shaderFlags: isVisible ? ['SOOT_OCCLUSION'] : [],
-        };
-      } else if (tile?.terrainType === 'WOODEN_DOOR_CLOSED') {
-        baseVisual = {
-          glyph: '+',
-          fgPrimary: isVisible ? '#E67E22' : '#7E5109',
-          fgSecondary: '#BA4A00',
-          bgColor: '#1C130C',
-          shaderFlags: [],
-        };
-      } else if (tile?.terrainType === 'WOODEN_DOOR_OPEN') {
-        baseVisual = {
-          glyph: '/',
-          fgPrimary: isVisible ? '#F39C12' : '#7D6608',
-          fgSecondary: '#D35400',
-          bgColor: '#0A0D0E',
-          shaderFlags: [],
-        };
-      } else if (tile?.terrainType === 'DISTRICT_GATE') {
-        baseVisual = {
-          glyph: 'Ω',
-          fgPrimary: isVisible ? '#F4D03F' : '#7D6608',
-          fgSecondary: '#F39C12',
-          bgColor: '#1A1105',
-          shaderFlags: isVisible ? ['SPARK_GLINT'] : [],
-        };
-      } else if (tile?.terrainType === 'GLASS_WINDOW') {
-        baseVisual = {
-          glyph: '⊞',
-          fgPrimary: isVisible ? '#A9CCE3' : '#5D6D7E',
-          fgSecondary: '#5499C7',
-          bgColor: '#0A0D0E',
-          shaderFlags: isVisible ? ['SPARK_GLINT'] : [],
-        };
-      } else if (tile?.terrainType === 'SMASHED_WINDOW_FRAME') {
-        baseVisual = {
-          glyph: '%',
-          fgPrimary: isVisible ? '#BDC3C7' : '#566573',
-          fgSecondary: '#7F8C8D',
-          bgColor: '#0A0D0E',
-          shaderFlags: [],
-        };
-      } else if (tile?.terrainType === 'RUBBLE_PILE') {
-        baseVisual = {
-          glyph: ',',
-          fgPrimary: isVisible ? '#7F8C8D' : '#34495E',
-          fgSecondary: '#566573',
-          bgColor: '#0A0D0E',
-          shaderFlags: [],
-        };
-      } else {
-        baseVisual = {
-          glyph: tile?.terrainType === 'BRASS_CATWALK' ? '=' : tile?.terrainType === 'IRON_GRATE' ? '≈' : '·',
-          fgPrimary: isVisible ? '#5D6D7E' : '#2C3E50',
-          fgSecondary: '#1C2833',
-          bgColor: '#0A0D0E',
-          shaderFlags:
-            isVisible && (tile?.steamPressureKpa ?? 0) > 0 ? ['PULSE_STEAM', 'HEAT_SHIMMER'] : [],
-        };
-      }
+      const connectingWallGlyph = tile ? resolveConnectingWallGlyph(grid, worldX, worldY) : WALL_BOX_GLYPHS.DEFAULT;
+      const baseVisual = tile
+        ? resolveBiomeTerrainVisual(
+            tile.terrainType,
+            isVisible,
+            isExplored,
+            districtBiome,
+            connectingWallGlyph,
+            tile.steamPressureKpa ?? 0,
+          )
+        : resolveBiomeTerrainVisual(
+            'COBBLESTONE_FLOOR',
+            isVisible,
+            false,
+            districtBiome,
+            WALL_BOX_GLYPHS.DEFAULT,
+            0,
+          );
 
       cells.push({
         x: vx,

@@ -42,6 +42,13 @@ export interface ContextSerializationOptions {
   readonly secondaryDirective?: string | undefined;
 }
 
+const TERRAIN_GLYPH: Partial<Record<string, string>> = {
+  SOOT_BRICK_WALL: ' # ', WOODEN_DOOR_OPEN: " ' ", RUBBLE_PILE: ' , ', ABYSS_DROP: ' O ',
+  WROUGHT_IRON_FENCE: ' ▓ ', BRASS_STEAM_PIPE: ' ┼ ', GASLAMP_POST: ' ☼ ', TIMBER_PIER: ' ═ ',
+  SLAG_MOUND: ' ▲ ', CANAL_SLUICE: ' ≈ ', GOTHIC_COLONNADE: ' Ω ',
+  WALL_CROSS: ' ╬ ', WALL_VERTICAL: ' ║ ', WALL_HORIZONTAL: ' ═ ',
+};
+
 export function serializePlayerContext(
   state: WorldState,
   playerId: EntityId = EntityIdSchema.parse('actor_player'),
@@ -77,11 +84,8 @@ export function serializePlayerContext(
       } else if (entities.some((e) => e.trap?.armed)) row += ' ^ ';
       else if (entities.some((e) => e.pressureVessel)) row += ' B ';
       else if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') { row += ' + '; if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy}) -> TOGGLE_DOOR`); }
-      else if (cell?.terrainType === 'WOODEN_DOOR_OPEN') row += " ' ";
       else if ((cell?.steamPressureKpa ?? 0) >= 20 || (cell?.coalDustDensity ?? 0) >= 0.3) row += ' ~ ';
-      else if (cell?.terrainType === 'SOOT_BRICK_WALL') row += ' # ';
-      else if (cell?.terrainType === 'RUBBLE_PILE') row += ' , ';
-      else if (cell?.terrainType === 'ABYSS_DROP') row += ' O ';
+      else if (cell?.terrainType && TERRAIN_GLYPH[cell.terrainType]) row += TERRAIN_GLYPH[cell.terrainType];
       else row += ' . ';
     }
     fovRows += `${row}\n`;

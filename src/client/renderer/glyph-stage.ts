@@ -84,9 +84,17 @@ export class GlyphStageRenderer {
         });
       }
 
+      if (cell.visual.shaderFlags.includes('GASLIGHT_RADIANCE') && cell.visible) {
+        this.bgGraphics.rect(px + 1, py + 1, CELL_WIDTH_PX - 2, CELL_HEIGHT_PX - 2).fill({
+          color: 0xf39c12,
+          alpha: 0.14,
+        });
+      }
+
       const useSecondaryPulse =
-        cell.visual.shaderFlags.includes('PULSE_STEAM') &&
-        (cell.x + cell.y + frame.turnCount) % 2 === 0;
+        (cell.visual.shaderFlags.includes('PULSE_STEAM') && (cell.x + cell.y + frame.turnCount) % 2 === 0) ||
+        (cell.visual.shaderFlags.includes('SPARK_GLINT') && (cell.x * 3 + cell.y * 7 + frame.turnCount) % 3 === 0) ||
+        (cell.visual.shaderFlags.includes('GASLIGHT_RADIANCE') && (cell.x + frame.turnCount) % 4 === 0);
 
       const fgHex = useSecondaryPulse ? cell.visual.fgSecondary : cell.visual.fgPrimary;
       textNode.text = cell.visual.glyph;
