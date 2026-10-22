@@ -23,9 +23,9 @@ Before modifying any file or creating a new feature, you **MUST** output a conci
 
 > **LOCAL SCOUT DIRECTIVE**: To avoid polluting context with raw multi-file reads, run `npm run hermes:scout -- --task "<task description>"` first to generate this 5-point block using local AST scanning and synthesis.
 
-### Rule 1.3: Zero Paid Token Content Rule (Use Local Hermes for Content Generation)
+### Rule 1.3: Zero Paid Token Content Rule (Use Local Models for Content Generation)
 When creating or expanding declarative blueprints, items, consumables, materials, crafting recipes, or NPC dialogue/barks in `data/`, **DO NOT** use paid Gemini context tokens to hand-write large bulk JSON records.
-- Run `npm run generate:content` or query the local Hermes endpoint (`http://localhost:8642/v1/chat/completions`) via `tests/scripts/hermes-content-generator.ts`.
+- Run `npm run generate:content` or query the local Ollama Tier 3 endpoint (`http://localhost:11434/v1/chat/completions`) via `tests/scripts/hermes-content-generator.ts`.
 - The generator automatically coerces attributes and validates all entries against Zod schemas in `src/schemas/blueprint.schema.ts` before appending them to `data/`.
 - Use `--mock` mode during tests or CI.
 
@@ -33,9 +33,11 @@ When creating or expanding declarative blueprints, items, consumables, materials
 When modifying an existing file longer than 50 lines, output ONLY the specific functions or interfaces being changed. DO NOT output the entire unmodified file contents. Assume the user will apply the diff.
 
 ### Rule 1.5: Tiered Local Model Routing & Safety Invariants
-All local tooling (`tests/scripts/hermes-*.ts`) supports `--model <name>`, `process.env.LLM_MODEL`, and `process.env.LLM_ENDPOINT` (defaulting to `http://localhost:8642/v1/chat/completions`):
-- **Tier 1 (Code, AST & Context-Heavy Tasks)**: Tools performing code structure, parsing, or test synthesis (`hermes:scout`, `hermes:testgen`, `hermes:split`) default to `gemma4:12b-extended` (falling back to `hermes-agent` / `hermes3:8b`).
-- **Tier 2 (Fast Flavor, JSON & Dialogue Tasks)**: Tools generating barks, narrative logs, and blueprints (`hermes:chronicler`, `generate:content`, `playtest`) default to `hermes3:8b` (falling back to `hermes-agent`).
+All local tooling (`tests/scripts/hermes-*.ts`) connects directly to the local Ollama OpenAI-compatible endpoint (`http://localhost:11434/v1/chat/completions`) and supports `--model <name>`, `process.env.LLM_MODEL`, and `process.env.LLM_ENDPOINT`:
+- **Tier 1 (Deep Reasoning, Game Balance & Post-Phase Critique)**: `lfm2.5:24b` (used by `hermes:critic`).
+- **Tier 2 (Code, AST Analysis, TestGen & File Splitting)**: `gemma4:12b-extended` (used by `hermes:scout`, `hermes:testgen`, `hermes:split`).
+- **Tier 3 (Fast Blueprints, Flavor, Barks & Simulation Playtesting)**: `hermes3:8b` (used by `generate:content`, `hermes:chronicler`, `playtest`).
+- **Execution Sandbox Permission**: When invoking local LLMs via `npm run hermes:*` or scripts calling Ollama, agents MUST use unsandboxed loopback permissions (`BypassSandbox: true` in Antigravity) so TCP socket calls to `http://localhost:11434` succeed and active models are never skipped or silently mocked.
 - **Deterministic-First Invariant**: Tools like `hermes:scout` and `hermes:split` MUST gather exact line counts, exports, and AST slices deterministically in Node first; the local model is used strictly for synthesis and import reconciliation.
 - **Anti-Tautological Test Invariant**: In `hermes:testgen`, the self-healing retry loop strictly separates `tsc --noEmit` compiler/type/import fixes from `vitest run` assertion failures. The local LLM may fix syntax, imports, and mock shapes, but is FORBIDDEN from rewriting domain `expect(...)` values simply to force tests green.
 - **Mandatory Delegation**: As each tool comes online, agents MUST delegate codebase scouting (`hermes:scout`), bulk blueprints (`generate:content`), unit test scaffolding (`hermes:testgen`), event formatting (`hermes:chronicler`), and file splitting (`hermes:split`) rather than hand-authoring them in paid context.

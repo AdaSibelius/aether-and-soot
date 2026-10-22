@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 
 export interface TestgenConfig {
   readonly target: string;
@@ -18,8 +19,8 @@ export function parseTestgenArgs(argv: string[]): TestgenConfig {
   let output = 'tests/sim/auto-portals.test.ts';
   let count = 2;
   let mock = false;
-  let model = process.env['LLM_MODEL'] ?? 'gemma4:12b-extended';
-  const endpoint = process.env['LLM_ENDPOINT'] ?? 'http://localhost:8642/v1/chat/completions';
+  let model = resolveModel('tier2');
+  let endpoint = resolveEndpoint();
   const apiKey = process.env['API_KEY'] ?? 'aether-dev-key';
 
   for (let i = 0; i < args.length; i++) {
@@ -28,6 +29,7 @@ export function parseTestgenArgs(argv: string[]): TestgenConfig {
     else if (a === '--output' && args[i + 1]) output = args[++i] ?? output;
     else if (a === '--count' && args[i + 1]) count = Math.max(1, parseInt(args[++i] ?? '2', 10));
     else if (a === '--model' && args[i + 1]) model = args[++i] ?? model;
+    else if (a === '--endpoint' && args[i + 1]) endpoint = args[++i] ?? endpoint;
     else if (a === '--mock') mock = true;
   }
   return { target, output, count, model, endpoint, apiKey, mock };
@@ -213,14 +215,12 @@ Requirements:
 Output ONLY the TypeScript test file.`;
 
   try {
-    const res = await fetch(config.endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.apiKey}` },
-      body: JSON.stringify({ model: config.model, messages: [{ role: 'user', content: prompt }], temperature: 0.2 }),
+    const raw = await queryLocalOllama(prompt, {
+      model: config.model,
+      endpoint: config.endpoint,
+      systemPrompt: 'You are a strict Vitest test engineer for Aether & Soot. Output ONLY the valid TypeScript test suite without markdown code fences or conversational text.',
+      temperature: 0.2,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; response?: string };
-    const raw = data.choices?.[0]?.message?.content ?? data.response ?? '';
     const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
     return clean.includes('describe') ? clean : generateMockTestSuite(config.target, rootDir, signatures);
   } catch (err) {

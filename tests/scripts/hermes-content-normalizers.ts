@@ -68,16 +68,28 @@ export function normalizeRawItem(item: any, type: ContentType): any {
   if (!item || typeof item !== 'object') return item;
   if (type === 'prefabs') return normalizePrefabGrid(item);
   const copy = { ...item };
+  if (!copy.name || typeof copy.name !== 'string' || copy.name.trim() === '') {
+    copy.name = 'Victorian Mechanical Relic';
+  }
+  if (!copy.id || typeof copy.id !== 'string' || copy.id.trim() === '') {
+    const slug = copy.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const prefix = type === 'materials' ? 'mat_' : type === 'consumables' ? 'con_' : type === 'recipes' ? 'rec_' : type === 'prosthetics' ? 'pros_' : type === 'districts' ? 'dist_' : type === 'gases' ? 'gas_' : 'item_';
+    copy.id = `${prefix}${slug || 'relic'}`;
+  }
   if (!copy.description || typeof copy.description !== 'string' || copy.description.trim() === '') {
     copy.description = `A specialized Victorian artifact forged for ${copy.name ?? 'urban survival'}.`;
   }
 
   const flags = Array.isArray(copy.visual?.shaderFlags) ? copy.visual.shaderFlags.filter((f: string) => VALID_SHADERS.has(f)) : [];
+  const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+  const fgPrimary = typeof copy.visual?.fgPrimary === 'string' && hexRegex.test(copy.visual.fgPrimary) ? copy.visual.fgPrimary : '#D4AF37';
+  const fgSecondary = typeof copy.visual?.fgSecondary === 'string' && hexRegex.test(copy.visual.fgSecondary) ? copy.visual.fgSecondary : '#8B6914';
+  const bgColor = typeof copy.visual?.bgColor === 'string' && hexRegex.test(copy.visual.bgColor) ? copy.visual.bgColor : '#0A0D0E';
   copy.visual = {
     glyph: typeof copy.visual?.glyph === 'string' && copy.visual.glyph.length === 1 ? copy.visual.glyph : '%',
-    fgPrimary: copy.visual?.fgPrimary ?? '#D4AF37',
-    fgSecondary: copy.visual?.fgSecondary ?? '#8B6914',
-    bgColor: copy.visual?.bgColor ?? '#0A0D0E',
+    fgPrimary,
+    fgSecondary,
+    bgColor,
     shaderFlags: flags,
   };
 
@@ -104,6 +116,12 @@ export function normalizeRawItem(item: any, type: ContentType): any {
     copy.toxicityPerTurn = Math.max(0, Math.round(Number(copy.toxicityPerTurn) || 0));
     copy.risesAcrossPortals = Boolean(copy.risesAcrossPortals ?? false);
   } else if (type === 'materials' || type === 'consumables') {
+    if (!copy.category || (copy.category !== 'MATERIAL' && copy.category !== 'CONSUMABLE')) {
+      copy.category = type === 'materials' ? 'MATERIAL' : 'CONSUMABLE';
+    }
+    if (copy.category === 'CONSUMABLE' && !copy.useEffect && !copy.unlocksRecipeId) {
+      copy.useEffect = { kind: 'RESTORE_BLOOD', magnitude: 20 };
+    }
     const mass = Math.max(10, Math.round(Number(copy.massGrams) || 120));
     copy.massGrams = mass;
     copy.volumeMl = Math.max(10, Math.round(Number(copy.volumeMl) || mass * 0.8));

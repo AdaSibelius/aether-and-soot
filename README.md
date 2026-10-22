@@ -231,7 +231,7 @@ To validate systemic emergence without requiring human manual playthroughs, *Aet
 ### Architecture & Data Flow
 1. **Context Serializer (`tests/scripts/playtester-serializer.ts`)**: Generates an 11x11 relative ASCII FOV grid centered on the player `@`, vitals (Blood %, Steam kPa), recent acoustic sound emissions, breadcrumb history `[Recent Steps: ...]`, engine bump feedback `[SYSTEM FEEDBACK: ...]`, and dynamic `[AVAILABLE CONTEXTUAL COMMANDS]`.
 2. **Autonomous Agent**:
-   - **Local LLM Endpoint**: Sends prompts to a local Ollama instance or local OpenAI-compatible container (e.g. Hermes Gateway at `http://localhost:8642/v1/chat/completions`).
+   - **Local LLM Endpoint**: Sends prompts to the local Ollama instance (`http://localhost:11434/v1/chat/completions`) using Tier 3 model routing (`hermes3:8b`).
    - **Deterministic Mock Agent (`--mock`)**: A rule-based fallback agent for fast CI verification that explores unvisited tiles, disarms/avoids traps, vents steam if hostiles are in range, and trades/heals when wounded.
 3. **Resilient Command Parser**: Parses JSON payloads (`{"action": "MOVE", "dir": "N"}`, `{"action": "BUY", ...}`, `{"action": "VENT_STEAM", ...}`) and natural language fallbacks into strict `GameCommand` objects.
 4. **Scenarios (`tests/scripts/playtester-scenarios.ts`)**:
@@ -246,18 +246,21 @@ To validate systemic emergence without requiring human manual playthroughs, *Aet
 # Run CI-friendly deterministic mock agent (zero network calls, 100 turns)
 npm run playtest:mock
 
-# Run live against local Hermes or Ollama endpoint
-LLM_ENDPOINT=http://localhost:8642/v1/chat/completions API_KEY=aether-dev-key npm run playtest -- --scenario economy --turns 30
+# Run live against local Ollama endpoint (Tier 3: hermes3:8b)
+npm run playtest -- --scenario economy --turns 30
 ```
 
 ---
 
-## 8. Zero-Token Content Generation (Hermes Artificer)
+## 8. Zero-Token Content Generation (Ollama 3-Tier Routing)
 
-To conserve paid LLM context tokens during world-building, *Aether & Soot* includes an offline content generator in `tests/scripts/hermes-content-generator.ts`.
+To conserve paid LLM context tokens during world-building and codebase evolution, *Aether & Soot* includes an offline local model stack routed across three specialized Ollama tiers (`http://localhost:11434/v1/chat/completions`):
+- **Tier 1 (`lfm2.5:24b`)**: Deep reasoning, architectural emergence audits, and post-phase critiques (`npm run hermes:critic`).
+- **Tier 2 (`gemma4:12b-extended`)**: AST analysis, pre-flight scouting, automated test scaffolding, and modularity file-splitting (`npm run hermes:scout`, `npm run hermes:testgen`, `npm run hermes:split`).
+- **Tier 3 (`hermes3:8b`)**: Fast declarative blueprints, ambient flavor logs, narrative barks, and autonomous playtesting (`npm run generate:content`, `npm run hermes:chronicler`, `npm run playtest`).
 
 ### Why It Exists
-- Generates bulk declarative JSON data (materials, consumables, crafting recipes) using the local, free Hermes model gateway (`http://localhost:8642`).
+- Generates bulk declarative JSON data (materials, consumables, crafting recipes) using the local, free Ollama endpoint (`http://localhost:11434`).
 - Automatically coerces types, strips invalid LLM tokens, and validates all generated blueprints against strict Zod schemas (`ItemBlueprintSchema`, `CraftingRecipeBlueprintSchema`).
 - Appends clean records directly into `data/items/materials.json` or `data/items/recipes.json` without burning developer or Gemini tokens.
 
@@ -266,6 +269,6 @@ To conserve paid LLM context tokens during world-building, *Aether & Soot* inclu
 # Generate deterministic mock items (no network calls, CI-safe)
 npm run generate:content:mock -- --type materials --count 3
 
-# Generate live Victorian materials using local Hermes and append to data/
-LLM_ENDPOINT=http://localhost:8642/v1/chat/completions API_KEY=aether-dev-key npm run generate:content -- --type materials --count 2 --theme "Whitechapel gas lanterns and soot pipes" --append
+# Generate live Victorian materials using local Ollama (hermes3:8b) and append to data/
+npm run generate:content -- --type materials --count 2 --theme "Whitechapel gas lanterns and soot pipes" --append
 ```

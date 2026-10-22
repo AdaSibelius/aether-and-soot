@@ -14,6 +14,7 @@ import {
   PlaytestScenario,
 } from './playtester-scenarios.js';
 import { PlaytestMetrics, writeReport } from './playtest-report.js';
+import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 
 export type { PlaytestMetrics };
 
@@ -32,50 +33,29 @@ export function parseCliArgs(argv: string[]): PlaytestConfig {
     const idx = argv.indexOf(flag);
     return idx !== -1 && argv[idx + 1] ? argv[idx + 1]! : fallback;
   };
+  const epArg = getArg('--endpoint', '');
+  const modelArg = getArg('--model', '');
   return {
     mock: argv.includes('--mock'),
     maxTurns: Number(getArg('--turns', '100')),
     seed: Number(getArg('--seed', '42')),
-    endpoint: process.env['LLM_ENDPOINT'] || getArg('--endpoint', 'http://localhost:8642/v1/chat/completions'),
-    model: process.env['LLM_MODEL'] || getArg('--model', 'hermes-agent'),
+    endpoint: resolveEndpoint(epArg || undefined),
+    model: resolveModel('tier3', modelArg || undefined),
     reportPath: getArg('--report', path.join(process.cwd(), 'tests/artifacts/playtest-report.md')),
     scenario: (getArg('--scenario', 'explore') as PlaytestScenario),
   };
 }
 
 async function queryLocalLlm(endpoint: string, model: string, prompt: string): Promise<string> {
-  const controller = new AbortController();
-  const timeoutMs = Number(process.env['LLM_TIMEOUT_MS'] || '60000');
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    const apiKey = process.env['API_KEY'] || process.env['LLM_API_KEY'];
-    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
-
-    const systemPrompt = 'You are playing Aether & Soot, a Victorian roguelike. Return ONLY JSON matching schema (action: MOVE/WAIT/ATTACK/TOGGLE_DOOR/VENT_STEAM/BREACH_TILE):\n\n';
-    const isOpenAi = endpoint.includes('/v1/') || endpoint.endsWith('/completions');
-    const body = isOpenAi
-      ? JSON.stringify({ model, messages: [{ role: 'user', content: `${systemPrompt}${prompt}` }], temperature: 0.2 })
-      : JSON.stringify({ model, prompt: `${systemPrompt}${prompt}`, format: 'json', stream: false, options: { temperature: 0.2 } });
-
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers,
-      signal: controller.signal,
-      body,
+    return await queryLocalOllama(prompt, {
+      endpoint,
+      model,
+      systemPrompt: 'You are playing Aether & Soot, a Victorian roguelike. Return ONLY JSON matching schema (action: MOVE/WAIT/ATTACK/TOGGLE_DOOR/VENT_STEAM/BREACH_TILE). Do not make function or tool calls.',
+      formatJson: true,
+      temperature: 0.2,
     });
-    clearTimeout(timeoutId);
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errText}`);
-    }
-    const data = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-      response?: string;
-    };
-    return data.choices?.[0]?.message?.content ?? data.response ?? '{}';
   } catch (err) {
-    clearTimeout(timeoutId);
     console.warn(`[llm-playtester] Local LLM unreachable (${err}), using fallback.`);
     return '{}';
   }

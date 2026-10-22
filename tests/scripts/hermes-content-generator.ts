@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ContentType, validateAndFormatContent, ValidatedContent } from './hermes-content-normalizers.js';
+import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 
 export interface ContentGeneratorConfig {
   readonly type: ContentType;
@@ -20,6 +21,8 @@ export function parseGeneratorArgs(argv: string[]): ContentGeneratorConfig {
   let theme = 'Victorian Steampunk Industrial';
   let mock = false;
   let append = false;
+  let endpointOverride: string | undefined;
+  let modelOverride: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -28,12 +31,14 @@ export function parseGeneratorArgs(argv: string[]): ContentGeneratorConfig {
     else if (a === '--theme' && args[i + 1]) theme = args[++i] ?? theme;
     else if (a === '--mock') mock = true;
     else if (a === '--append') append = true;
+    else if (a === '--endpoint' && args[i + 1]) endpointOverride = args[++i];
+    else if (a === '--model' && args[i + 1]) modelOverride = args[++i];
   }
   return {
     type, count, theme, mock, append,
-    endpoint: process.env['LLM_ENDPOINT'] ?? 'http://localhost:8642/v1/chat/completions',
+    endpoint: resolveEndpoint(endpointOverride),
     apiKey: process.env['API_KEY'] ?? 'aether-dev-key',
-    model: process.env['LLM_MODEL'] ?? 'hermes3:8b',
+    model: resolveModel('tier3', modelOverride),
   };
 }
 
@@ -162,14 +167,13 @@ export async function requestHermesContent(config: ContentGeneratorConfig): Prom
 Generate ${config.count} blueprints of type "${config.type}" (theme: "${config.theme}"). Return ONLY a valid JSON array.`;
 
   try {
-    const res = await fetch(config.endpoint!, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.apiKey}` },
-      body: JSON.stringify({ model: config.model, messages: [{ role: 'user', content: prompt }], temperature: 0.7 }),
+    const rawText = await queryLocalOllama(prompt, {
+      model: config.model,
+      endpoint: config.endpoint,
+      systemPrompt: 'You are the lead content artificer for Aether & Soot. Return ONLY a valid JSON array starting with [ and ending with ] without any markdown quotes or introductory remarks.',
+      temperature: 0.7,
+      formatJson: true,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; response?: string };
-    const rawText = data.choices?.[0]?.message?.content ?? data.response ?? '[]';
     return extractJsonArray(rawText);
   } catch (err) {
     console.warn(`[hermes-generator] Local LLM unavailable (${err}), using mock fallback.`);

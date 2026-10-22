@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 
 export interface ChroniclerConfig {
   readonly target: string;
@@ -16,14 +17,15 @@ export function parseChroniclerArgs(argv: string[]): ChroniclerConfig {
   let target = 'src/client/ui/EventFormatter.ts';
   let dryRun = false;
   let mock = false;
-  let model = process.env['LLM_MODEL'] ?? 'hermes3:8b';
-  const endpoint = process.env['LLM_ENDPOINT'] ?? 'http://localhost:8642/v1/chat/completions';
+  let model = resolveModel('tier3');
+  let endpoint = resolveEndpoint();
   const apiKey = process.env['API_KEY'] ?? 'aether-dev-key';
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === '--target' && args[i + 1]) target = args[++i] ?? target;
     else if (a === '--model' && args[i + 1]) model = args[++i] ?? model;
+    else if (a === '--endpoint' && args[i + 1]) endpoint = args[++i] ?? endpoint;
     else if (a === '--dry-run') dryRun = true;
     else if (a === '--mock') mock = true;
   }
@@ -105,21 +107,12 @@ Requirements:
 3. Do NOT include markdown code fences, comments, or extra text. Output ONLY the case statement.`;
 
   try {
-    const res = await fetch(config.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-      }),
+    const raw = await queryLocalOllama(prompt, {
+      model: config.model,
+      endpoint: config.endpoint,
+      systemPrompt: 'You are the Victorian chronicler for Aether & Soot. Output ONLY the single TypeScript case statement requested without markdown code fences, comments, or conversational text.',
+      temperature: 0.7,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; response?: string };
-    const raw = data.choices?.[0]?.message?.content ?? data.response ?? '';
     const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
     return clean.includes(`case '${eventType}':`) ? clean : generateMockCase(eventType);
   } catch (err) {

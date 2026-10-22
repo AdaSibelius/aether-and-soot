@@ -1,6 +1,6 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-21T23:46:44.148Z
+- **Timestamp**: 2026-10-22T00:18:43.983Z
 - **Execution Mode**: Deterministic Mock Agent (--mock)
 - **Scenario**: **TRANSIT**
 - **Seed**: 42

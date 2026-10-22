@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { resolveModel } from './local-llm-config.js';
 
 export interface SplitConfig {
   readonly source: string;
@@ -18,7 +19,7 @@ export function parseSplitArgs(argv: string[]): SplitConfig {
   let extract: string[] = ['advanceDistrictEconomyMacroTick'];
   let dryRun = false;
   let mock = false;
-  let model = process.env['LLM_MODEL'] ?? 'gemma4:12b-extended';
+  let model = resolveModel('tier2');
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i];

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 
 export interface ScoutConfig {
   readonly task: string;
@@ -22,14 +23,15 @@ export function parseScoutArgs(argv: string[]): ScoutConfig {
   let task = 'General architectural inspection';
   let mock = false;
   let json = false;
-  let model = process.env['LLM_MODEL'] ?? 'gemma4:12b-extended';
-  const endpoint = process.env['LLM_ENDPOINT'] ?? 'http://localhost:8642/v1/chat/completions';
+  let model = resolveModel('tier2');
+  let endpoint = resolveEndpoint();
   const apiKey = process.env['API_KEY'] ?? 'aether-dev-key';
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === '--task' && args[i + 1]) task = args[++i] ?? task;
     else if (a === '--model' && args[i + 1]) model = args[++i] ?? model;
+    else if (a === '--endpoint' && args[i + 1]) endpoint = args[++i] ?? endpoint;
     else if (a === '--mock') mock = true;
     else if (a === '--json') json = true;
   }
@@ -137,21 +139,12 @@ Output a strictly formatted 25-line markdown Pre-Flight Impact Analysis Block ad
 Do not output preamble or fluff.`;
 
   try {
-    const res = await fetch(config.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-      }),
+    const content = await queryLocalOllama(prompt, {
+      model: config.model,
+      endpoint: config.endpoint,
+      systemPrompt: 'You are an architectural evaluator for Aether & Soot. Return ONLY the requested 5-point markdown Pre-Flight Impact Analysis Block without introductory or concluding conversational fluff.',
+      temperature: 0.2,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; response?: string };
-    const content = data.choices?.[0]?.message?.content ?? data.response;
     return content && content.includes('Pre-Flight') ? content : generateDeterministicScoutReport(config.task, files);
   } catch (err) {
     console.warn(`[hermes-scout] Local LLM unavailable (${err}), using deterministic fallback.`);

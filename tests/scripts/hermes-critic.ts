@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { runPlaytestSession, PlaytestMetrics } from './llm-playtester.js';
 import { PlaytestScenario } from './playtester-scenarios.js';
+import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 
 export interface CriticConfig {
   readonly skipPlaytest: boolean;
@@ -14,8 +15,8 @@ export interface CriticConfig {
 export function parseCriticArgs(argv: string[]): CriticConfig {
   const args = argv.slice(2);
   let skipPlaytest = false, mock = false;
-  let model = process.env['LLM_MODEL'] ?? 'hermes-agent';
-  const endpoint = process.env['LLM_ENDPOINT'] ?? 'http://localhost:8642/v1/chat/completions';
+  let model = resolveModel('tier1');
+  let endpoint = resolveEndpoint();
   let output = 'tests/artifacts/critic-audit.md';
 
   for (let i = 0; i < args.length; i++) {
@@ -23,6 +24,7 @@ export function parseCriticArgs(argv: string[]): CriticConfig {
     if (a === '--skip-playtest') skipPlaytest = true;
     else if (a === '--mock') mock = true;
     else if (a === '--model' && args[i + 1]) model = args[++i] ?? model;
+    else if (a === '--endpoint' && args[i + 1]) endpoint = args[++i] ?? endpoint;
     else if (a === '--output' && args[i + 1]) output = args[++i] ?? output;
   }
   return { skipPlaytest, model, endpoint, mock, output };
@@ -185,38 +187,26 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
 
   if (!config.mock) {
     try {
-      const apiKey = process.env['API_KEY'] || process.env['LLM_API_KEY'] || 'aether-dev-key';
       const prompt = `Evaluate Aether & Soot based on telemetry:\nActive: ${coverage.active.join(',')}\nUnwired: ${coverage.unwired.slice(0, 8).join(',')}\nNext priority: ${nextPriority}\nNear-cap files: ${hotspots.slice(0, 3).map((h) => `${h.file}:${h.lines}`).join(',')}\nGenerate markdown with:\n## 4. Systemic Depth & NPC Agency Critique (vs. CDDA / Qud / Arcostate)\n## 5. Self-Directed Prescriptions for Next Phase (P1, P2, P3)`;
-      const res = await fetch(config.endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: config.model,
-          messages: [
-            { role: 'system', content: 'You are the lead architectural evaluator for Aether & Soot (Victorian roguelike). Do not make function or tool calls. Reply directly in plain Markdown.' },
-            { role: 'user', content: prompt },
-          ],
-          max_tokens: 1200,
-          temperature: 0.2,
-        }),
+      const content = await queryLocalOllama(prompt, {
+        model: config.model,
+        endpoint: config.endpoint,
+        systemPrompt: 'You are the lead architectural evaluator for Aether & Soot (Victorian roguelike). Do not make function or tool calls. Reply directly in plain Markdown.',
+        temperature: 0.2,
       });
-      if (res.ok) {
-        const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-        const content = json.choices?.[0]?.message?.content;
-        if (content && content.includes('## 1.') && content.includes('## 5.')) {
-          report = content;
-        } else if (content && content.includes('## 5.')) {
-          const sec5 = content.slice(content.indexOf('## 5.'));
-          report = formatCriticReport({
-            score: 88,
-            hotspots,
-            coverage,
-            histogram: aggregatedHistogram,
-            turnsSurvived: totalTurns,
-            nextPriority,
-            customPrescriptions: sec5.trim(),
-          });
-        }
+      if (content && content.includes('## 1.') && content.includes('## 5.')) {
+        report = content;
+      } else if (content && content.includes('## 5.')) {
+        const sec5 = content.slice(content.indexOf('## 5.'));
+        report = formatCriticReport({
+          score: 88,
+          hotspots,
+          coverage,
+          histogram: aggregatedHistogram,
+          turnsSurvived: totalTurns,
+          nextPriority,
+          customPrescriptions: sec5.trim(),
+        });
       }
     } catch {
       console.log('[hermes-critic] Local LLM unavailable, using dynamic benchmark template.');
