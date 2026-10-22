@@ -38,11 +38,16 @@ Inspired by deep systemic comparisons with *Cataclysm: Dark Days Ahead (CDDA)*, 
 ### Tier D: Macro World & Presentation Polish (Deferred to Phases 45–46)
 
 - [x] **Phase 45: Dynamic Turf Skirmishes, Economic Supply Escorts & Royal Society Politics** (Issue #42): Grounded in Phase 42 squad AI and Phase 43 monorail cargo transit between factions. Introduced autonomous Royal Society guild inspectors and rival artificers who audit safehouses, react to workshop deeds, and emit NPC_GOAL_CHANGED telemetry. Implemented dynamic contested turf territory control, convoy preparation/escort/delivery confirmation, and complete serialization in playtester-serializer.ts with deterministic tests in tests/sim/phase45-turf-escort-politics.test.ts.
-- [ ] **Phase 46: Procedural WebAudio Soundscape & Acoustic Synth Shell**: WebAudio synthesizer wired to finalized `SimEvent` triggers across Phases 37–45.
+- [x] **Phase 46: Procedural WebAudio Soundscape & Acoustic Synth Shell** (Issue #44): Pre-split `src/sim/core/world.ts` (245 -> 70 lines) into `src/sim/core/world-factory.ts` via `hermes:split`. Procedural WebAudio synth engine (`src/client/audio/`) generating synthetic steam releases (`VENT_STEAM`), metallic impacts/sparks (`EMIT_SPARK`, `INSTALL_PROSTHETIC`, `INSTALL_WEAPON_MOD`), acoustic alarms/horns (`SQUAD_CALLOUT_EMITTED`), gunshots/needle rifles, acid sizzle, and 4-strata ambient drone profiles without binary sound assets. Folded P2 serializer commands (`EMIT_SPARK`, `INSTALL_PROSTHETIC`, `INSTALL_WEAPON_MOD`, `LOAD_AMMO`) into `playtester-serializer.ts` with complete deterministic test suites in `tests/sim/phase46-audio-soundscape.test.ts` and `tests/sim/phase46-audio-events.test.ts`.
 
 ### Tier E: Emergent Systemic Backlog (Critic Suggestions)
 
 This serves as the permanent holding area for validated, out-of-scope systemic ideas waiting to be scheduled into a formal phase.
+
+#### Environmental Mechanics & Tactile Agency
+- **Targeted Container Foraging & Booby-Trap Disarmament**: Connect `LOOT_CONTAINER` to physical container entities (`CRATE`, `LOCKER`, `BOOKSHELF`) with lockpicking checks, tripwire trap triggering, and tangible currency/item extraction.
+- **Pressure Vessel Over-Pressurization & Breaching Hazards**: Connect `PRESSURIZE_VESSEL` and `PRY_OBSTACLE` to environmental steam boilers and jammed iron doors, enabling player-engineered steam eruptions, shrapnel detonations, and crowbar breach routes.
+- **Physical Chirurgeon Clinics & Limb Reconstruction**: Connect `PAY_CHIRURGEON_HEAL` to clinic storefronts, surgical tables, and blood volume replenishment.
 
 #### Flagship NPC Concepts & Narrative Agency
 - **Flagship NPC Systems & Branching Storylines**: Develop a cohort of bespoke flagship NPCs who serve as architectural archetypes for branching narrative arcs, deep backstories, actionable motives, and rich dialogue trees.

@@ -539,5 +539,47 @@
       "bgColor": "#0A0D0E",
       "shaderFlags": []
     }
+  },
+  {
+    "id": "mat_cogstone",
+    "name": "Cogstone",
+    "description": "A unique building material composed of intricately interlocking cogs and gears, imbued with a subtle metallic sheen and a sense of mechanical elegance.",
+    "category": "MATERIAL",
+    "massGrams": 120,
+    "volumeMl": 96,
+    "stackable": true,
+    "spawnStrata": [
+      "STREET"
+    ],
+    "spawnWeight": 20,
+    "spawnQuantityMax": 3,
+    "visual": {
+      "glyph": "%",
+      "fgPrimary": "#D4AF37",
+      "fgSecondary": "#8B6914",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
+  },
+  {
+    "id": "mat_aether_glass",
+    "name": "Aether Glass",
+    "description": "A rare and ethereal glass, infused with the energy of the aether, which gives it an otherworldly glow and enhances its transparency.",
+    "category": "MATERIAL",
+    "massGrams": 120,
+    "volumeMl": 96,
+    "stackable": true,
+    "spawnStrata": [
+      "STREET"
+    ],
+    "spawnWeight": 20,
+    "spawnQuantityMax": 3,
+    "visual": {
+      "glyph": "%",
+      "fgPrimary": "#D4AF37",
+      "fgSecondary": "#8B6914",
+      "bgColor": "#0A0D0E",
+      "shaderFlags": []
+    }
   }
 ]

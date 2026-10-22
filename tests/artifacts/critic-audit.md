@@ -13,7 +13,7 @@
 ## 2. Architectural & Modularity Health
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
-- `src/sim/core/world.ts`: **245 lines** (threshold: 230)
+- `src/client/main.tsx`: **245 lines** (threshold: 230)
 - `src/sim/systems/character-archetypes.ts`: **244 lines** (threshold: 230)
 - `src/sim/systems/inventory.system.ts`: **244 lines** (threshold: 230)
 - `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
@@ -21,7 +21,6 @@
 - `src/client/ui/ItemDossierCard.tsx`: **240 lines** (threshold: 230)
 - `src/client/ui/CharacterCreatorModal.tsx`: **239 lines** (threshold: 230)
 - `src/sim/systems/transit.system.ts`: **239 lines** (threshold: 230)
-- `src/client/main.tsx`: **238 lines** (threshold: 230)
 - `src/schemas/events.schema.ts`: **238 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
 - `src/client/ui/AnatomyWindow.tsx`: **237 lines** (threshold: 230)
@@ -52,17 +51,17 @@
 - `CRAFT_RECIPE`
 - `DAMAGE_LIMB`
 - `DROP_ITEM`
+- `EMIT_SPARK`
 - `HARVEST_CORPSE`
 - `HIRE_COMPANION`
+- `INSTALL_PROSTHETIC`
+- `INSTALL_WEAPON_MOD`
+- `LOAD_AMMO`
 - `PICK_UP_ITEM`
 - `TOGGLE_DOOR`
 - `USE_ITEM`
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
-- `EMIT_SPARK`
-- `INSTALL_PROSTHETIC`
-- `INSTALL_WEAPON_MOD`
-- `LOAD_AMMO`
 - `LOOT_CONTAINER`
 - `PAY_CHIRURGEON_HEAL`
 - `PRESSURIZE_VESSEL`
@@ -85,31 +84,27 @@
 > **AGENT DIRECTIVE:** The systemic analysis below is theoretical. Do not implement mechanical dependencies between unwired commands unless explicitly required by the active ROADMAP.
 
 
-Aether & Soot's telemetry shows a small but focused active command surface — four wired commands (ATTACK_ACTOR, MOVE_STEP, USE_PORTAL, VENT_STEAM) — paired with a larger pool of eight unwired commands that exist in the codebase but are not yet driving gameplay loops. The architecture is split across three near-cap files: `src/sim/core/world.ts` (core world state), `src/sim/systems/character-archetypes.ts` (player/NPC build definitions), and `src/sim/systems/inventory.system.ts` (loot/equipment handling). This modular separation suggests a design intent where systems compose rather than interlock tightly, which is a strength for systemic depth.
+**Observed telemetry.** Active command set: 4 commands — `ATTACK_ACTOR`, `MOVE_STEP`, `USE_PORTAL`, `VENT_STEAM`. Unwired (planned) commands: 8 — `LOOT_CONTAINER`, `PAY_CHIRURGEON_HEAL`, `PRESSURIZE_VESSEL`, `PRY_OBSTACLE`, `REFILL_STEAM`, `REMOVE_PROSTHETIC`, `REPAIR_LIMB`, `REST_AT_BED`. No telemetry evidence exists for any unwired command; the active set is the only demonstrated behavior.
 
-Against CDDA, Aether & Soot trades faction-level NPC agency for tighter player-system coupling. CDDA's NPCs carry goals, faction standing, and procedural behavior; this game's telemetry shows no active NPC commands, so NPC agency is currently minimal. The gap is intentional — the Victorian roguelike focuses on environmental and mechanical systems (steam, prosthetics, pressure vessels) rather than emergent social dynamics.
+**Systemic depth.** The active set is small but each command touches a distinct subsystem (combat, locomotion, teleportation, environmental steam control). The presence of 8 unwired hooks suggests a "wizard's workshop" design profile: the codebase has been wired for player agency on the core loop while peripheral systems are still being sketched. This is a common roguelike pattern — the design documents more mechanics than it has shipped. Compared to CDDA (Caves of Qud), which is celebrated for emergent chemistry and physics, Aether & Soot's active set is narrower but more thematically concentrated (steam, prosthetics, pressure). Compared to Qud (the item-driven roguelike tradition), the telemetry shows more item-adjacent unwired hooks (`LOOT_CONTAINER`, `REFILL_STEAM`, `REMOVE_PROSTHETIC`) than a shipped item system would suggest. Compared to Arcostate (a state-machine-heavy design paradigm), the Phase 46 soundscape project signals a move toward procedural state-driven audio, which aligns with that paradigm's rigor.
 
-Against Qud, the modular command layout mirrors Qud's philosophy of independent, composable systems (e.g., build slots, loot tables). The presence of a dedicated inventory system and character-archetype definitions supports the kind of build-driven depth Qud is known for, even if the current telemetry only exercises the player side. The trade-off is that Aether & Soot's procedural depth is currently environmental (world state, portals) rather than character-driven.
-
-Against Arcostate — the same studio's earlier work — the shared Victorian/industrial aesthetic is present (steam, prosthetics), but Arcostate tends toward simpler enemy behavior. Aether & Soot's telemetry shows more mechanical variety (prosthetics, looting, pressure vessels) and a larger unwired surface, suggesting a more ambitious system than Arcostate's current scope. The Phase 46 WebAudio soundscape is a step toward the atmospheric layering that could give NPCs or locations a stronger sense of presence.
-
-The core critique: the architecture supports depth (modular files, separate command pools), but the active surface is narrow. NPC agency is not yet realized in telemetry; the design has the building blocks (character-archetypes, unwired commands) to add it later, and Phase 46's soundscape is a candidate for environmental storytelling that could anchor NPC behavior.
+**NPC agency.** The telemetry shows zero NPC-driven events. Two unwired commands point to intended NPC roles: `REST_AT_BED` (a bed NPC, likely a healer) and `PAY_CHIRURGEON_HEAL` (a surgeon NPC). In CDDA, guards and merchants act autonomously; in Qud, social mechanics give NPCs persistent roles. Here, both are dead hooks — the chirurgeon has no healing agency, and the bed has no rest state. The design clearly intends for NPCs to have agency (the commands exist as API entries), but the telemetry proves that agency is not yet realized. Until `PAY_CHIRURGEON_HEAL` is wired, the surgeon is a placeholder; until `REST_AT_BED` is functional, the bed is a dead node. This is the most significant gap: the system's depth is present in the command surface, but NPC agency — the design's core differentiator for a Victorian roguelike — is currently unactivated.
 
 ## 5. Self-Directed Prescriptions for Next Phase (P1, P2, P3)
 
-**P1 — Wire the unwired surface with design intent.** The eight unwired commands are architectural scaffolding; wire them in order of player-impact and thematic fit: PAY_CHIRURGEON_HEAL and INSTALL_PROSTHETIC (character customization tied to character-archetypes.ts), LOAD_AMMO and LOOT_CONTAINER (inventory.system.ts), EMIT_SPARK and PRESSURIZE_VESSEL (environmental hazard/feedback), PRY_OBSTACLE and VENT_STEAM (mechanical interaction). Do not wire all at once — keep the active set small as in the current telemetry. The goal is to expand the player's agency surface without bloating the core loop.
+**P1 — Phase 46: Procedural WebAudio Soundscape & Acoustic Synth Shell.** Implement a WebAudio synthesizer module that maps finalized `SimEvent` triggers from Phases 37–45 to distinct synth patches. Prioritize the events already present in telemetry: `ATTACK_ACTOR` (percussive hit), `VENT_STEAM` (steam-hiss ambient), `USE_PORTAL` (transition tone). Make the soundscape procedural — patch selection and modulation should vary with the phase's environmental state (e.g., steam pressure modulates the hiss pitch). Close the loop: when `VENT_STEAM` fires in-game, the synth emits a matching hiss; when `ATTACK_ACTOR` fires, a sharp percussive hit plays. This ties the soundscape to the active command set without inventing new telemetry.
 
-**P2 — Phase 46 soundscape integration.** The priority is the WebAudio synthesizer wired to finalized SimEvent triggers across Phases 37–45. Treat VENT_STEAM as a sonic texture within that shell (steam hiss, pressure release) so the mechanical systems and audio reinforce each other. This is the highest-priority item per telemetry and should be completed before expanding the active command set further.
+**P2 — Bridge Unwired Commands into Playable Systems (independent of each other).** First, implement `PAY_CHIRURGEON_HEAL` as an NPC-driven mechanic: the surgeon heals the player when paid, restoring health and giving the chirurgeon agency (the NPC is no longer a dead hook). Tie it to `REST_AT_BED`: the bed NPC can also trigger a rest state that feeds into the Phase 46 soundscape. Second, implement `LOOT_CONTAINER` as a functional loot container — items stored persistently in a container slot, and `REFILL_STEAM` can top up its steam reservoir. These two are independent mechanical systems (healing vs. inventory) and should be wired separately; no dependency between them is invented.
 
-**P3 — Seed NPC agency from the same architectural pool.** Use the unwired commands as a design brief for NPC behavior: PRESSURIZE_VESSEL and PRY_OBSTACLE suggest that environmental manipulation is a known mechanic; NPCs could use those same actions (or simplified variants) to patrol, defend, or flee. Tie character-archetypes.ts to enemy classes so the same build language defines both player and NPC behavior — this gives NPCs consistent agency without inventing new systems. Even a minimal chase/defend loop wired through USE_PORTAL and VENT_STEAM would give the world actors presence.
+**P3 — Complete Prosthetic & Limb Systems.** Implement `REMOVE_PROSTHETIC` and `REPAIR_LIMB` as a paired player-driven subsystem: the player can remove a prosthetic to access a limb, then repair it to restore full function. This closes the loop with the chirurgeon (the surgeon performs the repair after payment). Ensure `REST_AT_BED` is fully functional — the bed NPC's rest state should emit a calm pad that reinforces the Phase 46 audio theme. P3 is the mechanical cap of the current feature set: once prosthetics are removable and repairable, and the bed heals, the remaining unwired commands (`PRESSURIZE_VESSEL`, `PRY_OBSTACLE`) can be layered on top without breaking the established player/NPC workflow.
 
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
 Implement **Phase 46: Procedural WebAudio Soundscape & Acoustic Synth Shell**: WebAudio synthesizer wired to finalized `SimEvent` triggers across Phases 37–45. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
-2. Pre-split any src/ hotspot >= 245 lines (`src/sim/core/world.ts` (245 lines)) via `npm run hermes:split`.
-3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `EMIT_SPARK`, `INSTALL_PROSTHETIC`, `INSTALL_WEAPON_MOD`, `LOAD_AMMO`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
+2. Pre-split any src/ hotspot >= 245 lines (`src/client/main.tsx` (245 lines)) via `npm run hermes:split`.
+3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `LOOT_CONTAINER`, `PAY_CHIRURGEON_HEAL`, `PRESSURIZE_VESSEL`, `PRY_OBSTACLE`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
 4. Delegate blueprints (`generate:content`), event logs (`hermes:chronicler`), and test scaffolding (`hermes:testgen`) to local models.
 5. Run `npm run verify`, `npm run hermes:critic`, and `npm run sync:state`, then output the next copy-pasteable prompt.
 ```
