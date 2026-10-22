@@ -89,6 +89,21 @@ export {
   WitnessEventSchema,
 } from './witness-events.schema.js';
 import {
+  WorkshopDeedClaimedEventSchema, StructureBuiltEventSchema,
+  StructureStorageUpdatedEventSchema, CodexEntryDiscoveredEventSchema,
+  CodexConsultedEventSchema, NpcCodexReactionEventSchema, SafehouseActionFailedEventSchema,
+} from './safehouse-events.schema.js';
+export {
+  WorkshopDeedClaimedEventSchema, StructureBuiltEventSchema,
+  StructureStorageUpdatedEventSchema, CodexEntryDiscoveredEventSchema,
+  CodexConsultedEventSchema, NpcCodexReactionEventSchema, SafehouseActionFailedEventSchema,
+} from './safehouse-events.schema.js';
+export type {
+  WorkshopDeedClaimedEvent, StructureBuiltEvent,
+  StructureStorageUpdatedEvent, CodexEntryDiscoveredEvent,
+  CodexConsultedEvent, NpcCodexReactionEvent, SafehouseActionFailedEvent,
+} from './safehouse-events.schema.js';
+import {
   WitnessCrimeReportedEventSchema,
   SquadCalloutEmittedEventSchema,
   SquadmateRalliedEventSchema,
@@ -221,7 +236,9 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   MonorailBoardedEventSchema,
   MonorailLaunchedEventSchema,
   MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema,
-  TransitActionFailedEventSchema2,
+  CatacombsDepthDescendedEventSchema, TransitActionFailedEventSchema2,
+  WorkshopDeedClaimedEventSchema, StructureBuiltEventSchema,
+  StructureStorageUpdatedEventSchema, CodexEntryDiscoveredEventSchema,
+  CodexConsultedEventSchema, NpcCodexReactionEventSchema, SafehouseActionFailedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

@@ -175,9 +175,9 @@ Generate ${config.count} blueprints of type "${config.type}" (theme: "${config.t
       formatJson: true,
     });
     return extractJsonArray(rawText);
-  } catch (err) {
-    console.warn(`[hermes-generator] Local LLM unavailable (${err}), using mock fallback.`);
-    return generateMockContent(config);
+  } catch {
+    console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+    process.exit(1);
   }
 }
 

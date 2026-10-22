@@ -183,5 +183,19 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] DELVE! ${ev.actorId} descended to Catacombs Depth ${ev.toDepth} (${ev.tierName}).`;
     case 'MONORAIL_ACTION_FAILED':
       return `[T${ev.turn}] Monorail operation failed for ${ev.actorId}: ${ev.reason}.`;
-  }
+
+case 'CODEX_CONSULTED':
+      return `[T${ev.turn}] The ancient tome reveals its secrets, knowledge gained at a price.`;
+case 'CODEX_ENTRY_DISCOVERED':
+      return `[T${ev.turn}] A lost tome of forbidden knowledge unearthed, secrets waiting to be unraveled.`;
+case 'NPC_CODEX_REACTION':
+      return `[T${ev.turn}] The ancient gears of the Aether whirred in response to your query, its steam-powered mind pondering the depths of knowledge.`
+case 'SAFEHOUSE_ACTION_FAILED':
+      return `[T${ev.turn}] The gears of industry ground to a halt, as the delicate mechanisms of the safehouse failed, leaving the brave adventurers stranded in the thick of peril.`
+case 'STRUCTURE_BUILT':
+      return `[T${ev.turn}] A new edifice rises from the aether, its brass and coal-iron frame a testament to our unyielding industrial might.`
+case 'STRUCTURE_STORAGE_UPDATED':
+      return `[T${ev.turn}] The storage facility's inventory has been updated with new supplies.`
+case 'WORKSHOP_DEED_CLAIMED':
+      return `[T${ev.turn}] A deed to a workshop claimed by the industrious soul, ready to forge the future.`;  }
 }

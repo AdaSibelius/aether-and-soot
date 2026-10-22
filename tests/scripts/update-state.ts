@@ -27,12 +27,11 @@ export function getNextPriority(roadmapPath: string): string {
 export function getCriticPrescriptions(criticPath: string): string {
   if (!fs.existsSync(criticPath)) return '';
   const content = fs.readFileSync(criticPath, 'utf-8');
-  const marker = '## 5. Self-Directed Prescriptions for Next Phase';
-  const idx = content.indexOf(marker);
+  const idx = content.indexOf('## 5.');
   if (idx === -1) return '';
-  const section = content.slice(idx);
-  const nextHeading = section.slice(section.indexOf('\n')).search(/\n##\s+/);
-  return (nextHeading === -1 ? section : section.slice(0, nextHeading + 1)).trim();
+  const afterMarker = content.slice(idx);
+  const stopIndex = afterMarker.search(/\n##\s+[7-9]\./);
+  return (stopIndex === -1 ? afterMarker : afterMarker.slice(0, stopIndex)).trim();
 }
 
 export function generateStateContent(

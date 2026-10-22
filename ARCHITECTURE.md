@@ -88,28 +88,37 @@ Use this lookup table to locate existing logic before writing any code.
 | File | Current Lines | Exports & Responsibility |
 | :--- | :--- | :--- |
 | `src/sim/core/rng.ts` | 76 | `SeededRNG` (`nextUint32`, `nextFloat`, `nextInt`, `getState`), `RNGStateSchema` |
-| `src/sim/core/world.ts` | 236 | `WorldStateSchema`, `createInitialWorld`, `serializeWorld`, `deserializeWorld` |
-| `src/sim/core/scheduler.ts` | 64 | `STANDARD_ACTION_AP` (100), `MACRO_TICK_INTERVAL` (100), `advanceTurnSchedule` |
-| `src/sim/core/engine.ts` | 230 | `dispatchCommand(currentState, rawCommand)` — central command router |
-| `src/sim/spatial/grid.ts` | 106 | `TileCellSchema`, `StratumGridSchema`, `createStratumGrid`, `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, `findBlockingEntityAtPoint` |
+| `src/sim/core/world.ts` | 232 | `WorldStateSchema`, `createInitialWorld`, `serializeWorld`, `deserializeWorld` |
+| `src/sim/core/scheduler.ts` | 66 | `STANDARD_ACTION_AP` (100), `MACRO_TICK_INTERVAL` (100), `advanceTurnSchedule` |
+| `src/sim/core/engine.ts` | 105 | `dispatchCommand(currentState, rawCommand)` — central command router |
+| `src/sim/spatial/grid.ts` | 128 | `TileCellSchema`, `StratumGridSchema`, `createStratumGrid`, `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, `findBlockingEntityAtPoint` |
 | `src/sim/spatial/portals.ts` | 14 | `findPortalAtPoint(entities, point)` |
-| `src/sim/spatial/fov.ts` | 115 | `computeVisibleTiles(grid, originX, originY, radius)`, `isPointVisible`, `pointKey` |
-| `src/sim/spatial/district-layout.ts` | 138 | `buildSolidStratumGrid`, `carveRoom`, `carveCorridor`, `carveBuildingWithDoor` |
-| `src/sim/spatial/generator.ts` | 208 | `generateVictorianDistrict(state)`, `hasWalkablePath(grid, start, goal)` |
-| `src/sim/data/item-catalog.ts` | 149 | `ITEM_CATALOG`, `PROSTHETIC_CATALOG`, `COMMODITY_CATALOG`, `RECIPE_CATALOG`, `getItemBlueprint`, `getRecipeBlueprint`, `createItemEntity`, `createEntityFromBlueprint` |
+| `src/sim/spatial/fov.ts` | 141 | `computeVisibleTiles(grid, originX, originY, radius)`, `isPointVisible`, `pointKey` |
+| `src/sim/spatial/district-layout.ts` | 139 | `buildSolidStratumGrid`, `carveRoom`, `carveCorridor`, `carveBuildingWithDoor` |
+| `src/sim/spatial/generator.ts` | 222 | `generateVictorianDistrict(state)`, `hasWalkablePath(grid, start, goal)` |
+| `src/sim/spatial/catacombs.ts` | 209 | Procedural infinite delve chalk catacombs & relic clockwork vault generation |
+| `src/sim/spatial/strata-dungeons.ts` | 224 | Undercroft sewers and Spire catwalks layout generation |
+| `src/sim/data/item-catalog.ts` | 156 | `ITEM_CATALOG`, `PROSTHETIC_CATALOG`, `COMMODITY_CATALOG`, `RECIPE_CATALOG`, `getItemBlueprint`, `getRecipeBlueprint`, `createItemEntity`, `createEntityFromBlueprint` |
 | `src/sim/systems/inventory-utils.ts` | 126 | `getCarryProfile`, `computeCarriedVolumeMl`, `isInstalledOnActor`, `findMergeableStack`, `allocateSplitId`, `createInventoryFailureResult`, `MAX_OVERLOAD_RATIO` |
-| `src/sim/systems/inventory.system.ts` | 245 | `resolvePickupItem`, `resolveDropItem`, `resolveUseItem` |
+| `src/sim/systems/inventory.system.ts` | 243 | `resolvePickupItem`, `resolveDropItem`, `resolveUseItem` |
 | `src/sim/systems/item-spawner.ts` | 71 | `spawnDistrictItems` — deterministic seeded ground-item scatterer |
-| `src/sim/systems/crafting.system.ts` | 271 | `resolveCraftRecipe`, `resolveSalvageItem`, `resolveRepairLimb` |
-| `src/sim/systems/combat.system.ts` | 217 | `computeEffectiveCombatStats`, `resolveAttackActor` |
-| `src/sim/systems/ai.system.ts` | 222 | `createDefaultNpcAnatomy`, `spawnDistrictNpcs`, `advanceNpcTurns` |
-| `src/sim/systems/movement.system.ts` | 256 | `computeMovementMechanics`, `resolveMoveStep`, `resolveUsePortal` |
-| `src/sim/systems/transit.system.ts` | 179 | `resolveToggleDoor`, `resolveTravelDistrict`, `VALID_DISTRICT_IDS` |
+| `src/sim/systems/crafting.system.ts` | 126 | `resolveCraftRecipe`, `resolveSalvageItem`, `resolveRepairLimb` |
+| `src/sim/systems/combat.system.ts` | 199 | `computeEffectiveCombatStats`, `resolveAttackActor` |
+| `src/sim/systems/ai.system.ts` | 211 | `createDefaultNpcAnatomy`, `spawnDistrictNpcs`, `advanceNpcTurns` |
+| `src/sim/systems/movement.system.ts` | 202 | `computeMovementMechanics`, `resolveMoveStep`, `resolveUsePortal` |
+| `src/sim/systems/transit.system.ts` | 238 | `resolveToggleDoor`, `resolveTravelDistrict`, `VALID_DISTRICT_IDS` |
 | `src/sim/systems/trade.system.ts` | 9 | `resolveBuyFromMerchant`, `resolveSellToMerchant`, `resolveStockPedestal` |
-| `src/sim/systems/anatomy.system.ts` | **293 (Near Cap)** | `computeProstheticFovBonus`, `resolveDamageLimb`, `resolveInstallProsthetic`, `resolveRemoveProsthetic`, `resolveRefillSteam` |
-| `src/sim/systems/thermo.system.ts` | 168 | `advanceThermodynamicsTick`, `SCALD_PRESSURE_THRESHOLD_KPA` |
-| `src/sim/systems/pressure.system.ts` | 174 | `resolvePressurizeVessel`, `resolveEmitSpark`, `COAL_DUST_IGNITION_THRESHOLD` |
-| `src/sim/systems/economy.system.ts` | **283 (Near Cap)** | `createInitialEconomyLedger`, `computeBoundedPricePence`, `resolveTriggerSupplyShock`, `advanceDistrictEconomyMacroTick` |
+| `src/sim/systems/anatomy.system.ts` | 78 | `resolveDamageLimb`, `computeProstheticFovBonus` |
+| `src/sim/systems/prosthetics.system.ts` | 249 | `resolveActivateProsthetic`, `resolveHarvestCorpse`, `resolveInstallProsthetic`, `resolveRemoveProsthetic`, `resolveRefillSteam` |
+| `src/sim/systems/metabolism.system.ts` | 231 | `advanceMetabolismTick`, `resolveDrinkTonic`, `applyToxicityEffects`, `processAddictionWithdrawal` |
+| `src/sim/systems/momentum.system.ts` | 163 | `resolveSetPosture`, `applyMomentumVector`, `computeKnockbackCollisions` |
+| `src/sim/systems/weapon-mods.system.ts` | 226 | `resolveInstallWeaponMod`, `resolveUninstallWeaponMod`, `resolveLoadAmmo` |
+| `src/sim/systems/liquids.system.ts` | 99 | Surface fluid pools, slip hazards, stain mechanics, flammable ignition |
+| `src/sim/systems/squad-witness.system.ts` | 177 | `resolveSquadCallout`, `evaluateWitnessCrimes`, `recordFactionGrudge` |
+| `src/sim/systems/monorail.system.ts` | 211 | `resolveRideMonorail`, `resolveMonorailTransit`, pneumatic car movement |
+| `src/sim/systems/thermo.system.ts` | 177 | `advanceThermodynamicsTick`, `SCALD_PRESSURE_THRESHOLD_KPA` |
+| `src/sim/systems/pressure.system.ts` | 161 | `resolvePressurizeVessel`, `resolveEmitSpark`, `COAL_DUST_IGNITION_THRESHOLD` |
+| `src/sim/systems/economy.system.ts` | 197 | `createInitialEconomyLedger`, `computeBoundedPricePence`, `resolveTriggerSupplyShock`, `advanceDistrictEconomyMacroTick` |
 
 ### C. Presentation & UI Shell (`src/client/`)
 | File | Exports & Responsibility |
@@ -142,8 +151,8 @@ Follow this exact 6-step sequence whenever adding a new command or system:
    - Implement a pure function `(state: WorldState, ...) => { state: WorldState, events: SimEvent[], apSpent: number }`.
 3. **Wire into `dispatchCommand` (`src/sim/core/engine.ts`)**:
    - Add a `case` for the new `command.type` in `src/sim/core/engine.ts`.
-4. **Update Event Formatter (`src/client/ui/HudLayout.tsx`)**:
-   - Add a `case` for the new `SimEvent['type']` in `formatEventMessage()` so exhaustive TypeScript checks pass.
+4. **Update Event Formatter (`src/client/ui/EventFormatter.ts`)**:
+   - Add a `case` for the new `SimEvent['type']` in `formatEventMessage()` (or run `npm run hermes:chronicler`) so exhaustive TypeScript checks pass.
 5. **Write Deterministic Unit Test (`tests/sim/`)**:
    - Create or extend a `.test.ts` file using `createInitialWorld({ seed: <fixed_int> })` and assert both the emitted `SimEvent` and resulting `WorldState`.
 6. **Run `npm run verify`**:
@@ -157,10 +166,16 @@ Located in `tests/scripts/`, this suite exercises end-to-end emergence by drivin
 
 | File | Lines | Responsibility |
 | :--- | :---: | :--- |
-| `tests/scripts/playtester-serializer.ts` | $\le 280$ | Formats relative 11x11 ASCII FOV, vitals, acoustic history, contextual menus, and parses LLM outputs into `GameCommand`. |
-| `tests/scripts/playtester-scenarios.ts` | $\le 200$ | Injects isolated test setups (`explore`, `combat`, `economy`, `transit`) and scenario-specific directives. |
-| `tests/scripts/playtest-report.ts` | $\le 100$ | Formats comprehensive telemetry markdown reports in `tests/artifacts/playtest-report.md`. |
-| `tests/scripts/llm-playtester.ts` | $\le 250$ | Main CLI entry point. Executes turn loops against Ollama / Hermes endpoints or deterministic mock agents. |
-| `tests/scripts/hermes-content-generator.ts` | $\le 250$ | Offloads bulk declarative JSON blueprint generation (materials, consumables, recipes) to local Hermes with Zod validation. |
+| `tests/scripts/playtester-serializer.ts` | 250 | Formats relative 11x11 ASCII FOV, vitals, acoustic history, contextual menus, and parses LLM outputs into `GameCommand`. |
+| `tests/scripts/playtester-scenarios.ts` | 166 | Injects isolated test setups (`explore`, `combat`, `economy`, `transit`) and scenario-specific directives. |
+| `tests/scripts/playtest-report.ts` | 82 | Formats comprehensive telemetry markdown reports in `tests/artifacts/playtest-report.md`. |
+| `tests/scripts/llm-playtester.ts` | 211 | Main CLI entry point. Executes turn loops against Ollama / Hermes endpoints or deterministic mock agents. |
+| `tests/scripts/hermes-content-generator.ts` | 225 | Offloads bulk declarative JSON blueprint generation (materials, consumables, recipes) to local Hermes with Zod validation. |
+| `tests/scripts/hermes-scout.ts` | 173 | Local codebase scout & AST impact analyzer for pre-flight checklist (`npm run hermes:scout`). |
+| `tests/scripts/hermes-testgen.ts` | 281 | Self-healing deterministic unit test generator with anti-tautological protection (`npm run hermes:testgen`). |
+| `tests/scripts/hermes-chronicler.ts` | 191 | Exhaustive `SimEvent` chronicler synchronizing events with `EventFormatter.ts` (`npm run hermes:chronicler`). |
+| `tests/scripts/hermes-split.ts` | 272 | AST-guided modularity ceiling splitter for near-cap files >= 240 lines (`npm run hermes:split`). |
+| `tests/scripts/hermes-critic.ts` | 239 | Whole-game emergence & architectural audit engine generating P1/P2/P3 prescriptions and handoff prompts (`npm run hermes:critic`). |
+| `tests/scripts/update-state.ts` | 78 | State synchronizer embedding recent commits, next roadmap priority, critic prescriptions, and prompt handoff into `STATE.md` (`npm run sync:state`). |
 | `tests/sim/playtester-harness.test.ts` | — | Unit tests verifying that action payloads serialize and resolve into valid simulation commands. |
 | `tests/sim/hermes-content.test.ts` | — | Unit tests verifying CLI parsing, mock content generation, and blueprint schema validation. |

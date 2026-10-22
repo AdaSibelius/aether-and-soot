@@ -4,9 +4,11 @@ import { describe, expect, it } from 'vitest';
 import {
   auditCommandCoverage,
   auditModularityHotspots,
+  buildHandoffPrompt,
   parseCriticArgs,
   runCritic,
 } from '../scripts/hermes-critic.js';
+import { getCriticPrescriptions } from '../scripts/update-state.js';
 
 describe('Hermes Benchmark & Whole-Game Critic', () => {
   const rootDir = path.resolve(__dirname, '../..');
@@ -37,15 +39,25 @@ describe('Hermes Benchmark & Whole-Game Critic', () => {
     expect(coverage.unwired.length).toBeGreaterThan(0);
   });
 
-  it('scans modularity hotspots accurately against threshold', () => {
+  it('scans modularity hotspots accurately against threshold in src only', () => {
     const hotspots = auditModularityHotspots(rootDir, 230);
     expect(Array.isArray(hotspots)).toBe(true);
     for (const h of hotspots) {
+      expect(h.file.startsWith('src/')).toBe(true);
       expect(h.lines).toBeGreaterThanOrEqual(230);
     }
   });
 
-  it('executes runCritic in mock mode and generates all 5 mandatory sections', async () => {
+  it('builds a copy-pasteable next-phase handoff prompt', () => {
+    const prompt = buildHandoffPrompt('Phase 44', 'src/client/main.tsx (250 lines)', '`CLEAN_SPILL`');
+    expect(prompt).toContain('## 6. Next-Phase Handoff Prompt');
+    expect(prompt).toContain('Implement Phase 44');
+    expect(prompt).toContain('the active phase');
+    expect(prompt).toContain('src/client/main.tsx (250 lines)');
+    expect(prompt).toContain('`CLEAN_SPILL`');
+  });
+
+  it('executes runCritic in mock mode and generates all 6 mandatory sections', async () => {
     const testOut = path.join(rootDir, 'tests/artifacts/test-critic-audit.md');
     const config = parseCriticArgs(['node', 'script.js', '--mock', '--skip-playtest', '--output', testOut]);
 
@@ -55,7 +67,13 @@ describe('Hermes Benchmark & Whole-Game Critic', () => {
     expect(report).toContain('## 2. Architectural & Modularity Health');
     expect(report).toContain('## 3. Command Coverage & Dead-Mechanic Audit');
     expect(report).toContain('## 4. Systemic Depth & NPC Agency Critique');
+    expect(report).toContain('AGENT DIRECTIVE:');
     expect(report).toContain('## 5. Self-Directed Prescriptions for Next Phase');
+    expect(report).toContain('## 6. Next-Phase Handoff Prompt');
+
+    const synced = getCriticPrescriptions(testOut);
+    expect(synced).toContain('## 5. Self-Directed Prescriptions for Next Phase');
+    expect(synced).toContain('## 6. Next-Phase Handoff Prompt');
 
     if (fs.existsSync(testOut)) fs.unlinkSync(testOut);
   });

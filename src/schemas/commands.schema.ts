@@ -10,35 +10,35 @@ import {
   FireRangedWeaponCommandSchema,
 } from './equipment.schema.js';
 import {
-  BoardMonorailCommandSchema,
-  LaunchMonorailCommandSchema,
-  DescendCatacombsCommandSchema,
+  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema,
 } from './transit-commands.schema.js';
 export {
-  BoardMonorailCommandSchema,
-  LaunchMonorailCommandSchema,
-  DescendCatacombsCommandSchema,
+  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema,
 } from './transit-commands.schema.js';
 export type {
-  BoardMonorailCommand,
-  LaunchMonorailCommand,
-  DescendCatacombsCommand,
+  BoardMonorailCommand, LaunchMonorailCommand, DescendCatacombsCommand,
 } from './transit-commands.schema.js';
+import {
+  EmitSquadCalloutCommandSchema, ReportCrimeCommandSchema,
+} from './witness-commands.schema.js';
+export {
+  EmitSquadCalloutCommandSchema, ReportCrimeCommandSchema,
+} from './witness-commands.schema.js';
 export type {
-  EmitSquadCalloutCommand,
-  ReportCrimeCommand,
-  WitnessCommand,
+  EmitSquadCalloutCommand, ReportCrimeCommand, WitnessCommand,
 } from './witness-commands.schema.js';
 import {
-  EmitSquadCalloutCommandSchema,
-  ReportCrimeCommandSchema,
-  WitnessCommandSchema,
-} from './witness-commands.schema.js';
+  ClaimWorkshopDeedCommandSchema, BuildStructureCommandSchema,
+  StoreItemInStructureCommandSchema, RetrieveItemFromStructureCommandSchema, ConsultCodexCommandSchema,
+} from './safehouse-commands.schema.js';
 export {
-  EmitSquadCalloutCommandSchema,
-  ReportCrimeCommandSchema,
-  WitnessCommandSchema,
-};
+  ClaimWorkshopDeedCommandSchema, BuildStructureCommandSchema,
+  StoreItemInStructureCommandSchema, RetrieveItemFromStructureCommandSchema, ConsultCodexCommandSchema,
+} from './safehouse-commands.schema.js';
+export type {
+  ClaimWorkshopDeedCommand, BuildStructureCommand,
+  StoreItemInStructureCommand, RetrieveItemFromStructureCommand, ConsultCodexCommand,
+} from './safehouse-commands.schema.js';
 export type {
   ActivateProstheticCommand,
   HarvestCorpseCommand,
@@ -53,36 +53,16 @@ export type {
   CleanSpillCommand,
 } from './domain-commands.schema.js';
 import {
-  AcceptContractCommandSchema,
-  ActivateProstheticCommandSchema,
-  ApplyMomentumVectorCommandSchema,
-  BreachTileCommandSchema,
-  BuyFromMerchantCommandSchema,
-  CleanSpillCommandSchema,
-  CoatWeaponCommandSchema,
-  CompleteContractCommandSchema,
-  CraftRecipeCommandSchema,
-  DropItemCommandSchema,
-  HarvestCorpseCommandSchema,
-  HireCompanionCommandSchema,
-  InstallWeaponModCommandSchema,
-  LoadAmmoCommandSchema,
-  LootContainerCommandSchema,
-  PayChirurgeonHealCommandSchema,
-  PickUpItemCommandSchema,
-  PryObstacleCommandSchema,
-  RepairLimbCommandSchema,
-  RestAtBedCommandSchema,
-  SalvageItemCommandSchema,
-  SellToMerchantCommandSchema,
-  SetPostureCommandSchema,
-  SmashTerrainCommandSchema,
-  StockPedestalCommandSchema,
-  ThrowFlaskCommandSchema,
-  ToggleDoorCommandSchema,
-  TravelDistrictCommandSchema,
-  TriggerSupplyShockCommandSchema,
-  UninstallWeaponModCommandSchema,
+  AcceptContractCommandSchema, ActivateProstheticCommandSchema, ApplyMomentumVectorCommandSchema,
+  BreachTileCommandSchema, BuyFromMerchantCommandSchema, CleanSpillCommandSchema,
+  CoatWeaponCommandSchema, CompleteContractCommandSchema, CraftRecipeCommandSchema,
+  DropItemCommandSchema, HarvestCorpseCommandSchema, HireCompanionCommandSchema,
+  InstallWeaponModCommandSchema, LoadAmmoCommandSchema, LootContainerCommandSchema,
+  PayChirurgeonHealCommandSchema, PickUpItemCommandSchema, PryObstacleCommandSchema,
+  RepairLimbCommandSchema, RestAtBedCommandSchema, SalvageItemCommandSchema,
+  SellToMerchantCommandSchema, SetPostureCommandSchema, SmashTerrainCommandSchema,
+  StockPedestalCommandSchema, ThrowFlaskCommandSchema, ToggleDoorCommandSchema,
+  TravelDistrictCommandSchema, TriggerSupplyShockCommandSchema, UninstallWeaponModCommandSchema,
   UseItemCommandSchema,
 } from './domain-commands.schema.js';
 
@@ -240,5 +220,10 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   BoardMonorailCommandSchema,
   LaunchMonorailCommandSchema,
   DescendCatacombsCommandSchema,
+  ClaimWorkshopDeedCommandSchema,
+  BuildStructureCommandSchema,
+  StoreItemInStructureCommandSchema,
+  RetrieveItemFromStructureCommandSchema,
+  ConsultCodexCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

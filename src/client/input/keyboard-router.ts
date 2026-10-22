@@ -73,6 +73,9 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     } else if (ev.key === 'w' || ev.key === 'W') {
       ev.preventDefault();
       onSetModal(activeModal === 'ATLAS' ? null : 'ATLAS');
+    } else if (ev.key === 'k' || ev.key === 'K') {
+      ev.preventDefault();
+      onSetModal(activeModal === 'CODEX' ? null : 'CODEX');
     }
     return;
   }
@@ -155,6 +158,11 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
   if (ev.key === 'W') {
     ev.preventDefault();
     onSetModal('ATLAS');
+    return;
+  }
+  if (ev.key === 'k' || ev.key === 'K') {
+    ev.preventDefault();
+    onSetModal('CODEX');
     return;
   }
   if (ev.key === 'l' || ev.key === 'L') {

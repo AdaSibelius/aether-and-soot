@@ -6,8 +6,9 @@ import { AtlasWindow } from './AtlasWindow.js';
 import { CraftingWindow } from './CraftingWindow.js';
 import { InventoryWindow } from './InventoryWindow.js';
 import { TradeWindow } from './TradeWindow.js';
+import { CodexWindow } from './CodexWindow.js';
 
-export type ModalWindowId = 'INVENTORY' | 'ANATOMY' | 'WORKBENCH' | 'EXCHANGE' | 'ATLAS';
+export type ModalWindowId = 'INVENTORY' | 'ANATOMY' | 'WORKBENCH' | 'EXCHANGE' | 'ATLAS' | 'CODEX';
 
 export interface CharacterModalShellProps {
   readonly state: Readonly<WorldState>;
@@ -24,6 +25,7 @@ const MODAL_TABS: readonly { id: ModalWindowId; label: string; shortcut: string 
   { id: 'WORKBENCH', label: 'ARTIFICER BENCH', shortcut: '[C]' },
   { id: 'EXCHANGE', label: 'EXCHANGE & FACTIONS', shortcut: '[M]' },
   { id: 'ATLAS', label: 'WORLD ATLAS', shortcut: '[W]' },
+  { id: 'CODEX', label: 'NATURALIST CODEX', shortcut: '[K]' },
 ];
 
 export function CharacterModalShell({
@@ -152,6 +154,10 @@ export function CharacterModalShell({
 
           {activeWindow === 'ATLAS' && (
             <AtlasWindow state={state} actorId={actorId} onCommand={onCommand} />
+          )}
+
+          {activeWindow === 'CODEX' && (
+            <CodexWindow state={state} actorId={actorId} onCommand={onCommand} />
           )}
         </div>
 

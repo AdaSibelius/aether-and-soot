@@ -14,20 +14,23 @@ Before creating any new type, helper function, component, or system, you **MUST*
 - **Schemas & IDs**: Reuse branded schemas (`EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema`, `LimbSlotIdSchema`, `FactionIdSchema`, `CommodityIdSchema`) from `src/schemas/primitives.schema.ts`.
 
 ### Rule 1.2: The Pre-Flight Impact Analysis Block
-Before modifying any file or creating a new feature, you **MUST** output a concise **Impact Analysis Checklist** in your response covering these 5 points:
+Before modifying any file or creating a new feature, you **MUST** output a concise **Impact Analysis Checklist** in your response covering these 6 points:
 1. **Schemas Impacted (`src/schemas/`)**: Which Zod schemas (`components`, `commands`, `events`, `blueprint`, `primitives`) require new fields or union variants?
 2. **Serialization & Save-State Impact (`WorldStateSchema`)**: Does this change alter `WorldState` structure in `src/sim/core/world.ts`, and will `serializeWorld` / `deserializeWorld` remain 100% compatible?
 3. **Existing Infrastructure Reused**: Which exact functions from `src/sim/spatial/` or `src/sim/systems/` will be called instead of writing new utility code?
-4. **File Size & Modularity Check**: List the current line counts (`wc -l`) of every file you plan to touch. If any target file will exceed **250 lines** (or is already near the **300-line hard fail limit**, such as `anatomy.system.ts`, `economy.system.ts`, or `generator.ts`), state the name of the new sub-module you will extract.
-5. **Client / HUD Impact (`src/client/`)**: Does `projectWorldToVisualFrame` or `formatEventMessage` in `HudLayout.tsx` need to handle new visual flags or `SimEvent` variants?
+4. **File Size & Modularity Check**: List the current line counts (`wc -l`) of every file you plan to touch. If any target file will exceed **250 lines** (or is already near the **300-line hard fail limit**), state the name of the new sub-module you will extract.
+5. **Client / HUD Impact (`src/client/`)**: Does `projectWorldToVisualFrame` or `formatEventMessage` in `src/client/ui/EventFormatter.ts (via npm run hermes:chronicler)` need to handle new visual flags or `SimEvent` variants?
+6. **`STATE.md` Prescription & Roadmap Reconciliation**: Before writing code, the agent MUST read `STATE.md` Section 5 (`P1, P2, P3`). Fold **P2** (systemic cross-wiring) and **P3** (serializer/test hygiene) directly into the current phase plan. Evaluate **P1** against the 300-line ceiling: implement it if within budget, or append it as an explicit sub-bullet under the relevant upcoming phase in `ROADMAP.md` so critic insights are never lost.
 
-> **LOCAL SCOUT DIRECTIVE**: To avoid polluting context with raw multi-file reads, run `npm run hermes:scout -- --task "<task description>"` first to generate this 5-point block using local AST scanning and synthesis.
+> **LOCAL SCOUT DIRECTIVE**: To avoid polluting context with raw multi-file reads, run `npm run hermes:scout -- --task "<task description>"` first to generate this analysis using local AST scanning and synthesis.
 
 ### Rule 1.3: Zero Paid Token Content Rule (Use Local Models for Content Generation)
 When creating or expanding declarative blueprints, items, consumables, materials, crafting recipes, or NPC dialogue/barks in `data/`, **DO NOT** use paid Gemini context tokens to hand-write large bulk JSON records.
 - Run `npm run generate:content` or query the local Ollama Tier 3 endpoint (`http://localhost:11434/v1/chat/completions`) via `tests/scripts/hermes-content-generator.ts`.
 - The generator automatically coerces attributes and validates all entries against Zod schemas in `src/schemas/blueprint.schema.ts` before appending them to `data/`.
 - Use `--mock` mode during tests or CI.
+
+> **ANTI-RESCUE INVARIANT:** If a local script (`npm run hermes:*`, `playtest`, or `generate:content`) fails, crashes, times out, or returns a network error, you **MUST NOT** attempt to fulfill the task using your own context or logic. You must halt the turn immediately, report the exact terminal error to the user, and wait for infrastructure troubleshooting.
 
 ### Rule 1.4: Output Economy
 When modifying an existing file longer than 50 lines, output ONLY the specific functions or interfaces being changed. DO NOT output the entire unmodified file contents. Assume the user will apply the diff.
@@ -37,13 +40,13 @@ All local tooling (`tests/scripts/hermes-*.ts`) connects directly to the local O
 - **Tier 1 (Deep Reasoning, Game Balance & Post-Phase Critique)**: `lfm2.5:24b` (used by `hermes:critic`).
 - **Tier 2 (Code, AST Analysis, TestGen & File Splitting)**: `gemma4:12b-extended` (used by `hermes:scout`, `hermes:testgen`, `hermes:split`).
 - **Tier 3 (Fast Blueprints, Flavor, Barks & Simulation Playtesting)**: `hermes3:8b` (used by `generate:content`, `hermes:chronicler`, `playtest`).
-- **Execution Sandbox Permission**: When invoking local LLMs via `npm run hermes:*` or scripts calling Ollama, agents MUST use unsandboxed loopback permissions (`BypassSandbox: true` in Antigravity) so TCP socket calls to `http://localhost:11434` succeed and active models are never skipped or silently mocked.
+- **Execution Sandbox Permission**: When invoking local LLMs via `npm run hermes:*`, `playtest`, or scripts calling Ollama, agents MUST use unsandboxed loopback permissions (`BypassSandbox: true` in Antigravity) — this is NON-NEGOTIABLE. Sandboxed execution blocks TCP socket access to loopback ports; because silent fallbacks have been eliminated, omitting `BypassSandbox: true` will immediately trigger fatal process exits (`exit code 1`).
 - **Deterministic-First Invariant**: Tools like `hermes:scout` and `hermes:split` MUST gather exact line counts, exports, and AST slices deterministically in Node first; the local model is used strictly for synthesis and import reconciliation.
 - **Anti-Tautological Test Invariant**: In `hermes:testgen`, the self-healing retry loop strictly separates `tsc --noEmit` compiler/type/import fixes from `vitest run` assertion failures. The local LLM may fix syntax, imports, and mock shapes, but is FORBIDDEN from rewriting domain `expect(...)` values simply to force tests green.
 - **Mandatory Delegation**: As each tool comes online, agents MUST delegate codebase scouting (`hermes:scout`), bulk blueprints (`generate:content`), unit test scaffolding (`hermes:testgen`), event formatting (`hermes:chronicler`), and file splitting (`hermes:split`) rather than hand-authoring them in paid context.
 
-### Rule 1.6: Mandatory Post-Phase Critique Loop
-At the end of every phase (after `npm run verify`), run `npm run hermes:critic` and `npm run sync:state` so the 4-scenario playtest audit and self-directed prescriptions from `tests/artifacts/critic-audit.md` are automatically embedded into `STATE.md` before the next phase begins.
+### Rule 1.6: Mandatory Post-Phase Critique & Prompt Handoff Loop
+At the end of every phase (after `npm run verify`), run `npm run hermes:critic` and `npm run sync:state` so the 4-scenario playtest audit, self-directed prescriptions, and handoff prompt from `tests/artifacts/critic-audit.md` are automatically embedded into `STATE.md`. The agent **MUST** conclude its response with a section titled **`### Next Prompt (Copy-Paste Ready)`** containing the synthesized handoff prompt from `STATE.md` Section 6 inside a fenced code block.
 
 ---
 
@@ -58,7 +61,7 @@ At the end of every phase (after `npm run verify`), run `npm run hermes:critic` 
 - Target file length: **<= 250 lines**.
 - Hard automated failure ceiling: **300 lines** (enforced by `tests/scripts/check-boundaries.ts`).
 - Keep modules single-responsibility: one domain system per file in `src/sim/systems/`, one UI panel per file in `src/client/ui/`.
-- **Warning on Near-Cap Files**: `src/sim/systems/anatomy.system.ts` (293 lines), `src/sim/spatial/generator.ts` (285 lines), and `src/sim/systems/economy.system.ts` (283 lines) are at capacity. Do NOT add new functions to these files—create a new sibling module (e.g., `src/sim/systems/prosthetics.system.ts` or `src/sim/systems/factions.system.ts`) and import it.
+- **Warning on Near-Cap Files (>= 240 lines)**: `src/sim/systems/prosthetics.system.ts` (249 lines), `src/client/main.tsx` (249 lines), `src/client/ui/TradeWindow.tsx` (247 lines), `src/schemas/commands.schema.ts` (244 lines), `src/sim/systems/inventory.system.ts` (243 lines), `src/sim/systems/character-archetypes.ts` (243 lines), and `src/schemas/domain-events.schema.ts` (242 lines). Do NOT add new functions to these files—extract sub-modules via `npm run hermes:split` before adding new logic.
 
 ### Rule 2.3: Zero Untyped Boundaries & Flat Relational ECS
 - `any`, `as unknown as`, and `@ts-ignore` / `@ts-expect-error` are **FORBIDDEN**.

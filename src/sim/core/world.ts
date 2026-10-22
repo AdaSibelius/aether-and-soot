@@ -16,6 +16,7 @@ import {
 import { RNGStateSchema, SeededRNG } from './rng.js';
 
 import { FactionContractSchema } from '../../schemas/contracts.schema.js';
+import { CodexEntryRecordSchema, SafehouseDeedRecordSchema } from '../../schemas/safehouse-records.schema.js';
 
 export const SavedDistrictSnapshotSchema = z.object({
   strata: z.object({ UNDERCROFT: StratumGridSchema, STREET: StratumGridSchema, SPIRE: StratumGridSchema }),
@@ -49,6 +50,8 @@ export const WorldStateSchema = z.object({
   entities: z.record(z.string(), EntityComponentsSchema),
   economy: DistrictEconomyLedgerSchema,
   contracts: z.array(FactionContractSchema).default([]),
+  safehouses: z.record(z.string(), SafehouseDeedRecordSchema).default({}),
+  codex: z.record(z.string(), CodexEntryRecordSchema).default({}),
   eventLog: z.array(SimEventSchema),
   savedDistricts: z.record(z.string(), SavedDistrictSnapshotSchema).default({}),
 });
@@ -217,6 +220,8 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     },
     economy: createInitialEconomyLedger(),
     contracts: [],
+    safehouses: {},
+    codex: {},
     eventLog: [],
     savedDistricts: {},
   };

@@ -55,9 +55,9 @@ async function queryLocalLlm(endpoint: string, model: string, prompt: string): P
       formatJson: true,
       temperature: 0.2,
     });
-  } catch (err) {
-    console.warn(`[llm-playtester] Local LLM unreachable (${err}), using fallback.`);
-    return '{}';
+  } catch {
+    console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+    process.exit(1);
   }
 }
 
@@ -122,7 +122,10 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
         secondaryDirective: scenarioObjs.secondary,
       });
       rawAction = await queryLocalLlm(config.endpoint, config.model, context);
-      if (rawAction === '{}') rawAction = JSON.stringify(generateMockAction(state, playerId, recentPositions));
+      if (!rawAction || rawAction === '{}') {
+        console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+        process.exit(1);
+      }
     }
 
     const command = parseLlmResponseToCommand(rawAction, state, playerId);

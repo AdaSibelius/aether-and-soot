@@ -114,10 +114,14 @@ Requirements:
       temperature: 0.7,
     });
     const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
-    return clean.includes(`case '${eventType}':`) ? clean : generateMockCase(eventType);
-  } catch (err) {
-    console.warn(`[hermes-chronicler] Local LLM unavailable (${err}), using mock template.`);
-    return generateMockCase(eventType);
+    if (!clean.includes(`case '${eventType}':`)) {
+      console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+      process.exit(1);
+    }
+    return clean;
+  } catch {
+    console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+    process.exit(1);
   }
 }
 

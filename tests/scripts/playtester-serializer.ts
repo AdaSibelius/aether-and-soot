@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { GameCommand } from '../../src/schemas/commands.schema.js';
-import { EntityId, EntityIdSchema, LimbSlotId, Point3D } from '../../src/schemas/primitives.schema.js';
+import { EntityId, EntityIdSchema, LimbSlotId } from '../../src/schemas/primitives.schema.js';
 import { getShiftPhase, WorldState } from '../../src/sim/core/world.js';
 import { computeActorFovRadius, computeVisibleTiles } from '../../src/sim/spatial/fov.js';
 import { findEntitiesAtPoint, getTileCell } from '../../src/sim/spatial/grid.js';
@@ -19,13 +19,30 @@ export function normalizeDirection(raw: string): string | undefined {
 }
 
 const LIMB_ENUM = z.enum(['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG']);
+const STRUCTURE_ENUM = z.enum(['SURGICAL_TABLE', 'ARTIFICER_BENCH', 'STEAM_CHARGER', 'BARRICADE_WOOD', 'BARRICADE_IRON']);
+
 export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('MOVE'), dir: z.enum(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']), reasoning: z.string().optional() }), z.object({ action: z.literal('WAIT'), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('ATTACK'), targetId: z.string(), limb: LIMB_ENUM.optional(), reasoning: z.string().optional() }), z.object({ action: z.literal('TOGGLE_DOOR'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('VENT_STEAM'), pressureKpa: z.number().positive().default(50), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }), z.object({ action: z.literal('USE_ITEM'), itemId: z.string(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('BREACH_TILE'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }), z.object({ action: z.literal('USE_PORTAL'), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('BUY'), merchantId: z.string(), itemId: z.string(), quantity: z.number().int().positive().optional(), reasoning: z.string().optional() }), z.object({ action: z.literal('PICK_UP'), itemId: z.string().optional(), reasoning: z.string().optional() }),
-  z.object({ action: z.literal('ACTIVATE_PROSTHETIC'), slot: LIMB_ENUM, targetRelX: z.number().int().optional(), targetRelY: z.number().int().optional(), reasoning: z.string().optional() }), z.object({ action: z.literal('HARVEST_CORPSE'), corpseId: z.string(), toolId: z.string(), slot: LIMB_ENUM.optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('MOVE'), dir: z.enum(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('WAIT'), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('ATTACK'), targetId: z.string(), limb: LIMB_ENUM.optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('TOGGLE_DOOR'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('VENT_STEAM'), pressureKpa: z.number().positive().default(50), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('USE_ITEM'), itemId: z.string(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('BREACH_TILE'), dx: z.number().int().min(-1).max(1), dy: z.number().int().min(-1).max(1), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('USE_PORTAL'), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('BUY'), merchantId: z.string(), itemId: z.string(), quantity: z.number().int().positive().optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('PICK_UP'), itemId: z.string().optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('ACTIVATE_PROSTHETIC'), slot: LIMB_ENUM, targetRelX: z.number().int().optional(), targetRelY: z.number().int().optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('HARVEST_CORPSE'), corpseId: z.string(), toolId: z.string(), slot: LIMB_ENUM.optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('ACCEPT_CONTRACT'), contractId: z.string(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('APPLY_MOMENTUM_VECTOR'), targetId: z.string(), dx: z.number().int(), dy: z.number().int(), distanceTiles: z.number().int().positive().default(2), massKg: z.number().positive().default(70), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('CLEAN_SPILL'), toolId: z.string(), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('COAT_WEAPON'), weaponId: z.string(), containerId: z.string(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('CLAIM_WORKSHOP_DEED'), claimVault: z.boolean().optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('BUILD_STRUCTURE'), structureType: STRUCTURE_ENUM, targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('STORE_ITEM'), structureId: z.string(), itemId: z.string(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('RETRIEVE_ITEM'), structureId: z.string(), itemId: z.string(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('CONSULT_CODEX'), entryId: z.string().optional(), reasoning: z.string().optional() }),
 ]);
 export type LlmActionPayload = z.infer<typeof LlmActionPayloadSchema>;
 
@@ -116,6 +133,9 @@ export function serializePlayerContext(
   const consumable = player.inventory?.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect);
   if (consumable) contextualCommands.push(`{"action": "USE_ITEM", "itemId": "${consumable}"}`);
   if (steam >= 20) contextualCommands.push('{"action": "VENT_STEAM", "pressureKpa": 30}');
+  const safehouseList = Object.values(state.safehouses).map((s) => s.name).join(', ') || 'None';
+  const codexCount = Object.keys(state.codex).length;
+  if (codexCount > 0) contextualCommands.push('{"action": "CONSULT_CODEX"}');
 
   const primaryObj = options?.primaryObjective ?? 'Explore district and survive.';
   const secDir = options?.secondaryDirective ?? 'Interact with doors (+), avoid traps (^), vent steam (~).';
@@ -125,6 +145,7 @@ export function serializePlayerContext(
   return `=== AETHER & SOOT [Turn ${state.turnCount} | Shift: ${shift}] ===
 Primary Objective: ${primaryObj} | Secondary Directive: ${secDir}
 [STRATUM]: ${pos.stratum} | [POS]: (${pos.x}, ${pos.y}) | [BLOOD]: ${blood}% | [STEAM]: ${steam}/${maxSteam} kPa
+[SAFEHOUSES]: ${safehouseList} | [CODEX]: ${codexCount} entries discovered
 [Recent Steps: ${recentSteps}]
 ${feedbackBlock}[LOCAL SENSORY FOV (11x11 Grid, Relative Centered on '@')]:
 ${fovRows}[RECENT ACOUSTIC SOUNDS]:\n${recentSounds.length > 0 ? recentSounds.join('\n') : 'None in range.'}
@@ -165,6 +186,15 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
             case 'PICK_UP': return { type: 'PICK_UP_ITEM', actorId: playerId, ...(p.itemId ? { itemEntityId: EntityIdSchema.parse(p.itemId) } : {}) };
             case 'ACTIVATE_PROSTHETIC': return { type: 'ACTIVATE_PROSTHETIC', actorId: playerId, slot: p.slot as LimbSlotId, ...(p.targetRelX !== undefined && p.targetRelY !== undefined ? { direction: { dx: Math.sign(p.targetRelX), dy: Math.sign(p.targetRelY) } } : {}) };
             case 'HARVEST_CORPSE': return { type: 'HARVEST_CORPSE', actorId: playerId, corpseEntityId: EntityIdSchema.parse(p.corpseId), toolEntityId: EntityIdSchema.parse(p.toolId), ...(p.slot ? { slot: p.slot as LimbSlotId } : {}) };
+            case 'ACCEPT_CONTRACT': return { type: 'ACCEPT_CONTRACT', actorId: playerId, contractId: EntityIdSchema.parse(p.contractId) };
+            case 'APPLY_MOMENTUM_VECTOR': return { type: 'APPLY_MOMENTUM_VECTOR', targetId: EntityIdSchema.parse(p.targetId), dx: p.dx, dy: p.dy, distanceTiles: p.distanceTiles, massKg: p.massKg, sourceEntityId: playerId };
+            case 'CLEAN_SPILL': return { type: 'CLEAN_SPILL', actorId: playerId, toolEntityId: EntityIdSchema.parse(p.toolId), target: { x: pos.x + p.targetRelX, y: pos.y + p.targetRelY, stratum: pos.stratum } };
+            case 'COAT_WEAPON': return { type: 'COAT_WEAPON', actorId: playerId, weaponEntityId: EntityIdSchema.parse(p.weaponId), liquidContainerId: EntityIdSchema.parse(p.containerId) };
+            case 'CLAIM_WORKSHOP_DEED': return { type: 'CLAIM_WORKSHOP_DEED', actorId: playerId, claimVault: p.claimVault };
+            case 'BUILD_STRUCTURE': return { type: 'BUILD_STRUCTURE', actorId: playerId, structureType: p.structureType, target: { x: pos.x + p.targetRelX, y: pos.y + p.targetRelY, stratum: pos.stratum } };
+            case 'STORE_ITEM': return { type: 'STORE_ITEM_IN_STRUCTURE', actorId: playerId, structureEntityId: EntityIdSchema.parse(p.structureId), itemEntityId: EntityIdSchema.parse(p.itemId) };
+            case 'RETRIEVE_ITEM': return { type: 'RETRIEVE_ITEM_FROM_STRUCTURE', actorId: playerId, structureEntityId: EntityIdSchema.parse(p.structureId), itemEntityId: EntityIdSchema.parse(p.itemId) };
+            case 'CONSULT_CODEX': return { type: 'CONSULT_CODEX', actorId: playerId, entryId: p.entryId };
           }
         }
         const normDir = normalizeDirection(String(rawObj.dir || rawObj.direction || ''));
@@ -197,54 +227,4 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
   return fallback;
 }
 
-export function generateMockAction(
-  state: WorldState,
-  playerId: EntityId = EntityIdSchema.parse('actor_player'),
-  recentPositions?: ReadonlyArray<{ x: number; y: number }>,
-): LlmActionPayload {
-  const player = state.entities[playerId];
-  if (!player?.position) return { action: 'WAIT' };
-  const pos = player.position, grid = state.strata[pos.stratum];
-  if (!grid) return { action: 'WAIT' };
-
-  if (player.anatomy && state.turnCount % 5 === 0) {
-    for (const [s, limb] of Object.entries(player.anatomy.limbs)) {
-      const p = limb.installedProstheticEntityId ? state.entities[limb.installedProstheticEntityId] : undefined;
-      if (p?.prostheticSpec?.activeAbility && (p.prostheticSpec.activeAbility.cooldownRemaining ?? 0) === 0 && ['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG'].includes(s)) {
-        return { action: 'ACTIVATE_PROSTHETIC', slot: s as 'HEAD' | 'TORSO' | 'LEFT_ARM' | 'RIGHT_ARM' | 'LEFT_LEG' | 'RIGHT_LEG', reasoning: 'Mock: Activate prosthetic' };
-      }
-    }
-  }
-
-  for (const ent of Object.values(state.entities)) {
-    const isCorpse = ent.name.toLowerCase().includes('corpse') || ((ent.anatomy?.bloodVolumePct ?? 100) <= 0);
-    if (isCorpse && ent.position && ent.position.stratum === pos.stratum && Math.abs(ent.position.x - pos.x) <= 1 && Math.abs(ent.position.y - pos.y) <= 1) {
-      const tool = player.inventory?.containedEntityIds.find((id) => (state.entities[id]?.item?.blueprintId ?? '').includes('scalpel') || (state.entities[id]?.name ?? '').toLowerCase().includes('knife'));
-      if (tool) return { action: 'HARVEST_CORPSE', corpseId: ent.id, toolId: tool, reasoning: 'Mock: Harvest corpse' };
-    }
-    if (ent.actor && !ent.actor.isPlayer && ent.aiController?.hostile && ent.position && ent.position.stratum === pos.stratum) {
-      const dx = ent.position.x - pos.x, dy = ent.position.y - pos.y;
-      if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) return { action: 'ATTACK', targetId: ent.id, limb: 'TORSO', reasoning: 'Mock: Attack' };
-      if (Math.abs(dx) <= 4 && Math.abs(dy) <= 4 && (player.anatomy?.steamReserveKpa ?? 0) >= 30) return { action: 'VENT_STEAM', pressureKpa: 30, targetRelX: 0, targetRelY: 0, reasoning: 'Mock: Vent steam' };
-    }
-  }
-
-  if (findEntitiesAtPoint(state.entities, pos).some((e) => e.portal || e.districtGate)) return { action: 'USE_PORTAL', reasoning: 'Mock: Portal' };
-
-  if ((player.anatomy?.bloodVolumePct ?? 100) < 85 && player.inventory) {
-    const itm = player.inventory.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect?.kind === 'RESTORE_BLOOD');
-    if (itm) return { action: 'USE_ITEM', itemId: itm, reasoning: 'Mock: Heal' };
-  }
-
-  const validMoves: Array<{ dir: 'N' | 'S' | 'E' | 'W'; unvisited: boolean }> = [];
-  for (const [dir, [dx, dy]] of Object.entries(DIR_VECTORS)) {
-    if (dx !== 0 && dy !== 0) continue;
-    const tx = pos.x + dx, ty = pos.y + dy, point: Point3D = { x: tx, y: ty, stratum: pos.stratum };
-    const ents = findEntitiesAtPoint(state.entities, point), cell = getTileCell(grid, tx, ty);
-    if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') return { action: 'TOGGLE_DOOR', dx, dy, reasoning: 'Mock: Door' };
-    if (!cell || cell.blocksMovement || ents.some((e) => e.position?.blocksMovement || e.trap?.armed)) continue;
-    validMoves.push({ dir: dir as 'N' | 'S' | 'E' | 'W', unvisited: !recentPositions?.some((p) => p.x === tx && p.y === ty) });
-  }
-  const preferred = validMoves.find((m) => m.unvisited) ?? validMoves[0];
-  return preferred ? { action: 'MOVE', dir: preferred.dir, reasoning: 'Mock: Move' } : { action: 'WAIT', reasoning: 'Mock: Wait' };
-}
+export { generateMockAction } from './playtester-mock.js';

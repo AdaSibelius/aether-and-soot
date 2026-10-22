@@ -129,7 +129,7 @@ ${nearCap.join('\n')}
 Selected structural files:
 ${topFiles}
 
-Output a strictly formatted 25-line markdown Pre-Flight Impact Analysis Block adhering to AGENTS.md Rule 1.2:
+Output a concise markdown Pre-Flight Impact Analysis Block adhering to AGENTS.md Rule 1.2:
 1. Schemas Impacted (src/schemas/)
 2. Serialization & Save-State Impact (WorldStateSchema)
 3. Existing Infrastructure Reused
@@ -145,10 +145,14 @@ Do not output preamble or fluff.`;
       systemPrompt: 'You are an architectural evaluator for Aether & Soot. Return ONLY the requested 5-point markdown Pre-Flight Impact Analysis Block without introductory or concluding conversational fluff.',
       temperature: 0.2,
     });
-    return content && content.includes('Pre-Flight') ? content : generateDeterministicScoutReport(config.task, files);
-  } catch (err) {
-    console.warn(`[hermes-scout] Local LLM unavailable (${err}), using deterministic fallback.`);
-    return generateDeterministicScoutReport(config.task, files);
+    if (!content || !content.includes('Pre-Flight')) {
+      console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+      process.exit(1);
+    }
+    return content;
+  } catch {
+    console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+    process.exit(1);
   }
 }
 

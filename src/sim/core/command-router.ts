@@ -23,6 +23,13 @@ import { resolveCleanSpill, resolveCoatWeapon, resolveThrowFlask } from '../syst
 import { resolveEmitSquadCallout, resolveReportCrime } from '../systems/squad-witness.system.js';
 import { resolveBoardMonorail, resolveLaunchMonorail } from '../systems/monorail.system.js';
 import { resolveDescendCatacombs } from '../spatial/catacombs.js';
+import {
+  resolveBuildStructure,
+  resolveClaimWorkshopDeed,
+  resolveRetrieveItemFromStructure,
+  resolveStoreItemInStructure,
+} from '../systems/safehouse.system.js';
+import { resolveConsultCodex } from '../systems/codex.system.js';
 import { SeededRNG } from './rng.js';
 import { WorldState } from './world.js';
 
@@ -133,6 +140,16 @@ export function routeDomainCommand(
       return { ...resolveLaunchMonorail(state, command.actorId, command.monorailEntityId, command.destinationDistrictId), handled: true };
     case 'DESCEND_CATACOMBS':
       return { ...resolveDescendCatacombs(state, command.actorId, command.stairEntityId), handled: true };
+    case 'CLAIM_WORKSHOP_DEED':
+      return { ...resolveClaimWorkshopDeed(state, command), handled: true };
+    case 'BUILD_STRUCTURE':
+      return { ...resolveBuildStructure(state, command), handled: true };
+    case 'STORE_ITEM_IN_STRUCTURE':
+      return { ...resolveStoreItemInStructure(state, command), handled: true };
+    case 'RETRIEVE_ITEM_FROM_STRUCTURE':
+      return { ...resolveRetrieveItemFromStructure(state, command), handled: true };
+    case 'CONSULT_CODEX':
+      return { ...resolveConsultCodex(state, command), handled: true };
     default:
       return { state, events: [], handled: false };
   }

@@ -222,10 +222,14 @@ Output ONLY the TypeScript test file.`;
       temperature: 0.2,
     });
     const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
-    return clean.includes('describe') ? clean : generateMockTestSuite(config.target, rootDir, signatures);
-  } catch (err) {
-    console.warn(`[hermes-testgen] Local LLM unavailable (${err}), using deterministic fallback.`);
-    return generateMockTestSuite(config.target, rootDir, signatures);
+    if (!clean.includes('describe')) {
+      console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+      process.exit(1);
+    }
+    return clean;
+  } catch {
+    console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+    process.exit(1);
   }
 }
 

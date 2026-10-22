@@ -170,6 +170,14 @@ export function QuickActionBar({
         >
           [W] Atlas
         </button>
+        <button
+          type="button"
+          onClick={() => onOpenModal('CODEX')}
+          style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--brass-gold)' }}
+          title="Open Royal Society Naturalist's Codex [K]"
+        >
+          [K] Codex
+        </button>
         {onOpenCharacterCreator && (
           <button
             type="button"

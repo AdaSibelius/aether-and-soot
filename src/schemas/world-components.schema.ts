@@ -54,8 +54,19 @@ export type CombatStatsComponent = z.infer<typeof CombatStatsComponentSchema>;
 
 /** Interactive furniture fixture (e.g. Bed, Surgical Table, Locker, Crate). */
 export const FurnitureComponentSchema = z.object({
-  kind: z.enum(['BED', 'SURGICAL_TABLE', 'LOCKER', 'CRATE', 'BOOKSHELF']),
+  kind: z.enum([
+    'BED',
+    'SURGICAL_TABLE',
+    'LOCKER',
+    'CRATE',
+    'BOOKSHELF',
+    'ARTIFICER_BENCH',
+    'STEAM_CHARGER',
+    'BARRICADE_WOOD',
+    'BARRICADE_IRON',
+  ]),
   label: z.string().min(1),
+  durabilityHp: z.number().int().positive().optional(),
 });
 export type FurnitureComponent = z.infer<typeof FurnitureComponentSchema>;
 

@@ -20,6 +20,14 @@ import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
 import { QuickActionBar } from './ui/QuickActionBar.js';
 import { SystemMenuModal } from './ui/SystemMenuModal.js';
 
+import {
+  clampLookCursor,
+  cycleModalWindow,
+  findAdjacentDialogueNpc,
+  findAdjacentDoorTarget,
+  findEntityAtLookCursor,
+} from './client-interactions.js';
+
 export interface DebugSimBridge {
   getState: () => Readonly<WorldState>;
   getVisualFrame: () => VisualGridFrame;
@@ -30,8 +38,6 @@ export interface DebugSimBridge {
 declare global {
   interface Window { __DEBUG_SIM__?: DebugSimBridge; }
 }
-
-const MODAL_WINDOW_IDS: readonly ModalWindowId[] = ['INVENTORY', 'ANATOMY', 'WORKBENCH', 'EXCHANGE', 'ATLAS'];
 
 async function bootstrapClient(): Promise<void> {
   const canvasHost = document.getElementById('canvas-stage');
@@ -71,20 +77,13 @@ async function bootstrapClient(): Promise<void> {
 
   const handleTalk = (targetId?: EntityId): void => {
     if (targetId) { activeDialogueNpcId = targetId; syncPresentation(); return; }
-    const p = worldState.entities[playerId]?.position;
-    if (!p) return;
-    const adj = Object.values(worldState.entities).find(
-      (e) => e.id !== playerId && e.actor && !e.actor.isPlayer && !e.aiController?.hostile && e.position
-        && e.position.stratum === p.stratum && Math.max(Math.abs(e.position.x - p.x), Math.abs(e.position.y - p.y)) <= 1,
-    );
-    if (adj) { activeDialogueNpcId = adj.id; syncPresentation(); }
+    const adjId = findAdjacentDialogueNpc(worldState, playerId);
+    if (adjId) { activeDialogueNpcId = adjId; syncPresentation(); }
   };
 
   const cycleModal = (direction: 1 | -1): void => {
     if (!activeModal) return;
-    const idx = MODAL_WINDOW_IDS.indexOf(activeModal);
-    const nextIdx = (idx + direction + MODAL_WINDOW_IDS.length) % MODAL_WINDOW_IDS.length;
-    activeModal = MODAL_WINDOW_IDS[nextIdx] ?? 'INVENTORY';
+    activeModal = cycleModalWindow(activeModal, direction);
     syncPresentation();
   };
 
@@ -100,10 +99,7 @@ async function bootstrapClient(): Promise<void> {
     if (!lookCursor) return;
     const p = worldState.entities[playerId]?.position;
     const grid = p ? worldState.strata[p.stratum] : undefined;
-    lookCursor = {
-      x: Math.max(0, Math.min((grid?.width ?? 48) - 1, lookCursor.x + dx)),
-      y: Math.max(0, Math.min((grid?.height ?? 36) - 1, lookCursor.y + dy)),
-    };
+    lookCursor = clampLookCursor(lookCursor, dx, dy, grid?.width ?? 48, grid?.height ?? 36);
     hoveredTile = lookCursor;
     syncPresentation();
   };
@@ -112,9 +108,7 @@ async function bootstrapClient(): Promise<void> {
     if (!lookCursor) return;
     const p = worldState.entities[playerId]?.position;
     if (!p) return;
-    const target = Object.values(worldState.entities).find(
-      (e) => e.id !== playerId && e.actor && e.position && e.position.stratum === p.stratum && e.position.x === lookCursor?.x && e.position.y === lookCursor?.y,
-    );
+    const target = findEntityAtLookCursor(worldState, p.stratum, lookCursor, playerId);
     if (!target) return;
     const isAdj = Math.max(Math.abs(p.x - lookCursor.x), Math.abs(p.y - lookCursor.y)) <= 1;
     handleCommand(isAdj ? { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot } : { type: 'FIRE_RANGED_WEAPON', actorId: playerId, targetId: target.id, targetSlot: slot });
@@ -135,14 +129,8 @@ async function bootstrapClient(): Promise<void> {
 
   const toggleAdjacentDoor = (): void => {
     if (isLookModeActive) { lookInteract(); return; }
-    const p = worldState.entities[playerId]?.position, grid = p ? worldState.strata[p.stratum] : undefined;
-    if (!p || !grid) return;
-    const dirs = [{ x: 0, y: -1 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }];
-    const match = dirs.map((d) => ({ x: p.x + d.x, y: p.y + d.y, c: getTileCell(grid, p.x + d.x, p.y + d.y) }))
-      .find((t) => t.c?.terrainType === 'WOODEN_DOOR_CLOSED')
-      ?? dirs.map((d) => ({ x: p.x + d.x, y: p.y + d.y, c: getTileCell(grid, p.x + d.x, p.y + d.y) }))
-        .find((t) => t.c?.terrainType === 'WOODEN_DOOR_OPEN');
-    if (match) handleCommand({ type: 'TOGGLE_DOOR', actorId: playerId, target: { x: match.x, y: match.y, stratum: p.stratum } });
+    const match = findAdjacentDoorTarget(worldState, playerId);
+    if (match) handleCommand({ type: 'TOGGLE_DOOR', actorId: playerId, target: match });
   };
 
   const syncPresentation = (): void => {
