@@ -11,6 +11,7 @@ import {
 import { populateDistrictArchetypes, seedSpireGreenhouse } from './building-prefabs.js';
 import { seedDistrictArchitecture } from './architectural-features.js';
 import { generateSpireCatwalks, generateUndercroftDungeon } from './strata-dungeons.js';
+import { enrichLargeScaleDistrict } from './district-scaler.js';
 import { setTileCell } from './grid.js';
 
 export const DISTRICT_ADJACENCY: Record<string, { west: string; east: string }> = {
@@ -39,6 +40,8 @@ export interface GeneratedDistrictResult {
     readonly canalLock?: Point2D;
     readonly spireGreenhouse?: Point2D;
     readonly doors?: Record<string, Point2D>;
+    readonly sewerDrops?: readonly Point2D[];
+    readonly barriersPlaced?: readonly string[];
   };
 }
 
@@ -51,7 +54,8 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const width = state.strata.STREET?.width ?? 24;
   const height = state.strata.STREET?.height ?? 24;
 
-  const center: Point2D = { x: Math.floor(width / 2), y: Math.floor(height / 2) };
+  const centerY = height >= 36 ? 18 : Math.floor(height / 2);
+  const center: Point2D = { x: Math.floor(width / 2), y: centerY };
   const rndLiftX = rng.nextInt(Math.max(3, center.x + 2), Math.min(width - 4, width - 3));
   const rndLiftY = rng.nextInt(3, Math.max(4, center.y - 2));
   const liftPos: Point2D = width >= 36 ? { x: 30, y: 15 } : { x: rndLiftX, y: rndLiftY };
@@ -68,7 +72,7 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
 
   // 1. UNDERCROFT: Procedural sewer dungeon with interconnected chambers and smuggling vaults
   const undercroftRes = generateUndercroftDungeon(width, height, center, rng, state.entities);
-  const undercroft = undercroftRes.grid;
+  let undercroft = undercroftRes.grid;
 
   // 2. STREET: Central thoroughfare, buildings with doors, boiler house, and transit gates
   let street = buildSolidStratumGrid('STREET', width, height);
@@ -176,7 +180,13 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const criticalLandmarks = [westGatePos, eastGatePos, center, liftPos, boilerPos];
   const archetypes = populateDistrictArchetypes(street, newEntities, width, height, criticalLandmarks);
   street = seedDistrictArchitecture(archetypes.grid, currDistrict, rng, criticalLandmarks);
-  const finalEntities = archetypes.entities;
+
+  const scaled = enrichLargeScaleDistrict(
+    street, undercroft, currDistrict, rng, criticalLandmarks, archetypes.entities,
+  );
+  street = scaled.streetGrid;
+  undercroft = scaled.undercroftGrid;
+  const finalEntities = scaled.entities;
 
   return {
     state: {
@@ -201,6 +211,8 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
       canalLock: archetypes.landmarks?.canalLock ?? { x: 31, y: 20 },
       spireGreenhouse: ghRes.position,
       doors: archetypes.doors ?? {},
+      sewerDrops: scaled.sewerDrops,
+      barriersPlaced: scaled.barriersPlaced,
     },
   };
 }
