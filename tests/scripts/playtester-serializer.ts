@@ -82,6 +82,7 @@ export function serializePlayerContext(
         row += enemy.aiController?.hostile ? ' G ' : ' N ';
         visibleThreats.push(`${enemy.name} (id: '${enemy.id}') at rel (${dx}, ${dy}) | Alert: ${enemy.aiController?.alertState ?? 'IDLE'}`);
       } else if (entities.some((e) => e.trap?.armed)) row += ' ^ ';
+      else if (entities.some((e) => e.landmark)) row += ' L ';
       else if (entities.some((e) => e.pressureVessel)) row += ' B ';
       else if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') { row += ' + '; if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy}) -> TOGGLE_DOOR`); }
       else if ((cell?.steamPressureKpa ?? 0) >= 20 || (cell?.coalDustDensity ?? 0) >= 0.3) row += ' ~ ';

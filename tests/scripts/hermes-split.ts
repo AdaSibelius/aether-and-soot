@@ -204,11 +204,19 @@ export function performFileSplit(
   const updatedSourceImports = reconcileTargetImports(sourceImports, remainingCodeWithoutImports);
 
   const relImport = targetRelPath.startsWith('.') ? targetRelPath : './' + targetRelPath;
-  const isTypeOnly = extractedBlocks.every((b) => /^(?:export\s+)?(?:type|interface)\b/.test(b.trim()));
-  const barrelExport = `\nexport ${isTypeOnly ? 'type ' : ''}{ ${functionNames.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';\n`;
+  const nameIsType = new Map<string, boolean>();
+  for (const b of extractedBlocks) {
+    const m = b.trim().match(/^(?:export\s+)?(type|interface)\s+([a-zA-Z0-9_$]+)/);
+    if (m && m[2]) {
+      nameIsType.set(m[2], true);
+    }
+  }
+  const barrelMembers = functionNames.map((n) => (nameIsType.get(n) ? `type ${n}` : n));
+  const barrelExport = `\nexport { ${barrelMembers.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';\n`;
   const usedInSource = functionNames.filter((n) => new RegExp(`\\b${n}\\b`).test(remainingCodeWithoutImports));
   if (usedInSource.length > 0) {
-    updatedSourceImports.push(`import ${isTypeOnly ? 'type ' : ''}{ ${usedInSource.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';`);
+    const usedMembers = usedInSource.map((n) => (nameIsType.get(n) ? `type ${n}` : n));
+    updatedSourceImports.push(`import { ${usedMembers.join(', ')} } from '${relImport.replace(/\.ts$/, '.js')}';`);
   }
   const updatedSource = `${updatedSourceImports.join('\n')}\n\n${remainingCodeWithoutImports.trim()}\n${barrelExport}`;
 

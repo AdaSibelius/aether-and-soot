@@ -8,7 +8,7 @@ import {
   carveCorridor,
   carveRoom,
 } from './district-layout.js';
-import { populateDistrictArchetypes } from './building-prefabs.js';
+import { populateDistrictArchetypes, seedSpireGreenhouse } from './building-prefabs.js';
 import { seedDistrictArchitecture } from './architectural-features.js';
 import { generateSpireCatwalks, generateUndercroftDungeon } from './strata-dungeons.js';
 import { setTileCell } from './grid.js';
@@ -34,6 +34,11 @@ export interface GeneratedDistrictResult {
     readonly marketDoor: Point2D;
     readonly westGate: Point2D;
     readonly eastGate: Point2D;
+    readonly waterPump?: Point2D;
+    readonly clocktower?: Point2D;
+    readonly canalLock?: Point2D;
+    readonly spireGreenhouse?: Point2D;
+    readonly doors?: Record<string, Point2D>;
   };
 }
 
@@ -47,14 +52,12 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const height = state.strata.STREET?.height ?? 24;
 
   const center: Point2D = { x: Math.floor(width / 2), y: Math.floor(height / 2) };
-  const liftPos: Point2D = {
-    x: rng.nextInt(Math.max(3, center.x + 2), Math.min(width - 4, width - 3)),
-    y: rng.nextInt(3, Math.max(4, center.y - 2)),
-  };
-  const boilerPos: Point2D = {
-    x: rng.nextInt(3, Math.max(4, center.x - 2)),
-    y: rng.nextInt(Math.max(3, center.y + 2), Math.min(height - 4, height - 3)),
-  };
+  const rndLiftX = rng.nextInt(Math.max(3, center.x + 2), Math.min(width - 4, width - 3));
+  const rndLiftY = rng.nextInt(3, Math.max(4, center.y - 2));
+  const liftPos: Point2D = width >= 36 ? { x: 30, y: 15 } : { x: rndLiftX, y: rndLiftY };
+  const rndBoilerX = rng.nextInt(3, Math.max(4, center.x - 2));
+  const rndBoilerY = rng.nextInt(Math.max(3, center.y + 2), Math.min(height - 4, height - 3));
+  const boilerPos: Point2D = width >= 36 ? { x: 6, y: 26 } : { x: rndBoilerX, y: rndBoilerY };
 
   const currDistrict = state.currentDistrictId ?? 'district_spitalfields_soot_works';
   const biomeDust =
@@ -107,7 +110,8 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
 
   // 3. SPIRE: Elevated brass tower platforms and sky-bridge catwalks
   const spireRes = generateSpireCatwalks(width, height, liftPos, rng, undercroftRes.entities);
-  const spire = spireRes.grid;
+  const ghRes = width >= 36 ? seedSpireGreenhouse(spireRes.grid, spireRes.entities, liftPos) : { grid: spireRes.grid, entities: spireRes.entities, position: liftPos };
+  const spire = ghRes.grid;
 
   const liftDownId = EntityIdSchema.parse('portal_spire_lift_down');
   const liftUpId = EntityIdSchema.parse('portal_street_lift_up');
@@ -124,7 +128,7 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   const eastTarget = adj.east;
 
   const newEntities: Record<string, EntityRecord> = {
-    ...spireRes.entities,
+    ...ghRes.entities,
     [liftUpId]: {
       id: liftUpId,
       name: 'Pneumatic Freight Elevator (To Spire)',
@@ -170,7 +174,7 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   };
 
   const criticalLandmarks = [westGatePos, eastGatePos, center, liftPos, boilerPos];
-  const archetypes = populateDistrictArchetypes(street, newEntities, width, height);
+  const archetypes = populateDistrictArchetypes(street, newEntities, width, height, criticalLandmarks);
   street = seedDistrictArchitecture(archetypes.grid, currDistrict, rng, criticalLandmarks);
   const finalEntities = archetypes.entities;
 
@@ -192,6 +196,11 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
       marketDoor,
       westGate: westGatePos,
       eastGate: eastGatePos,
+      waterPump: archetypes.landmarks?.waterPump ?? { x: 14, y: 16 },
+      clocktower: archetypes.landmarks?.clocktower ?? { x: 31, y: 16 },
+      canalLock: archetypes.landmarks?.canalLock ?? { x: 31, y: 20 },
+      spireGreenhouse: ghRes.position,
+      doors: archetypes.doors ?? {},
     },
   };
 }

@@ -4,6 +4,7 @@ import {
   CommodityIdSchema,
   EntityIdSchema,
   FactionIdSchema,
+  LandmarkArchetypeIdSchema,
   Point3DSchema,
 } from './primitives.schema.js';
 
@@ -64,11 +65,27 @@ export const FurnitureComponentSchema = z.object({
     'STEAM_CHARGER',
     'BARRICADE_WOOD',
     'BARRICADE_IRON',
+    'SAFE_VAULT',
+    'SMELTING_FURNACE',
+    'CLOCKTOWER_MECHANISM',
+    'WATER_PUMP',
+    'CANAL_LOCK_MECHANISM',
+    'BOTANICAL_PLANTER',
+    'MONORAIL_DEPOT_CONSOLE',
+    'APOTHECARY_COUNTER',
   ]),
   label: z.string().min(1),
   durabilityHp: z.number().int().positive().optional(),
 });
 export type FurnitureComponent = z.infer<typeof FurnitureComponentSchema>;
+
+/** Distinctive outdoor street landmark or architectural monument. */
+export const LandmarkComponentSchema = z.object({
+  kind: LandmarkArchetypeIdSchema,
+  label: z.string().min(1),
+  discovered: z.boolean().default(false),
+});
+export type LandmarkComponent = z.infer<typeof LandmarkComponentSchema>;
 
 export const ThermalComponentSchema = z.object({
   coreHeatPct: z.number().min(0).max(100).default(50),

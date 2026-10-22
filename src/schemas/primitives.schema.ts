@@ -137,6 +137,34 @@ export type LiquidTypeId = z.infer<typeof LiquidTypeIdSchema>;
 export const ItemCategorySchema = z.enum(['MATERIAL', 'CONSUMABLE', 'PROSTHETIC', 'COMMODITY', 'EQUIPMENT']);
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
+export const InteriorZoneTypeSchema = z.enum([
+  'NONE',
+  'RECEPTION',
+  'WORKSHOP',
+  'VAULT',
+  'SURGICAL_BAY',
+  'STORAGE',
+]);
+export type InteriorZoneType = z.infer<typeof InteriorZoneTypeSchema>;
+
+export const BuildingArchetypeIdSchema = z.enum([
+  'VICTORIAN_APOTHECARY_CLINIC',
+  'CLOCKWORK_PAWNSHOP_BANK',
+  'STEAM_BOILERHOUSE_FURNACE',
+  'TENEMENT_ROOKERIES',
+  'PNEUMATIC_MONORAIL_DEPOT',
+  'GUILD_ARTISAN_WORKSHOP',
+]);
+export type BuildingArchetypeId = z.infer<typeof BuildingArchetypeIdSchema>;
+
+export const LandmarkArchetypeIdSchema = z.enum([
+  'WATER_PUMP_STATION',
+  'STREET_CLOCKTOWER',
+  'SUNKEN_CANAL_LOCK',
+  'SPIRE_ROOFTOP_GREENHOUSE',
+]);
+export type LandmarkArchetypeId = z.infer<typeof LandmarkArchetypeIdSchema>;
+
 export const ItemUseEffectSchema = z.object({
   kind: z.enum(['RESTORE_BLOOD', 'RESTORE_STEAM', 'ALCHEMICAL']),
   magnitude: z.number().default(0),
