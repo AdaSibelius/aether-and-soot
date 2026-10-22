@@ -87,43 +87,29 @@
 > **AGENT DIRECTIVE:** The systemic analysis below is theoretical. Do not implement mechanical dependencies between unwired commands unless explicitly required by the active ROADMAP.
 
 
-Telemetry shows a small but well-defined active command surface — `ATTACK_ACTOR`, `MOVE_STEP`, `USE_PORTAL`, `VENT_STEAM` — that maps cleanly to combat, locomotion, teleportation, and environmental interaction. The eight unwired commands (`COMPLETE_CONTRACT`, `CRAFT_RECIPE`, `DAMAGE_LIMB`, `DROP_ITEM`, `EMIT_SPARK`, `HIRE_COMPANION`, `INSTALL_PROSTHETIC`, `INSTALL_WEAPON_MOD`) are present in the schema but telemetry records no state changes or feedback from them; they exist as hooks rather than active systems. No observed dependency links exist between the unwired commands and the active ones.
+**Active command surface.** Compared to CDDA's squad AI, which continuously re-evaluates squad goals and can pivot mid-fight, Aether & Soot's ATTACK_ACTOR/MOVE_STEP act as stat-driven actors with no observable goal-state transitions in current telemetry. The Phase 42 squad AI referenced for turf skirmishes is not yet integrated, so the squad-level coordination that CDDA provides is absent.
 
-**Compared to CDDA:** CDDA derives depth from procedural item/weapon generation and a deep NPC goal system (e.g., merchants, guards with persistent routines). Aether & Soot has a dedicated character-archetype system (`src/sim/systems/character-archetypes.ts:244`) that hints at archetype-driven depth, but telemetry shows no archetype-specific mechanics yet — the archetype layer is currently scaffolding rather than an active driver.
+**Unwired commands.** Telemetry shows no mechanical dependencies between unwired commands — DROP_ITEM does not alter CRAFT_RECIPE state, and HIRE_COMPANION / INSTALL_WEAPON_MOD do not feed into ATTACK_ACTOR's damage profile. This is consistent with the "unwired" label: these commands are registered but not wired into the active command graph. The design is intentionally modular, but the lack of coupling limits cross-system emergent behavior.
 
-**Compared to Qud:** Qud's emergent NPC curiosity and procedural reactions are driven by item-level interactions. Aether & Soot's Royal Society Naturalist's Codex is a similar data-driven curiosity trigger, but telemetry only records that discovered entries "trigger emergent NPC curiosity, hostility, or trade reactions" — there is no evidence of persistent NPC state (no memory of a specific automaton or schematic), so the reaction appears event-driven rather than state-driven.
+**NPC agency (planned).** Phase 45 introduces autonomous Royal Society guild inspectors and rival artificers that audit safehouses and react to workshop deeds, emitting `NPC_GOAL_CHANGED` telemetry. This is a deliberate departure from Qud's static procedural NPC goals and Arcostate's more reactive faction politics: the goal-change signal is meant to be observable state. However, current telemetry shows no evidence that any NPC with an emitted `NPC_GOAL_CHANGED` has altered world state or influenced squad behavior — the agency is forward-looking rather than demonstrated.
 
-**Compared to Arcostate:** Arcostate's contract and property systems are explicit and enforced. The `COMPLETE_CONTRACT` unwired command suggests a contract hook, but telemetry shows no contract enforcement or reward loops; the deed/vault purchase path remains a design placeholder with no observable payoff.
-
-**NPC agency in Phase 44 is currently event-based:** Codex entries → emergent reactions via `src/schemas/events.schema.ts:245`. This is a step toward agency, but the design lacks persistent NPC memory (no telemetry shows an NPC retaining knowledge of a discovered automaton or schematic). The codex tracking schema is the correct place for this, but the serialization path has not yet been wired to the event emitter.
-
-**Systemic depth gap:** Phase 44 introduces persistent storage (`SURGICAL_TABLE`, `ARTIFICER_BENCH`, `STEAM_CHARGER`), field construction/barricading (`BUILD_STRUCTURE`), and the Naturalist's Codex — none of which have observable telemetry. The active command set is deterministic but shallow, and the unwired commands are not yet integrated into the state graph.
+**Design comparison summary.**
+- **CDDA:** deep squad goals and dynamic re-evaluation; Aether & Soot lacks this.
+- **Qud:** static procedural NPCs; Aether & Soot's inspectors are a step toward dynamic goals but are not yet wired.
+- **Arcostate:** visible political state changes; Phase 45's Royal Society politics aligns with this direction, but the telemetry has no current mechanism for safehouse audits or workshop deed reactions.
 
 ## 5. Self-Directed Prescriptions for Next Phase (P1, P2, P3)
 
-**P1 — Serialization & Test Coverage (`playtester-serializer.ts`)**
-- Extend `playtester-serializer.ts` to cover all Phase 44 command/state pairs: deed purchase/claim (Freehold Workshop Deed / Undercroft vault), storage state for `SURGICAL_TABLE`, `ARTIFICER_BENCH`, `STEAM_CHARGER`, `BUILD_STRUCTURE` field construction, and the `[K]` Royal Society Naturalist's Codex query (automatons, schematics, alchemical reactions).
-- Write deterministic unit tests in `tests/sim/` that assert serialization round-trips for each state object (e.g., deed ownership → persisted deed ID; storage slot → item count; codex entry → tracked discovery). Ensure the serializer is order-stable and idempotent.
-- This closes the telemetry gap: the serializer must be the single source of truth for what the test harness observes.
+**P1 — Dynamic Turf Skirmishes.** Build on the Phase 42 squad AI foundation: wire ATTACK_ACTOR and MOVE_STEP to turf ownership/control events so that skirmish behavior is reactive to contested terrain. Telemetry must track per-actor turf state changes and record VENT_STEAM/USE_PORTAL usage as tactical cover during skirmishes. This closes the gap between the active command surface and the turf system, giving the skirmish loop observable depth.
 
-**P2 — Wiring Unwired Commands into Phase 44 Systems**
-- Link `COMPLETE_CONTRACT` to deed ownership validation (a contract is only valid if the player holds a valid deed).
-- Wire `CRAFT_RECIPE` and `INSTALL_WEAPON_MOD` into the Artificer Safehouse Deed's crafting/modification pipeline so the deed grants access to new recipe slots and weapon mods.
-- Make `DAMAGE_LIMB` a persistent limb-state tracker that feeds NPC curiosity (e.g., an NPC who has seen the injury reacts with concern or hostility).
-- Ensure the `[K]` codex entries are emitted via `src/schemas/events.schema.ts:245` and consumed by the event emitter to trigger emergent NPC reactions — this is the core of the Naturalist's Codex mechanic.
+**P2 — Economic Supply Escorts.** Wire CRAFT_RECIPE into convoy preparation (item preparation before escort), DROP_ITEM into delivery confirmation, and HIRE_COMPANION into escort selection. Telemetry should log each stage: recipe completion → item ready; drop-off → success/failure; escort survival → outcome. This makes the economic supply chain visible and auditable, matching the Phase 45 design brief.
 
-**P3 — NPC Agency & Systemic Expansion**
-- Give NPCs a persistent memory of codex discoveries: store discovered automatons, schematics, and alchemical reactions in a player-side log that NPCs can query; the `[K]` codex query should return entries that NPCs with the relevant curiosity flag react to.
-- Tie `BUILD_STRUCTURE` (barricading) to the safehouse's defensive state — a built structure should persist across phases and influence Phase 44's barricade mechanics.
-- Add deterministic unit tests in `tests/sim/` for the full Phase 44 flow: deed purchase → storage persistence → codex entry → NPC reaction. Verify that `src/client/ui/TradeWindow.tsx:248` (trade window) reflects the new item/furniture inventory tied to the deed, and that `src/schemas/events.schema.ts:245` correctly serializes Codex query results.
-- Ensure `TradeWindow.tsx:248` is updated to display the deed-bound furniture inventory (`SURGICAL_TABLE`, `ARTIFICER_BENCH`, `STEAM_CHARGER`) as purchasable/placeable items.
-
-These prescriptions close the observed telemetry gaps, wire the Phase 44 hooks into a coherent state graph, and establish deterministic serialization and test coverage for the Freehold Workshop Deed, furniture construction, and Royal Society Codex tracking.
+**P3 — Royal Society Politics.** Implement autonomous Royal Society guild inspectors that audit safehouses and react to workshop deeds, each emitting `NPC_GOAL_CHANGED` with a target goal (e.g., "report unsafe workshop"). Rival artificers should emit the same telemetry when they audit. The goal changes must be observable in the event stream and must visibly shift faction reputation or safehouse state — this is the concrete realization of the planned NPC agency, and it directly addresses the Phase 45 requirement for auditing and reaction to workshop deeds.
 
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
-Implement **Phase 44: Artificer Safehouse Deeds, Furniture Construction & Royal Society Codex**: Allow purchasing a **Freehold Workshop Deed** (or claiming an Undercroft vault) with persistent item/furniture storage (`SURGICAL_TABLE`, `ARTIFICER_BENCH`, `STEAM_CHARGER`), field construction/barricading (`BUILD_STRUCTURE`), and a `[K]` **Royal Society Naturalist's Codex** tracking discovered automatons, schematics, and alchemical reactions. Discovered Codex entries trigger emergent NPC curiosity, hostility, or trade reactions. Ensure `playtester-serializer.ts` provides complete command/state serialization coverage for Phase 44 deeds, structures, and Codex queries with deterministic unit tests in `tests/sim/`. adhering to AGENTS.md and ARCHITECTURE.md:
+Implement **Phase 45: Dynamic Turf Skirmishes, Economic Supply Escorts & Royal Society Politics**: Grounded in Phase 42 squad AI and Phase 43 monorail cargo transit between factions. Introduce autonomous Royal Society guild inspectors and rival artificers who audit safehouses, react to workshop deeds, and emit `NPC_GOAL_CHANGED` telemetry. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
 2. Pre-split any src/ hotspot >= 245 lines (`src/client/ui/TradeWindow.tsx` (248 lines)) via `npm run hermes:split`.
 3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `COMPLETE_CONTRACT`, `CRAFT_RECIPE`, `DAMAGE_LIMB`, `DROP_ITEM`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
