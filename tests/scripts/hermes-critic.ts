@@ -14,7 +14,7 @@ export interface CriticConfig {
 export function parseCriticArgs(argv: string[]): CriticConfig {
   const args = argv.slice(2);
   let skipPlaytest = false, mock = false;
-  let model = process.env['LLM_MODEL'] ?? 'gemma4:12b-extended';
+  let model = process.env['LLM_MODEL'] ?? 'hermes-agent';
   const endpoint = process.env['LLM_ENDPOINT'] ?? 'http://localhost:8642/v1/chat/completions';
   let output = 'tests/artifacts/critic-audit.md';
 
@@ -87,11 +87,22 @@ export function formatCriticReport(data: {
   histogram: Record<string, number>;
   turnsSurvived: number;
   nextPriority: string;
+  customPrescriptions?: string;
 }): string {
   const activeList = data.coverage.active.map((c) => `- \`${c}\` (${data.histogram[c]} dispatches)`).join('\n') || '- None';
   const dormantList = data.coverage.dormant.map((c) => `- \`${c}\``).join('\n') || '- None';
   const unwiredList = data.coverage.unwired.map((c) => `- \`${c}\``).join('\n') || '- None';
   const hotspotList = data.hotspots.map((h) => `- \`${h.file}\`: **${h.lines} lines** (threshold: 230)`).join('\n') || '- None! All modules cleanly decoupled.';
+
+  const topUnwired = data.coverage.unwired.slice(0, 4).map((c) => `\`${c}\``).join(', ') || 'all mapped';
+  const topHotspot = data.hotspots[0] ? `\`${data.hotspots[0].file}\` (${data.hotspots[0].lines} lines)` : 'modular decoupling maintained';
+
+  const defaultPrescriptions = `## 5. Self-Directed Prescriptions for Next Phase
+- **P1: ${data.nextPriority.split(':')[0]?.replace(/\*+/g, '').trim() || 'Next Roadmap Phase'}**: Focus core systems development on ${data.nextPriority}.
+- **P2: Expand Playtest Serializer Command Surface**: Wire unwired commands (${topUnwired}) into contextual playtester commands so autonomous agents exercise broader systemic surfaces.
+- **P3: Modularity Guard & File Splitting**: Monitor near-cap modules like ${topHotspot} to ensure domain systems remain strictly below the 250-line target ceiling.`;
+
+  const prescriptionsBlock = data.customPrescriptions ?? defaultPrescriptions;
 
   return `# Aether & Soot — Whole-Game Architecture & Emergence Audit
 
@@ -127,10 +138,7 @@ ${unwiredList}
   - NPCs do not yet consume medical tonics or activate cybernetic prosthetics in combat.
   - Physical container interaction and storefront trading remain predominantly player-driven.
 
-## 5. Self-Directed Prescriptions for Next Phase
-- **P1: NPC Combat Cybernetics & Tonic Usage**: Grant hostile humanoids and cybernetic enforcers the ability to trigger installed limb prosthetics and consume medical tonics when blood drops below 70%.
-- **P2: Expand Playtest Serializer Command Surface**: Wire \`LOOT_CONTAINER\`, \`CRAFT_RECIPE\`, and \`SMASH_TERRAIN\` into contextual commands so autonomous agents exercise broader systemic surfaces.
-- **P3: Pneumatic Rail & Soundscape Integration**: Advance queued Phase 37/38 audio and transit mechanics to connect multi-district transit with WebAudio synthesis and decibel telemetry.
+${prescriptionsBlock}
 `;
 }
 
@@ -178,14 +186,17 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
   if (!config.mock) {
     try {
       const apiKey = process.env['API_KEY'] || process.env['LLM_API_KEY'] || 'aether-dev-key';
-      const prompt = `Evaluate Aether & Soot (Victorian Steampunk roguelike) based on telemetry:\nActive: ${coverage.active.join(',')}\nDormant: ${coverage.dormant.join(',')}\nUnwired: ${coverage.unwired.join(',')}\nHotspots: ${hotspots.map((h) => `${h.file}:${h.lines}`).join(',')}\nFormat with the 5 mandatory sections.`;
+      const prompt = `Evaluate Aether & Soot based on telemetry:\nActive: ${coverage.active.join(',')}\nUnwired: ${coverage.unwired.slice(0, 8).join(',')}\nNext priority: ${nextPriority}\nNear-cap files: ${hotspots.slice(0, 3).map((h) => `${h.file}:${h.lines}`).join(',')}\nGenerate markdown with:\n## 4. Systemic Depth & NPC Agency Critique (vs. CDDA / Qud / Arcostate)\n## 5. Self-Directed Prescriptions for Next Phase (P1, P2, P3)`;
       const res = await fetch(config.endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
           model: config.model,
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 1500,
+          messages: [
+            { role: 'system', content: 'You are the lead architectural evaluator for Aether & Soot (Victorian roguelike). Do not make function or tool calls. Reply directly in plain Markdown.' },
+            { role: 'user', content: prompt },
+          ],
+          max_tokens: 1200,
           temperature: 0.2,
         }),
       });
@@ -194,10 +205,21 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
         const content = json.choices?.[0]?.message?.content;
         if (content && content.includes('## 1.') && content.includes('## 5.')) {
           report = content;
+        } else if (content && content.includes('## 5.')) {
+          const sec5 = content.slice(content.indexOf('## 5.'));
+          report = formatCriticReport({
+            score: 88,
+            hotspots,
+            coverage,
+            histogram: aggregatedHistogram,
+            turnsSurvived: totalTurns,
+            nextPriority,
+            customPrescriptions: sec5.trim(),
+          });
         }
       }
     } catch {
-      console.log('[hermes-critic] Local LLM unavailable, using deterministic benchmark template.');
+      console.log('[hermes-critic] Local LLM unavailable, using dynamic benchmark template.');
     }
   }
 

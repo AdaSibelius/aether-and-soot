@@ -1,6 +1,6 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
-**Generated:** 2026-10-21 | **Benchmark Engine:** Hermes Critic v1.0
+**Generated:** 2026-10-22 | **Benchmark Engine:** Hermes Critic v1.0
 
 ## 1. Whole-Game Emergence & Readiness Score (88/100)
 - **Score Breakdown**:
@@ -23,6 +23,7 @@
 - `src/sim/systems/character-archetypes.ts`: **244 lines** (threshold: 230)
 - `src/sim/systems/inventory.system.ts`: **244 lines** (threshold: 230)
 - `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
+- `tests/scripts/hermes-critic.ts`: **241 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **240 lines** (threshold: 230)
 - `src/client/ui/ItemDossierCard.tsx`: **240 lines** (threshold: 230)
 - `src/client/ui/CharacterCreatorModal.tsx`: **239 lines** (threshold: 230)
@@ -95,7 +96,22 @@
   - NPCs do not yet consume medical tonics or activate cybernetic prosthetics in combat.
   - Physical container interaction and storefront trading remain predominantly player-driven.
 
-## 5. Self-Directed Prescriptions for Next Phase
-- **P1: NPC Combat Cybernetics & Tonic Usage**: Grant hostile humanoids and cybernetic enforcers the ability to trigger installed limb prosthetics and consume medical tonics when blood drops below 70%.
-- **P2: Expand Playtest Serializer Command Surface**: Wire `LOOT_CONTAINER`, `CRAFT_RECIPE`, and `SMASH_TERRAIN` into contextual commands so autonomous agents exercise broader systemic surfaces.
-- **P3: Pneumatic Rail & Soundscape Integration**: Advance queued Phase 37/38 audio and transit mechanics to connect multi-district transit with WebAudio synthesis and decibel telemetry.
+## 5. Self-Directed Prescriptions for Next Phase (P1, P2, P3)
+
+#### Phase 1 (P1) - Craft NPCs & Systems
+- Develop a few flagship NPCs that serve as models for branching storylines and deeper NPC systems 
+- Build out backstories, motives, dialog trees and impactful actions for these flagship NPCs
+- Iterate on flagship NPCs system in next phases
+
+#### Phase 2 (P2) - Seed the World
+- Take developed flagship NPCs and seed them throughout world
+- NPCs should react to world-state, player actions, and each other
+- NPCs self-navigate and impact narrative when player not present
+
+#### Phase 3 (P3) - Layer Complexity
+- Add rich systems (contracts, schematics, codices) that NPCs can pursue
+- NPCs should have personal ambitions feeding into larger systems and conspiracies  
+- Complex NPC interactions drive emergent NPC communities, economies, organizations
+- Phase out one-off throwaway NPCs in favor of a few deep NPCs
+
+My near-cap logs and testgen scripts suggest the codebase supports this phased development of NPC systems. With some prioritization and incremental refinement, we can craft deep and impactful NPCs that rival or exceed the depth of CDDA to fully flesh out the world of Aether & Soot. Let me know if you would like me to elaborate on anything specific in these phases or critique.
