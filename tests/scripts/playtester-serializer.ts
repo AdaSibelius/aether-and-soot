@@ -121,6 +121,15 @@ export function serializePlayerContext(
 
   const consumable = player.inventory?.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect);
   if (consumable) contextualCommands.push(`{"action": "USE_ITEM", "itemId": "${consumable}"}`);
+  const invIds = player.inventory?.containedEntityIds ?? [];
+  const prosthItem = invIds.find((id) => state.entities[id]?.prostheticSpec);
+  if (prosthItem) {
+    const spec = state.entities[prosthItem]?.prostheticSpec;
+    if (spec) contextualCommands.push(`{"action": "INSTALL_PROSTHETIC", "prostheticId": "${prosthItem}", "slot": "${spec.targetLimbSlot}"}`);
+  }
+  const weaponEnt = invIds.find((id) => state.entities[id]?.equipmentSpec?.equipSlot === 'WIELD');
+  const ammoEnt = invIds.find((id) => (state.entities[id]?.item?.blueprintId ?? '').includes('ammo') || (state.entities[id]?.name ?? '').toLowerCase().includes('ammo'));
+  if (weaponEnt && ammoEnt) contextualCommands.push(`{"action": "LOAD_AMMO", "weaponId": "${weaponEnt}", "ammoId": "${ammoEnt}"}`);
   if (steam >= 20) contextualCommands.push('{"action": "VENT_STEAM", "pressureKpa": 30}');
   const safehouseList = Object.values(state.safehouses).map((s) => s.name).join(', ') || 'None';
   const codexCount = Object.keys(state.codex).length;
@@ -192,6 +201,10 @@ export function parseLlmResponseToCommand(raw: string, state: WorldState, player
             case 'INITIATE_TURF_SKIRMISH': return { type: 'INITIATE_TURF_SKIRMISH', actorId: playerId, turfId: p.turfId };
             case 'PREPARE_SUPPLY_CONVOY': return { type: 'PREPARE_SUPPLY_CONVOY', actorId: playerId, cargoItemId: EntityIdSchema.parse(p.cargoItemId), clientFactionId: FactionIdSchema.parse(p.clientFactionId), destinationDistrictId: p.destinationDistrictId, ...(p.rewardPence !== undefined ? { rewardPence: p.rewardPence } : {}) };
             case 'AUDIT_SAFEHOUSE_DEED': return { type: 'AUDIT_SAFEHOUSE_DEED', actorId: playerId, inspectorId: EntityIdSchema.parse(p.inspectorId), deedId: p.deedId };
+            case 'EMIT_SPARK': return { type: 'EMIT_SPARK', actorId: playerId, target: { x: pos.x + p.targetRelX, y: pos.y + p.targetRelY, stratum: pos.stratum } };
+            case 'INSTALL_PROSTHETIC': return { type: 'INSTALL_PROSTHETIC', actorId: playerId, prostheticEntityId: EntityIdSchema.parse(p.prostheticId), slot: p.slot as LimbSlotId };
+            case 'INSTALL_WEAPON_MOD': return { type: 'INSTALL_WEAPON_MOD', actorId: playerId, weaponEntityId: EntityIdSchema.parse(p.weaponId), modEntityId: EntityIdSchema.parse(p.modId) };
+            case 'LOAD_AMMO': return { type: 'LOAD_AMMO', actorId: playerId, weaponEntityId: EntityIdSchema.parse(p.weaponId), ammoEntityId: EntityIdSchema.parse(p.ammoId) };
           }
         }
         const normDir = normalizeDirection(String(rawObj.dir || rawObj.direction || ''));

@@ -19,6 +19,7 @@ import { HudLayout } from './ui/HudLayout.js';
 import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
 import { QuickActionBar } from './ui/QuickActionBar.js';
 import { SystemMenuModal } from './ui/SystemMenuModal.js';
+import { getSoundscapeManager, SoundscapeManager } from './audio/soundscape-manager.js';
 
 import {
   clampLookCursor,
@@ -33,6 +34,7 @@ export interface DebugSimBridge {
   getVisualFrame: () => VisualGridFrame;
   dispatch: (cmd: GameCommand) => void;
   serialize: () => string;
+  soundscape?: SoundscapeManager;
 }
 
 declare global {
@@ -66,8 +68,12 @@ async function bootstrapClient(): Promise<void> {
   let lookCursor: { x: number; y: number } | null = null;
   let activeDialogueNpcId: EntityId | null = null;
 
+  const soundscape = getSoundscapeManager();
   const handleCommand = (cmd: GameCommand): void => {
-    worldState = dispatchCommand(worldState, cmd).state;
+    soundscape.initOnUserGesture();
+    const outcome = dispatchCommand(worldState, cmd);
+    worldState = outcome.state;
+    soundscape.processSimEvents(outcome.events);
     syncPresentation();
   };
   const handleEmbark = (cfg: CharacterCreationConfig, s: number): void => {
@@ -228,6 +234,7 @@ async function bootstrapClient(): Promise<void> {
     getState: () => worldState, dispatch: handleCommand,
     getVisualFrame: () => projectWorldToVisualFrame(worldState, playerId),
     serialize: () => serializeWorld(worldState),
+    soundscape,
   };
 
   syncPresentation();
