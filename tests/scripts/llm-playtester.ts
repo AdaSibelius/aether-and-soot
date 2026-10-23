@@ -15,6 +15,7 @@ import {
 } from './playtester-scenarios.js';
 import { PlaytestMetrics, writeReport } from './playtest-report.js';
 import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
+import { auditClientProjection, ClientProjectionAudit } from './playtester-projection-audit.js';
 
 export type { PlaytestMetrics };
 
@@ -51,9 +52,9 @@ async function queryLocalLlm(endpoint: string, model: string, prompt: string): P
     return await queryLocalOllama(prompt, {
       endpoint,
       model,
-      systemPrompt: 'You are playing Aether & Soot, a Victorian roguelike. Return ONLY JSON matching schema (action: MOVE/WAIT/ATTACK/TOGGLE_DOOR/VENT_STEAM/BREACH_TILE). Do not make function or tool calls.',
+      systemPrompt: 'You are playing Aether & Soot, a Victorian roguelike. Return ONLY JSON matching schema (action: MOVE/WAIT/ATTACK/TOGGLE_DOOR/VENT_STEAM/BREACH_TILE/STOKE_BOILER/CRAFT_RECIPE/SALVAGE_ITEM/GRAFT_PROSTHETIC/FIELD_REPAIR_LIMB/PRY_OBJECT/CLAIM_SAFEHOUSE/STOCK_PEDESTAL/DISPATCH_MONORAIL/ACCEPT_CONTRACT). Do not make function or tool calls.',
       formatJson: true,
-      temperature: 0.2,
+      temperature: 0.1,
     });
   } catch {
     console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
@@ -84,6 +85,7 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     finalBloodPct: 100,
     uniqueTilesVisited: 0,
     commandHistogram: {},
+    uiProjectionLeaks: 0,
   };
 
   const prevAlerts = new Map<string, string>();
@@ -111,9 +113,15 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
     }
 
     metrics.turnsSurvived = turn + 1;
+
+    // Audit client UI projection on every simulation tick
+    const projectionAudit = auditClientProjection(state, playerId);
+    (state as { clientProjectionAudit?: ClientProjectionAudit }).clientProjectionAudit = projectionAudit;
+    metrics.uiProjectionLeaks = (metrics.uiProjectionLeaks ?? 0) + projectionAudit.leakCount;
+
     let rawAction = '';
     if (config.mock) {
-      rawAction = JSON.stringify(generateMockAction(state, playerId, recentPositions));
+      rawAction = JSON.stringify(generateMockAction(state, playerId, recentPositions, config.scenario));
     } else {
       const context = serializePlayerContext(state, playerId, {
         recentPositions: recentPositions.slice(-3),

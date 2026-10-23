@@ -9,7 +9,7 @@
   - Headless Determinism & Boundary Isolation: **25/25**
   - Spatial, Acoustic & Environmental Depth: **22/25**
   - NPC Ecological Parity vs Player: **18/25**
-  - Command Surface Playtest Coverage: **3/25**
+  - Command Surface Playtest Coverage: **5/25**
 - **Overall Assessment**: *Aether & Soot* exhibits exceptional deterministic headless rigor matching CDDA simulation fidelity and Caves of Qud tactile worldcraft, with complete Core/Shell separation.
 
 ## 2. Architectural & Modularity Health
@@ -35,15 +35,22 @@
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
 - `ATTACK_ACTOR` (7 dispatches)
-- `MOVE_STEP` (15 dispatches)
+- `BUY_FROM_MERCHANT` (3 dispatches)
+- `MOVE_STEP` (11 dispatches)
+- `USE_ITEM` (1 dispatches)
 - `USE_PORTAL` (30 dispatches)
 - `VENT_STEAM` (1 dispatches)
 - **Dormant Commands (Wired in Serializer, 0 Dispatches)**:
-- `ACCEPT_CONTRACT`
 - `ACTIVATE_PROSTHETIC`
+- `HARVEST_CORPSE`
+- `INSTALL_PROSTHETIC`
+- `LOAD_AMMO`
+- `PRESSURIZE_VESSEL`
+- `SALVAGE_ITEM`
+- **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
+- `ACCEPT_CONTRACT`
 - `APPLY_MOMENTUM_VECTOR`
 - `BREACH_TILE`
-- `BUY_FROM_MERCHANT`
 - `CLEAN_SPILL`
 - `COAT_WEAPON`
 - `COMPLETE_CONTRACT`
@@ -51,33 +58,26 @@
 - `DAMAGE_LIMB`
 - `DROP_ITEM`
 - `EMIT_SPARK`
-- `HARVEST_CORPSE`
 - `HIRE_COMPANION`
-- `INSTALL_PROSTHETIC`
 - `INSTALL_WEAPON_MOD`
-- `LOAD_AMMO`
-- `PICK_UP_ITEM`
-- `TOGGLE_DOOR`
-- `USE_ITEM`
-- `WAIT_TURN`
-- **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `LOOT_CONTAINER`
 - `PAY_CHIRURGEON_HEAL`
-- `PRESSURIZE_VESSEL`
+- `PICK_UP_ITEM`
 - `PRY_OBSTACLE`
 - `REFILL_STEAM`
 - `REMOVE_PROSTHETIC`
 - `REPAIR_LIMB`
 - `REST_AT_BED`
-- `SALVAGE_ITEM`
 - `SELL_TO_MERCHANT`
 - `SET_POSTURE`
 - `SMASH_TERRAIN`
 - `STOCK_PEDESTAL`
 - `THROW_FLASK`
+- `TOGGLE_DOOR`
 - `TRAVEL_DISTRICT`
 - `TRIGGER_SUPPLY_SHOCK`
 - `UNINSTALL_WEAPON_MOD`
+- `WAIT_TURN`
 
 ## 4. Systemic Depth & NPC Agency Critique (vs. CDDA / Qud / Arcostate)
 > **AGENT DIRECTIVE:** The systemic analysis below is theoretical. Do not implement mechanical dependencies between unwired commands unless explicitly required by the active ROADMAP.
@@ -93,7 +93,7 @@
 
 ## 5. Self-Directed Prescriptions for Next Phase
 - **P1: Phase 50** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 50: Interactive World Features, Tactical Environmental Hazards & Tangible Mechanical Agency**: Full gameplay wiring and systemic execution of the remaining unwired environmental agency commands (`LOOT_CONTAINER` for interactive furniture searches with booby-trap triggers, `PRESSURIZE_VESSEL` for tactical steam burst breaches, `PRY_OBSTACLE` for crowbar prying on jammed grates/doors, and `PAY_CHIRURGEON_HEAL` for clinic operating table services). Add dynamic volumetric gaslight illumination, drifting soot clouds with dynamic ASCII character occlusion (`%`, `&`, `*`), whale oil puddles with ignition cascades, and corrosive acid drip hazards. resolving unwiredCommands and telemetry anomalies. (Target: `src/schemas/domain-events.schema.ts`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (LOOT_CONTAINER, PAY_CHIRURGEON_HEAL, PRESSURIZE_VESSEL, PRY_OBSTACLE) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ACCEPT_CONTRACT, APPLY_MOMENTUM_VECTOR, BREACH_TILE, CLEAN_SPILL) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/schemas/domain-events.schema.ts to resolve modularityHotspot anomaly. (Target: `src/schemas/domain-events.schema.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
@@ -102,7 +102,7 @@
 Implement **Phase 50: Interactive World Features, Tactical Environmental Hazards & Tangible Mechanical Agency**: Full gameplay wiring and systemic execution of the remaining unwired environmental agency commands (`LOOT_CONTAINER` for interactive furniture searches with booby-trap triggers, `PRESSURIZE_VESSEL` for tactical steam burst breaches, `PRY_OBSTACLE` for crowbar prying on jammed grates/doors, and `PAY_CHIRURGEON_HEAL` for clinic operating table services). Add dynamic volumetric gaslight illumination, drifting soot clouds with dynamic ASCII character occlusion (`%`, `&`, `*`), whale oil puddles with ignition cascades, and corrosive acid drip hazards. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
 2. Pre-split any src/ hotspot >= 245 lines (`src/schemas/domain-events.schema.ts` (243 lines)) via `npm run hermes:split`.
-3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `LOOT_CONTAINER`, `PAY_CHIRURGEON_HEAL`, `PRESSURIZE_VESSEL`, `PRY_OBSTACLE`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
+3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `ACCEPT_CONTRACT`, `APPLY_MOMENTUM_VECTOR`, `BREACH_TILE`, `CLEAN_SPILL`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
 4. Delegate blueprints (`generate:content`), event logs (`hermes:chronicler`), and test scaffolding (`hermes:testgen`) to local models.
 5. Run `npm run verify`, `npm run hermes:critic`, and `npm run sync:state`, then output the next copy-pasteable prompt.
 ```

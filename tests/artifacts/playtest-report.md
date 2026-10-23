@@ -1,6 +1,6 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-23T18:46:57.271Z
+- **Timestamp**: 2026-10-23T19:10:53.528Z
 - **Execution Mode**: Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 - **Scenario**: **TRANSIT**
@@ -27,6 +27,21 @@
 | **Transitions Completed** | 15 | Stratum portals or district gates traversed |
 | **Final Blood Volume** | 100% | Haemodynamic stability |
 | **Unique Tiles Visited** | 2 | Distinct spatial tiles explored |
+| **UI Projection Leaks Detected** | 29 | Client projection HUD/radar/chronicle leaks |
+
+## Command Coverage Matrix
+
+| Category | Count | Share | Command Identifiers |
+| :--- | :--- | :--- | :--- |
+| **Active Commands** (>0 Dispatches) | 1 | 2% | `USE_PORTAL` |
+| **Dormant Commands** (Serializer-Wired, 0 Dispatches) | 8 | - | `ACTIVATE_PROSTHETIC`, `HARVEST_CORPSE`, `INSTALL_PROSTHETIC`, `LOAD_AMMO`, `PRESSURIZE_VESSEL`, `SALVAGE_ITEM`, `USE_ITEM`, `VENT_STEAM` |
+| **Unwired Commands** (Missing from Context) | 33 | - | `ACCEPT_CONTRACT`, `APPLY_MOMENTUM_VECTOR`, `ATTACK_ACTOR`, `BREACH_TILE`, `BUY_FROM_MERCHANT`, `CLEAN_SPILL`, `COAT_WEAPON`, `COMPLETE_CONTRACT`, `CRAFT_RECIPE`, `DAMAGE_LIMB` |
+
+## Client UI Projection & Chronicle Leak Audit
+
+- **Total UI Projection Leaks Detected**: **29**
+- **Leak Categories Monitored**: Raw snake_case identifiers (`district_`, `landmark_`, `npc_`, `item_`, `mat_`), truncated strings (`_`), coordinate desyncs (LookCursorOverlay vs TileInspectorPanel), and duplicate consecutive chronicle movement entries.
+- **Audit Status**: WARNING — 29 projection anomalies detected.
 
 ## Command Dispatch Histogram
 
