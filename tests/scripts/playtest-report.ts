@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { PlaytestScenario } from './playtester-scenarios.js';
 import { getConnectionTelemetry, LlmConnectionTelemetry } from './local-llm-config.js';
+import { auditCommandCoverage, CommandCoverage } from './critic-report.js';
 
 export interface PlaytestReportConfig {
   readonly mock: boolean;
@@ -32,11 +33,18 @@ export interface PlaytestMetrics {
   uniqueTilesVisited: number;
   commandHistogram: Record<string, number>;
   causeOfDeath?: string;
+  uiProjectionLeaks?: number;
+  commandCoverageMatrix?: CommandCoverage;
 }
 
 export function writeReport(config: PlaytestReportConfig, metrics: PlaytestMetrics): void {
   const dir = path.dirname(config.reportPath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+  const rootDir = path.resolve(import.meta.dirname, '../..');
+  const coverage = metrics.commandCoverageMatrix ?? auditCommandCoverage(rootDir, metrics.commandHistogram ?? {});
+  const totalCommands = coverage.active.length + coverage.dormant.length + coverage.unwired.length;
+  const coveragePct = totalCommands > 0 ? Math.round((coverage.active.length / totalCommands) * 100) : 0;
 
   const telemetry = config.telemetry ?? getConnectionTelemetry({
     mock: config.mock,
@@ -83,6 +91,21 @@ export function writeReport(config: PlaytestReportConfig, metrics: PlaytestMetri
 | **Transitions Completed** | ${metrics.transitionsCompleted} | Stratum portals or district gates traversed |
 | **Final Blood Volume** | ${metrics.finalBloodPct}% | Haemodynamic stability |
 | **Unique Tiles Visited** | ${metrics.uniqueTilesVisited} | Distinct spatial tiles explored |
+| **UI Projection Leaks Detected** | ${metrics.uiProjectionLeaks ?? 0} | Client projection HUD/radar/chronicle leaks |
+
+## Command Coverage Matrix
+
+| Category | Count | Share | Command Identifiers |
+| :--- | :--- | :--- | :--- |
+| **Active Commands** (>0 Dispatches) | ${coverage.active.length} | ${coveragePct}% | ${coverage.active.map((c) => `\`${c}\``).join(', ') || 'None'} |
+| **Dormant Commands** (Serializer-Wired, 0 Dispatches) | ${coverage.dormant.length} | - | ${coverage.dormant.slice(0, 10).map((c) => `\`${c}\``).join(', ') || 'None'} |
+| **Unwired Commands** (Missing from Context) | ${coverage.unwired.length} | - | ${coverage.unwired.slice(0, 10).map((c) => `\`${c}\``).join(', ') || 'None'} |
+
+## Client UI Projection & Chronicle Leak Audit
+
+- **Total UI Projection Leaks Detected**: **${metrics.uiProjectionLeaks ?? 0}**
+- **Leak Categories Monitored**: Raw snake_case identifiers (\`district_\`, \`landmark_\`, \`npc_\`, \`item_\`, \`mat_\`), truncated strings (\`_\`), coordinate desyncs (LookCursorOverlay vs TileInspectorPanel), and duplicate consecutive chronicle movement entries.
+- **Audit Status**: ${(metrics.uiProjectionLeaks ?? 0) === 0 ? 'CLEAN — Zero UI projection leaks detected.' : `WARNING — ${metrics.uiProjectionLeaks} projection anomalies detected.`}
 
 ## Command Dispatch Histogram
 
@@ -92,4 +115,10 @@ ${histogramRows || '| None | 0 |'}
 `;
 
   fs.writeFileSync(config.reportPath, content, 'utf-8');
+
+  // Also write to playtest-report-economy.md when scenario is economy or sabotage
+  if (config.scenario === 'economy' || config.scenario === 'sabotage') {
+    const economyReportPath = path.resolve(dir, 'playtest-report-economy.md');
+    fs.writeFileSync(economyReportPath, content, 'utf-8');
+  }
 }
