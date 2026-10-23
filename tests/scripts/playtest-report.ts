@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { PlaytestScenario } from './playtester-scenarios.js';
+import { getConnectionTelemetry, LlmConnectionTelemetry } from './local-llm-config.js';
 
 export interface PlaytestReportConfig {
   readonly mock: boolean;
@@ -10,6 +11,7 @@ export interface PlaytestReportConfig {
   readonly model: string;
   readonly reportPath: string;
   readonly scenario: PlaytestScenario;
+  readonly telemetry?: LlmConnectionTelemetry | undefined;
 }
 
 export interface PlaytestMetrics {
@@ -36,6 +38,16 @@ export function writeReport(config: PlaytestReportConfig, metrics: PlaytestMetri
   const dir = path.dirname(config.reportPath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
+  const telemetry = config.telemetry ?? getConnectionTelemetry({
+    mock: config.mock,
+    endpoint: config.endpoint,
+    model: config.model,
+  });
+
+  const executionMode = config.mock
+    ? 'Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]'
+    : `Local LLM (live local model: ${config.model} @ ${config.endpoint}) [LIVE_INFERENCE]`;
+
   const status = metrics.causeOfDeath ? `DEFEATED (${metrics.causeOfDeath})` : 'SURVIVED';
   const histogramRows = Object.entries(metrics.commandHistogram ?? {})
     .sort((a, b) => b[1] - a[1])
@@ -45,7 +57,8 @@ export function writeReport(config: PlaytestReportConfig, metrics: PlaytestMetri
   const content = `# Aether & Soot — Headless Autonomous Playtest Report
 
 - **Timestamp**: ${new Date().toISOString()}
-- **Execution Mode**: ${config.mock ? 'Deterministic Mock Agent (--mock)' : `Local LLM (${config.model} @ ${config.endpoint})`}
+- **Execution Mode**: ${executionMode}
+- **LLM Telemetry**: Mode: ${telemetry.llmExecutionMode} | Temperature: ${telemetry.temperature} | Enforce JSON Schema: ${telemetry.enforceJsonSchema}
 - **Scenario**: **${config.scenario.toUpperCase()}**
 - **Seed**: ${config.seed}
 - **Survival Status**: **${status}**

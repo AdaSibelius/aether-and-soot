@@ -1,7 +1,8 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-22T18:28:57.795Z
-- **Execution Mode**: Deterministic Mock Agent (--mock)
+- **Timestamp**: 2026-10-23T18:46:57.271Z
+- **Execution Mode**: Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]
+- **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 - **Scenario**: **TRANSIT**
 - **Seed**: 42
 - **Survival Status**: **SURVIVED**
