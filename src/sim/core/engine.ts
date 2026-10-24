@@ -8,6 +8,12 @@ import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
 import { decrementProstheticCooldowns } from '../systems/prosthetics.system.js';
 import { processActorTurfMovement, recordTacticalCoverManeuver } from '../systems/skirmish-turf.system.js';
+import {
+  CommandResolution,
+  createAppliedResolution,
+  createRejectedResolution,
+  extractFailureReason,
+} from './command-resolution.js';
 import { routeDomainCommand } from './command-router.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
@@ -16,6 +22,7 @@ import { WorldState } from './world.js';
 export interface DispatchTurnResult {
   readonly state: WorldState;
   readonly events: readonly SimEvent[];
+  readonly resolution: CommandResolution;
 }
 
 /**
@@ -33,6 +40,7 @@ export function dispatchCommand(
   let nextState = currentState;
   let systemEvents: SimEvent[] = [];
   let apSpent = STANDARD_ACTION_AP;
+  let resolution: CommandResolution;
 
   switch (command.type) {
     case 'MOVE_STEP': {
@@ -48,6 +56,14 @@ export function dispatchCommand(
         nextState = turfMove.state;
         systemEvents = [...systemEvents, ...turfMove.events];
       }
+      resolution =
+        apSpent > 0
+          ? createAppliedResolution(nextState, systemEvents, apSpent)
+          : createRejectedResolution(
+              currentState,
+              extractFailureReason(systemEvents, 'Movement blocked or invalid'),
+              systemEvents,
+            );
       break;
     }
     case 'USE_PORTAL': {
@@ -57,10 +73,20 @@ export function dispatchCommand(
       nextState = res.state;
       systemEvents = res.events;
       apSpent = res.apSpent;
-      const toStratum = nextState.entities[command.actorId]?.position?.stratum;
-      const portalManeuver = recordTacticalCoverManeuver(nextState, command.actorId, 'PORTAL_TACTICAL_ESCAPE', `${fromStratum} -> ${toStratum}`);
-      nextState = portalManeuver.state;
-      systemEvents = [...systemEvents, ...portalManeuver.events];
+      if (apSpent > 0) {
+        const toStratum = nextState.entities[command.actorId]?.position?.stratum;
+        const portalManeuver = recordTacticalCoverManeuver(nextState, command.actorId, 'PORTAL_TACTICAL_ESCAPE', `${fromStratum} -> ${toStratum}`);
+        nextState = portalManeuver.state;
+        systemEvents = [...systemEvents, ...portalManeuver.events];
+      }
+      resolution =
+        apSpent > 0
+          ? createAppliedResolution(nextState, systemEvents, apSpent)
+          : createRejectedResolution(
+              currentState,
+              extractFailureReason(systemEvents, 'Portal transition failed'),
+              systemEvents,
+            );
       break;
     }
     case 'WAIT_TURN': {
@@ -71,25 +97,28 @@ export function dispatchCommand(
         nextState = { ...nextState, entities: { ...nextState.entities, [command.actorId]: { ...wActor, anatomy: { ...wActor.anatomy, steamReserveKpa: nextSteam } } } };
       }
       systemEvents = [{ type: 'ACTOR_WAITED', turn: nextState.turnCount + 1, actorId: command.actorId, apSpent: STANDARD_ACTION_AP }];
+      resolution = createAppliedResolution(nextState, systemEvents, STANDARD_ACTION_AP);
       break;
     }
     default: {
-      const domainRes = routeDomainCommand(nextState, command, rng);
-      if (domainRes.handled) {
-        nextState = domainRes.state;
-        systemEvents = [...domainRes.events];
-        if (domainRes.apSpent !== undefined) apSpent = domainRes.apSpent;
+      resolution = routeDomainCommand(nextState, command, rng);
+      if (resolution.status === 'applied') {
+        nextState = resolution.state;
+        systemEvents = [...resolution.events];
+        apSpent = resolution.apSpent;
       } else {
+        nextState = resolution.state;
+        systemEvents = [...resolution.events];
         apSpent = 0;
       }
       break;
     }
   }
 
-  // If command was rejected or physically impossible (apSpent === 0),
+  // If command was rejected or physically impossible (apSpent === 0 or status === 'rejected'),
   // bypass NPC turns, thermodynamics, and turn scheduling so the world clock pauses.
-  if (apSpent === 0) {
-    return { state: nextState, events: systemEvents };
+  if (resolution.status === 'rejected' || apSpent === 0) {
+    return { state: nextState, events: systemEvents, resolution };
   }
 
   const npcTick = advanceNpcTurns(nextState, rng);
@@ -124,5 +153,5 @@ export function dispatchCommand(
     }
   }
 
-  return { state: finalState, events: scheduled.allEvents };
+  return { state: finalState, events: scheduled.allEvents, resolution };
 }
