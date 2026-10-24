@@ -1,7 +1,6 @@
 import { EntityRecord, InventoryComponent } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId, EntityIdSchema } from '../../schemas/primitives.schema.js';
-import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 
 /** Hard mass ceiling as a multiple of `maxMassGrams`. Between 1.0x and this, movement is slowed. */
@@ -111,11 +110,11 @@ export function createInventoryFailureResult(
 ): { state: WorldState; events: SimEvent[]; apSpent: number } {
   return {
     state,
-    apSpent: STANDARD_ACTION_AP,
+    apSpent: 0,
     events: [
       {
         type: 'INVENTORY_ACTION_FAILED',
-        turn: state.turnCount + 1,
+        turn: state.turnCount,
         actorId,
         action,
         reason,

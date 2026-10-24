@@ -84,7 +84,7 @@ export function resolveMoveStep(
 ): SystemMovementResult {
   const actor = state.entities[actorId];
   if (!actor || !actor.position) {
-    return { state, events: [], apSpent: STANDARD_ACTION_AP };
+    return { state, events: [], apSpent: 0 };
   }
 
   const origin = actor.position;
@@ -98,11 +98,11 @@ export function resolveMoveStep(
   if (!grid || !isWithinBounds(grid, targetPoint.x, targetPoint.y)) {
     return {
       state,
-      apSpent: STANDARD_ACTION_AP,
+      apSpent: 0,
       events: [
         {
           type: 'MOVEMENT_BLOCKED',
-          turn: state.turnCount + 1,
+          turn: state.turnCount,
           actorId,
           target: targetPoint,
           reason: 'OUT_OF_BOUNDS',
@@ -118,11 +118,11 @@ export function resolveMoveStep(
   if (!targetTile || targetTile.blocksMovement) {
     return {
       state,
-      apSpent: STANDARD_ACTION_AP,
+      apSpent: 0,
       events: [
         {
           type: 'MOVEMENT_BLOCKED',
-          turn: state.turnCount + 1,
+          turn: state.turnCount,
           actorId,
           target: targetPoint,
           reason: 'SOLID_TILE',
@@ -135,11 +135,11 @@ export function resolveMoveStep(
   if (blocker) {
     return {
       state,
-      apSpent: STANDARD_ACTION_AP,
+      apSpent: 0,
       events: [
         {
           type: 'MOVEMENT_BLOCKED',
-          turn: state.turnCount + 1,
+          turn: state.turnCount,
           actorId,
           target: targetPoint,
           reason: 'OCCUPIED_BY_ENTITY',
