@@ -8,6 +8,7 @@ import { WorldState } from './world.js';
 
 export const STANDARD_ACTION_AP = 100;
 export const MACRO_TICK_INTERVAL = 100;
+export const MAX_PERSISTENT_EVENT_LOG = 250;
 
 /**
  * Deducts Action Points from the acting entity, advances the global turn counter,
@@ -51,6 +52,12 @@ export function advanceTurnSchedule(
     });
   }
 
+  const fullLog = [...state.eventLog, ...combinedEvents];
+  const eventLog =
+    fullLog.length > MAX_PERSISTENT_EVENT_LOG
+      ? fullLog.slice(fullLog.length - MAX_PERSISTENT_EVENT_LOG)
+      : fullLog;
+
   return {
     state: {
       ...state,
@@ -59,7 +66,7 @@ export function advanceTurnSchedule(
       macroTickCount: nextMacroTick,
       entities: updatedEntities,
       economy: nextEconomy,
-      eventLog: [...state.eventLog, ...combinedEvents],
+      eventLog,
     },
     allEvents: combinedEvents,
   };

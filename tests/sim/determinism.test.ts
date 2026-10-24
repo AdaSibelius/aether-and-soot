@@ -3,7 +3,7 @@ import { projectWorldToVisualFrame } from '../../src/client/projection/frame-ada
 import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
 import { dispatchCommand } from '../../src/sim/core/engine.js';
 import { SeededRNG } from '../../src/sim/core/rng.js';
-import { createInitialWorld, deserializeWorld, serializeWorld } from '../../src/sim/core/world.js';
+import { assertWorldInvariants, createInitialWorld, deserializeWorld, serializeWorld } from '../../src/sim/core/world.js';
 
 describe('Phase 1: Deterministic Simulation Kernel & Multi-Strata Portals', () => {
   const playerId = EntityIdSchema.parse('actor_player');
@@ -34,8 +34,10 @@ describe('Phase 1: Deterministic Simulation Kernel & Multi-Strata Portals', () =
 
       for (let step = 0; step < 100; step++) {
         if (withMidRunReload && step === 50) {
+          assertWorldInvariants(world);
           const rawJson = serializeWorld(world);
           world = deserializeWorld(rawJson);
+          assertWorldInvariants(world);
         }
         const move = dirs[step % dirs.length]!;
         const res = dispatchCommand(world, {
@@ -46,6 +48,7 @@ describe('Phase 1: Deterministic Simulation Kernel & Multi-Strata Portals', () =
         });
         world = res.state;
       }
+      assertWorldInvariants(world);
       return serializeWorld(world);
     };
 
@@ -71,6 +74,7 @@ describe('Phase 1: Deterministic Simulation Kernel & Multi-Strata Portals', () =
       actorId: playerId,
     });
     world = descendRes.state;
+    assertWorldInvariants(world);
 
     expect(descendRes.events).toContainEqual(
       expect.objectContaining({
