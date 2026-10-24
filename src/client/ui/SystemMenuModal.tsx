@@ -8,6 +8,8 @@ export interface SystemMenuModalProps {
   readonly onNewSeed: (seed: number) => void;
   readonly onLoadWorld: (savedWorld: WorldState) => void;
   readonly onOpenCharacterCreator?: () => void;
+  readonly crtScanlinesEnabled?: boolean;
+  readonly onToggleCrtScanlines?: () => void;
 }
 
 const LOCAL_STORAGE_KEY = 'aether_soot_save';
@@ -19,6 +21,8 @@ export function SystemMenuModal({
   onNewSeed,
   onLoadWorld,
   onOpenCharacterCreator,
+  crtScanlinesEnabled = true,
+  onToggleCrtScanlines,
 }: SystemMenuModalProps) {
   if (!isOpen) return null;
 
@@ -145,7 +149,24 @@ export function SystemMenuModal({
                 cursor: 'pointer',
               }}
             >
-              [+] Create New Character / Scenario
+              [+] [N] Create New Character / Scenario
+            </button>
+          </div>
+        )}
+
+        {onToggleCrtScanlines && (
+          <div style={{ margin: '6px 0' }}>
+            <button
+              type="button"
+              onClick={onToggleCrtScanlines}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                color: crtScanlinesEnabled ? 'var(--ok-green)' : '#7f8c8d',
+                border: '1px solid #2e4053',
+              }}
+            >
+              CRT Scanlines: {crtScanlinesEnabled ? '[ACTIVE -45% Alpha]' : '[DISABLED]'}
             </button>
           </div>
         )}
@@ -192,34 +213,14 @@ export function SystemMenuModal({
 
         <div class="panel-header" style={{ marginTop: '12px' }}>SAVE / LOAD WORLD STATE</div>
         <div class="button-grid" style={{ marginTop: '6px' }}>
-          <button type="button" onClick={handleSaveLocalStorage}>
-            [S] Save to LocalStorage Slot
-          </button>
-          <button type="button" onClick={handleLoadLocalStorage}>
-            [L] Restore from LocalStorage Slot
-          </button>
-          <button type="button" onClick={handleExportJson}>
-            [E] Export Save JSON File
-          </button>
+          <button type="button" onClick={handleSaveLocalStorage}>[S] Save to LocalStorage Slot</button>
+          <button type="button" onClick={handleLoadLocalStorage}>[L] Restore from LocalStorage Slot</button>
+          <button type="button" onClick={handleExportJson}>[E] Export Save JSON File</button>
           <label style={{ display: 'block', cursor: 'pointer' }}>
-            <span
-              style={{
-                display: 'block',
-                background: '#17202a',
-                color: 'var(--brass-gold)',
-                border: '1px solid var(--brass-gold)',
-                padding: '6px 8px',
-                fontSize: '11px',
-              }}
-            >
+            <span style={{ display: 'block', background: '#17202a', color: 'var(--brass-gold)', border: '1px solid var(--brass-gold)', padding: '6px 8px', fontSize: '11px' }}>
               [I] Import Save JSON File
             </span>
-            <input
-              type="file"
-              accept=".json"
-              style={{ display: 'none' }}
-              onChange={handleImportJson}
-            />
+            <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportJson} />
           </label>
         </div>
 

@@ -123,6 +123,7 @@ export function projectWorldToVisualFrame(
   state: Readonly<WorldState>,
   focusActorId = 'actor_player',
   baseFovRadius = DEFAULT_FOV_RADIUS,
+  viewportOverride?: { width: number; height: number },
 ): VisualGridFrame {
   const focusActor = state.entities[focusActorId];
   const activeStratum: StratumId = focusActor?.position?.stratum ?? 'STREET';
@@ -138,8 +139,10 @@ export function projectWorldToVisualFrame(
   const effectiveFovRadius = Math.max(2, baseFovRadius + fovBonus);
   const visibleSet = computeVisibleTiles(grid, originX, originY, effectiveFovRadius);
 
-  const viewportWidth = Math.min(DEFAULT_VIEWPORT_WIDTH, grid.width);
-  const viewportHeight = Math.min(DEFAULT_VIEWPORT_HEIGHT, grid.height);
+  const reqW = viewportOverride?.width ?? DEFAULT_VIEWPORT_WIDTH;
+  const reqH = viewportOverride?.height ?? DEFAULT_VIEWPORT_HEIGHT;
+  const viewportWidth = Math.min(reqW, grid.width);
+  const viewportHeight = Math.min(reqH, grid.height);
 
   const cameraX = Math.max(0, Math.min(grid.width - viewportWidth, originX - Math.floor(viewportWidth / 2)));
   const cameraY = Math.max(0, Math.min(grid.height - viewportHeight, originY - Math.floor(viewportHeight / 2)));

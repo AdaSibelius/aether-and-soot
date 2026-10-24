@@ -10,8 +10,8 @@ export interface QuickActionBarProps {
   readonly onToggleLookMode?: () => void;
   readonly onToggleDoor?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
-  readonly onOpenModal: (window: ModalWindowId) => void;
-  readonly onOpenSystemMenu: () => void;
+  readonly onOpenModal?: (window: ModalWindowId) => void;
+  readonly onOpenSystemMenu?: () => void;
   readonly onOpenCharacterCreator?: () => void;
 }
 
@@ -22,9 +22,6 @@ export function QuickActionBar({
   onToggleLookMode,
   onToggleDoor,
   onCommand,
-  onOpenModal,
-  onOpenSystemMenu,
-  onOpenCharacterCreator,
 }: QuickActionBarProps) {
   const player = state.entities[actorId];
   const pos = player?.position;
@@ -43,7 +40,7 @@ export function QuickActionBar({
         gap: '6px',
       }}
     >
-      {/* Tactical Sim Actions */}
+      {/* Tactical World Actions */}
       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
         <button
           type="button"
@@ -126,76 +123,8 @@ export function QuickActionBar({
         )}
       </div>
 
-      <div style={{ color: '#2e4053' }}>|</div>
-
-      {/* Caves of Qud Modal Window Toggles */}
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          onClick={() => onOpenModal('INVENTORY')}
-          style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--brass-gold)' }}
-          title="Open Satchel / Inventory [I]"
-        >
-          [I] Satchel
-        </button>
-        <button
-          type="button"
-          onClick={() => onOpenModal('ANATOMY')}
-          style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--brass-gold)' }}
-          title="Open Prosthetic Surgery & Anatomy [Shift+A]"
-        >
-          [A] Anatomy
-        </button>
-        <button
-          type="button"
-          onClick={() => onOpenModal('WORKBENCH')}
-          style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--brass-gold)' }}
-          title="Open Artificer Workbench [C]"
-        >
-          [C] Bench
-        </button>
-        <button
-          type="button"
-          onClick={() => onOpenModal('EXCHANGE')}
-          style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--brass-gold)' }}
-          title="Open Merchant Exchange & Factions [M]"
-        >
-          [M] Market
-        </button>
-        <button
-          type="button"
-          onClick={() => onOpenModal('ATLAS')}
-          style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--brass-gold)' }}
-          title="Open World Atlas & Stratum Map [W]"
-        >
-          [W] Atlas
-        </button>
-        <button
-          type="button"
-          onClick={() => onOpenModal('CODEX')}
-          style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--brass-gold)' }}
-          title="Open Royal Society Naturalist's Codex [K]"
-        >
-          [K] Codex
-        </button>
-        {onOpenCharacterCreator && (
-          <button
-            type="button"
-            onClick={onOpenCharacterCreator}
-            style={{ padding: '3px 6px', fontSize: '10px', color: '#2ecc71' }}
-            title="Create New Character / Scenario [N]"
-          >
-            [N] New Char
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={onOpenSystemMenu}
-          style={{ padding: '3px 6px', fontSize: '10px', color: '#95a5a6' }}
-          title="System Engine Menu [Esc]"
-        >
-          [Esc] Menu
-        </button>
+      <div style={{ fontSize: '10px', color: '#7f8c8d' }}>
+        Tactical Actions
       </div>
     </div>
   );

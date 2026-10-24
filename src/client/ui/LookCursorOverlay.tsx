@@ -2,7 +2,7 @@ import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { findEntitiesAtPoint, getTileCell } from '../../sim/spatial/grid.js';
-import { CELL_HEIGHT_PX, CELL_WIDTH_PX } from '../renderer/glyph-stage.js';
+import { CELL_HEIGHT_PX, CELL_WIDTH_PX, WIDESCREEN_GRID_HEIGHT, WIDESCREEN_GRID_WIDTH } from '../renderer/glyph-stage.js';
 
 export interface LookCursorOverlayProps {
   readonly isActive: boolean;
@@ -50,7 +50,7 @@ export function LookCursorOverlay({
 
   const camX = cameraOrigin?.x ?? 0, camY = cameraOrigin?.y ?? 0;
   const screenX = cursor.x - camX, screenY = cursor.y - camY;
-  const isCursorOnScreen = screenX >= 0 && screenX < 24 && screenY >= 0 && screenY < 20;
+  const isCursorOnScreen = screenX >= 0 && screenX < WIDESCREEN_GRID_WIDTH && screenY >= 0 && screenY < WIDESCREEN_GRID_HEIGHT;
   const leftPx = screenX * CELL_WIDTH_PX, topPx = screenY * CELL_HEIGHT_PX;
 
   return (

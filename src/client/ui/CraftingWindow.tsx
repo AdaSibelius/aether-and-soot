@@ -11,6 +11,8 @@ export interface CraftingWindowProps {
   readonly onCommand: (cmd: GameCommand) => void;
 }
 
+export type CraftFilter = 'ALL' | 'CRAFTABLE' | 'FIELD' | 'BENCH';
+
 export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProps) {
   const actor = state.entities[actorId];
   const pos = actor?.position;
@@ -18,6 +20,8 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
   const currentSteam = actor?.anatomy?.steamReserveKpa ?? 0;
 
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
+  const [filter, setFilter] = useState<CraftFilter>('ALL');
+  const [confirmingItemId, setConfirmingItemId] = useState<string | null>(null);
 
   // Check workbench adjacency
   const nearbyBench = pos
@@ -40,26 +44,29 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
     }
   }
 
-  const selectedRecipe = RECIPE_CATALOG[selectedIdx] ?? RECIPE_CATALOG[0];
+  const filteredRecipes = RECIPE_CATALOG.filter((recipe) => {
+    const isUnlocked = !recipe.requiresManual || (actor?.anatomy?.unlockedRecipeIds ?? []).includes(recipe.id);
+    const canCraft = isUnlocked && currentSteam >= recipe.steamCostKpa && (!recipe.requiresWorkbench || Boolean(nearbyBench))
+      && recipe.ingredients.every((ing) => (ingredientCounts[ing.blueprintId] ?? 0) >= ing.count);
+    return filter === 'CRAFTABLE' ? canCraft : filter === 'FIELD' ? !recipe.requiresWorkbench : filter === 'BENCH' ? recipe.requiresWorkbench : true;
+  });
 
-  // Keyboard navigation for [1-9] recipe selection and [c] forge
+  const selectedRecipe = filteredRecipes[selectedIdx] ?? filteredRecipes[0] ?? RECIPE_CATALOG[0];
+
+  // Keyboard navigation for list scrolling [W/S / Arrow keys], [1-9] recipe selection, and [c] forge
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') { e.preventDefault(); setSelectedIdx((p) => Math.max(0, p - 1)); return; }
+      if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') { e.preventDefault(); setSelectedIdx((p) => Math.min(filteredRecipes.length - 1, p + 1)); return; }
       const num = parseInt(e.key, 10);
-      if (!Number.isNaN(num) && num >= 1 && num <= RECIPE_CATALOG.length) {
-        e.preventDefault();
-        setSelectedIdx(num - 1);
-        return;
-      }
+      if (!Number.isNaN(num) && num >= 1 && num <= filteredRecipes.length) { e.preventDefault(); setSelectedIdx(num - 1); return; }
 
       if (e.key.toLowerCase() === 'c' && selectedRecipe) {
         const isUnlocked = !selectedRecipe.requiresManual || (actor?.anatomy?.unlockedRecipeIds ?? []).includes(selectedRecipe.id);
         const hasSteam = currentSteam >= selectedRecipe.steamCostKpa;
         const benchOk = !selectedRecipe.requiresWorkbench || Boolean(nearbyBench);
-        const hasIngredients = selectedRecipe.ingredients.every(
-          (ing) => (ingredientCounts[ing.blueprintId] ?? 0) >= ing.count,
-        );
+        const hasIngredients = selectedRecipe.ingredients.every((ing) => (ingredientCounts[ing.blueprintId] ?? 0) >= ing.count);
         if (isUnlocked && hasSteam && benchOk && hasIngredients) {
           e.preventDefault();
           onCommand({ type: 'CRAFT_RECIPE', actorId, recipeId: selectedRecipe.id });
@@ -69,7 +76,7 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedRecipe, currentSteam, nearbyBench, ingredientCounts, actorId, onCommand, actor?.anatomy?.unlockedRecipeIds]);
+  }, [selectedRecipe, filteredRecipes.length, currentSteam, nearbyBench, ingredientCounts, actorId, onCommand, actor?.anatomy?.unlockedRecipeIds]);
 
   if (!actor || !pos || !inv || !selectedRecipe) return null;
 
@@ -87,49 +94,40 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
       <div class="panel-box" style={{ display: 'flex', flexDirection: 'column' }}>
         <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>SCHEMATIC BLUEPRINTS</span>
-          <span class="muted" style={{ fontSize: '10px' }}>[1–{RECIPE_CATALOG.length}] select</span>
+          <span class="muted" style={{ fontSize: '10px' }}>[W/S / 1–{filteredRecipes.length}]</span>
+        </div>
+
+        {/* Filter Pills */}
+        <div style={{ display: 'flex', gap: '3px', margin: '4px 0 6px 0' }}>
+          {(['ALL', 'CRAFTABLE', 'FIELD', 'BENCH'] as const).map((f) => (
+            <button key={f} type="button" onClick={() => { setFilter(f); setSelectedIdx(0); }}
+              style={{ padding: '2px 5px', fontSize: '9px', background: filter === f ? 'var(--brass-gold)' : '#11171a', color: filter === f ? '#070a0c' : '#d5dbdb', border: '1px solid #2e4053' }}>
+              {f === 'ALL' ? 'All' : f === 'CRAFTABLE' ? 'Craftable Now' : f === 'FIELD' ? 'Field' : 'Bench'}
+            </button>
+          ))}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', flex: 1 }}>
-          {RECIPE_CATALOG.map((recipe, idx) => {
+          {filteredRecipes.map((recipe, idx) => {
             const isSelected = idx === selectedIdx;
-            const isUnlocked = !recipe.requiresManual || (actor.anatomy?.unlockedRecipeIds ?? []).includes(recipe.id);
-            const rSteam = currentSteam >= recipe.steamCostKpa;
-            const rBench = !recipe.requiresWorkbench || Boolean(nearbyBench);
-            const rIng = recipe.ingredients.every(
-              (ing) => (ingredientCounts[ing.blueprintId] ?? 0) >= ing.count,
-            );
-            const rReady = isUnlocked && rSteam && rBench && rIng;
-
-            const badge = !isUnlocked
-              ? { text: 'SCHEMATIC REQ', color: '#af7ac5' }
-              : rReady
-                ? { text: 'READY', color: 'var(--ok-green)' }
-                : !rBench
-                  ? { text: 'NEEDS BENCH', color: 'var(--brass-gold)' }
-                  : !rSteam
-                    ? { text: 'LOW STEAM', color: 'var(--oxidized-copper)' }
-                    : { text: 'MISSING PARTS', color: 'var(--warn-red)' };
+            const stationBadge = !recipe.requiresWorkbench ? { text: '[FIELD OK]', color: 'var(--ok-green)' }
+              : nearbyBench ? { text: '[BENCH OK]', color: 'var(--ok-green)' } : { text: '[NEEDS BENCH]', color: 'var(--warn-red)' };
+            const reqParts = recipe.ingredients.reduce((a, b) => a + b.count, 0);
+            const ownedParts = recipe.ingredients.reduce((a, b) => a + Math.min(b.count, ingredientCounts[b.blueprintId] ?? 0), 0);
+            const reagentBadge = ownedParts >= reqParts ? { text: '[PARTS OK]', color: 'var(--ok-green)' } : { text: `[${ownedParts}/${reqParts} PARTS]`, color: 'var(--warn-red)' };
 
             return (
-              <div
-                key={recipe.id}
-                onClick={() => setSelectedIdx(idx)}
-                style={{
-                  padding: '6px 8px',
-                  background: isSelected ? '#1c2833' : '#0d1316',
-                  border: isSelected ? '1px solid var(--brass-gold)' : '1px solid #1c2833',
-                  cursor: 'pointer',
-                }}
-              >
+              <div key={recipe.id} onClick={() => setSelectedIdx(idx)}
+                style={{ padding: '6px 8px', background: isSelected ? '#1c2833' : '#0d1316', border: isSelected ? '1px solid var(--brass-gold)' : '1px solid #1c2833', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '12px', color: isSelected ? 'var(--brass-gold)' : '#d5dbdb' }}>
                     <span class="copper-text" style={{ marginRight: '6px' }}>[{idx + 1}]</span>
                     {recipe.name}
                   </span>
-                  <span style={{ fontSize: '9px', color: badge.color, border: `1px solid ${badge.color}`, padding: '1px 4px' }}>
-                    {badge.text}
-                  </span>
+                  <div style={{ display: 'flex', gap: '3px' }}>
+                    <span style={{ fontSize: '8px', color: stationBadge.color, border: `1px solid ${stationBadge.color}`, padding: '1px 3px' }}>{stationBadge.text}</span>
+                    <span style={{ fontSize: '8px', color: reagentBadge.color, border: `1px solid ${reagentBadge.color}`, padding: '1px 3px' }}>{reagentBadge.text}</span>
+                  </div>
                 </div>
                 <div style={{ fontSize: '10px', color: '#7f8c8d', marginTop: '2px' }}>
                   {recipe.steamCostKpa} kPa &nbsp;|&nbsp; {recipe.requiresWorkbench ? 'Artificer Bench' : 'Field Craftable'}
@@ -207,18 +205,35 @@ export function CraftingWindow({ state, actorId, onCommand }: CraftingWindowProp
           {heldItems.length === 0 ? (
             <div class="log-entry muted" style={{ fontSize: '10px' }}>Satchel holds no gear to salvage.</div>
           ) : (
-            heldItems.map((item) => (
-              <div key={item.id} class="stat-row" style={{ alignItems: 'center', fontSize: '11px' }}>
-                <span>{item.visual.glyph} {item.name}</span>
-                <button
-                  type="button"
-                  onClick={() => onCommand({ type: 'SALVAGE_ITEM', actorId, itemEntityId: item.id })}
-                  style={{ padding: '2px 6px', fontSize: '10px', color: '#e67e22' }}
-                >
-                  Salvage
-                </button>
-              </div>
-            ))
+            heldItems.map((item) => {
+              const isRare = Boolean(item.prostheticSpec || item.item?.category === 'EQUIPMENT');
+              const yieldText = isRare || item.item?.category === 'COMMODITY' || item.item?.blueprintId === 'mat_cast_iron_plate'
+                ? '2x Brass (0 kPa)' : '1x Rubber (0 kPa)';
+              const isConfirming = confirmingItemId === item.id;
+              return (
+                <div key={item.id} class="stat-row" style={{ alignItems: 'center', fontSize: '11px' }}>
+                  <span>{item.visual.glyph} {item.name} <span class="muted" style={{ fontSize: '9px' }}>[{yieldText}]</span></span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isRare && !isConfirming) {
+                        setConfirmingItemId(item.id);
+                        return;
+                      }
+                      setConfirmingItemId(null);
+                      onCommand({ type: 'SALVAGE_ITEM', actorId, itemEntityId: item.id });
+                    }}
+                    style={{
+                      padding: '2px 5px', fontSize: '9px',
+                      color: isConfirming ? 'var(--warn-red)' : '#e67e22',
+                      borderColor: isConfirming ? 'var(--warn-red)' : undefined,
+                    }}
+                  >
+                    {isConfirming ? '[Confirm Salvage?]' : 'Salvage'}
+                  </button>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

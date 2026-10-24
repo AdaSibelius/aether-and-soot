@@ -90,21 +90,23 @@ export function AtlasMinimapView({
             <div key={y} style={{ display: 'flex', height: '11px' }}>
               {Array.from({ length: grid.width }, (_, x) => {
                 const isPlayer = playerPos?.x === x && playerPos.y === y && playerPos.stratum === selectedStratum;
-                if (isPlayer) return <span key={x} style={{ color: 'var(--ok-green)', fontWeight: 'bold' }}>@</span>;
+                if (isPlayer) {
+                  return <span key={x} style={{ color: 'var(--ok-green)', fontWeight: 'bold' }} title={`Player (@) at (${x}, ${y})`}>@</span>;
+                }
                 const ent = entityPosMap.get(`${x},${y}`);
                 if (ent) {
                   const color = ent.districtGate ? '#2e86c1' : ent.aiController?.hostile ? '#ec7063' : ent.aiController?.role === 'MERCHANT' ? '#d4af37' : '#f4d03f';
-                  return <span key={x} style={{ color, fontWeight: 'bold' }}>{ent.visual.glyph}</span>;
+                  return <span key={x} style={{ color, fontWeight: 'bold' }} title={`${ent.name ?? ent.id} [${ent.visual.glyph}] at (${x}, ${y})`}>{ent.visual.glyph}</span>;
                 }
                 const cell = getTileCell(grid, x, y);
-                if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') return <span key={x} style={{ color: '#cd7f32' }}>+</span>;
-                if (cell?.terrainType === 'WOODEN_DOOR_OPEN') return <span key={x} style={{ color: '#cd7f32' }}>/</span>;
-                if (cell?.terrainType === 'CANAL_SLUICE') return <span key={x} style={{ color: '#2e86c1' }}>≈</span>;
-                if (cell?.terrainType === 'TIMBER_PIER') return <span key={x} style={{ color: '#d4af37' }}>═</span>;
-                if (cell?.terrainType === 'GOTHIC_COLONNADE') return <span key={x} style={{ color: '#f4d03f' }}>Ω</span>;
-                if (cell?.terrainType === 'WROUGHT_IRON_FENCE') return <span key={x} style={{ color: '#7f8c8d' }}>▓</span>;
-                if (cell?.blocksMovement) return <span key={x} style={{ color: '#34495e' }}>#</span>;
-                return <span key={x} style={{ color: '#17202a' }}>·</span>;
+                if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') return <span key={x} style={{ color: '#cd7f32' }} title={`Closed Door (+) at (${x}, ${y})`}>+</span>;
+                if (cell?.terrainType === 'WOODEN_DOOR_OPEN') return <span key={x} style={{ color: '#cd7f32' }} title={`Open Door (/) at (${x}, ${y})`}>/</span>;
+                if (cell?.terrainType === 'CANAL_SLUICE') return <span key={x} style={{ color: '#2e86c1' }} title={`Canal Sluice (≈) at (${x}, ${y})`}>≈</span>;
+                if (cell?.terrainType === 'TIMBER_PIER') return <span key={x} style={{ color: '#d4af37' }} title={`Timber Pier (═) at (${x}, ${y})`}>═</span>;
+                if (cell?.terrainType === 'GOTHIC_COLONNADE') return <span key={x} style={{ color: '#f4d03f' }} title={`Viaduct Colonnade (Π) at (${x}, ${y})`}>Π</span>;
+                if (cell?.terrainType === 'WROUGHT_IRON_FENCE') return <span key={x} style={{ color: '#7f8c8d' }} title={`Toll Wall (▓) at (${x}, ${y})`}>▓</span>;
+                if (cell?.blocksMovement) return <span key={x} style={{ color: '#34495e' }} title={`Wall (#) at (${x}, ${y})`}>#</span>;
+                return <span key={x} style={{ color: '#17202a' }} title={`Cobblestone (·) at (${x}, ${y})`}>·</span>;
               })}
             </div>
           ))}
@@ -115,10 +117,14 @@ export function AtlasMinimapView({
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <span><b style={{ color: 'var(--ok-green)' }}>@</b> Player</span>
           <span><b style={{ color: '#2e86c1' }}>Ω</b> Gate</span>
+          <span><b style={{ color: '#f4d03f' }}>Π</b> Viaduct</span>
           <span><b style={{ color: '#2e86c1' }}>≈</b> Canal</span>
-          <span><b style={{ color: '#f4d03f' }}>Ω</b> Viaduct</span>
           <span><b style={{ color: '#7f8c8d' }}>▓</b> Toll Wall</span>
-          <span><b style={{ color: '#5dade2' }}>&gt;/&lt;</b> Sump</span>
+          <span><b style={{ color: '#d4af37' }}>M</b> Merchant</span>
+          <span><b style={{ color: '#58d68d' }}>C</b> Citizen/Constable</span>
+          <span><b style={{ color: '#e67e22' }}>B</b> Boiler Plant</span>
+          <span><b style={{ color: '#58d68d' }}>⌂</b> Safehouse Vault</span>
+          <span><b style={{ color: '#af7ac5' }}>╤</b> Monorail Depot</span>
         </div>
         <div>{entitiesOnStratum.length} entities tracked</div>
       </div>

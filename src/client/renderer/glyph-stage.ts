@@ -1,9 +1,11 @@
-import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
+import { Application, Container, Filter, Graphics, Text, TextStyle } from 'pixi.js';
 import { VisualGridFrame } from '../projection/frame-adapter.js';
-import { createCrtPostFilter } from './crt-filter.js';
+import { createCrtPostFilter, DEFAULT_SCANLINE_OPACITY } from './crt-filter.js';
 
 export const CELL_WIDTH_PX = 22;
 export const CELL_HEIGHT_PX = 24;
+export const WIDESCREEN_GRID_WIDTH = 48;
+export const WIDESCREEN_GRID_HEIGHT = 30;
 
 function hexToNumber(hex: string): number {
   return parseInt(hex.replace('#', ''), 16);
@@ -18,6 +20,7 @@ export class GlyphStageRenderer {
   private readonly gridContainer: Container;
   private readonly bgGraphics: Graphics;
   private readonly glyphNodes: Text[] = [];
+  private crtFilter: Filter | null = null;
   private elapsedSeconds = 0;
 
   private constructor(app: Application) {
@@ -27,13 +30,19 @@ export class GlyphStageRenderer {
     this.gridContainer.addChild(this.bgGraphics);
 
     try {
-      const crtFilter = createCrtPostFilter();
-      this.app.stage.filters = [crtFilter];
+      this.crtFilter = createCrtPostFilter(DEFAULT_SCANLINE_OPACITY);
+      this.app.stage.filters = [this.crtFilter];
     } catch {
       // Fallback cleanly if WebGL context does not support custom filter compilation
     }
 
     this.app.stage.addChild(this.gridContainer);
+  }
+
+  public setCrtScanlinesEnabled(enabled: boolean): void {
+    if (this.crtFilter) {
+      this.app.stage.filters = enabled ? [this.crtFilter] : [];
+    }
   }
 
   public static async create(

@@ -11,12 +11,13 @@ import { spawnDistrictItems } from '../sim/systems/item-spawner.js';
 import { applyCharacterCreation } from '../sim/systems/character-archetypes.js';
 import { handleGameKeydown } from './input/keyboard-router.js';
 import { projectWorldToVisualFrame } from './projection/frame-adapter.js';
-import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer } from './renderer/glyph-stage.js';
+import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer, WIDESCREEN_GRID_HEIGHT, WIDESCREEN_GRID_WIDTH } from './renderer/glyph-stage.js';
 import { CharacterModalShell, ModalWindowId } from './ui/CharacterModalShell.js';
 import { CharacterCreatorModal } from './ui/CharacterCreatorModal.js';
 import { DialogueModal } from './ui/DialogueModal.js';
 import { HudLayout } from './ui/HudLayout.js';
 import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
+import { ModalTopBar } from './ui/ModalTopBar.js';
 import { QuickActionBar } from './ui/QuickActionBar.js';
 import { SystemMenuModal } from './ui/SystemMenuModal.js';
 import { getSoundscapeManager } from './audio/soundscape-manager.js';
@@ -31,19 +32,21 @@ async function bootstrapClient(): Promise<void> {
   const canvasHost = document.getElementById('canvas-stage');
   const hudHost = document.getElementById('hud-root');
   const actionBarHost = document.getElementById('action-bar-root');
+  const topBarHost = document.getElementById('top-bar-root');
   if (!canvasHost || !hudHost) throw new Error('Missing #canvas-stage or #hud-root mount elements');
 
   const createFreshWorld = (seed: number): WorldState =>
     spawnDistrictNpcs(spawnDistrictItems(generateVictorianDistrict(createInitialWorld({ seed })).state).state).state;
 
   let worldState = createFreshWorld(0xcafebabe);
-  const stageRenderer = await GlyphStageRenderer.create(canvasHost, 24, 20);
+  const stageRenderer = await GlyphStageRenderer.create(canvasHost, WIDESCREEN_GRID_WIDTH, WIDESCREEN_GRID_HEIGHT);
   const playerId = EntityIdSchema.parse('actor_player');
   canvasHost.style.position = 'relative';
-  canvasHost.style.width = '528px';
-  canvasHost.style.height = '480px';
+  canvasHost.style.width = '1056px';
+  canvasHost.style.maxWidth = '100%';
+  canvasHost.style.height = '720px';
   const overlayHost = document.createElement('div');
-  Object.assign(overlayHost.style, { position: 'absolute', top: '0', left: '0', width: '528px', height: '480px', pointerEvents: 'none' });
+  Object.assign(overlayHost.style, { position: 'absolute', top: '0', left: '0', width: '1056px', height: '720px', pointerEvents: 'none' });
   canvasHost.appendChild(overlayHost);
 
   let activeModal: ModalWindowId | null = null;
@@ -51,6 +54,7 @@ async function bootstrapClient(): Promise<void> {
   let isSystemMenuOpen = false;
   let isLookModeActive = false;
   let isCreatorOpen = false;
+  let isCrtScanlinesEnabled = true;
   let lookCursor: { x: number; y: number } | null = null;
   let activeDialogueNpcId: EntityId | null = null;
 
@@ -123,9 +127,22 @@ async function bootstrapClient(): Promise<void> {
     if (match) handleCommand({ type: 'TOGGLE_DOOR', actorId: playerId, target: match });
   };
 
+  const toggleCrtScanlines = (): void => {
+    isCrtScanlinesEnabled = !isCrtScanlinesEnabled;
+    stageRenderer.setCrtScanlinesEnabled(isCrtScanlinesEnabled);
+    syncPresentation();
+  };
+
   const syncPresentation = (): void => {
-    const visualFrame = projectWorldToVisualFrame(worldState, playerId);
+    const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, {
+      width: WIDESCREEN_GRID_WIDTH,
+      height: WIDESCREEN_GRID_HEIGHT,
+    });
     stageRenderer.renderFrame(visualFrame);
+
+    if (topBarHost) {
+      render(<ModalTopBar activeModal={activeModal} onOpenModal={(w) => { activeModal = w; syncPresentation(); }} onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }} />, topBarHost);
+    }
 
     render(
       <LookCursorOverlay
@@ -140,9 +157,6 @@ async function bootstrapClient(): Promise<void> {
         <QuickActionBar
           state={worldState} actorId={playerId} isLookModeActive={isLookModeActive}
           onToggleLookMode={toggleLookMode} onToggleDoor={toggleAdjacentDoor} onCommand={handleCommand}
-          onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
-          onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
-          onOpenCharacterCreator={() => { isCreatorOpen = true; syncPresentation(); }}
         />,
         actionBarHost,
       );
@@ -175,6 +189,7 @@ async function bootstrapClient(): Promise<void> {
           onNewSeed={(s) => { worldState = createFreshWorld(s); syncPresentation(); }}
           onLoadWorld={(loaded) => { worldState = loaded; syncPresentation(); }}
           onOpenCharacterCreator={() => { isCreatorOpen = true; syncPresentation(); }}
+          crtScanlinesEnabled={isCrtScanlinesEnabled} onToggleCrtScanlines={toggleCrtScanlines}
         />
         <CharacterCreatorModal
           isOpen={isCreatorOpen} initialSeed={worldState.seed}
@@ -188,8 +203,8 @@ async function bootstrapClient(): Promise<void> {
   const updateTileFromMouse = (ev: MouseEvent): void => {
     const rect = canvasHost.getBoundingClientRect();
     const sx = Math.floor((ev.clientX - rect.left) / CELL_WIDTH_PX), sy = Math.floor((ev.clientY - rect.top) / CELL_HEIGHT_PX);
-    if (sx >= 0 && sx < 24 && sy >= 0 && sy < 20) {
-      const frame = projectWorldToVisualFrame(worldState, playerId);
+    if (sx >= 0 && sx < WIDESCREEN_GRID_WIDTH && sy >= 0 && sy < WIDESCREEN_GRID_HEIGHT) {
+      const frame = projectWorldToVisualFrame(worldState, playerId, undefined, { width: WIDESCREEN_GRID_WIDTH, height: WIDESCREEN_GRID_HEIGHT });
       const wx = frame.cameraOrigin.x + sx, wy = frame.cameraOrigin.y + sy;
       if (!mouseHoverCoord || mouseHoverCoord.x !== wx || mouseHoverCoord.y !== wy) {
         mouseHoverCoord = { x: wx, y: wy };

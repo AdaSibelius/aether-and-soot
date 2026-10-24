@@ -34,6 +34,7 @@ const CRT_FRAGMENT_SHADER = `
 
   uniform sampler2D uTexture;
   uniform float uTime;
+  uniform float uScanlineOpacity;
 
   void main(void)
   {
@@ -46,8 +47,8 @@ const CRT_FRAGMENT_SHADER = `
       float b = texture(uTexture, vec2(uv.x - shift, uv.y)).b;
       vec3 col = vec3(r, g, b);
 
-      // Horizontal CRT scanlines
-      float scanline = sin(uv.y * 540.0 + uTime * 2.0) * 0.06;
+      // Horizontal CRT scanlines (default reduced 45% to 0.033)
+      float scanline = sin(uv.y * 540.0 + uTime * 2.0) * uScanlineOpacity;
       col -= scanline;
 
       // Warm brass phosphor tint & vignette
@@ -59,7 +60,9 @@ const CRT_FRAGMENT_SHADER = `
   }
 `;
 
-export function createCrtPostFilter(): Filter {
+export const DEFAULT_SCANLINE_OPACITY = 0.033;
+
+export function createCrtPostFilter(opacity: number = DEFAULT_SCANLINE_OPACITY): Filter {
   const glProgram = GlProgram.from({
     vertex: CRT_VERTEX_SHADER,
     fragment: CRT_FRAGMENT_SHADER,
@@ -70,6 +73,7 @@ export function createCrtPostFilter(): Filter {
     resources: {
       crtUniforms: {
         uTime: { value: 0, type: 'f32' },
+        uScanlineOpacity: { value: opacity, type: 'f32' },
       },
     },
   });
