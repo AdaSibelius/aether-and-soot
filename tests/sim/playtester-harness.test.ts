@@ -1,7 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
+import {
+  BlueprintIdSchema,
+  EntityIdSchema,
+  FactionIdSchema,
+} from '../../src/schemas/primitives.schema.js';
 import { createInitialWorld } from '../../src/sim/core/world.js';
 import { generateVictorianDistrict } from '../../src/sim/spatial/generator.js';
 import {
@@ -9,6 +13,7 @@ import {
   serializePlayerContext,
   auditClientProjection,
 } from '../scripts/playtester-serializer.js';
+import { evaluateDecisionPolicy } from '../scripts/playtester-policy.js';
 import { runPlaytestSession } from '../scripts/llm-playtester.js';
 import { applyPlaytestScenario, getScenarioObjectives } from '../scripts/playtester-scenarios.js';
 
@@ -109,6 +114,12 @@ describe('Headless LLM Playtester Harness', () => {
     });
     expect(transMetrics.turnsSurvived).toBe(50);
     expect(transMetrics.commandHistogram['CLAIM_WORKSHOP_DEED']).toBeGreaterThanOrEqual(1);
+    expect(transMetrics.promptTokens).toBeDefined();
+    expect(transMetrics.completionTokens).toBeDefined();
+    expect(transMetrics.stageDecisions).toBeDefined();
+    if (transMetrics.stageDecisions) {
+      expect(transMetrics.stageDecisions.stage1 + transMetrics.stageDecisions.stage2 + transMetrics.stageDecisions.stage3).toBe(50);
+    }
 
     // Check report artifacts
     expect(fs.existsSync(reportPath)).toBe(true);
@@ -116,11 +127,110 @@ describe('Headless LLM Playtester Harness', () => {
     expect(reportContent).toContain('Command Coverage Matrix');
     expect(reportContent).toContain('Client UI Projection & Chronicle Leak Audit');
     expect(reportContent).toContain('UI Projection Leaks Detected');
+    expect(reportContent).toContain('LLM Token & Inference Efficiency');
 
     expect(fs.existsSync(ecoReportPath)).toBe(true);
     const ecoContent = fs.readFileSync(ecoReportPath, 'utf-8');
     expect(ecoContent).toContain('Command Coverage Matrix');
 
     if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
+  });
+
+  it('evaluates decision policy across Stage 1 reflex, Stage 2 fast model, and Stage 3 escalation', () => {
+    const world = setupWorld();
+    const player = world.entities[playerId]!;
+
+    // 1. Stage 2 Default fast model
+    const defaultPolicy = evaluateDecisionPolicy(world, playerId, { consecutiveFailures: 0 });
+    expect(defaultPolicy.stage).toBe(2);
+    expect(defaultPolicy.tier).toBe('tier3');
+
+    // 2. Stage 3 Escalation on stuck (consecutiveFailures >= 3)
+    const stuckPolicy = evaluateDecisionPolicy(world, playerId, { consecutiveFailures: 3 });
+    expect(stuckPolicy.stage).toBe(3);
+    expect(stuckPolicy.tier).toBe('tier1');
+
+    // 3. Stage 3 Stratum Transit
+    const transitPolicy = evaluateDecisionPolicy(world, playerId, { consecutiveFailures: 0, targetStratumTransit: true });
+    expect(transitPolicy.stage).toBe(3);
+    expect(transitPolicy.tier).toBe('tier1');
+
+    // 4. Stage 1 Critical Haemostatic Reflex (blood <= 35% and has tonic)
+    const tonicId = EntityIdSchema.parse('item_test_tonic');
+    world.entities[tonicId] = {
+      id: tonicId,
+      name: 'Haemostatic Tonic',
+      visual: { glyph: '!', fgPrimary: '#ffffff', fgSecondary: '#000000', bgColor: '#000000', shaderFlags: ['NONE'] },
+      item: { blueprintId: BlueprintIdSchema.parse('item_tonic'), category: 'CONSUMABLE', massGrams: 200, volumeMl: 100, quantity: 1, stackable: true },
+    };
+    player.inventory = {
+      maxMassGrams: 25000,
+      maxVolumeMl: 30000,
+      currentMassGrams: 200,
+      containedEntityIds: [tonicId],
+    };
+    player.anatomy = {
+      ...player.anatomy!,
+      bloodVolumePct: 30,
+    };
+    const tonicPolicy = evaluateDecisionPolicy(world, playerId, { consecutiveFailures: 0 });
+    expect(tonicPolicy.stage).toBe(1);
+    expect(tonicPolicy.reason).toBe('CRITICAL_HAEMOSTATIC_REFLEX');
+    expect(tonicPolicy.command?.type).toBe('USE_ITEM');
+
+    // 5. Stage 1 Adjacent Hostile Combat Strike
+    player.anatomy.bloodVolumePct = 100;
+    const enemyId = EntityIdSchema.parse('actor_hostile_thug');
+    world.entities[enemyId] = {
+      id: enemyId,
+      name: 'Street Thug',
+      visual: { glyph: 'T', fgPrimary: '#ff0000', fgSecondary: '#000000', bgColor: '#000000', shaderFlags: ['NONE'] },
+      actor: { energy: 100, speed: 100, isPlayer: false },
+      aiController: { factionId: FactionIdSchema.parse('UNDERCROFT_SYNDICATE'), alertState: 'COMBAT', role: 'GUARD', hostile: true },
+      position: {
+        x: player.position!.x + 1,
+        y: player.position!.y,
+        stratum: player.position!.stratum,
+        blocksMovement: true,
+        blocksSight: false,
+      },
+      anatomy: {
+        bloodVolumePct: 100,
+        steamReserveKpa: 0,
+        maxSteamReserveKpa: 100,
+        unlockedRecipeIds: [],
+        governorCapacityKw: 100,
+        strainLoadKw: 0,
+        toxicityPct: 0,
+        painShock: 0,
+        stamina: 100,
+        activeEffects: [],
+        limbs: {
+          TORSO: { slot: 'TORSO', hp: 50, maxHp: 50, amputated: false },
+          HEAD: { slot: 'HEAD', hp: 20, maxHp: 20, amputated: false },
+        },
+      },
+    };
+    const combatPolicy = evaluateDecisionPolicy(world, playerId, { consecutiveFailures: 0 });
+    expect(combatPolicy.stage).toBe(1);
+    expect(combatPolicy.reason).toBe('ADJACENT_THREAT_COMBAT_REFLEX');
+    expect(combatPolicy.command?.type).toBe('ATTACK_ACTOR');
+  });
+
+  it('serializes compressed sensory radar and emits metadata delta for unchanged turns', () => {
+    const world = setupWorld();
+    const context = serializePlayerContext(world, playerId, {
+      lastTurnContext: {
+        stratum: 'STREET',
+        blood: 100,
+        steam: 0,
+        safehouses: 'None',
+        codexCount: 0,
+      },
+    });
+
+    expect(context).toContain('[LOCAL SENSORY RADAR');
+    expect(context).toContain('[METADATA DELTA]: Safehouses & Codex unchanged');
+    expect(context).not.toContain('............');
   });
 });

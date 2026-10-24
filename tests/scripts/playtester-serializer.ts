@@ -29,11 +29,21 @@ export {
 
 export type { LlmActionPayload, ClientProjectionAudit, ProjectionLeak };
 
+export interface LastTurnContextSummary {
+  readonly stratum: string;
+  readonly blood: number;
+  readonly steam: number;
+  readonly safehouses: string;
+  readonly codexCount: number;
+}
+
 export interface ContextSerializationOptions extends AuditProjectionOptions {
   readonly recentPositions?: ReadonlyArray<{ x: number; y: number }> | undefined;
   readonly systemFeedback?: string | undefined;
   readonly primaryObjective?: string | undefined;
   readonly secondaryDirective?: string | undefined;
+  readonly lastTurnContext?: LastTurnContextSummary | undefined;
+  readonly rawFovGrid?: boolean | undefined;
 }
 
 const TERRAIN_GLYPH: Partial<Record<string, string>> = {
@@ -64,30 +74,35 @@ export function serializePlayerContext(
   const blood = player.anatomy?.bloodVolumePct ?? 100;
   const steam = player.anatomy?.steamReserveKpa ?? 0, maxSteam = player.anatomy?.maxSteamReserveKpa ?? 100;
 
-  let fovRows = '   -5 -4 -3 -2 -1  0 +1 +2 +3 +4 +5\n';
-  const visibleThreats: string[] = [], adjacentInteractables: string[] = [];
+  const visibleThreats: string[] = [];
+  const adjacentInteractables: string[] = [];
+  const visibleObstacles: Array<{ name: string; glyph: string; dx: number; dy: number }> = [];
 
   for (let dy = -5; dy <= 5; dy++) {
-    let row = `${(dy >= 0 ? `+${dy}` : `${dy}`).padStart(2, ' ')} `;
     for (let dx = -5; dx <= 5; dx++) {
+      if (dx === 0 && dy === 0) continue;
       const tx = pos.x + dx, ty = pos.y + dy;
-      if (dx === 0 && dy === 0) { row += ' @ '; continue; }
-      if (!visible.has(`${tx},${ty}`)) { row += ' ? '; continue; }
+      if (!visible.has(`${tx},${ty}`)) continue;
       const entities = findEntitiesAtPoint(state.entities, { x: tx, y: ty, stratum: pos.stratum });
       const cell = getTileCell(grid, tx, ty);
       const enemy = entities.find((e) => e.actor && !e.actor.isPlayer);
       if (enemy) {
-        row += enemy.aiController?.hostile ? ' G ' : ' N ';
-        visibleThreats.push(`${enemy.name} (id: '${enemy.id}') at rel (${dx}, ${dy}) | Alert: ${enemy.aiController?.alertState ?? 'IDLE'}`);
-      } else if (entities.some((e) => e.trap?.armed)) row += ' ^ ';
-      else if (entities.some((e) => e.landmark)) row += ' L ';
-      else if (entities.some((e) => e.pressureVessel)) row += ' B ';
-      else if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') { row += ' + '; if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy}) -> TOGGLE_DOOR`); }
-      else if ((cell?.steamPressureKpa ?? 0) >= 20 || (cell?.coalDustDensity ?? 0) >= 0.3) row += ' ~ ';
-      else if (cell?.terrainType && TERRAIN_GLYPH[cell.terrainType]) row += TERRAIN_GLYPH[cell.terrainType];
-      else row += ' . ';
+        visibleThreats.push(`${enemy.name} (id: '${enemy.id}') at (${dx}, ${dy}) | Alert: ${enemy.aiController?.alertState ?? 'IDLE'}`);
+      } else if (entities.some((e) => e.trap?.armed)) {
+        visibleObstacles.push({ name: 'TRAP', glyph: '^', dx, dy });
+      } else if (entities.some((e) => e.landmark)) {
+        visibleObstacles.push({ name: 'LANDMARK', glyph: 'L', dx, dy });
+      } else if (entities.some((e) => e.pressureVessel)) {
+        visibleObstacles.push({ name: 'BOILER', glyph: 'B', dx, dy });
+      } else if (cell?.terrainType === 'WOODEN_DOOR_CLOSED') {
+        visibleObstacles.push({ name: 'WOODEN_DOOR_CLOSED', glyph: '+', dx, dy });
+        if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) adjacentInteractables.push(`Door (CLOSED) at (${dx}, ${dy}) -> TOGGLE_DOOR`);
+      } else if (cell?.terrainType && TERRAIN_GLYPH[cell.terrainType]) {
+        visibleObstacles.push({ name: cell.terrainType, glyph: TERRAIN_GLYPH[cell.terrainType]!.trim(), dx, dy });
+      } else if ((cell?.steamPressureKpa ?? 0) >= 20 || (cell?.coalDustDensity ?? 0) >= 0.3) {
+        visibleObstacles.push({ name: 'SMOG_CLOUD', glyph: '~', dx, dy });
+      }
     }
-    fovRows += `${row}\n`;
   }
 
   const recentSounds = state.eventLog.slice(-15).filter((e) => e.type === 'SOUND_EMITTED')
@@ -157,16 +172,29 @@ export function serializePlayerContext(
   const feedbackBlock = options?.systemFeedback ? `[SYSTEM FEEDBACK]: ${options.systemFeedback}\n` : '';
   const auditBlock = `[CLIENT PROJECTION AUDIT]: Leaks Detected: ${audit.leakCount} (LookSync: ${audit.lookCursorSync.synchronized ? 'OK' : 'DESYNC'})\n`;
 
+  let metadataBlock = '';
+  if (options?.lastTurnContext && options.lastTurnContext.safehouses === safehouseList && options.lastTurnContext.codexCount === codexCount) {
+    metadataBlock = `[METADATA DELTA]: Safehouses & Codex unchanged (${codexCount} entries)\n`;
+  } else {
+    metadataBlock = `[SAFEHOUSES]: ${safehouseList} | [CODEX]: ${codexCount} entries discovered\n`;
+  }
+
+  const sensoryRepresentation = visibleObstacles.length > 0
+    ? visibleObstacles.map((o) => `${o.name} '${o.glyph}' at (${o.dx},${o.dy})`).join(', ')
+    : 'Clear open terrain';
+
   return `=== AETHER & SOOT [Turn ${state.turnCount} | Shift: ${shift}] ===
 Primary Objective: ${primaryObj} | Secondary Directive: ${secDir}
 [STRATUM]: ${pos.stratum} | [POS]: (${pos.x}, ${pos.y}) | [BLOOD]: ${blood}% | [STEAM]: ${steam}/${maxSteam} kPa
-[SAFEHOUSES]: ${safehouseList} | [CODEX]: ${codexCount} entries discovered
-[Recent Steps: ${recentSteps}]
-${auditBlock}${feedbackBlock}[LOCAL SENSORY FOV (11x11 Grid, Relative Centered on '@')]:
-${fovRows}[RECENT ACOUSTIC SOUNDS]:\n${recentSounds.length > 0 ? recentSounds.join('\n') : 'None in range.'}
+${metadataBlock}[Recent Steps: ${recentSteps}]
+${auditBlock}${feedbackBlock}[LOCAL SENSORY RADAR (Relative Coordinates dx, dy centered on '@')]:
+Obstacles: ${sensoryRepresentation}
+[RECENT ACOUSTIC SOUNDS]:\n${recentSounds.length > 0 ? recentSounds.join('\n') : 'None in range.'}
 [VISIBLE THREATS]:\n${visibleThreats.length > 0 ? visibleThreats.join('\n') : 'No visible threats.'}
 [ADJACENT INTERACTABLES]:\n${adjacentInteractables.length > 0 ? adjacentInteractables.join('\n') : 'None.'}
-[AVAILABLE CONTEXTUAL COMMANDS]:\n${contextualCommands.length > 0 ? contextualCommands.map((c) => `- ${c}`).join('\n') : '- {"action": "MOVE", "dir": "N|S|E|W"}\n- {"action": "WAIT"}'}`;
+[AVAILABLE CONTEXTUAL COMMANDS]:
+- Default: {"action": "MOVE", "dir": "N|S|E|W"} | {"action": "WAIT"}
+${contextualCommands.length > 0 ? contextualCommands.map((c) => `- ${c}`).join('\n') : ''}`;
 }
 
 export { generateMockAction } from './playtester-mock.js';
