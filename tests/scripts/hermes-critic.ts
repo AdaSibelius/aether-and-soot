@@ -71,13 +71,14 @@ export function parseCriticArgs(argv: string[]): CriticConfig {
 export async function runCritic(config: CriticConfig, rootDir: string): Promise<string> {
   const aggregatedHistogram: Record<string, number> = {};
   let totalTurns = 0;
+  let totalProjectionLeaks = 0;
 
   if (!config.skipPlaytest) {
     const scenarios: PlaytestScenario[] = ['explore', 'combat', 'economy', 'transit'];
     console.log(`[hermes-critic] Executing 4-scenario playtest sweep (${scenarios.join(', ')})...`);
     for (const scenario of scenarios) {
       const res: PlaytestMetrics = await runPlaytestSession({
-        mock: true,
+        mock: config.mock,
         maxTurns: 15,
         seed: 42,
         endpoint: config.endpoint,
@@ -86,6 +87,7 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
         scenario,
       });
       totalTurns += res.turnsSurvived;
+      totalProjectionLeaks += res.uiProjectionLeaks ?? 0;
       for (const [cmd, count] of Object.entries(res.commandHistogram ?? {})) {
         aggregatedHistogram[cmd] = (aggregatedHistogram[cmd] ?? 0) + count;
       }
@@ -111,22 +113,15 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
   });
 
   const anomalies: TelemetryAnomaly[] = [];
+  if (totalProjectionLeaks > 0) {
+    anomalies.push({ metricKey: 'uiProjectionLeaks', observedValue: totalProjectionLeaks, expectedThreshold: 0, severity: 'P0_BLOCKER' });
+  }
   if (coverage.unwired.length > 0) {
-    anomalies.push({
-      metricKey: 'unwiredCommands',
-      observedValue: coverage.unwired.length,
-      expectedThreshold: 0,
-      severity: 'P1_HIGH',
-    });
+    anomalies.push({ metricKey: 'unwiredCommands', observedValue: coverage.unwired.length, expectedThreshold: 0, severity: 'P1_HIGH' });
   }
   const topNearCap = hotspots.find((h) => h.lines >= 240);
   if (topNearCap) {
-    anomalies.push({
-      metricKey: 'modularityHotspot',
-      observedValue: `${topNearCap.file}:${topNearCap.lines}`,
-      expectedThreshold: '230 lines',
-      severity: 'P2_MEDIUM',
-    });
+    anomalies.push({ metricKey: 'modularityHotspot', observedValue: `${topNearCap.file}:${topNearCap.lines}`, expectedThreshold: '230 lines', severity: 'P2_MEDIUM' });
   }
 
   let audit: CriticAudit | undefined;
@@ -204,8 +199,13 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
   const nearCap = hotspots.find((h) => h.lines >= 245);
   const topHotspot = nearCap ? `\`${nearCap.file}\` (${nearCap.lines} lines)` : (hotspots[0] ? `\`${hotspots[0].file}\` (${hotspots[0].lines} lines)` : 'modular decoupling maintained');
 
+  const leakPenalty = totalProjectionLeaks * 15;
+  const unwiredPenalty = Math.min(25, coverage.unwired.length * 2);
+  const hotspotPenalty = Math.min(15, hotspots.filter((h) => h.lines >= 240).length * 3);
+  const score = audit?.score ?? Math.max(0, Math.min(100, 100 - leakPenalty - unwiredPenalty - hotspotPenalty));
+
   let report = formatCriticReport({
-    score: 88,
+    score,
     hotspots,
     coverage,
     histogram: aggregatedHistogram,

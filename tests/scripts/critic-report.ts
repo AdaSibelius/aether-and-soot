@@ -13,6 +13,10 @@ export function auditCommandCoverage(rootDir: string, histogram: Record<string, 
   const cmdFiles = [
     path.join(rootDir, 'src/schemas/commands.schema.ts'),
     path.join(rootDir, 'src/schemas/domain-commands.schema.ts'),
+    path.join(rootDir, 'src/schemas/safehouse-commands.schema.ts'),
+    path.join(rootDir, 'src/schemas/skirmish-commands.schema.ts'),
+    path.join(rootDir, 'src/schemas/transit-commands.schema.ts'),
+    path.join(rootDir, 'src/schemas/witness-commands.schema.ts'),
   ];
   const allCmds = new Set<string>();
   for (const f of cmdFiles) {
@@ -22,13 +26,25 @@ export function auditCommandCoverage(rootDir: string, histogram: Record<string, 
       }
     }
   }
-  const serializerPath = path.join(rootDir, 'tests/scripts/playtester-serializer.ts');
-  const serializerContent = fs.existsSync(serializerPath) ? fs.readFileSync(serializerPath, 'utf-8') : '';
+
+  const wiredSourceFiles = [
+    path.join(rootDir, 'tests/scripts/playtester-serializer.ts'),
+    path.join(rootDir, 'tests/scripts/playtester-dispatcher.ts'),
+    path.join(rootDir, 'tests/scripts/playtester-actions.ts'),
+  ];
+  const wiredContents = wiredSourceFiles
+    .map((f) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf-8') : ''))
+    .join('\n');
+
   const active: string[] = [], dormant: string[] = [], unwired: string[] = [];
   for (const cmd of Array.from(allCmds).sort()) {
-    if ((histogram[cmd] ?? 0) > 0) active.push(cmd);
-    else if (serializerContent.includes(`'${cmd}'`) || serializerContent.includes(`"${cmd}"`)) dormant.push(cmd);
-    else unwired.push(cmd);
+    if ((histogram[cmd] ?? 0) > 0) {
+      active.push(cmd);
+    } else if (wiredContents.includes(`'${cmd}'`) || wiredContents.includes(`"${cmd}"`)) {
+      dormant.push(cmd);
+    } else {
+      unwired.push(cmd);
+    }
   }
   return { active, dormant, unwired };
 }

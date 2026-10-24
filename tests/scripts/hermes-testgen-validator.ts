@@ -23,15 +23,14 @@ export function validateTestSuiteStructure(code: string): ValidationResult {
     );
   }
 
-  // 2. Given (Seeded World)
-  const hasGiven = /(?:createInitialWorld\s*\(\s*\{[^}]*seed|Given\s*\(Seeded World\))/i.test(code);
+  // 2. Given (Seeded World via createInitialWorld)
+  const hasGiven = /\bcreateInitialWorld\s*\(/i.test(code);
   if (!hasGiven) {
     violations.push('Rule 1.3: Missing "Given (Seeded World)" structure: must initialize seeded world state.');
   }
 
   // 3. When (Command Dispatched via command-router.ts)
-  const hasWhen =
-    /(?:dispatchCommand\s*\(|routeDomainCommand\s*\(|command-router\.(?:js|ts)|When\s*\(Command Dispatched)/i.test(code);
+  const hasWhen = /\b(?:dispatchCommand|routeDomainCommand)\s*\(/i.test(code);
   if (!hasWhen) {
     violations.push(
       'Rule 1.3: Missing "When (Command Dispatched via command-router.ts)" structure: must dispatch a simulation command.',
@@ -40,23 +39,19 @@ export function validateTestSuiteStructure(code: string): ValidationResult {
 
   // 4. Then (ECS Component Delta + Domain Event Emitted + Frame Projection Verified)
   const hasEcsDelta =
-    /(?:entities\[|state\.entities|anatomy|position|safehouses|furniture|pressureVessel|inventory|components|Then\s*\(.*ECS Component Delta)/i.test(
+    /(?:entities\[|state\.entities|anatomy|position|safehouses|furniture|pressureVessel|inventory|components)/i.test(
       code,
     );
   if (!hasEcsDelta) {
     violations.push('Rule 1.3: Missing "Then (ECS Component Delta)" structure: must assert component/entity state delta.');
   }
 
-  const hasDomainEvent =
-    /(?:\.events|\.eventLog|events\.some|events\.find|eventLog\.some|eventLog\.find|Then\s*\(.*Domain Event Emitted)/i.test(
-      code,
-    );
+  const hasDomainEvent = /(?:\.events|\.eventLog)/i.test(code);
   if (!hasDomainEvent) {
     violations.push('Rule 1.3: Missing "Then (Domain Event Emitted)" structure: must assert emitted domain events.');
   }
 
-  const hasFrameProjection =
-    /(?:projectWorldToVisualFrame|visualFrame|frame-adapter|Then\s*\(.*Frame Projection Verified)/i.test(code);
+  const hasFrameProjection = /\bprojectWorldToVisualFrame\s*\(/i.test(code);
   if (!hasFrameProjection) {
     violations.push(
       'Rule 1.3: Missing "Then (Frame Projection Verified)" structure: must verify visual frame projection via projectWorldToVisualFrame.',

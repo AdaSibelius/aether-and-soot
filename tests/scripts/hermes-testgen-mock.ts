@@ -149,7 +149,7 @@ describe('Deterministic System Test (${path.basename(targetPath)})', () => {
     expect(result.events).toBeDefined();
     // 3. Frame Projection Verified
     const frame = projectWorldToVisualFrame(result.state, playerId);
-    expect(frame.primaryStratum).toBeDefined();
+    expect(frame.activeStratum).toBeDefined();
   });
 });
 `;
