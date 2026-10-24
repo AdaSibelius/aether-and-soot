@@ -68,3 +68,4 @@ export function deserializeWorld(json: string): WorldState {
 }
 
 export { createInitialWorld } from './world-factory.js';
+export { assertWorldInvariants, validateWorldInvariants } from './invariants.js';
