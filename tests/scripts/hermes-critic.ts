@@ -8,6 +8,7 @@ import {
   queryLocalOllama,
   resolveConnectionTelemetry,
 } from './local-llm-config.js';
+import { recordInferenceMetric } from './local-llm-ledger.js';
 import {
   CriticAudit,
   CriticAuditSchema,
@@ -27,23 +28,10 @@ import {
 } from './critic-report.js';
 
 export {
-  CriticAuditSchema,
-  CriticPrescriptionSchema,
-  TelemetryAnomalySchema,
-  verifyCriticSanity,
-  auditCommandCoverage,
-  auditModularityHotspots,
-  buildHandoffPrompt,
-  formatCriticReport,
+  CriticAuditSchema, CriticPrescriptionSchema, TelemetryAnomalySchema, verifyCriticSanity,
+  auditCommandCoverage, auditModularityHotspots, buildHandoffPrompt, formatCriticReport,
 };
-
-export type {
-  CriticAudit,
-  CriticPrescription,
-  CriticSanityResult,
-  TelemetryAnomaly,
-  CommandCoverage,
-};
+export type { CriticAudit, CriticPrescription, CriticSanityResult, TelemetryAnomaly, CommandCoverage };
 
 export interface CriticConfig {
   readonly skipPlaytest: boolean;
@@ -142,6 +130,8 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
         systemPrompt: 'You are the lead architectural evaluator for Aether & Soot. Return ONLY valid JSON satisfying CriticAuditSchema. In each prescription, cite an exact metricKey from telemetryAnomalies in citedAnomalyMetricKey. Do not include markdown codeblocks or prose.',
         temperature: 0.1,
         enforceJsonSchema: true,
+        task: 'hermes-critic',
+        tier: 'tier1',
       });
 
       const parsedJson = JSON.parse(content);
@@ -152,6 +142,18 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
       process.exit(1);
     }
   } else {
+    recordInferenceMetric({
+      timestamp: new Date().toISOString(),
+      task: 'hermes-critic',
+      tier: 'tier1',
+      model: config.model,
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      duration_ms: 0,
+      retry_count: 0,
+      success: true,
+      cache_hit: true,
+    });
     const defaultVerificationTest = fs.existsSync(path.resolve(rootDir, 'tests/sim/determinism.test.ts'))
       ? 'tests/sim/determinism.test.ts'
       : 'tests/sim/hermes-critic.test.ts';

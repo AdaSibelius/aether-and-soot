@@ -15,6 +15,7 @@ import {
 } from './playtester-scenarios.js';
 import { PlaytestMetrics, writeReport } from './playtest-report.js';
 import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
+import { recordInferenceMetric } from './local-llm-ledger.js';
 import { auditClientProjection, ClientProjectionAudit } from './playtester-projection-audit.js';
 
 export type { PlaytestMetrics };
@@ -55,6 +56,8 @@ async function queryLocalLlm(endpoint: string, model: string, prompt: string): P
       systemPrompt: 'You are playing Aether & Soot, a Victorian roguelike. Return ONLY JSON matching schema (action: MOVE/WAIT/ATTACK/TOGGLE_DOOR/VENT_STEAM/BREACH_TILE/STOKE_BOILER/CRAFT_RECIPE/SALVAGE_ITEM/GRAFT_PROSTHETIC/FIELD_REPAIR_LIMB/PRY_OBJECT/CLAIM_SAFEHOUSE/STOCK_PEDESTAL/DISPATCH_MONORAIL/ACCEPT_CONTRACT). Do not make function or tool calls.',
       formatJson: true,
       temperature: 0.1,
+      task: 'llm-playtester',
+      tier: 'tier3',
     });
   } catch {
     console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
@@ -121,6 +124,12 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
 
     let rawAction = '';
     if (config.mock) {
+      if (turn === 0) {
+        recordInferenceMetric({
+          timestamp: new Date().toISOString(), task: 'llm-playtester', tier: 'tier3', model: config.model,
+          prompt_tokens: 0, completion_tokens: 0, duration_ms: 0, retry_count: 0, success: true, cache_hit: true,
+        });
+      }
       rawAction = JSON.stringify(generateMockAction(state, playerId, recentPositions, config.scenario));
     } else {
       const context = serializePlayerContext(state, playerId, {

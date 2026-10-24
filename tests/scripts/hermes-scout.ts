@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
+import { recordInferenceMetric } from './local-llm-ledger.js';
 
 export interface ScoutConfig {
   readonly task: string;
@@ -115,7 +116,21 @@ ${touchedLines}
 }
 
 export async function requestLlmScoutReport(config: ScoutConfig, files: FileMetadata[]): Promise<string> {
-  if (config.mock) return generateDeterministicScoutReport(config.task, files);
+  if (config.mock) {
+    recordInferenceMetric({
+      timestamp: new Date().toISOString(),
+      task: 'hermes-scout',
+      tier: 'tier2',
+      model: config.model,
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      duration_ms: 0,
+      retry_count: 0,
+      success: true,
+      cache_hit: true,
+    });
+    return generateDeterministicScoutReport(config.task, files);
+  }
 
   const nearCap = files.filter((f) => f.isNearCap).map((f) => `${f.relPath} (${f.lineCount} lines)`);
   const topFiles = files.slice(0, 20).map((f) => `${f.relPath} (${f.lineCount} lines): exports [${f.exports.slice(0, 6).join(', ')}]`).join('\n');
@@ -144,6 +159,8 @@ Do not output preamble or fluff.`;
       endpoint: config.endpoint,
       systemPrompt: 'You are an architectural evaluator for Aether & Soot. Return ONLY the requested 5-point markdown Pre-Flight Impact Analysis Block without introductory or concluding conversational fluff.',
       temperature: 0.2,
+      task: 'hermes-scout',
+      tier: 'tier2',
     });
     if (!content || !content.includes('Pre-Flight')) {
       console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');

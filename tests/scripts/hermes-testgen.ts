@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
+import { recordInferenceMetric } from './local-llm-ledger.js';
 import {
   validateTypedBoundaries,
   validateTestSuiteStructure,
@@ -65,7 +66,21 @@ export function extractModuleSignatures(filePath: string): { functions: string[]
 }
 
 export async function requestHermesTestSuite(config: TestgenConfig, signatures: string[], rootDir: string): Promise<string> {
-  if (config.mock) return generateMockTestSuite(config.target, rootDir, signatures);
+  if (config.mock) {
+    recordInferenceMetric({
+      timestamp: new Date().toISOString(),
+      task: 'hermes-testgen',
+      tier: 'tier2',
+      model: config.model,
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      duration_ms: 0,
+      retry_count: 0,
+      success: true,
+      cache_hit: true,
+    });
+    return generateMockTestSuite(config.target, rootDir, signatures);
+  }
 
   const prompt = `You are a strict Vitest test engineer for "Aether & Soot" (Victorian Steampunk roguelike).
 Target file: "${config.target}"
@@ -87,6 +102,8 @@ Output ONLY the TypeScript test file.`;
       endpoint: config.endpoint,
       systemPrompt: 'You are a strict Vitest test engineer for Aether & Soot. Output ONLY valid TypeScript test suites satisfying Given -> When -> Then structure with >= 3 expect() assertions.',
       temperature: 0.2,
+      task: 'hermes-testgen',
+      tier: 'tier2',
     });
     const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
     if (!clean.includes('describe')) {
