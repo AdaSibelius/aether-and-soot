@@ -115,19 +115,11 @@ export function dispatchCommand(
     }
   }
 
-  // If command was rejected or physically impossible (apSpent === 0 or status === 'rejected'),
+  // If command was rejected or physically impossible,
   // bypass NPC turns, thermodynamics, and turn scheduling so the world clock pauses.
-  if (resolution.status === 'rejected' || apSpent === 0) {
+  if (resolution.status === 'rejected') {
     return { state: nextState, events: systemEvents, resolution };
   }
-
-  const npcTick = advanceNpcTurns(nextState, rng);
-  nextState = npcTick.state;
-  systemEvents = [...systemEvents, ...npcTick.events];
-
-  const thermoTick = advanceThermodynamicsTick(nextState);
-  nextState = thermoTick.state;
-  systemEvents = [...systemEvents, ...thermoTick.events];
 
   const actingActorId =
     command.type === 'ATTACK_ACTOR'
@@ -137,8 +129,44 @@ export function dispatchCommand(
         : command.type === 'REPORT_CRIME'
           ? command.witnessId
           : command.actorId;
+
+  // If command was applied but does not advance world time (e.g. zero-time inspection, swift action, impulse),
+  // bypass NPC turns, thermodynamics, and world clock advancement.
+  if (!resolution.advancesTime) {
+    if (apSpent > 0) {
+      const scheduled = advanceTurnSchedule(nextState, actingActorId, apSpent, systemEvents, rng, 0);
+      nextState = scheduled.state;
+      systemEvents = [...scheduled.allEvents];
+    }
+    let finalState = nextState;
+    const player = nextState.entities['actor_player'];
+    if (player?.position) {
+      const pStratum = player.position.stratum;
+      const grid = nextState.strata[pStratum];
+      if (grid) {
+        const bonus = computeProstheticFovBonus(nextState, player) + (player.traits?.includes('NIGHT_OPTICS') ? 2 : 0);
+        const visible = computeVisibleTiles(grid, player.position.x, player.position.y, Math.max(2, 10 + bonus));
+        const updatedGrid = markExploredTiles(grid, visible);
+        finalState = { ...nextState, strata: { ...nextState.strata, [pStratum]: updatedGrid } };
+      }
+    }
+    return { state: finalState, events: systemEvents, resolution };
+  }
+
+  const simulationTicks = resolution.simulationTicks ?? 1;
+
+  for (let t = 0; t < simulationTicks; t++) {
+    const npcTick = advanceNpcTurns(nextState, rng);
+    nextState = npcTick.state;
+    systemEvents = [...systemEvents, ...npcTick.events];
+
+    const thermoTick = advanceThermodynamicsTick(nextState);
+    nextState = thermoTick.state;
+    systemEvents = [...systemEvents, ...thermoTick.events];
+  }
+
   nextState = decrementProstheticCooldowns(nextState, actingActorId);
-  const scheduled = advanceTurnSchedule(nextState, actingActorId, apSpent, systemEvents, rng);
+  const scheduled = advanceTurnSchedule(nextState, actingActorId, apSpent, systemEvents, rng, simulationTicks);
 
   let finalState = scheduled.state;
   const player = scheduled.state.entities['actor_player'];

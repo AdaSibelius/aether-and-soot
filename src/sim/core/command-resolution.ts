@@ -9,6 +9,7 @@ export type CommandResolution =
       readonly events: readonly SimEvent[];
       readonly apSpent: number;
       readonly advancesTime: boolean;
+      readonly simulationTicks?: number;
     }
   | {
       readonly status: 'rejected';
@@ -21,6 +22,8 @@ export interface SystemOutcomeLike {
   readonly state: WorldState;
   readonly events: readonly SimEvent[];
   readonly apSpent?: number;
+  readonly advancesTime?: boolean;
+  readonly simulationTicks?: number;
 }
 
 /**
@@ -58,6 +61,7 @@ export function createAppliedResolution(
   events: readonly SimEvent[],
   apSpent: number,
   advancesTime = apSpent > 0,
+  simulationTicks?: number,
 ): CommandResolution {
   return {
     status: 'applied',
@@ -65,6 +69,7 @@ export function createAppliedResolution(
     events,
     apSpent,
     advancesTime,
+    simulationTicks: simulationTicks ?? (advancesTime ? 1 : 0),
   };
 }
 
@@ -94,7 +99,7 @@ export function toCommandResolution(
   const ap = outcome.apSpent !== undefined ? outcome.apSpent : defaultAp;
   const hasFailure = outcome.events.some(isFailureEvent);
 
-  if (ap === 0 && (hasFailure || outcome.events.length === 0)) {
+  if (ap === 0 && outcome.advancesTime !== false && (hasFailure || outcome.events.length === 0)) {
     return {
       status: 'rejected',
       state: outcome.state,
@@ -103,11 +108,20 @@ export function toCommandResolution(
     };
   }
 
+  const advancesTime = outcome.advancesTime !== undefined ? outcome.advancesTime : ap > 0;
+  const simulationTicks =
+    outcome.simulationTicks !== undefined
+      ? outcome.simulationTicks
+      : advancesTime
+        ? 1
+        : 0;
+
   return {
     status: 'applied',
     state: outcome.state,
     events: outcome.events,
     apSpent: ap,
-    advancesTime: ap > 0,
+    advancesTime,
+    simulationTicks,
   };
 }

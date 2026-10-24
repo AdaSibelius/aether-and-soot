@@ -3,7 +3,6 @@ import { EntityId } from '../../schemas/primitives.schema.js';
 import { ConsultCodexCommand } from '../../schemas/safehouse-commands.schema.js';
 import { CodexCategory, NpcCodexReactionEvent } from '../../schemas/safehouse-events.schema.js';
 import { CodexEntryRecord } from '../../schemas/safehouse-records.schema.js';
-import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 
 export function discoverCodexEntry(
@@ -52,7 +51,7 @@ export function discoverCodexEntry(
 export function resolveConsultCodex(
   state: WorldState,
   cmd: ConsultCodexCommand,
-): { state: WorldState; apSpent: number; events: SimEvent[] } {
+): { state: WorldState; apSpent: number; advancesTime: boolean; events: SimEvent[] } {
   const actor = state.entities[cmd.actorId];
   const turn = state.turnCount + 1;
   const events: SimEvent[] = [];
@@ -133,7 +132,8 @@ export function resolveConsultCodex(
 
   return {
     state,
-    apSpent: STANDARD_ACTION_AP,
+    apSpent: 0,
+    advancesTime: false,
     events,
   };
 }
