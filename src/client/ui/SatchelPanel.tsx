@@ -11,9 +11,30 @@ export interface SatchelPanelProps {
   readonly onCommand: (cmd: GameCommand) => void;
 }
 
-function describeItem(entity: EntityRecord): string {
-  const qty = entity.item && entity.item.quantity > 1 ? ` x${entity.item.quantity}` : '';
-  return `${entity.visual.glyph} ${entity.name}${qty}`;
+export function ItemGlyphBadge({ entity }: { readonly entity: EntityRecord }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '24px',
+        height: '24px',
+        minWidth: '24px',
+        minHeight: '24px',
+        border: '1px solid #2e4053',
+        background: entity.visual.bgColor ?? '#0a0e11',
+        color: entity.visual.fgPrimary ?? 'var(--brass-gold)',
+        fontSize: '13px',
+        fontFamily: 'monospace',
+        marginRight: '8px',
+        boxSizing: 'border-box',
+        verticalAlign: 'middle',
+      }}
+    >
+      {entity.visual.glyph}
+    </span>
+  );
 }
 
 /**
@@ -47,8 +68,14 @@ export function SatchelPanel({ state, actorId, onCommand }: SatchelPanelProps) {
         <div class="log-entry muted">Satchel is empty.</div>
       ) : (
         held.map((item) => (
-          <div key={item.id} class="stat-row">
-            <span>{describeItem(item)}</span>
+          <div key={item.id} class="stat-row" style={{ alignItems: 'center' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <ItemGlyphBadge entity={item} />
+              <span>
+                {item.name}
+                {item.item && item.item.quantity > 1 ? ` (x${item.item.quantity})` : ''}
+              </span>
+            </span>
             <span>
               {item.item?.useEffect ? (
                 <button
@@ -71,8 +98,15 @@ export function SatchelPanel({ state, actorId, onCommand }: SatchelPanelProps) {
         ))
       )}
       {ground.map((item) => (
-        <div key={item.id} class="stat-row">
-          <span class="brass-text">Here: {describeItem(item)}</span>
+        <div key={item.id} class="stat-row" style={{ alignItems: 'center' }}>
+          <span class="brass-text" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <span style={{ marginRight: '6px' }}>Here:</span>
+            <ItemGlyphBadge entity={item} />
+            <span>
+              {item.name}
+              {item.item && item.item.quantity > 1 ? ` (x${item.item.quantity})` : ''}
+            </span>
+          </span>
           <button
             type="button"
             onClick={() => onCommand({ type: 'PICK_UP_ITEM', actorId, itemEntityId: item.id })}

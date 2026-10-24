@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { CharacterCreationConfig, ProfessionId, ScenarioId, TraitId } from '../../schemas/character.schema.js';
+import { formatBlueprintTooltip, humanizeIdentifier, resolveBlueprintDisplayName } from '../../sim/data/item-catalog.js';
 import { PROFESSIONS, SCENARIOS, TRAITS } from '../../sim/systems/character-archetypes.js';
 
 export interface CharacterCreatorModalProps {
@@ -106,10 +107,17 @@ export function CharacterCreatorModal({
               <div class="brass-text" style={{ fontWeight: 'bold' }}>Starting Loadout:</div>
               <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
                 {profDef.startingItems.map((it) => (
-                  <li key={it.blueprintId}>{it.blueprintId} (x{it.quantity})</li>
+                  <li key={it.blueprintId} title={formatBlueprintTooltip(it.blueprintId)} style={{ cursor: 'help' }}>
+                    {resolveBlueprintDisplayName(it.blueprintId)} (x{it.quantity})
+                  </li>
                 ))}
                 {profDef.preGraftedBlueprintId && (
-                  <li style={{ color: 'var(--brass-gold)' }}>Pre-Grafted: {profDef.preGraftedBlueprintId} ({profDef.preGraftedSlot})</li>
+                  <li
+                    style={{ color: 'var(--brass-gold)', cursor: 'help' }}
+                    title={formatBlueprintTooltip(profDef.preGraftedBlueprintId)}
+                  >
+                    Pre-Grafted: {resolveBlueprintDisplayName(profDef.preGraftedBlueprintId)} ({humanizeIdentifier(profDef.preGraftedSlot ?? '')})
+                  </li>
                 )}
                 {profDef.bonusPence > 0 && <li>+{profDef.bonusPence} Pence Treasury</li>}
               </ul>

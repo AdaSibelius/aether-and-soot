@@ -3,20 +3,21 @@ import { LimbSlotId } from '../../schemas/primitives.schema.js';
 
 export interface AnatomyDollProps {
   readonly anatomy: AnatomyComponent | undefined;
+  readonly carriedProstheticSlots?: ReadonlySet<LimbSlotId>;
 }
 
 const LIMB_LABELS: ReadonlyArray<{ slot: LimbSlotId; label: string }> = [
-  { slot: 'HEAD', label: 'Cranium' },
+  { slot: 'HEAD', label: 'Head' },
   { slot: 'OCULAR_MOUNT', label: 'Ocular Mount' },
-  { slot: 'TORSO', label: 'Thorax' },
+  { slot: 'TORSO', label: 'Torso' },
   { slot: 'CHASSIS_CORE', label: 'Boiler Core' },
-  { slot: 'LEFT_ARM', label: 'L. Manipulator' },
-  { slot: 'RIGHT_ARM', label: 'R. Manipulator' },
-  { slot: 'LEFT_LEG', label: 'L. Strider' },
-  { slot: 'RIGHT_LEG', label: 'R. Strider' },
+  { slot: 'LEFT_ARM', label: 'Left Arm' },
+  { slot: 'RIGHT_ARM', label: 'Right Arm' },
+  { slot: 'LEFT_LEG', label: 'Left Leg' },
+  { slot: 'RIGHT_LEG', label: 'Right Leg' },
 ];
 
-export function AnatomyDoll({ anatomy }: AnatomyDollProps) {
+export function AnatomyDoll({ anatomy, carriedProstheticSlots }: AnatomyDollProps) {
   if (!anatomy) {
     return <div class="panel-box">No Anatomical Telemetry</div>;
   }
@@ -43,10 +44,18 @@ export function AnatomyDoll({ anatomy }: AnatomyDollProps) {
               ? 'PROSTHETIC'
               : 'SEVERED'
             : `${limb.hp}/${limb.maxHp} HP`;
+          const isGraftReady = carriedProstheticSlots?.has(slot);
           return (
-            <div key={slot} class="limb-item">
+            <div key={slot} class="limb-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>{label}</span>
-              <span class={limb.amputated ? 'warn-text' : 'ok-text'}>{statusText}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {isGraftReady && (
+                  <span style={{ fontSize: '8px', color: '#2ecc71', border: '1px solid #2ecc71', padding: '0 2px', borderRadius: '2px', fontWeight: 'bold' }}>
+                    [+1 GRAFT READY]
+                  </span>
+                )}
+                <span class={limb.amputated ? 'warn-text' : 'ok-text'}>{statusText}</span>
+              </div>
             </div>
           );
         })}

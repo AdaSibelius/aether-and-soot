@@ -1,6 +1,7 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
+import { resolveCatalogDisplayName } from '../projection/frame-adapter.js';
 import { ModalWindowId } from './CharacterModalShell.js';
 import { formatEventMessage } from './EventFormatter.js';
 import { MorgueModal } from './MorgueModal.js';
@@ -61,7 +62,7 @@ export function HudLayout({
         <div class="stat-row">
           <span>District:</span>
           <span class="brass-text" style={{ fontSize: '11px' }}>
-            {state.currentDistrictId ?? 'district_spitalfields_sootworks'}
+            {resolveCatalogDisplayName('district', state.currentDistrictId ?? 'district_spitalfields_soot_works')}
           </span>
         </div>
         <div class="stat-row">
@@ -133,20 +134,47 @@ export function HudLayout({
             const dx = Math.abs((ent.position?.x ?? 0) - (pos?.x ?? 0));
             const dy = Math.abs((ent.position?.y ?? 0) - (pos?.y ?? 0));
             const dist = Math.max(dx, dy);
-            const label = ent.aiController
-              ? `${ent.aiController.role} (${ent.id.slice(0, 10)})`
-              : ent.item
-                ? `Item: ${ent.item.blueprintId}`
-                : ent.portal
-                  ? `Portal: ${ent.portal.portalLabel}`
-                  : ent.id.slice(0, 14);
+
+            if (ent.aiController) {
+              const actorName = ent.name ?? resolveCatalogDisplayName('actor', ent.id);
+              const isHostile = Boolean(ent.aiController.hostile);
+              return (
+                <div key={ent.id} class="stat-row" style={{ fontSize: '11px', alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                    <span
+                      style={{
+                        fontSize: '9px',
+                        padding: '1px 4px',
+                        marginRight: '6px',
+                        border: isHostile ? '1px solid #ec7063' : '1px solid var(--brass-gold)',
+                        color: isHostile ? '#ec7063' : 'var(--brass-gold)',
+                        borderRadius: '2px',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {ent.aiController.role}
+                    </span>
+                    <span style={{ color: isHostile ? '#ec7063' : '#d5dbdb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {actorName}
+                    </span>
+                  </span>
+                  <span class="muted" style={{ flexShrink: 0, marginLeft: '6px' }}>{dist}m</span>
+                </div>
+              );
+            }
+
+            const label = ent.item
+              ? `Item: ${ent.name ?? resolveCatalogDisplayName('item', ent.item.blueprintId)}`
+              : ent.portal
+                ? `Portal: ${ent.portal.portalLabel}`
+                : (ent.name ?? ent.landmark?.label ?? resolveCatalogDisplayName('landmark', ent.id));
 
             return (
               <div key={ent.id} class="stat-row" style={{ fontSize: '11px' }}>
-                <span style={{ color: ent.aiController?.hostile ? '#ec7063' : '#d5dbdb' }}>
+                <span style={{ color: '#d5dbdb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {label}
                 </span>
-                <span class="muted">{dist}m</span>
+                <span class="muted" style={{ flexShrink: 0, marginLeft: '6px' }}>{dist}m</span>
               </div>
             );
           })

@@ -5,7 +5,9 @@ import { WorldState } from '../../sim/core/world.js';
 import {
   getItemBlueprint,
   getProstheticBlueprint,
+  humanizeIdentifier,
 } from '../../sim/data/item-catalog.js';
+import { ItemGlyphBadge } from './SatchelPanel.js';
 
 export interface ItemDossierCardProps {
   readonly state: Readonly<WorldState>;
@@ -60,10 +62,13 @@ export function ItemDossierCard({ state, actorId, item, onCommand }: ItemDossier
         border: '1px solid #2e4053',
       }}
     >
-      <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span class="brass-text">
-          {item.visual.glyph} {item.name} {qty > 1 ? `(x${qty})` : ''}
-        </span>
+      <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <ItemGlyphBadge entity={item} />
+          <span class="brass-text" style={{ fontWeight: 'bold' }}>
+            {item.name} {qty > 1 ? `(x${qty})` : ''}
+          </span>
+        </div>
         <span
           style={{
             fontSize: '10px',
@@ -72,7 +77,7 @@ export function ItemDossierCard({ state, actorId, item, onCommand }: ItemDossier
             padding: '1px 6px',
           }}
         >
-          {category}
+          {humanizeIdentifier(category)}
         </span>
       </div>
 
@@ -116,11 +121,11 @@ export function ItemDossierCard({ state, actorId, item, onCommand }: ItemDossier
           <>
             <div class="stat-row">
               <span>Target Limb Socket:</span>
-              <span class="brass-text">{item.prostheticSpec.targetLimbSlot}</span>
+              <span class="brass-text">{humanizeIdentifier(item.prostheticSpec.targetLimbSlot)}</span>
             </div>
             <div class="stat-row">
               <span>Socket Mechanism:</span>
-              <span>{item.prostheticSpec.socketType}</span>
+              <span>{humanizeIdentifier(item.prostheticSpec.socketType)}</span>
             </div>
             <div class="stat-row">
               <span>Pressure Rating:</span>
@@ -183,7 +188,7 @@ export function ItemDossierCard({ state, actorId, item, onCommand }: ItemDossier
             onClick={() => onCommand({ type: 'EQUIP_ITEM', actorId, itemEntityId: item.id })}
             style={{ padding: '4px 10px', fontSize: '11px', color: 'var(--brass-gold)' }}
           >
-            [E] Equip ({item.item.equipmentSpec.equipSlot})
+            [E] Equip ({humanizeIdentifier(item.item.equipmentSpec.equipSlot)})
           </button>
         )}
 
@@ -200,7 +205,7 @@ export function ItemDossierCard({ state, actorId, item, onCommand }: ItemDossier
             }
             style={{ padding: '4px 10px', fontSize: '11px', color: 'var(--brass-gold)' }}
           >
-            [G] Graft to {item.prostheticSpec.targetLimbSlot}
+            [G] Graft to {humanizeIdentifier(item.prostheticSpec.targetLimbSlot)}
           </button>
         )}
 
