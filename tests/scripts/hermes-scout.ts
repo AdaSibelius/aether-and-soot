@@ -1,7 +1,11 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 import { recordInferenceMetric } from './local-llm-ledger.js';
+import {
+  AstFileMetadata,
+  indexCodebaseAst,
+  rankFilesForTask,
+} from './ast-indexer.js';
 
 export interface ScoutConfig {
   readonly task: string;
@@ -12,12 +16,7 @@ export interface ScoutConfig {
   readonly apiKey: string;
 }
 
-export interface FileMetadata {
-  readonly relPath: string;
-  readonly lineCount: number;
-  readonly isNearCap: boolean;
-  readonly exports: string[];
-}
+export type FileMetadata = AstFileMetadata;
 
 export function parseScoutArgs(argv: string[]): ScoutConfig {
   const args = argv.slice(2);
@@ -39,46 +38,17 @@ export function parseScoutArgs(argv: string[]): ScoutConfig {
   return { task, mock, json, model, endpoint, apiKey };
 }
 
-export function scanCodebaseFiles(rootDir: string): FileMetadata[] {
-  const srcDir = path.join(rootDir, 'src');
-  if (!fs.existsSync(srcDir)) return [];
-
-  const files: FileMetadata[] = [];
-  function recurse(dir: string): void {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) recurse(full);
-      else if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) {
-        const content = fs.readFileSync(full, 'utf-8');
-        const lines = content.split('\n');
-        const exports: string[] = [];
-        const matches = content.matchAll(/export\s+(?:function|const|type|interface|class)\s+([A-Za-z0-9_]+)/g);
-        for (const m of matches) {
-          if (m[1]) exports.push(m[1]);
-        }
-        files.push({
-          relPath: path.relative(rootDir, full),
-          lineCount: lines.length,
-          isNearCap: lines.length >= 240,
-          exports,
-        });
-      }
-    }
-  }
-  recurse(srcDir);
-  return files.sort((a, b) => b.lineCount - a.lineCount);
+export function scanCodebaseFiles(rootDir: string): AstFileMetadata[] {
+  return indexCodebaseAst(rootDir, true);
 }
 
-export function generateDeterministicScoutReport(task: string, files: FileMetadata[]): string {
-  const lower = task.toLowerCase();
+export function generateDeterministicScoutReport(task: string, files: AstFileMetadata[]): string {
+  const ranked = rankFilesForTask(task, files);
   const nearCap = files.filter((f) => f.isNearCap).map((f) => `${f.relPath} (${f.lineCount} lines)`);
-  const relevantFiles = files.filter((f) => {
-    const base = path.basename(f.relPath).toLowerCase();
-    const words = lower.split(/[^a-z0-9]+/).filter((w) => w.length > 3);
-    return words.some((w) => base.includes(w) || f.exports.some((e) => e.toLowerCase().includes(w)));
-  }).slice(0, 5);
+  const relevantFiles = ranked.slice(0, 5);
 
   const schemas = ['src/schemas/commands.schema.ts', 'src/schemas/events.schema.ts'];
+  const lower = task.toLowerCase();
   if (lower.includes('item') || lower.includes('blueprint') || lower.includes('recipe')) {
     schemas.push('src/schemas/blueprint.schema.ts');
   }
@@ -115,7 +85,7 @@ ${touchedLines}
    - Check if \`src/client/ui/EventFormatter.ts\` requires new event formatters or visual shader updates.`;
 }
 
-export async function requestLlmScoutReport(config: ScoutConfig, files: FileMetadata[]): Promise<string> {
+export async function requestLlmScoutReport(config: ScoutConfig, files: AstFileMetadata[]): Promise<string> {
   if (config.mock) {
     recordInferenceMetric({
       timestamp: new Date().toISOString(),
@@ -133,7 +103,11 @@ export async function requestLlmScoutReport(config: ScoutConfig, files: FileMeta
   }
 
   const nearCap = files.filter((f) => f.isNearCap).map((f) => `${f.relPath} (${f.lineCount} lines)`);
-  const topFiles = files.slice(0, 20).map((f) => `${f.relPath} (${f.lineCount} lines): exports [${f.exports.slice(0, 6).join(', ')}]`).join('\n');
+  const ranked = rankFilesForTask(config.task, files);
+  const candidateFiles = ranked
+    .slice(0, 8)
+    .map((f) => `${f.relPath} (${f.lineCount} lines) | exports: [${f.exports.slice(0, 6).join(', ')}] | imports: [${f.imports.slice(0, 4).join(', ')}]`)
+    .join('\n');
 
   const prompt = `You are the lead architectural scout for "Aether & Soot" (Victorian Steampunk roguelike).
 Task: "${config.task}"
@@ -141,8 +115,8 @@ Task: "${config.task}"
 Codebase near-cap files:
 ${nearCap.join('\n')}
 
-Selected structural files:
-${topFiles}
+Selected dependency-ranked candidate files:
+${candidateFiles}
 
 Output a concise markdown Pre-Flight Impact Analysis Block adhering to AGENTS.md Rule 1.2:
 1. Schemas Impacted (src/schemas/)

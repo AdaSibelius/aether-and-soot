@@ -39,6 +39,7 @@ describe('Hermes Unit Test Generator (Phase 33 & Phase 1.3)', () => {
 
     expect(functions.length).toBeGreaterThanOrEqual(1);
     expect(functions.some((f) => f.includes('findPortalAtPoint'))).toBe(true);
+    expect(functions.some((f) => f.includes('EntityRecord | undefined'))).toBe(true);
     expect(imports.length).toBeGreaterThanOrEqual(1);
   });
 
