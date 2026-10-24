@@ -1,7 +1,7 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-24T21:09:22.035Z
-- **Execution Mode**: Local LLM (live local model: hermes3:8b @ http://localhost:11434/v1/chat/completions) [LIVE_INFERENCE]
+- **Timestamp**: 2026-10-24T21:27:49.195Z
+- **Execution Mode**: Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 - **Scenario**: **TRANSIT**
 - **Seed**: 42
@@ -27,7 +27,7 @@
 | **Transitions Completed** | 15 | Stratum portals or district gates traversed |
 | **Final Blood Volume** | 100% | Haemodynamic stability |
 | **Unique Tiles Visited** | 2 | Distinct spatial tiles explored |
-| **UI Projection Leaks Detected** | 29 | Client projection HUD/radar/chronicle leaks |
+| **UI Projection Leaks Detected** | 0 | Client projection HUD/radar/chronicle leaks |
 
 ## Command Coverage Matrix
 
@@ -39,9 +39,9 @@
 
 ## Client UI Projection & Chronicle Leak Audit
 
-- **Total UI Projection Leaks Detected**: **29**
+- **Total UI Projection Leaks Detected**: **0**
 - **Leak Categories Monitored**: Raw snake_case identifiers (`district_`, `landmark_`, `npc_`, `item_`, `mat_`), truncated strings (`_`), coordinate desyncs (LookCursorOverlay vs TileInspectorPanel), and duplicate consecutive chronicle movement entries.
-- **Audit Status**: WARNING — 29 projection anomalies detected.
+- **Audit Status**: CLEAN — Zero UI projection leaks detected.
 
 ## Command Dispatch Histogram
 

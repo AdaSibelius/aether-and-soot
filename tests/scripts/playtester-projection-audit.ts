@@ -1,6 +1,6 @@
 import { EntityId, EntityIdSchema } from '../../src/schemas/primitives.schema.js';
 import { WorldState } from '../../src/sim/core/world.js';
-import { projectWorldToVisualFrame, VisualGridFrame } from '../../src/client/projection/frame-adapter.js';
+import { projectWorldToVisualFrame, resolveCatalogDisplayName, VisualGridFrame } from '../../src/client/projection/frame-adapter.js';
 import { formatEventMessage } from '../../src/client/ui/EventFormatter.js';
 
 export interface ProjectionLeak {
@@ -48,7 +48,7 @@ export function auditClientProjection(
   // 1. HUD Labels
   const hudLabels: string[] = [
     'TACTICAL TELEMETRY',
-    state.currentDistrictId ?? 'district_spitalfields_sootworks',
+    resolveCatalogDisplayName('district', state.currentDistrictId ?? 'district_spitalfields_soot_works'),
     pos?.stratum ?? 'STREET',
     `(${pos?.x ?? 0}, ${pos?.y ?? 0})`,
     `Turn ${state.turnCount} (Tick #${state.macroTickCount})`,
@@ -67,12 +67,12 @@ export function auditClientProjection(
 
     for (const ent of nearby) {
       const label = ent.aiController
-        ? `${ent.aiController.role} (${ent.id.slice(0, 10)})`
+        ? `${ent.aiController.role}: ${ent.name ?? resolveCatalogDisplayName('actor', ent.id)}`
         : ent.item
-          ? `Item: ${ent.item.blueprintId}`
+          ? `Item: ${ent.name ?? resolveCatalogDisplayName('item', ent.item.blueprintId)}`
           : ent.portal
-            ? `Portal: ${ent.portal.portalLabel}`
-            : ent.id.slice(0, 14);
+            ? `Portal: ${ent.portal.portalLabel ?? 'Passage'}`
+            : (ent.name ?? resolveCatalogDisplayName('landmark', ent.id));
       radarRows.push(label);
     }
   }
