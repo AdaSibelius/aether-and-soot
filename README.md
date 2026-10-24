@@ -207,16 +207,16 @@ To provide complete transparency for future AI agents and contributors, here is 
 
 ## 6. Verification Pipeline
 
-Every contribution must pass the mandatory four-stage gate:
+Every contribution must pass the mandatory four-stage gate (enforced locally via `npm run verify` and on GitHub Actions CI via `.github/workflows/ci.yml`):
 
 ```bash
 npm run verify
 ```
 
 1. **`npm run typecheck`**: Strict TypeScript verification (`noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`).
-2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all 117 source files.
+2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all source files.
 3. **`npm run validate:data`**: Validates all declarative JSON blueprints in `data/` against Zod schemas.
-4. **`npm run test:sim`**: Executes all 27 headless deterministic test suites (116 tests).
+4. **`npm run test:sim`**: Executes all 54 headless deterministic test suites (254 tests).
 
 ---
 
