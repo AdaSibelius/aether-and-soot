@@ -43,7 +43,7 @@ export function dispatchCommand(
       systemEvents = res.events;
       apSpent = res.apSpent;
       const newActor = nextState.entities[command.actorId];
-      if (oldPos && newActor?.position) {
+      if (oldPos && newActor?.position && apSpent > 0) {
         const turfMove = processActorTurfMovement(nextState, command.actorId, oldPos, newActor.position);
         nextState = turfMove.state;
         systemEvents = [...systemEvents, ...turfMove.events];
@@ -79,9 +79,17 @@ export function dispatchCommand(
         nextState = domainRes.state;
         systemEvents = [...domainRes.events];
         if (domainRes.apSpent !== undefined) apSpent = domainRes.apSpent;
+      } else {
+        apSpent = 0;
       }
       break;
     }
+  }
+
+  // If command was rejected or physically impossible (apSpent === 0),
+  // bypass NPC turns, thermodynamics, and turn scheduling so the world clock pauses.
+  if (apSpent === 0) {
+    return { state: nextState, events: systemEvents };
   }
 
   const npcTick = advanceNpcTurns(nextState, rng);

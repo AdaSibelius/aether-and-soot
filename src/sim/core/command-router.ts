@@ -88,9 +88,9 @@ export function routeDomainCommand(
     case 'DROP_ITEM': {
       const dropRes = resolveDropItem(state, command.actorId, command.itemEntityId, command.quantity);
       const actor = state.entities[command.actorId];
-      if (actor?.position) {
+      if (actor?.position && dropRes.apSpent > 0) {
         const deliveryRes = processDropItemDelivery(dropRes.state, command.actorId, command.itemEntityId, actor.position);
-        return { ...deliveryRes, events: [...dropRes.events, ...deliveryRes.events], handled: true };
+        return { ...deliveryRes, events: [...dropRes.events, ...deliveryRes.events], apSpent: dropRes.apSpent, handled: true };
       }
       return { ...dropRes, handled: true };
     }
