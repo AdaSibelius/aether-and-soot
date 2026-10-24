@@ -134,12 +134,12 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
         `Unwired commands: ${coverage.unwired.slice(0, 8).join(',')}\n` +
         `Next priority: ${nextPriority}\n` +
         `Near-cap files: ${hotspots.slice(0, 3).map((h) => `${h.file}:${h.lines}`).join(',')}\n` +
-        `Required JSON format: { "phaseNumber": ${phaseNumber}, "telemetryAnomalies": [{ "metricKey": "unwiredCommands", "observedValue": "${coverage.unwired.length}", "expectedThreshold": "0", "severity": "P1_HIGH" }], "prescriptions": [{ "id": "P1", "category": "UNREACHABLE_MECHANIC", "title": "Phase ${phaseNumber}", "targetFiles": ["src/sim/core/engine.ts"], "affectedSchemas": ["domain-commands.schema.ts"], "implementationDirective": "Directive text", "verificationTestFile": "tests/sim/determinism.test.ts" }] }`;
+        `Required JSON format: { "phaseNumber": ${phaseNumber}, "telemetryAnomalies": [{ "metricKey": "unwiredCommands", "observedValue": "${coverage.unwired.length}", "expectedThreshold": "0", "severity": "P1_HIGH" }], "prescriptions": [{ "id": "P1", "category": "UNREACHABLE_MECHANIC", "title": "Phase ${phaseNumber}", "targetFiles": ["src/sim/core/engine.ts"], "affectedSchemas": ["domain-commands.schema.ts"], "implementationDirective": "Directive text", "verificationTestFile": "tests/sim/determinism.test.ts", "citedAnomalyMetricKey": "unwiredCommands" }] }`;
 
       const content = await queryLocalOllama(prompt, {
         model: config.model,
         endpoint: config.endpoint,
-        systemPrompt: 'You are the lead architectural evaluator for Aether & Soot. Return ONLY valid JSON satisfying CriticAuditSchema. Do not include markdown codeblocks or prose.',
+        systemPrompt: 'You are the lead architectural evaluator for Aether & Soot. Return ONLY valid JSON satisfying CriticAuditSchema. In each prescription, cite an exact metricKey from telemetryAnomalies in citedAnomalyMetricKey. Do not include markdown codeblocks or prose.',
         temperature: 0.1,
         enforceJsonSchema: true,
       });

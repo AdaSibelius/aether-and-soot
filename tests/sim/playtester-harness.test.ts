@@ -40,6 +40,7 @@ describe('Headless LLM Playtester Harness', () => {
       eventLog: [
         { type: 'ENTITY_MOVED', actorId: playerId, from: { x: 1, y: 1, stratum: 'STREET' }, to: { x: 2, y: 2, stratum: 'STREET' }, turn: 1, apSpent: 100 },
         { type: 'ENTITY_MOVED', actorId: playerId, from: { x: 1, y: 1, stratum: 'STREET' }, to: { x: 2, y: 2, stratum: 'STREET' }, turn: 2, apSpent: 100 },
+        { type: 'DISTRICT_TRAVELED', actorId: playerId, fromDistrictId: 'district_foundry', toDistrictId: 'district_spitalfields_slums', turn: 3 },
       ],
     } as any;
     const leakAudit = auditClientProjection(leakState, playerId);
