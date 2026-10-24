@@ -58,14 +58,28 @@ export interface CreateWorldConfig {
 }
 
 
+import {
+  migrateWorldState,
+  WorldMigrationError,
+} from './world-migration.js';
+
 export function serializeWorld(state: WorldState): string {
   return JSON.stringify(state);
 }
 
 export function deserializeWorld(json: string): WorldState {
-  const parsed: unknown = JSON.parse(json);
-  return WorldStateSchema.parse(parsed);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch (err) {
+    throw new WorldMigrationError(
+      'CORRUPTED_SAVE_PAYLOAD',
+      `Malformed JSON in save payload: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  return migrateWorldState(parsed);
 }
 
 export { createInitialWorld } from './world-factory.js';
 export { assertWorldInvariants, validateWorldInvariants } from './invariants.js';
+export { CURRENT_WORLD_VERSION, WorldMigrationError, migrateWorldState } from './world-migration.js';
