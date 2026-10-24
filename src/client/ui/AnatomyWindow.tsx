@@ -13,12 +13,12 @@ export interface AnatomyWindowProps {
 }
 
 const HUMAN_LIMBS: readonly LimbSlotConfig[] = [
-  { slot: 'HEAD', name: 'Cranium & Sensory', keyNum: '1' },
-  { slot: 'LEFT_ARM', name: 'Left Manipulator', keyNum: '2' },
-  { slot: 'TORSO', name: 'Boiler & Chassis', keyNum: '3' },
-  { slot: 'RIGHT_ARM', name: 'Right Manipulator', keyNum: '4' },
-  { slot: 'LEFT_LEG', name: 'Left Strider', keyNum: '5' },
-  { slot: 'RIGHT_LEG', name: 'Right Strider', keyNum: '6' },
+  { slot: 'HEAD', name: 'Head', keyNum: '1' },
+  { slot: 'LEFT_ARM', name: 'Left Arm', keyNum: '2' },
+  { slot: 'TORSO', name: 'Torso', keyNum: '3' },
+  { slot: 'RIGHT_ARM', name: 'Right Arm', keyNum: '4' },
+  { slot: 'LEFT_LEG', name: 'Left Leg', keyNum: '5' },
+  { slot: 'RIGHT_LEG', name: 'Right Leg', keyNum: '6' },
 ];
 
 export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps) {
@@ -76,6 +76,11 @@ export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps)
         e !== undefined && e.prostheticSpec?.targetLimbSlot === selectedSlot,
     );
 
+  const isGraftReady = (slot: LimbSlotId) =>
+    inv.containedEntityIds.some(
+      (id) => state.entities[id]?.prostheticSpec?.targetLimbSlot === slot,
+    );
+
   // Check if player has brass gears for repair
   const brassGears = inv.containedEntityIds
     .map((id) => state.entities[id])
@@ -102,6 +107,7 @@ export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps)
               installed={anatomy.limbs.HEAD?.installedProstheticEntityId ? state.entities[anatomy.limbs.HEAD.installedProstheticEntityId] : undefined}
               isSelected={selectedSlot === 'HEAD'}
               onSelect={() => setSelectedSlot('HEAD')}
+              graftReady={isGraftReady('HEAD')}
             />
           </div>
 
@@ -113,6 +119,7 @@ export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps)
               installed={anatomy.limbs.LEFT_ARM?.installedProstheticEntityId ? state.entities[anatomy.limbs.LEFT_ARM.installedProstheticEntityId] : undefined}
               isSelected={selectedSlot === 'LEFT_ARM'}
               onSelect={() => setSelectedSlot('LEFT_ARM')}
+              graftReady={isGraftReady('LEFT_ARM')}
             />
             <LimbSlotCard
               config={HUMAN_LIMBS[2]!}
@@ -120,6 +127,7 @@ export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps)
               installed={anatomy.limbs.TORSO?.installedProstheticEntityId ? state.entities[anatomy.limbs.TORSO.installedProstheticEntityId] : undefined}
               isSelected={selectedSlot === 'TORSO'}
               onSelect={() => setSelectedSlot('TORSO')}
+              graftReady={isGraftReady('TORSO')}
             />
             <LimbSlotCard
               config={HUMAN_LIMBS[3]!}
@@ -127,6 +135,7 @@ export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps)
               installed={anatomy.limbs.RIGHT_ARM?.installedProstheticEntityId ? state.entities[anatomy.limbs.RIGHT_ARM.installedProstheticEntityId] : undefined}
               isSelected={selectedSlot === 'RIGHT_ARM'}
               onSelect={() => setSelectedSlot('RIGHT_ARM')}
+              graftReady={isGraftReady('RIGHT_ARM')}
             />
           </div>
 
@@ -138,6 +147,7 @@ export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps)
               installed={anatomy.limbs.LEFT_LEG?.installedProstheticEntityId ? state.entities[anatomy.limbs.LEFT_LEG.installedProstheticEntityId] : undefined}
               isSelected={selectedSlot === 'LEFT_LEG'}
               onSelect={() => setSelectedSlot('LEFT_LEG')}
+              graftReady={isGraftReady('LEFT_LEG')}
             />
             <LimbSlotCard
               config={HUMAN_LIMBS[5]!}
@@ -145,6 +155,7 @@ export function AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps)
               installed={anatomy.limbs.RIGHT_LEG?.installedProstheticEntityId ? state.entities[anatomy.limbs.RIGHT_LEG.installedProstheticEntityId] : undefined}
               isSelected={selectedSlot === 'RIGHT_LEG'}
               onSelect={() => setSelectedSlot('RIGHT_LEG')}
+              graftReady={isGraftReady('RIGHT_LEG')}
             />
           </div>
         </div>

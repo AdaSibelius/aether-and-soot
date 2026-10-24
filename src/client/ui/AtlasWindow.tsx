@@ -3,6 +3,7 @@ import { AtlasViewMode } from '../../schemas/atlas.schema.js';
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId, StratumId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
+import { resolveCatalogDisplayName } from '../projection/frame-adapter.js';
 import { AtlasDossierView } from './AtlasDossierView.js';
 import { AtlasMinimapView } from './AtlasMinimapView.js';
 import { AtlasOverworldView } from './AtlasOverworldView.js';
@@ -65,7 +66,7 @@ export function AtlasWindow({ state, actorId, onCommand }: AtlasWindowProps) {
           })}
         </div>
         <div style={{ fontSize: '10px', color: '#95a5a6' }}>
-          Current: <span class="brass-text">{currentDistrict}</span>
+          Current: <span class="brass-text">{resolveCatalogDisplayName('district', currentDistrict)}</span>
         </div>
       </div>
 

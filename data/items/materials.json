@@ -25,7 +25,7 @@
   },
   {
     "id": "mat_vulcanized_rubber",
-    "name": "Vulcanized Rubber Gasket",
+    "name": "Vulcanized Rubber",
     "description": "A sulphur-cured rubber seal rated for high-pressure steam couplings.",
     "category": "MATERIAL",
     "massGrams": 90,

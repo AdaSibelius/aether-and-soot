@@ -52,6 +52,57 @@ export function getRecipeBlueprint(recipeId: string): CraftingRecipeBlueprint | 
   return RECIPE_CATALOG.find((bp) => bp.id === recipeId);
 }
 
+/**
+ * Returns any blueprint matching the given ID across items, prosthetics, commodities, and recipes.
+ */
+export function getAnyBlueprint(
+  blueprintId: string,
+): ItemBlueprint | ProstheticBlueprint | CommodityBlueprint | CraftingRecipeBlueprint | undefined {
+  return (
+    getItemBlueprint(blueprintId) ??
+    getProstheticBlueprint(blueprintId) ??
+    getCommodityBlueprint(blueprintId) ??
+    getRecipeBlueprint(blueprintId)
+  );
+}
+
+const COMMON_PREFIX_RE = /^(item_|mat_|district_|landmark_|npc_|recipe_|prosthetic_|actor_|gate_|portal_)/i;
+
+/**
+ * Transforms snake_case, UPPER_CASE enums, or prefixed identifiers into clean Title Case text.
+ */
+export function humanizeIdentifier(raw: string): string {
+  if (!raw) return '';
+  const stripped = raw.replace(COMMON_PREFIX_RE, '');
+  const target = stripped.length > 0 ? stripped : raw;
+  return target
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+/**
+ * Resolves a blueprint or entity ID into a player-facing display name, falling back to Title Case.
+ */
+export function resolveBlueprintDisplayName(blueprintId: string): string {
+  const bp = getAnyBlueprint(blueprintId);
+  if (bp?.name) return bp.name;
+  return humanizeIdentifier(blueprintId);
+}
+
+/**
+ * Returns a concise stat tooltip description for items and prosthetics.
+ */
+export function formatBlueprintTooltip(blueprintId: string): string | undefined {
+  const item = getItemBlueprint(blueprintId);
+  if (item) return `${item.description} (${item.massGrams}g, ${item.volumeMl}ml)`;
+  const prosthetic = getProstheticBlueprint(blueprintId);
+  if (prosthetic) return `${prosthetic.description} (${prosthetic.pressureRatingKpa} kPa)`;
+  return undefined;
+}
+
 function resolveCommodityEnum(blueprintId: string): CommodityId | undefined {
   if (blueprintId === 'commodity_anthracite_briquette') return 'ANTHRACITE_COAL';
   if (blueprintId === 'commodity_phosphor_bronze_ingot') return 'PHOSPHOR_BRONZE';

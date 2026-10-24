@@ -3,6 +3,7 @@ import { EntityRecord } from '../../schemas/components.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { RECIPE_CATALOG } from '../../sim/data/item-catalog.js';
 import { WorldState } from '../../sim/core/world.js';
+import { resolveCatalogDisplayName } from '../projection/frame-adapter.js';
 
 export interface CraftingPanelProps {
   readonly state: Readonly<WorldState>;
@@ -86,7 +87,7 @@ export function CraftingPanel({ state, actorId, onCommand }: CraftingPanelProps)
                       class={ok ? 'ok-text' : 'warn-text'}
                       style={{ marginRight: '8px' }}
                     >
-                      {ing.blueprintId.replace(/^mat_|^item_/, '')}: {available}/{ing.count}
+                      {resolveCatalogDisplayName('item', ing.blueprintId)}: {available}/{ing.count}
                     </span>
                   );
                 })}

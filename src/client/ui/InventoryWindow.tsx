@@ -7,6 +7,7 @@ import { findEntitiesAtPoint } from '../../sim/spatial/grid.js';
 import { computeCarriedVolumeMl, getCarryProfile } from '../../sim/systems/inventory-utils.js';
 import { EquippedGearPanel } from './EquippedGearPanel.js';
 import { ItemDossierCard } from './ItemDossierCard.js';
+import { ItemGlyphBadge } from './SatchelPanel.js';
 
 export interface InventoryWindowProps {
   readonly state: Readonly<WorldState>;
@@ -179,9 +180,10 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
                     border: isSelected ? '1px solid var(--brass-gold)' : '1px solid transparent',
                   }}
                 >
-                  <span style={{ fontSize: '12px', color: isSelected ? 'var(--brass-gold)' : '#d5dbdb' }}>
+                  <span style={{ fontSize: '12px', color: isSelected ? 'var(--brass-gold)' : '#d5dbdb', display: 'flex', alignItems: 'center' }}>
                     <span class="copper-text" style={{ marginRight: '6px' }}>[{letter}]</span>
-                    {item.visual.glyph} {item.name}{qty}
+                    <ItemGlyphBadge entity={item} />
+                    <span>{item.name}{qty}</span>
                   </span>
                   <span class="muted" style={{ fontSize: '10px' }}>
                     {item.item ? `${item.item.massGrams * item.item.quantity}g` : `${item.prostheticSpec?.massGrams}g`}
@@ -213,8 +215,10 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
                   cursor: 'pointer',
                 }}
               >
-                <span class="brass-text" style={{ fontSize: '11px' }}>
-                  Floor: {item.visual.glyph} {item.name}
+                <span class="brass-text" style={{ fontSize: '11px', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '6px' }}>Floor:</span>
+                  <ItemGlyphBadge entity={item} />
+                  <span>{item.name}</span>
                 </span>
                 <button
                   type="button"
