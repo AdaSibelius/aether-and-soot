@@ -3,17 +3,18 @@
 **Last Updated:** 2026-10-24
 
 ## Recent Commits
+- 99be4a2: Merge pull request #59 from AdaSibelius/feat/phase2.1-eradicate-raw-identifier-leaks
+- 77e2e8e: feat: eradicate raw identifier leaks and substring truncation across client views (#58)
 - 4259244: chore: sync playtest economy artifact
-- 4267ea5: [Phase 1.3]: Harden Autonomous Test Generation and Automate Roadmap Backlog Routing (#57)
-- 19b1a0e: chore: update playtest economy artifact
 
 ## Immediate Next Priority
 - **Phase 50: Interactive World Features, Tactical Environmental Hazards & Tangible Mechanical Agency**: Full gameplay wiring and systemic execution of the remaining unwired environmental agency commands (`LOOT_CONTAINER` for interactive furniture searches with booby-trap triggers, `PRESSURIZE_VESSEL` for tactical steam burst breaches, `PRY_OBSTACLE` for crowbar prying on jammed grates/doors, and `PAY_CHIRURGEON_HEAL` for clinic operating table services). Add dynamic volumetric gaslight illumination, drifting soot clouds with dynamic ASCII character occlusion (`%`, `&`, `*`), whale oil puddles with ignition cascades, and corrosive acid drip hazards.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 50** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 50: Interactive World Features, Tactical Environmental Hazards & Tangible Mechanical Agency**: Full gameplay wiring and systemic execution of the remaining unwired environmental agency commands (`LOOT_CONTAINER` for interactive furniture searches with booby-trap triggers, `PRESSURIZE_VESSEL` for tactical steam burst breaches, `PRY_OBSTACLE` for crowbar prying on jammed grates/doors, and `PAY_CHIRURGEON_HEAL` for clinic operating table services). Add dynamic volumetric gaslight illumination, drifting soot clouds with dynamic ASCII character occlusion (`%`, `&`, `*`), whale oil puddles with ignition cascades, and corrosive acid drip hazards. resolving unwiredCommands and telemetry anomalies. (Target: `src/client/ui/AnatomyWindow.tsx`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ACCEPT_CONTRACT, APPLY_MOMENTUM_VECTOR, BREACH_TILE, CLEAN_SPILL) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/ui/AnatomyWindow.tsx to resolve modularityHotspot anomaly. (Target: `src/client/ui/AnatomyWindow.tsx` | Verification: `tests/sim/determinism.test.ts`)
+- None
+
+### Quarantined Prescriptions (Failed Deterministic Sanity Check)
+- [QUARANTINED] **P1: Phase 50**: Prescription 'P1' references non-existent file path: src/client/ui/AnatomyWindow.tsx:248
 
 ## 6. Next-Phase Handoff Prompt
 
@@ -25,9 +26,3 @@ Implement **Phase 50: Interactive World Features, Tactical Environmental Hazards
 4. Delegate blueprints (`generate:content`), event logs (`hermes:chronicler`), and test scaffolding (`hermes:testgen`) to local models.
 5. Run `npm run verify`, `npm run hermes:critic`, and `npm run sync:state`, then output the next copy-pasteable prompt.
 ```
-
-## Autonomous Critic Backlog (Sanity-Verified)
-
-| Priority | Category | Title | Directive | Target Files | Verification |
-| --- | --- | --- | --- | --- | --- |
-| P1 | UNREACHABLE_MECHANIC | Phase 50 | Focus core systems development on **Phase 50: Interactive World Features, Tactical Environmental Hazards & Tangible Mechanical Agency**: Full gameplay wiring and systemic execution of the remaining unwired environmental agency commands (`LOOT_CONTAINER` for interactive furniture searches with booby-trap triggers, `PRESSURIZE_VESSEL` for tactical steam burst breaches, `PRY_OBSTACLE` for crowbar prying on jammed grates/doors, and `PAY_CHIRURGEON_HEAL` for clinic operating table services). Add dynamic volumetric gaslight illumination, drifting soot clouds with dynamic ASCII character occlusion (`%`, `&`, `*`), whale oil puddles with ignition cascades, and corrosive acid drip hazards. resolving unwiredCommands and telemetry anomalies. | `src/client/ui/AnatomyWindow.tsx`, `src/sim/core/engine.ts` | `tests/sim/determinism.test.ts` |

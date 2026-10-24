@@ -1,8 +1,8 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
 **Generated:** 2026-10-24 | **Benchmark Engine:** Hermes Critic v1.0
-- **Execution Mode**: MOCK_FALLBACK (playtester-mock.ts)
-- **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
+- **Execution Mode**: LIVE_INFERENCE (live local model: lfm2.5:24b @ http://localhost:11434/v1/chat/completions)
+- **LLM Telemetry**: Mode: LIVE_INFERENCE | Temperature: 0.1 | Enforce JSON Schema: true
 
 ## 1. Whole-Game Emergence & Readiness Score (88/100)
 - **Score Breakdown**:
@@ -92,9 +92,10 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 50** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 50: Interactive World Features, Tactical Environmental Hazards & Tangible Mechanical Agency**: Full gameplay wiring and systemic execution of the remaining unwired environmental agency commands (`LOOT_CONTAINER` for interactive furniture searches with booby-trap triggers, `PRESSURIZE_VESSEL` for tactical steam burst breaches, `PRY_OBSTACLE` for crowbar prying on jammed grates/doors, and `PAY_CHIRURGEON_HEAL` for clinic operating table services). Add dynamic volumetric gaslight illumination, drifting soot clouds with dynamic ASCII character occlusion (`%`, `&`, `*`), whale oil puddles with ignition cascades, and corrosive acid drip hazards. resolving unwiredCommands and telemetry anomalies. (Target: `src/client/ui/AnatomyWindow.tsx`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ACCEPT_CONTRACT, APPLY_MOMENTUM_VECTOR, BREACH_TILE, CLEAN_SPILL) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/ui/AnatomyWindow.tsx to resolve modularityHotspot anomaly. (Target: `src/client/ui/AnatomyWindow.tsx` | Verification: `tests/sim/determinism.test.ts`)
+- None
+
+### Quarantined Prescriptions (Failed Deterministic Sanity Check)
+- [QUARANTINED] **P1: Phase 50**: Prescription 'P1' references non-existent file path: src/client/ui/AnatomyWindow.tsx:248
 
 ## 6. Next-Phase Handoff Prompt
 

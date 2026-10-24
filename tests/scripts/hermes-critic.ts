@@ -139,7 +139,7 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
         `Unwired commands: ${coverage.unwired.slice(0, 8).join(',')}\n` +
         `Next priority: ${nextPriority}\n` +
         `Near-cap files: ${hotspots.slice(0, 3).map((h) => `${h.file}:${h.lines}`).join(',')}\n` +
-        `Schema requirement: JSON with { phaseNumber: ${phaseNumber}, telemetryAnomalies: [...], prescriptions: [...] }`;
+        `Required JSON format: { "phaseNumber": ${phaseNumber}, "telemetryAnomalies": [{ "metricKey": "unwiredCommands", "observedValue": "${coverage.unwired.length}", "expectedThreshold": "0", "severity": "P1_HIGH" }], "prescriptions": [{ "id": "P1", "category": "UNREACHABLE_MECHANIC", "title": "Phase ${phaseNumber}", "targetFiles": ["src/sim/core/engine.ts"], "affectedSchemas": ["domain-commands.schema.ts"], "implementationDirective": "Directive text", "verificationTestFile": "tests/sim/determinism.test.ts" }] }`;
 
       const content = await queryLocalOllama(prompt, {
         model: config.model,
