@@ -4,19 +4,12 @@ import { markExploredTiles } from '../spatial/grid.js';
 import { computeVisibleTiles } from '../spatial/fov.js';
 import { advanceNpcTurns } from '../systems/ai.system.js';
 import { computeProstheticFovBonus } from '../systems/anatomy.system.js';
-import { resolveMoveStep, resolveUsePortal } from '../systems/movement.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
 import { decrementProstheticCooldowns } from '../systems/prosthetics.system.js';
-import { processActorTurfMovement, recordTacticalCoverManeuver } from '../systems/skirmish-turf.system.js';
-import {
-  CommandResolution,
-  createAppliedResolution,
-  createRejectedResolution,
-  extractFailureReason,
-} from './command-resolution.js';
-import { routeDomainCommand } from './command-router.js';
+import { getActingActorId, resolveAction } from './action-resolver.js';
+import { CommandResolution } from './command-resolution.js';
 import { SeededRNG } from './rng.js';
-import { advanceTurnSchedule, STANDARD_ACTION_AP } from './scheduler.js';
+import { advanceTurnSchedule } from './scheduler.js';
 import { WorldState } from './world.js';
 
 export interface DispatchTurnResult {
@@ -27,7 +20,7 @@ export interface DispatchTurnResult {
 
 /**
  * Pure simulation command dispatcher.
- * Validates incoming command, executes domain system, ticks autonomous NPCs and
+ * Validates incoming command, executes action resolver, ticks autonomous NPCs and
  * environmental thermodynamics, updates RNG state, and advances the turn clock.
  */
 export function dispatchCommand(
@@ -37,98 +30,18 @@ export function dispatchCommand(
   const command = GameCommandSchema.parse(rawCommand);
   const rng = new SeededRNG(currentState.rngState);
 
-  let nextState = currentState;
-  let systemEvents: SimEvent[] = [];
-  let apSpent = STANDARD_ACTION_AP;
-  let resolution: CommandResolution;
-
-  switch (command.type) {
-    case 'MOVE_STEP': {
-      const oldActor = nextState.entities[command.actorId];
-      const oldPos = oldActor?.position ? { ...oldActor.position } : undefined;
-      const res = resolveMoveStep(nextState, command.actorId, command.dx, command.dy);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
-      const newActor = nextState.entities[command.actorId];
-      if (oldPos && newActor?.position && apSpent > 0) {
-        const turfMove = processActorTurfMovement(nextState, command.actorId, oldPos, newActor.position);
-        nextState = turfMove.state;
-        systemEvents = [...systemEvents, ...turfMove.events];
-      }
-      resolution =
-        apSpent > 0
-          ? createAppliedResolution(nextState, systemEvents, apSpent)
-          : createRejectedResolution(
-              currentState,
-              extractFailureReason(systemEvents, 'Movement blocked or invalid'),
-              systemEvents,
-            );
-      break;
-    }
-    case 'USE_PORTAL': {
-      const pActor = nextState.entities[command.actorId];
-      const fromStratum = pActor?.position?.stratum;
-      const res = resolveUsePortal(nextState, command.actorId);
-      nextState = res.state;
-      systemEvents = res.events;
-      apSpent = res.apSpent;
-      if (apSpent > 0) {
-        const toStratum = nextState.entities[command.actorId]?.position?.stratum;
-        const portalManeuver = recordTacticalCoverManeuver(nextState, command.actorId, 'PORTAL_TACTICAL_ESCAPE', `${fromStratum} -> ${toStratum}`);
-        nextState = portalManeuver.state;
-        systemEvents = [...systemEvents, ...portalManeuver.events];
-      }
-      resolution =
-        apSpent > 0
-          ? createAppliedResolution(nextState, systemEvents, apSpent)
-          : createRejectedResolution(
-              currentState,
-              extractFailureReason(systemEvents, 'Portal transition failed'),
-              systemEvents,
-            );
-      break;
-    }
-    case 'WAIT_TURN': {
-      rng.nextUint32();
-      const wActor = nextState.entities[command.actorId];
-      if (wActor?.anatomy && wActor.traits?.includes('BOILER_HEART')) {
-        const nextSteam = Math.min(wActor.anatomy.maxSteamReserveKpa, wActor.anatomy.steamReserveKpa + 5);
-        nextState = { ...nextState, entities: { ...nextState.entities, [command.actorId]: { ...wActor, anatomy: { ...wActor.anatomy, steamReserveKpa: nextSteam } } } };
-      }
-      systemEvents = [{ type: 'ACTOR_WAITED', turn: nextState.turnCount + 1, actorId: command.actorId, apSpent: STANDARD_ACTION_AP }];
-      resolution = createAppliedResolution(nextState, systemEvents, STANDARD_ACTION_AP);
-      break;
-    }
-    default: {
-      resolution = routeDomainCommand(nextState, command, rng);
-      if (resolution.status === 'applied') {
-        nextState = resolution.state;
-        systemEvents = [...resolution.events];
-        apSpent = resolution.apSpent;
-      } else {
-        nextState = resolution.state;
-        systemEvents = [...resolution.events];
-        apSpent = 0;
-      }
-      break;
-    }
-  }
+  const resolution = resolveAction(currentState, command, rng);
 
   // If command was rejected or physically impossible,
   // bypass NPC turns, thermodynamics, and turn scheduling so the world clock pauses.
   if (resolution.status === 'rejected') {
-    return { state: nextState, events: systemEvents, resolution };
+    return { state: resolution.state, events: resolution.events, resolution };
   }
 
-  const actingActorId =
-    command.type === 'ATTACK_ACTOR'
-      ? command.attackerId
-      : command.type === 'APPLY_MOMENTUM_VECTOR'
-        ? (command.sourceEntityId ?? command.targetId)
-        : command.type === 'REPORT_CRIME'
-          ? command.witnessId
-          : command.actorId;
+  const actingActorId = getActingActorId(command);
+  const apSpent = resolution.apSpent;
+  let nextState = resolution.state;
+  let systemEvents: SimEvent[] = [...resolution.events];
 
   // If command was applied but does not advance world time (e.g. zero-time inspection, swift action, impulse),
   // bypass NPC turns, thermodynamics, and world clock advancement.
