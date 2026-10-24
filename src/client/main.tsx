@@ -20,7 +20,7 @@ import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
 import { QuickActionBar } from './ui/QuickActionBar.js';
 import { SystemMenuModal } from './ui/SystemMenuModal.js';
 import { getSoundscapeManager } from './audio/soundscape-manager.js';
-import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor,  } from './client-interactions.js';
+import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor, resolveInspectedTileCoord } from './client-interactions.js';
 import type { DebugSimBridge } from './client-debug-bridge.js';
 
 declare global {
@@ -47,7 +47,7 @@ async function bootstrapClient(): Promise<void> {
   canvasHost.appendChild(overlayHost);
 
   let activeModal: ModalWindowId | null = null;
-  let hoveredTile: { x: number; y: number } | null = null;
+  let mouseHoverCoord: { x: number; y: number } | null = null;
   let isSystemMenuOpen = false;
   let isLookModeActive = false;
   let isCreatorOpen = false;
@@ -83,7 +83,6 @@ async function bootstrapClient(): Promise<void> {
     isLookModeActive = !isLookModeActive;
     const p = worldState.entities[playerId]?.position;
     lookCursor = isLookModeActive ? (p ? { x: p.x, y: p.y } : { x: 12, y: 10 }) : null;
-    hoveredTile = lookCursor;
     syncPresentation();
   };
 
@@ -92,7 +91,6 @@ async function bootstrapClient(): Promise<void> {
     const p = worldState.entities[playerId]?.position;
     const grid = p ? worldState.strata[p.stratum] : undefined;
     lookCursor = clampLookCursor(lookCursor, dx, dy, grid?.width ?? 48, grid?.height ?? 36);
-    hoveredTile = lookCursor;
     syncPresentation();
   };
 
@@ -150,10 +148,12 @@ async function bootstrapClient(): Promise<void> {
       );
     }
 
+    const inspectedTile = resolveInspectedTileCoord(isLookModeActive, lookCursor, mouseHoverCoord);
+
     render(
       <div>
         <HudLayout
-          state={worldState} onCommand={handleCommand} hoveredTile={hoveredTile}
+          state={worldState} onCommand={handleCommand} hoveredTile={inspectedTile}
           onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
           onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
           onReEmbark={() => { isCreatorOpen = true; syncPresentation(); }}
@@ -191,8 +191,8 @@ async function bootstrapClient(): Promise<void> {
     if (sx >= 0 && sx < 24 && sy >= 0 && sy < 20) {
       const frame = projectWorldToVisualFrame(worldState, playerId);
       const wx = frame.cameraOrigin.x + sx, wy = frame.cameraOrigin.y + sy;
-      if (!hoveredTile || hoveredTile.x !== wx || hoveredTile.y !== wy) {
-        hoveredTile = { x: wx, y: wy };
+      if (!mouseHoverCoord || mouseHoverCoord.x !== wx || mouseHoverCoord.y !== wy) {
+        mouseHoverCoord = { x: wx, y: wy };
         syncPresentation();
       }
     }

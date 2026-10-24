@@ -81,8 +81,7 @@ export function LookCursorOverlay({
 
       {isCursorOnScreen && (targetActor || isDoor || isGlassWindow || isSmashedWindow || furnitureEntity || vesselEntity || hasCoalDust || entitiesOnTile.length > 0) && (
         <div style={{
-          position: 'absolute', left: `${Math.min(Math.max(8, leftPx - 40), 24 * CELL_WIDTH_PX - 220)}px`,
-          top: `${topPx > 200 ? topPx - 80 : topPx + CELL_HEIGHT_PX + 6}px`, width: '200px',
+          position: 'absolute', right: '10px', bottom: '10px', width: '220px',
           background: 'rgba(9, 14, 17, 0.95)', border: '1px solid var(--brass-gold)',
           padding: '6px 8px', fontSize: '10px', zIndex: 45, pointerEvents: 'auto', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.9)',
         }}>

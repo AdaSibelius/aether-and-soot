@@ -11,6 +11,13 @@ export interface TileInspectorPanelProps {
   readonly onSelectTab?: (tab: 'TELEMETRY' | 'INVENTORY' | 'SURGERY' | 'WORKBENCH' | 'EXCHANGE') => void;
 }
 
+export function getEmptyTileDescriptor(terrainType?: string): string {
+  if (terrainType === 'SOOT_BRICK_WALL') {
+    return 'Solid soot-stained brickwork.';
+  }
+  return 'Unoccupied cobblestones.';
+}
+
 export function TileInspectorPanel({
   state,
   actorId,
@@ -69,7 +76,7 @@ export function TileInspectorPanel({
 
       <div class="panel-header" style={{ marginTop: '8px' }}>ENTITIES PRESENT ({entitiesOnTile.length})</div>
       {entitiesOnTile.length === 0 ? (
-        <div class="log-entry muted">Empty cobblestones.</div>
+        <div class="log-entry muted">{getEmptyTileDescriptor(cell?.terrainType)}</div>
       ) : (
         entitiesOnTile.map((e) => (
           <div key={e.id} style={{ borderBottom: '1px dashed #1c2833', padding: '4px 0' }}>

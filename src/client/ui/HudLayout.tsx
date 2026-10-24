@@ -3,7 +3,7 @@ import { EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { resolveCatalogDisplayName } from '../projection/frame-adapter.js';
 import { ModalWindowId } from './CharacterModalShell.js';
-import { formatEventMessage } from './EventFormatter.js';
+import { aggregateChronicleEvents } from './EventFormatter.js';
 import { MorgueModal } from './MorgueModal.js';
 import { TileInspectorPanel } from './TileInspectorPanel.js';
 
@@ -27,7 +27,7 @@ export function HudLayout({
   const playerId = EntityIdSchema.parse('actor_player');
   const player = state.entities[playerId];
   const pos = player?.position;
-  const recentEvents = state.eventLog.slice(-5).reverse();
+  const chronicleLines = aggregateChronicleEvents(state.eventLog, 5).reverse();
 
   // Find nearby visible entities on the current stratum within Chebyshev radius 8
   const nearbyEntities = Object.values(state.entities)
@@ -199,12 +199,12 @@ export function HudLayout({
       {/* Action Chronicle Log */}
       <div class="panel-box log-box">
         <div class="panel-header">ACTION CHRONICLE</div>
-        {recentEvents.length === 0 ? (
+        {chronicleLines.length === 0 ? (
           <div class="log-entry muted">Awaiting pneumatic actuation...</div>
         ) : (
-          recentEvents.map((ev, idx) => (
-            <div key={`${ev.type}-${ev.turn}-${idx}`} class="log-entry">
-              {formatEventMessage(ev)}
+          chronicleLines.map((line, idx) => (
+            <div key={`chronicle-${idx}`} class="log-entry">
+              {line}
             </div>
           ))
         )}

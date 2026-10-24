@@ -23,10 +23,8 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] ${ev.slot} took ${ev.damage} dmg (${ev.remainingHp} HP left)`;
     case 'LIMB_AMPUTATED':
       return `[T${ev.turn}] CRITICAL: ${ev.slot} severed!`;
-    case 'PROSTHETIC_INSTALLED':
-      return `[T${ev.turn}] Installed prosthetic into ${ev.slot} socket.`;
-    case 'PROSTHETIC_REMOVED':
-      return `[T${ev.turn}] Detached prosthetic from ${ev.slot} socket.`;
+    case 'PROSTHETIC_INSTALLED': return `[T${ev.turn}] Installed prosthetic into ${ev.slot} socket.`;
+    case 'PROSTHETIC_REMOVED': return `[T${ev.turn}] Detached prosthetic from ${ev.slot} socket.`;
     case 'PROSTHETIC_ACTION_FAILED':
       return `[T${ev.turn}] Surgery failed on ${ev.slot}: ${ev.reason}`;
     case 'STEAM_REFILLED':
@@ -184,36 +182,68 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'MONORAIL_ACTION_FAILED':
       return `[T${ev.turn}] Monorail operation failed for ${ev.actorId}: ${ev.reason}.`;
 
-    case 'ACTOR_TURF_STATE_CHANGED':
-      return `[T${ev.turn}] Victorian chronicle: Actor Turf State Changed.`;
-    case 'CONVOY_DELIVERY_CONFIRMED':
-      return `[T${ev.turn}] Victorian chronicle: Convoy Delivery Confirmed.`;
-    case 'CONVOY_ESCORT_ASSIGNED':
-      return `[T${ev.turn}] Victorian chronicle: Convoy Escort Assigned.`;
-    case 'CONVOY_PREPARATION_STARTED':
-      return `[T${ev.turn}] Victorian chronicle: Convoy Preparation Started.`;
-    case 'NPC_GOAL_CHANGED':
-      return `[T${ev.turn}] Victorian chronicle: Npc Goal Changed.`;
-    case 'SAFEHOUSE_AUDIT_COMPLETED':
-      return `[T${ev.turn}] Victorian chronicle: Safehouse Audit Completed.`;
-    case 'TACTICAL_MANEUVER_RECORDED':
-      return `[T${ev.turn}] Victorian chronicle: Tactical Maneuver Recorded.`;
-    case 'TURF_CONTESTED':
-      return `[T${ev.turn}] Victorian chronicle: Turf Contested.`;
-    case 'TURF_CONTROL_CHANGED':
-      return `[T${ev.turn}] Victorian chronicle: Turf Control Changed.`;
-case 'CODEX_CONSULTED':
-      return `[T${ev.turn}] The ancient tome reveals its secrets, knowledge gained at a price.`;
-case 'CODEX_ENTRY_DISCOVERED':
-      return `[T${ev.turn}] A lost tome of forbidden knowledge unearthed, secrets waiting to be unraveled.`;
-case 'NPC_CODEX_REACTION':
-      return `[T${ev.turn}] The ancient gears of the Aether whirred in response to your query, its steam-powered mind pondering the depths of knowledge.`
-case 'SAFEHOUSE_ACTION_FAILED':
-      return `[T${ev.turn}] The gears of industry ground to a halt, as the delicate mechanisms of the safehouse failed, leaving the brave adventurers stranded in the thick of peril.`
-case 'STRUCTURE_BUILT':
-      return `[T${ev.turn}] A new edifice rises from the aether, its brass and coal-iron frame a testament to our unyielding industrial might.`
-case 'STRUCTURE_STORAGE_UPDATED':
-      return `[T${ev.turn}] The storage facility's inventory has been updated with new supplies.`
-case 'WORKSHOP_DEED_CLAIMED':
-      return `[T${ev.turn}] A deed to a workshop claimed by the industrious soul, ready to forge the future.`;  }
+    case 'ACTOR_TURF_STATE_CHANGED': return `[T${ev.turn}] Victorian chronicle: Actor Turf State Changed.`;
+    case 'CONVOY_DELIVERY_CONFIRMED': return `[T${ev.turn}] Victorian chronicle: Convoy Delivery Confirmed.`;
+    case 'CONVOY_ESCORT_ASSIGNED': return `[T${ev.turn}] Victorian chronicle: Convoy Escort Assigned.`;
+    case 'CONVOY_PREPARATION_STARTED': return `[T${ev.turn}] Victorian chronicle: Convoy Preparation Started.`;
+    case 'NPC_GOAL_CHANGED': return `[T${ev.turn}] Victorian chronicle: Npc Goal Changed.`;
+    case 'SAFEHOUSE_AUDIT_COMPLETED': return `[T${ev.turn}] Victorian chronicle: Safehouse Audit Completed.`;
+    case 'TACTICAL_MANEUVER_RECORDED': return `[T${ev.turn}] Victorian chronicle: Tactical Maneuver Recorded.`;
+    case 'TURF_CONTESTED': return `[T${ev.turn}] Victorian chronicle: Turf Contested.`;
+    case 'TURF_CONTROL_CHANGED': return `[T${ev.turn}] Victorian chronicle: Turf Control Changed.`;
+    case 'CODEX_CONSULTED': return `[T${ev.turn}] The ancient tome reveals its secrets, knowledge gained at a price.`;
+    case 'CODEX_ENTRY_DISCOVERED': return `[T${ev.turn}] A lost tome of forbidden knowledge unearthed, secrets waiting to be unraveled.`;
+    case 'NPC_CODEX_REACTION': return `[T${ev.turn}] The ancient gears of the Aether whirred in response to your query, its steam-powered mind pondering the depths of knowledge.`;
+    case 'SAFEHOUSE_ACTION_FAILED': return `[T${ev.turn}] The gears of industry ground to a halt, as the delicate mechanisms of the safehouse failed, leaving the brave adventurers stranded in the thick of peril.`;
+    case 'STRUCTURE_BUILT': return `[T${ev.turn}] A new edifice rises from the aether, its brass and coal-iron frame a testament to our unyielding industrial might.`;
+    case 'STRUCTURE_STORAGE_UPDATED': return `[T${ev.turn}] The storage facility's inventory has been updated with new supplies.`;
+    case 'WORKSHOP_DEED_CLAIMED': return `[T${ev.turn}] A deed to a workshop claimed by the industrious soul, ready to forge the future.`;
+  }
 }
+
+function getMovementDirection(dx: number, dy: number): string {
+  if (dy < 0 && dx === 0) return 'North ';
+  if (dy > 0 && dx === 0) return 'South ';
+  if (dx > 0 && dy === 0) return 'East ';
+  if (dx < 0 && dy === 0) return 'West ';
+  if (dy < 0 && dx > 0) return 'North-East ';
+  if (dy < 0 && dx < 0) return 'North-West ';
+  if (dy > 0 && dx > 0) return 'South-East ';
+  if (dy > 0 && dx < 0) return 'South-West ';
+  return '';
+}
+
+export function aggregateChronicleEvents(events: readonly SimEvent[], maxLines?: number): string[] {
+  const result: string[] = [];
+  let i = 0;
+  while (i < events.length) {
+    const ev = events[i];
+    if (!ev) { i++; continue; }
+    if (ev.type === 'ENTITY_MOVED') {
+      let j = i + 1;
+      let totalAp = ev.apSpent;
+      while (j < events.length && events[j]?.type === 'ENTITY_MOVED' && (events[j] as typeof ev).actorId === ev.actorId) {
+        totalAp += (events[j] as typeof ev).apSpent;
+        j++;
+      }
+      const count = j - i;
+      if (count > 1) {
+        const lastMove = events[j - 1] as typeof ev;
+        const dx = lastMove.to.x - ev.from.x;
+        const dy = lastMove.to.y - ev.from.y;
+        const dir = getMovementDirection(dx, dy);
+        const turnRange = ev.turn === lastMove.turn ? `[T${ev.turn}]` : `[T${ev.turn}–T${lastMove.turn}]`;
+        result.push(`${turnRange} Traversed ${count}m ${dir}to (${lastMove.to.x}, ${lastMove.to.y}) on ${lastMove.to.stratum} [${totalAp} AP]`);
+      } else {
+        result.push(formatEventMessage(ev));
+      }
+      i = j;
+    } else {
+      result.push(formatEventMessage(ev));
+      i++;
+    }
+  }
+  return typeof maxLines === 'number' && maxLines > 0 ? result.slice(-maxLines) : result;
+}
+
+export const formatChronicleLog = aggregateChronicleEvents;

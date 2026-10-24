@@ -58,3 +58,14 @@ export function clampLookCursor(
     y: Math.max(0, Math.min(height - 1, cursor.y + dy)),
   };
 }
+
+export function resolveInspectedTileCoord(
+  lookModeActive: boolean,
+  lookCursorCoord: { x: number; y: number } | null,
+  mouseHoverCoord: { x: number; y: number } | null,
+): { x: number; y: number } | null {
+  return lookModeActive ? lookCursorCoord : mouseHoverCoord;
+}
+
+export const getInspectedTileCoord = resolveInspectedTileCoord;
+
