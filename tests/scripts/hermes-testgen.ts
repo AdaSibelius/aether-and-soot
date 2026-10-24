@@ -3,6 +3,7 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
 import { recordInferenceMetric } from './local-llm-ledger.js';
+import { extractFunctionSignaturesViaAst } from './ast-indexer.js';
 import {
   validateTypedBoundaries,
   validateTestSuiteStructure,
@@ -50,19 +51,7 @@ export function parseTestgenArgs(argv: string[]): TestgenConfig {
 }
 
 export function extractModuleSignatures(filePath: string): { functions: string[]; imports: string[] } {
-  if (!fs.existsSync(filePath)) return { functions: [], imports: [] };
-  const content = fs.readFileSync(filePath, 'utf-8');
-  const functions: string[] = [];
-  const fnMatches = content.matchAll(/export\s+function\s+([A-Za-z0-9_]+)\s*\(([\s\S]*?)\)(?:\s*:\s*([^;{]+))?/g);
-  for (const m of fnMatches) {
-    if (m[1]) functions.push(`${m[1]}(${(m[2] ?? '').replace(/\s+/g, ' ').trim()})` + (m[3] ? `: ${m[3].trim()}` : ''));
-  }
-  const imports: string[] = [];
-  const impMatches = content.matchAll(/import\s+[\s\S]*?\s+from\s+['"][^'"]+['"];/g);
-  for (const m of impMatches) {
-    imports.push(m[0].replace(/\s+/g, ' '));
-  }
-  return { functions, imports };
+  return extractFunctionSignaturesViaAst(filePath);
 }
 
 export async function requestHermesTestSuite(config: TestgenConfig, signatures: string[], rootDir: string): Promise<string> {
@@ -117,6 +106,54 @@ Output ONLY the TypeScript test file.`;
   }
 }
 
+export async function requestLlmTestRepair(
+  config: TestgenConfig,
+  currentTestCode: string,
+  tscErrors: string,
+  attempt: number,
+): Promise<string> {
+  const prompt = `You are a strict Vitest test engineer fixing a TypeScript compiler error for "Aether & Soot" (Victorian Steampunk roguelike).
+Target file: "${config.target}"
+Attempt: ${attempt} of 3
+
+Current Test Code:
+\`\`\`ts
+${currentTestCode}
+\`\`\`
+
+TypeScript Compiler Error Diagnostics:
+${tscErrors.slice(0, 1500)}
+
+Requirements:
+1. Fix all TypeScript compile errors, import specifiers, and variable/parameter types.
+2. Structure: Given (Seeded World) -> When (Command Dispatched via command-router.ts) -> Then (Assertions).
+3. Strict TypeScript: "noUncheckedIndexedAccess: true". Guard all lookups.
+4. FORBIDDEN: any, as unknown as, @ts-ignore.
+5. Anti-tautology rule: DO NOT mutate or weaken domain expect() targets. Fix types, mocks, and imports only.
+Output ONLY the complete corrected TypeScript test file.`;
+
+  try {
+    const raw = await queryLocalOllama(prompt, {
+      model: config.model,
+      endpoint: config.endpoint,
+      systemPrompt: 'You are a strict Vitest repair engineer for Aether & Soot. Return ONLY valid TypeScript test suites. Do not include markdown codeblocks or conversational text.',
+      temperature: 0.1,
+      task: 'hermes-testgen-repair',
+      tier: 'tier2',
+      retryCount: attempt,
+    });
+    const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+    if (!clean.includes('describe')) {
+      console.error('FATAL: Local LLM repair failed. Aborting to prevent paid token burn.');
+      process.exit(1);
+    }
+    return clean;
+  } catch {
+    console.error('FATAL: Local LLM repair failed. Aborting to prevent paid token burn.');
+    process.exit(1);
+  }
+}
+
 export async function runTestgen(config: TestgenConfig, rootDir: string): Promise<{ success: boolean; message: string }> {
   const targetFullPath = path.resolve(rootDir, config.target);
   const outputFullPath = path.resolve(rootDir, config.output);
@@ -145,8 +182,12 @@ export async function runTestgen(config: TestgenConfig, rootDir: string): Promis
       const execErr = err as { stdout?: Buffer; stderr?: Buffer };
       const stderr = (execErr.stdout?.toString() ?? '') + (execErr.stderr?.toString() ?? '');
       if (attempt === 3) throw new Error(`[hermes-testgen] tsc compilation failed after 3 attempts:\n${stderr}`);
-      console.warn(`[hermes-testgen] tsc error on attempt ${attempt}. Repairing imports/types locally...`);
-      testCode = generateMockTestSuite(config.target, rootDir, functions);
+      console.warn(`[hermes-testgen] tsc error on attempt ${attempt}. Repairing imports/types...`);
+      if (config.mock) {
+        testCode = generateMockTestSuite(config.target, rootDir, functions);
+      } else {
+        testCode = await requestLlmTestRepair(config, testCode, stderr, attempt);
+      }
       fs.writeFileSync(outputFullPath, testCode, 'utf-8');
     }
   }
