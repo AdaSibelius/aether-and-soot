@@ -2,6 +2,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { resolveEndpoint, resolveModel, queryLocalOllama } from './local-llm-config.js';
+import {
+  validateTypedBoundaries,
+  validateTestSuiteStructure,
+  validateGeneratedTestSuite,
+} from './hermes-testgen-validator.js';
+import { generateMockTestSuite } from './hermes-testgen-mock.js';
+
+export {
+  validateTypedBoundaries,
+  validateTestSuiteStructure,
+  validateGeneratedTestSuite,
+  generateMockTestSuite,
+};
 
 export interface TestgenConfig {
   readonly target: string;
@@ -51,154 +64,6 @@ export function extractModuleSignatures(filePath: string): { functions: string[]
   return { functions, imports };
 }
 
-export function validateTypedBoundaries(code: string): { valid: boolean; violations: string[] } {
-  const violations: string[] = [];
-  if (/\bany\b/.test(code)) violations.push('Rule 2.3: "any" is forbidden.');
-  if (/as\s+unknown\s+as/.test(code)) violations.push('Rule 2.3: "as unknown as" is forbidden.');
-  if (/@ts-ignore|@ts-expect-error/.test(code)) violations.push('Rule 2.3: TypeScript ignore pragmas are forbidden.');
-  return { valid: violations.length === 0, violations };
-}
-
-export function generateMockTestSuite(targetPath: string, rootDir: string, functions: string[] = []): string {
-  const relImport = path.relative(path.dirname(path.join(rootDir, 'tests/sim/test.ts')), path.join(rootDir, targetPath)).replace(/\\/g, '/').replace(/\.ts$/, '.js');
-  const importPath = relImport.startsWith('.') ? relImport : './' + relImport;
-  const fnNames = functions.map((f) => f.match(/^([A-Za-z0-9_]+)/)?.[1]).filter((s): s is string => Boolean(s));
-
-  if (targetPath.includes('metabolism')) {
-    return `import { describe, expect, it } from 'vitest';
-import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
-import { createInitialWorld } from '../../src/sim/core/world.js';
-import {
-  advanceMetabolismTick,
-  applyItemUseEffect,
-} from '${importPath}';
-
-describe('Deterministic Metabolism System Test', () => {
-  it('triggers TOXICITY_OVERDOSE and inflicts penalties when toxicity crosses 80%', () => {
-    const world = createInitialWorld({ seed: 42 });
-    const playerId = EntityIdSchema.parse('actor_player');
-    const player = world.entities[playerId];
-    expect(player?.anatomy).toBeDefined();
-
-    // Set player toxicity directly to the overdose threshold
-    const primedWorld = {
-      ...world,
-      entities: {
-        ...world.entities,
-        [playerId]: {
-          ...player!,
-          anatomy: {
-            ...player!.anatomy!,
-            toxicityPct: 85,
-            bloodVolumePct: 100,
-          },
-        },
-      },
-    };
-
-    const tick = advanceMetabolismTick(primedWorld);
-    const overdoseEv = tick.events.find((e) => e.type === 'TOXICITY_OVERDOSE');
-    expect(overdoseEv).toBeDefined();
-    if (overdoseEv && overdoseEv.type === 'TOXICITY_OVERDOSE') {
-      expect(overdoseEv.actorId).toBe(playerId);
-      expect(overdoseEv.toxicityPct).toBe(85);
-      expect(overdoseEv.bloodVolumeLost).toBeGreaterThan(0);
-    }
-
-    const updatedPlayer = tick.state.entities[playerId];
-    expect(updatedPlayer?.anatomy?.bloodVolumePct).toBeLessThan(100);
-    // Toxicity decays by 1 per turn
-    expect(updatedPlayer?.anatomy?.toxicityPct).toBe(84);
-  });
-
-  it('triggers WITHDRAWAL_ONSET when a stimulant effect expires', () => {
-    const world = createInitialWorld({ seed: 42 });
-    const playerId = EntityIdSchema.parse('actor_player');
-    const player = world.entities[playerId];
-
-    const buffedWorld = {
-      ...world,
-      entities: {
-        ...world.entities,
-        [playerId]: {
-          ...player!,
-          anatomy: {
-            ...player!.anatomy!,
-            activeEffects: [{ effectId: 'stim_aether_rush', durationTurns: 1, magnitude: 25 }],
-          },
-        },
-      },
-    };
-
-    const tick = advanceMetabolismTick(buffedWorld);
-    const withdrawalEv = tick.events.find((e) => e.type === 'WITHDRAWAL_ONSET');
-    expect(withdrawalEv).toBeDefined();
-    if (withdrawalEv && withdrawalEv.type === 'WITHDRAWAL_ONSET') {
-      expect(withdrawalEv.actorId).toBe(playerId);
-      expect(withdrawalEv.effectId).toBe('stim_aether_rush');
-      expect(withdrawalEv.penaltyAp).toBe(25);
-    }
-
-    const updatedPlayer = tick.state.entities[playerId];
-    expect(updatedPlayer?.anatomy?.activeEffects.length).toBe(0);
-  });
-
-  it('applies alchemical consumption and evaluates overdose threshold during item use', () => {
-    const world = createInitialWorld({ seed: 42 });
-    const playerId = EntityIdSchema.parse('actor_player');
-    const playerAnatomy = world.entities[playerId]!.anatomy!;
-
-    const result = applyItemUseEffect(
-      { ...playerAnatomy, toxicityPct: 70 },
-      { kind: 'ALCHEMICAL', magnitude: 25, toxicityDelta: 20, staminaRestore: 30, appliedEffectId: 'stim_aether_rush' },
-      playerId,
-      1,
-    );
-
-    expect(result.nextAnatomy.toxicityPct).toBe(90);
-    expect(result.nextAnatomy.activeEffects.some((e) => e.effectId === 'stim_aether_rush')).toBe(true);
-
-    const alchemicalEv = result.alchemicalEvents.find((e) => e.type === 'ALCHEMICAL_CONSUMED');
-    expect(alchemicalEv).toBeDefined();
-
-    const overdoseEv = result.alchemicalEvents.find((e) => e.type === 'TOXICITY_OVERDOSE');
-    expect(overdoseEv).toBeDefined();
-  });
-});
-`;
-  }
-
-  if (targetPath.includes('portals')) {
-    return `import { describe, expect, it } from 'vitest';
-import { createInitialWorld } from '../../src/sim/core/world.js';
-import { findPortalAtPoint } from '${importPath}';
-
-describe('Auto-Generated System Test (${path.basename(targetPath)})', () => {
-  it('executes deterministic system function with valid world state', () => {
-    const world = createInitialWorld({ seed: 42 });
-    const portal = findPortalAtPoint(world.entities, { x: 24, y: 18, stratum: 'STREET' });
-    expect(portal).toBeDefined();
-    expect(portal?.portal).toBeDefined();
-  });
-});
-`;
-  }
-
-  const primaryFn = fnNames[0] ?? 'resolveInstallProsthetic';
-  return `import { describe, expect, it } from 'vitest';
-import { createInitialWorld } from '../../src/sim/core/world.js';
-import { ${primaryFn} } from '${importPath}';
-
-describe('Deterministic System Test (${path.basename(targetPath)})', () => {
-  it('verifies exported domain function is callable and deterministic', () => {
-    const world = createInitialWorld({ seed: 42 });
-    expect(world).toBeDefined();
-    expect(typeof ${primaryFn}).toBe('function');
-  });
-});
-`;
-}
-
 export async function requestHermesTestSuite(config: TestgenConfig, signatures: string[], rootDir: string): Promise<string> {
   if (config.mock) return generateMockTestSuite(config.target, rootDir, signatures);
 
@@ -209,16 +74,18 @@ ${signatures.join('\n')}
 
 Requirements:
 1. Vitest tests using createInitialWorld({ seed: 42 }) from '../../src/sim/core/world.js'.
-2. Relative imports targeting .js extensions.
-3. Strict TypeScript: "noUncheckedIndexedAccess: true". Guard all lookups.
-4. FORBIDDEN: any, as unknown as, @ts-ignore.
+2. Structure: Given (Seeded World) -> When (Command Dispatched via command-router.ts) -> Then (ECS Component Delta + Domain Event Emitted + Frame Projection Verified).
+3. At least three state-delta expect(...) assertions.
+4. Relative imports targeting .js extensions.
+5. Strict TypeScript: "noUncheckedIndexedAccess: true". Guard all lookups.
+6. FORBIDDEN: any, as unknown as, @ts-ignore.
 Output ONLY the TypeScript test file.`;
 
   try {
     const raw = await queryLocalOllama(prompt, {
       model: config.model,
       endpoint: config.endpoint,
-      systemPrompt: 'You are a strict Vitest test engineer for Aether & Soot. Output ONLY the valid TypeScript test suite without markdown code fences or conversational text.',
+      systemPrompt: 'You are a strict Vitest test engineer for Aether & Soot. Output ONLY valid TypeScript test suites satisfying Given -> When -> Then structure with >= 3 expect() assertions.',
       temperature: 0.2,
     });
     const clean = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
@@ -244,6 +111,10 @@ export async function runTestgen(config: TestgenConfig, rootDir: string): Promis
   if (!boundaryCheck.valid) {
     throw new Error(`Rule 2.3 Violation in generated code:\n${boundaryCheck.violations.join('\n')}`);
   }
+  const structureCheck = validateTestSuiteStructure(testCode);
+  if (!structureCheck.valid) {
+    throw new Error(`Rule 1.3 Validation Gate Failed:\n${structureCheck.violations.join('\n')}`);
+  }
 
   fs.mkdirSync(path.dirname(outputFullPath), { recursive: true });
   fs.writeFileSync(outputFullPath, testCode, 'utf-8');
@@ -253,8 +124,9 @@ export async function runTestgen(config: TestgenConfig, rootDir: string): Promis
     try {
       execSync('npx tsc --noEmit', { cwd: rootDir, stdio: 'pipe' });
       break;
-    } catch (err: any) {
-      const stderr = (err.stdout?.toString() ?? '') + (err.stderr?.toString() ?? '');
+    } catch (err: unknown) {
+      const execErr = err as { stdout?: Buffer; stderr?: Buffer };
+      const stderr = (execErr.stdout?.toString() ?? '') + (execErr.stderr?.toString() ?? '');
       if (attempt === 3) throw new Error(`[hermes-testgen] tsc compilation failed after 3 attempts:\n${stderr}`);
       console.warn(`[hermes-testgen] tsc error on attempt ${attempt}. Repairing imports/types locally...`);
       testCode = generateMockTestSuite(config.target, rootDir, functions);
@@ -267,8 +139,9 @@ export async function runTestgen(config: TestgenConfig, rootDir: string): Promis
     execSync(`npx vitest run ${config.output}`, { cwd: rootDir, stdio: 'pipe' });
     console.log(`[hermes-testgen] Test suite passed cleanly: ${config.output}`);
     return { success: true, message: `Generated ${config.output} and passed vitest run.` };
-  } catch (err: any) {
-    const out = (err.stdout?.toString() ?? '') + (err.stderr?.toString() ?? '');
+  } catch (err: unknown) {
+    const execErr = err as { stdout?: Buffer; stderr?: Buffer };
+    const out = (execErr.stdout?.toString() ?? '') + (execErr.stderr?.toString() ?? '');
     throw new Error(`[hermes-testgen] vitest run failed (anti-tautology rule: expect() targets must not be mutated):\n${out}`);
   }
 }

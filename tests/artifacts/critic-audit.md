@@ -1,6 +1,6 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
-**Generated:** 2026-10-23 | **Benchmark Engine:** Hermes Critic v1.0
+**Generated:** 2026-10-24 | **Benchmark Engine:** Hermes Critic v1.0
 - **Execution Mode**: MOCK_FALLBACK (playtester-mock.ts)
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 

@@ -98,3 +98,9 @@ This serves as the permanent holding area for validated, out-of-scope systemic i
 - **Phase 29 (Issue #34 — Completed)**: Acoustic Decibel Propagation, Smog Occlusion Stealth & Sensory AI (`src/sim/systems/stealth-acoustics.system.ts`, `tests/sim/stealth-acoustics.test.ts`).
 - **Phase 30 (Issue #35 — Completed)**: Diurnal Shift Clocks, Autonomous NPC Ecology & Background District Catch-Up (`src/sim/systems/npc-ecology.system.ts`, `src/sim/systems/district-catchup.system.ts`, `tests/sim/npc-ecology-catchup.test.ts`).
 - **Phase 31 (Issue #36 — Completed)**: Structural Wall Breaching, Multi-Strata Gravity Falls & Clockwork Traps (`src/sim/systems/physics-traps.system.ts`, `tests/sim/physics-traps-falls.test.ts`).
+
+## Autonomous Critic Backlog (Sanity-Verified)
+
+| Priority | Category | Title | Directive | Target Files | Verification |
+| --- | --- | --- | --- | --- | --- |
+| P1 | UNREACHABLE_MECHANIC | Phase 50 | Focus core systems development on **Phase 50: Interactive World Features, Tactical Environmental Hazards & Tangible Mechanical Agency**: Full gameplay wiring and systemic execution of the remaining unwired environmental agency commands (`LOOT_CONTAINER` for interactive furniture searches with booby-trap triggers, `PRESSURIZE_VESSEL` for tactical steam burst breaches, `PRY_OBSTACLE` for crowbar prying on jammed grates/doors, and `PAY_CHIRURGEON_HEAL` for clinic operating table services). Add dynamic volumetric gaslight illumination, drifting soot clouds with dynamic ASCII character occlusion (`%`, `&`, `*`), whale oil puddles with ignition cascades, and corrosive acid drip hazards. resolving unwiredCommands and telemetry anomalies. | `src/schemas/domain-events.schema.ts`, `src/sim/core/engine.ts` | `tests/sim/determinism.test.ts` |
