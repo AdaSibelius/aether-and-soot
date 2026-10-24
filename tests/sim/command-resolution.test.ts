@@ -40,14 +40,14 @@ describe('Phase ARCH-1.1: Standardized CommandResolution Contract', () => {
   it('resolves invalid MOVE_STEP bump into wall with rejected status and failure reason', () => {
     const { world, initialTurn } = createTestFixture();
 
-    // Player at border position moving into wall at (0, 0) -> (-1, 0)
+    // Player at walkable position moving into border wall at (1, 1) -> (0, 1)
     const borderWorld: WorldState = {
       ...world,
       entities: {
         ...world.entities,
         [playerId]: {
           ...world.entities[playerId]!,
-          position: { x: 0, y: 0, stratum: streetStratum, blocksMovement: true, blocksSight: false },
+          position: { x: 1, y: 1, stratum: streetStratum, blocksMovement: true, blocksSight: false },
         },
       },
     };
@@ -67,8 +67,8 @@ describe('Phase ARCH-1.1: Standardized CommandResolution Contract', () => {
       expect(result.resolution.events.some((e) => e.type === 'MOVEMENT_BLOCKED')).toBe(true);
       // State is structurally unchanged
       expect(result.state.entities[playerId]?.position).toEqual({
-        x: 0,
-        y: 0,
+        x: 1,
+        y: 1,
         stratum: streetStratum,
         blocksMovement: true,
         blocksSight: false,

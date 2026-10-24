@@ -73,6 +73,14 @@ export function resolveActorDefeatIfFatal(
       droppedEntityIds.push(corpseDropId);
     }
     nextEntities = withoutEntity(nextEntities, targetId);
+  } else {
+    nextEntities[targetId] = {
+      ...target,
+      actor: {
+        ...target.actor,
+        energy: 0,
+      },
+    };
   }
 
   // Reposition all dropped loot onto the defeat coordinate

@@ -18,7 +18,6 @@ describe('Phase 41: Surface Liquid Pools, Chemical Reactions & Item Coating', ()
     return {
       id, name: bp,
       visual: { glyph: '!', fgPrimary: '#2ECC71', fgSecondary: '#27AE60', bgColor: '#0A0D0E', shaderFlags: [] },
-      position: { x: 10, y: 10, stratum: 'STREET', blocksMovement: false, blocksSight: false },
       item: { blueprintId: BlueprintIdSchema.parse(bp), category: 'CONSUMABLE', massGrams: 500, volumeMl: 500, quantity: 1, stackable: false },
     };
   }
@@ -114,7 +113,6 @@ describe('Phase 41: Surface Liquid Pools, Chemical Reactions & Item Coating', ()
     const sabre: EntityRecord = {
       id: weaponId, name: 'Forged Cavalry Sabre',
       visual: { glyph: '/', fgPrimary: '#BDC3C7', fgSecondary: '#7F8C8D', bgColor: '#0A0D0E', shaderFlags: [] },
-      position: { x: pPos.x, y: pPos.y, stratum: pPos.stratum, blocksMovement: false, blocksSight: false },
       item: { blueprintId: BlueprintIdSchema.parse('gear_cavalry_sabre'), category: 'EQUIPMENT', massGrams: 1200, volumeMl: 1000, quantity: 1, stackable: false, equipmentSpec: sabreSpec },
       equipmentSpec: sabreSpec,
     };

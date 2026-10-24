@@ -3,6 +3,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { advanceDistrictEconomyMacroTick } from '../systems/economy.system.js';
 import { advanceMetabolismTick } from '../systems/metabolism.system.js';
+import { isActorFatal } from '../systems/mortality.system.js';
 import { SeededRNG } from './rng.js';
 import { WorldState } from './world.js';
 
@@ -39,12 +40,13 @@ export function advanceTurnSchedule(
   const actorRecord = updatedEntities[actorId];
 
   if (actorRecord?.actor) {
+    const isFatal = isActorFatal(actorRecord);
     const speedRecovery = ticks > 0 ? actorRecord.actor.speed * ticks : 0;
     updatedEntities[actorId] = {
       ...actorRecord,
       actor: {
         ...actorRecord.actor,
-        energy: actorRecord.actor.energy - apSpent + speedRecovery,
+        energy: isFatal ? 0 : actorRecord.actor.energy - apSpent + speedRecovery,
       },
     };
   }

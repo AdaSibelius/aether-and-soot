@@ -41,7 +41,6 @@ describe('Phase 40: CDDA Tool Qualities, Weapon Modifications & Loaded Chambers'
       id,
       name: bp,
       visual: { glyph: '}', fgPrimary: '#E67E22', fgSecondary: '#D35400', bgColor: '#0A0D0E', shaderFlags: [] },
-      position: { x: 10, y: 10, stratum: 'STREET', blocksMovement: false, blocksSight: false },
       item: {
         blueprintId: BlueprintIdSchema.parse(bp),
         category: 'EQUIPMENT',
@@ -144,7 +143,6 @@ describe('Phase 40: CDDA Tool Qualities, Weapon Modifications & Loaded Chambers'
       id: corpseId, name: 'Defeated Enforcer Corpse',
       visual: { glyph: '%', fgPrimary: '#7F8C8D', fgSecondary: '#95A5A6', bgColor: '#0A0D0E', shaderFlags: [] },
       position: { x: pPos.x + 1, y: pPos.y, stratum: pPos.stratum, blocksMovement: false, blocksSight: false },
-      actor: { energy: 0, speed: 0, isPlayer: false },
       anatomy: {
         ...world.entities[playerId]!.anatomy!,
         bloodVolumePct: 0,

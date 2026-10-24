@@ -1,9 +1,36 @@
 import { AnatomyComponent, EntityRecord } from '../../schemas/components.schema.js';
 import { FactionContract } from '../../schemas/contracts.schema.js';
 import { BlueprintIdSchema, EntityId, EntityIdSchema } from '../../schemas/primitives.schema.js';
+import { getTileCell, isWithinBounds, StratumGrid } from '../spatial/grid.js';
 import { WorldState } from '../core/world.js';
 import { createEntityFromBlueprint } from '../data/item-catalog.js';
 import { getCarryProfile } from './inventory-utils.js';
+
+function findWalkableSpawnPoint(
+  grid: StratumGrid | undefined,
+  defaultX: number,
+  defaultY: number,
+): { x: number; y: number } {
+  if (!grid) return { x: defaultX, y: defaultY };
+  const initial = getTileCell(grid, defaultX, defaultY);
+  if (initial && !initial.blocksMovement) return { x: defaultX, y: defaultY };
+
+  for (let r = 1; r <= 8; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const nx = defaultX + dx;
+        const ny = defaultY + dy;
+        if (isWithinBounds(grid, nx, ny)) {
+          const cell = getTileCell(grid, nx, ny);
+          if (cell && !cell.blocksMovement) {
+            return { x: nx, y: ny };
+          }
+        }
+      }
+    }
+  }
+  return { x: defaultX, y: defaultY };
+}
 
 export function createDefaultNpcAnatomy(torsoHp = 45, limbHp = 25): AnatomyComponent {
   return {
@@ -99,7 +126,15 @@ export function spawnDistrictNpcs(state: WorldState): {
   const fixerId = EntityIdSchema.parse('npc_syndicate_fixer');
 
   const streetGrid = state.strata.STREET;
+  const undercroftGrid = state.strata.UNDERCROFT;
   const isLarge = streetGrid && streetGrid.width >= 36 && streetGrid.height >= 28;
+
+  const wardenPos = findWalkableSpawnPoint(streetGrid, 10, 11);
+  const scavengerPos = findWalkableSpawnPoint(undercroftGrid, 11, 11);
+  const stokerPos = findWalkableSpawnPoint(streetGrid, 14, 13);
+  const merchantPos = findWalkableSpawnPoint(streetGrid, 19, 19);
+  const chirurgeonPos = findWalkableSpawnPoint(streetGrid, isLarge ? 34 : 16, isLarge ? 6 : 16);
+  const fixerPos = findWalkableSpawnPoint(streetGrid, isLarge ? 34 : 18, isLarge ? 26 : 17);
 
   const wardenInv = buildNpcInventory(entities, [{ id: 'loot_warden_gears', blueprintId: 'mat_brass_gears', quantity: 2 }]);
   const scavengerInv = buildNpcInventory(entities, [{ id: 'loot_scavenger_salt', blueprintId: 'mat_aether_salt', quantity: 2 }]);
@@ -117,7 +152,7 @@ export function spawnDistrictNpcs(state: WorldState): {
   entities[wardenId] = {
     id: wardenId, name: 'Clockwork Automaton Warden',
     visual: { glyph: 'W', fgPrimary: '#2E86C1', fgSecondary: '#D4AF37', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
-    position: { x: 10, y: 11, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    position: { x: wardenPos.x, y: wardenPos.y, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 100, isPlayer: false },
     aiController: { factionId: 'CROWN_CONSTABULARY', role: 'GUARD', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 14, accuracyPct: 88, armorReduction: 3 },
@@ -128,7 +163,7 @@ export function spawnDistrictNpcs(state: WorldState): {
   entities[scavengerId] = {
     id: scavengerId, name: 'Fleet Ditch Sump Scavenger',
     visual: { glyph: 's', fgPrimary: '#E74C3C', fgSecondary: '#922B21', bgColor: '#0A0D0E', shaderFlags: [] },
-    position: { x: 11, y: 11, stratum: 'UNDERCROFT', blocksMovement: true, blocksSight: false },
+    position: { x: scavengerPos.x, y: scavengerPos.y, stratum: 'UNDERCROFT', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 100, isPlayer: false },
     aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'SCAVENGER', hostile: true, alertState: 'IDLE' },
     combatStats: { meleeDamage: 10, accuracyPct: 80, armorReduction: 0 },
@@ -139,7 +174,7 @@ export function spawnDistrictNpcs(state: WorldState): {
   entities[stokerId] = {
     id: stokerId, name: 'Spitalfields Foundry Stoker',
     visual: { glyph: 'f', fgPrimary: '#E67E22', fgSecondary: '#CD7F32', bgColor: '#0A0D0E', shaderFlags: [] },
-    position: { x: 14, y: 13, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    position: { x: stokerPos.x, y: stokerPos.y, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 90, isPlayer: false },
     aiController: { factionId: 'IRONMONGERS_CARTEL', role: 'CITIZEN', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 12, accuracyPct: 82, armorReduction: 1 },
@@ -150,7 +185,7 @@ export function spawnDistrictNpcs(state: WorldState): {
   entities[merchantId] = {
     id: merchantId, name: 'Royal Exchange Quartermaster',
     visual: { glyph: 'M', fgPrimary: '#F4D03F', fgSecondary: '#D4AF37', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
-    position: { x: 19, y: 19, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    position: { x: merchantPos.x, y: merchantPos.y, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 80, isPlayer: false },
     aiController: { factionId: 'CLOCKWORK_GUILD', role: 'MERCHANT', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 8, accuracyPct: 75, armorReduction: 1 },
@@ -161,7 +196,7 @@ export function spawnDistrictNpcs(state: WorldState): {
   entities[chirurgeonId] = {
     id: chirurgeonId, name: 'Chirurgeon Vane',
     visual: { glyph: 'C', fgPrimary: '#2ECC71', fgSecondary: '#27AE60', bgColor: '#0A0D0E', shaderFlags: [] },
-    position: { x: isLarge ? 34 : 16, y: isLarge ? 6 : 16, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    position: { x: chirurgeonPos.x, y: chirurgeonPos.y, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 85, isPlayer: false },
     aiController: { factionId: 'CLOCKWORK_GUILD', role: 'CHIRURGEON', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 8, accuracyPct: 75, armorReduction: 1 },
@@ -172,7 +207,7 @@ export function spawnDistrictNpcs(state: WorldState): {
   entities[fixerId] = {
     id: fixerId, name: 'Syndicate Fixer Jasper',
     visual: { glyph: 'F', fgPrimary: '#9B59B6', fgSecondary: '#8E44AD', bgColor: '#0A0D0E', shaderFlags: [] },
-    position: { x: isLarge ? 34 : 18, y: isLarge ? 26 : 17, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    position: { x: fixerPos.x, y: fixerPos.y, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     actor: { energy: 0, speed: 95, isPlayer: false },
     aiController: { factionId: 'UNDERCROFT_SYNDICATE', role: 'FIXER', hostile: false, alertState: 'IDLE' },
     combatStats: { meleeDamage: 11, accuracyPct: 80, armorReduction: 1 },

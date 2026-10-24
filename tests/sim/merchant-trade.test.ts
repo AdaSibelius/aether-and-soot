@@ -99,7 +99,13 @@ describe('Phase 11: Merchant Trading & Physical Pedestal Stocking', () => {
       ...world,
       entities: {
         ...world.entities,
-        [merchantId]: { ...world.entities[merchantId]!, position: { ...world.entities[merchantId]!.position!, x: 0, y: 0 } },
+        [merchantId]: {
+          ...world.entities[merchantId]!,
+          position: {
+            ...world.entities[merchantId]!.position!,
+            x: world.entities[playerId]!.position!.x + 2,
+          },
+        },
       },
     };
     const resFar = dispatchCommand(farWorld, { type: 'BUY_FROM_MERCHANT', actorId: playerId, merchantId, itemEntityId: gearItemId, quantity: 1 });

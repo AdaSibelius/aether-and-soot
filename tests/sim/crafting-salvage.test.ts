@@ -70,7 +70,7 @@ describe('Phase 9: Artificer Crafting, Salvage & Steam Workbenches', () => {
         [rubberId]: rubber,
         [playerId]: {
           ...player,
-          position: { ...player.position!, x: 12, y: 12, stratum: 'STREET' },
+          position: player.position,
           inventory: {
             ...player.inventory!,
             containedEntityIds: [...player.inventory!.containedEntityIds, ironId, rubberId],
