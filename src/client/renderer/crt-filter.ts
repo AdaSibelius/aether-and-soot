@@ -1,72 +1,25 @@
 import { Filter, GlProgram } from 'pixi.js';
-
-const CRT_VERTEX_SHADER = `
-  in vec2 aPosition;
-  out vec2 vTextureCoord;
-
-  uniform vec4 uInputSize;
-  uniform vec4 uOutputFrame;
-  uniform vec4 uOutputTexture;
-
-  vec4 filterVertexPosition( void )
-  {
-      vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
-      position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
-      position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
-      return vec4(position, 0.0, 1.0);
-  }
-
-  vec2 filterTextureCoord( void )
-  {
-      return aPosition * (uOutputFrame.zw * uInputSize.zw);
-  }
-
-  void main(void)
-  {
-      gl_Position = filterVertexPosition();
-      vTextureCoord = filterTextureCoord();
-  }
-`;
-
-const CRT_FRAGMENT_SHADER = `
-  in vec2 vTextureCoord;
-  out vec4 finalColor;
-
-  uniform sampler2D uTexture;
-  uniform float uTime;
-  uniform float uScanlineOpacity;
-
-  void main(void)
-  {
-      vec2 uv = vTextureCoord;
-
-      // Subtle chromatic aberration (amber/cyan Victorian CRT fringe)
-      float shift = 0.0009;
-      float r = texture(uTexture, vec2(uv.x + shift, uv.y)).r;
-      float g = texture(uTexture, uv).g;
-      float b = texture(uTexture, vec2(uv.x - shift, uv.y)).b;
-      vec3 col = vec3(r, g, b);
-
-      // Horizontal CRT scanlines (default reduced 45% to 0.033)
-      float scanline = sin(uv.y * 540.0 + uTime * 2.0) * uScanlineOpacity;
-      col -= scanline;
-
-      // Warm brass phosphor tint & vignette
-      vec2 centered = uv - vec2(0.5);
-      float vignette = 1.0 - dot(centered, centered) * 0.55;
-      col *= clamp(vignette, 0.4, 1.0);
-
-      finalColor = vec4(col, 1.0);
-  }
-`;
+import { STEAMPUNK_FRAGMENT_SHADER, STEAMPUNK_VERTEX_SHADER } from './steampunk-shader.js';
 
 export const DEFAULT_SCANLINE_OPACITY = 0.033;
 
-export function createCrtPostFilter(opacity: number = DEFAULT_SCANLINE_OPACITY): Filter {
+export interface SteampunkFilterOptions {
+  readonly scanlineOpacity?: number;
+  readonly thermoStress?: number;
+  readonly smokeMask?: [number, number, number, number];
+}
+
+export function createCrtPostFilter(
+  opacity: number = DEFAULT_SCANLINE_OPACITY,
+  options: SteampunkFilterOptions = {},
+): Filter {
   const glProgram = GlProgram.from({
-    vertex: CRT_VERTEX_SHADER,
-    fragment: CRT_FRAGMENT_SHADER,
+    vertex: STEAMPUNK_VERTEX_SHADER,
+    fragment: STEAMPUNK_FRAGMENT_SHADER,
   });
+
+  const thermoStress = options.thermoStress ?? 0;
+  const smokeMask = options.smokeMask ?? [0, 0, 0, 0];
 
   return new Filter({
     glProgram,
@@ -74,7 +27,22 @@ export function createCrtPostFilter(opacity: number = DEFAULT_SCANLINE_OPACITY):
       crtUniforms: {
         uTime: { value: 0, type: 'f32' },
         uScanlineOpacity: { value: opacity, type: 'f32' },
+        uThermoStress: { value: thermoStress, type: 'f32' },
+        uSmokeMask: { value: new Float32Array(smokeMask), type: 'vec4<f32>' },
       },
     },
   });
+}
+
+export function updateSteampunkFilterUniforms(
+  filter: Filter,
+  time: number,
+  thermoStress = 0,
+  smokeMask: [number, number, number, number] = [0, 0, 0, 0],
+): void {
+  const uniforms = filter.resources.crtUniforms?.uniforms;
+  if (!uniforms) return;
+  uniforms.uTime = time;
+  uniforms.uThermoStress = thermoStress;
+  uniforms.uSmokeMask = smokeMask;
 }
