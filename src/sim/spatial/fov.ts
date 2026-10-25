@@ -72,13 +72,19 @@ export function computeVisibleTiles(
           continue;
         }
 
-        if (dx * dx + dy * dy <= radiusSq) {
+        const cell = getTileCell(grid, mapX, mapY);
+        const smokeDensity = cell?.smokePpm ?? 0;
+        const smokeStepCost = smokeDensity >= 60 ? 1 + Math.floor(smokeDensity / 35) : 1;
+
+        if ((dx * dx + dy * dy) * smokeStepCost <= radiusSq) {
           visible.add(pointKey(mapX, mapY));
         }
 
-        const cell = getTileCell(grid, mapX, mapY);
         const isOpaque = cell
-          ? cell.blocksSight || cell.steamPressureKpa >= 20 || cell.coalDustDensity >= 0.3
+          ? cell.blocksSight ||
+            cell.steamPressureKpa >= 20 ||
+            cell.coalDustDensity >= 0.3 ||
+            smokeDensity >= 60
           : true;
 
         if (blocked) {
@@ -91,7 +97,10 @@ export function computeVisibleTiles(
           }
         } else if (isOpaque && distance < radius) {
           blocked = true;
-          castLight(distance + 1, startSlope, leftSlope, xx, xy, yx, yy);
+          const stepAdvance = smokeDensity >= 60 ? smokeStepCost : 1;
+          if (distance + stepAdvance <= radius) {
+            castLight(distance + stepAdvance, startSlope, leftSlope, xx, xy, yx, yy);
+          }
           nextStartSlope = rightSlope;
         }
       }

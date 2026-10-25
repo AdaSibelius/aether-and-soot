@@ -4,6 +4,7 @@ import { computeVisibleTiles } from '../spatial/fov.js';
 import { markExploredTiles } from '../spatial/grid.js';
 import { advanceNpcTurns } from '../systems/ai.system.js';
 import { computeProstheticFovBonus } from '../systems/anatomy.system.js';
+import { advanceEnvironmentalHazards } from '../systems/environmental-hazards.system.js';
 import { decrementProstheticCooldowns } from '../systems/prosthetics.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
 import { CommandResolution } from './command-resolution.js';
@@ -37,6 +38,11 @@ export function advanceWorldEnvironment(
     const thermoTick = advanceThermodynamicsTick(workingState);
     workingState = thermoTick.state;
     events.push(...thermoTick.events);
+
+    const activeStratum = workingState.entities['actor_player' as EntityId]?.position?.stratum ?? 'STREET';
+    const hazardTick = advanceEnvironmentalHazards(workingState, activeStratum);
+    workingState = hazardTick.state;
+    events.push(...hazardTick.events);
   }
 
   return { state: workingState, events };

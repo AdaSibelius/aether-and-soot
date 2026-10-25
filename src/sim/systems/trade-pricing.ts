@@ -3,6 +3,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { CommodityId, EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
+import { getTurfAtPosition } from './skirmish-turf.system.js';
 
 const DEFAULT_ITEM_PRICE_PENCE = 25;
 
@@ -59,6 +60,28 @@ export function createTradeFailure(
   };
 }
 
+export function computeTurfTradeMultiplier(
+  state: Readonly<WorldState>,
+  merchant: EntityRecord,
+  tradeType: 'BUY' | 'SELL',
+): number {
+  const turf =
+    (merchant.position ? getTurfAtPosition(state as WorldState, merchant.position) : undefined) ??
+    state.turf[state.currentDistrictId] ??
+    Object.values(state.turf).find((t) => t.districtId === state.currentDistrictId);
+  const controllingFactionId = turf?.controllingFactionId;
+  if (!controllingFactionId) return 1;
+
+  const rep = state.economy.factionReputation[controllingFactionId] ?? 0;
+  if (rep < 0) {
+    return tradeType === 'BUY' ? 1.25 : 0.75;
+  }
+  if (rep > 0) {
+    return tradeType === 'BUY' ? 0.85 : 1.15;
+  }
+  return 1;
+}
+
 export function computeBuyUnitPrice(
   state: Readonly<WorldState>,
   merchant: EntityRecord,
@@ -73,7 +96,9 @@ export function computeBuyUnitPrice(
   } else if (rep < 0) {
     multiplier = 1 + Math.min(0.5, (-rep / 100) * 0.5);
   }
-  return Math.max(1, Math.round(basePrice * multiplier));
+  const factionPrice = Math.max(1, Math.round(basePrice * multiplier));
+  const turfMultiplier = computeTurfTradeMultiplier(state, merchant, 'BUY');
+  return Math.max(1, Math.round(factionPrice * turfMultiplier));
 }
 
 export function computeSellUnitPrice(
@@ -92,7 +117,20 @@ export function computeSellUnitPrice(
     penalty = (-rep / 100) * 0.4;
   }
   const multiplier = 0.6 * (1 + bonus - penalty);
-  return Math.max(1, Math.round(basePrice * multiplier));
+  const factionPrice = Math.max(1, Math.round(basePrice * multiplier));
+  const turfMultiplier = computeTurfTradeMultiplier(state, merchant, 'SELL');
+  return Math.max(1, Math.round(factionPrice * turfMultiplier));
+}
+
+export function computeTradePricePence(
+  state: Readonly<WorldState>,
+  merchant: EntityRecord,
+  entity: EntityRecord,
+  tradeType: 'BUY' | 'SELL' = 'BUY',
+): number {
+  return tradeType === 'BUY'
+    ? computeBuyUnitPrice(state, merchant, entity)
+    : computeSellUnitPrice(state, merchant, entity);
 }
 
 export function matchesCommodity(entity: EntityRecord, commodity: CommodityId): boolean {

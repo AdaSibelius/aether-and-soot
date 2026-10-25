@@ -6,6 +6,7 @@ import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { resolveDamageLimb, SystemAnatomyResult } from './anatomy.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
+import { applyStaminaExertion, computePainShockPenalty } from './physiological-penalties.js';
 import { processCrimeWitnesses } from './squad-witness.system.js';
 
 export const MELEE_ATTACK_AP = STANDARD_ACTION_AP;
@@ -52,9 +53,11 @@ export function computeEffectiveCombatStats(actor: EntityRecord): {
     }
   }
 
+  const physio = computePainShockPenalty(actor);
+
   return {
-    meleeDamage: Math.max(2, baseDamage - impairedCount * 4),
-    accuracyPct: Math.max(15, baseAccuracy - impairedCount * 15),
+    meleeDamage: Math.max(2, baseDamage - impairedCount * 4 - physio.damagePenalty),
+    accuracyPct: Math.max(15, baseAccuracy - impairedCount * 15 - physio.accuracyPenaltyPct),
     bothArmsDisabled: disabledCount >= 2,
   };
 }
@@ -86,8 +89,14 @@ export function resolveAttackActor(
   const eff = computeEffectiveCombatStats(attacker);
   if (eff.bothArmsDisabled) return failCombat(state, attackerId, 'BOTH_ARMS_AMPUTATED', targetId);
 
+  const physio = computePainShockPenalty(attacker, rng);
+  const attackAp = MELEE_ATTACK_AP + physio.apPenalty;
   const turn = state.turnCount + 1;
-  let workingState = state;
+  const exertedAttacker = applyStaminaExertion(attacker, 5);
+  let workingState: WorldState =
+    exertedAttacker === attacker
+      ? state
+      : { ...state, entities: { ...state.entities, [attackerId]: exertedAttacker } };
 
   // Provoke faction NPCs and apply reputation penalty when player attacks a faction member
   const witnessEvents: SimEvent[] = [];
@@ -122,7 +131,7 @@ export function resolveAttackActor(
   if (!hit) {
     return {
       state: workingState,
-      apSpent: MELEE_ATTACK_AP,
+      apSpent: attackAp,
       events: [...witnessEvents, { type: 'COMBAT_ATTACK_RESOLVED', turn, attackerId, targetId, targetSlot, hit: false, damageDealt: 0 }],
     };
   }
@@ -156,7 +165,7 @@ export function resolveAttackActor(
 
   const afterTarget = workingState.entities[targetId];
   const anatomy = afterTarget?.anatomy;
-  if (!afterTarget || !anatomy) return { state: workingState, apSpent: MELEE_ATTACK_AP, events };
+  if (!afterTarget || !anatomy) return { state: workingState, apSpent: attackAp, events };
 
   // Apply leg speed penalty or arm combat debuff on hit
   let debuffedTarget: EntityRecord = afterTarget;
@@ -186,14 +195,14 @@ export function resolveAttackActor(
   if (defeatRes.defeated) {
     return {
       state: defeatRes.state,
-      apSpent: MELEE_ATTACK_AP,
+      apSpent: attackAp,
       events: [...events, ...defeatRes.events],
     };
   }
 
   return {
     state: workingState,
-    apSpent: MELEE_ATTACK_AP,
+    apSpent: attackAp,
     events,
   };
 }

@@ -4,6 +4,7 @@ import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { isActorFatal } from './mortality.system.js';
+import { processCrimeWitnesses } from './squad-witness.system.js';
 
 export interface SystemSurgeryResult {
   readonly state: WorldState;
@@ -145,8 +146,16 @@ export function resolveHarvestCorpse(
     toolQuality: qualityLabel,
   }];
 
+  let workingState: WorldState = { ...state, entities: nextEntities };
+  if (actor.actor?.isPlayer) {
+    const victimFaction = corpse.aiController?.factionId ?? 'CROWN_CONSTABULARY';
+    const witnessRes = processCrimeWitnesses(workingState, actorId, victimFaction, 'THEFT');
+    workingState = witnessRes.state;
+    events.push(...witnessRes.events);
+  }
+
   return {
-    state: { ...state, entities: nextEntities },
+    state: workingState,
     apSpent: 150,
     events,
   };

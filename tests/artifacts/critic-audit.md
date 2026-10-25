@@ -15,18 +15,19 @@
 ## 2. Architectural & Modularity Health
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
+- `src/client/projection/frame-adapter.ts`: **251 lines** (threshold: 230)
+- `src/client/bootstrap-loop.ts`: **249 lines** (threshold: 230)
 - `src/client/ui/CharacterCreatorModal.tsx`: **247 lines** (threshold: 230)
-- `src/client/bootstrap-loop.ts`: **245 lines** (threshold: 230)
 - `src/client/ui/ItemDossierCard.tsx`: **245 lines** (threshold: 230)
 - `src/sim/systems/container.system.ts`: **245 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **244 lines** (threshold: 230)
 - `src/client/ui/LookCursorOverlay.tsx`: **244 lines** (threshold: 230)
 - `src/client/ui/CraftingWindow.tsx`: **243 lines** (threshold: 230)
 - `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
-- `src/client/ui/HudLayout.tsx`: **239 lines** (threshold: 230)
 - `src/sim/systems/transit.system.ts`: **239 lines** (threshold: 230)
 - `src/client/input/keyboard-router.ts`: **238 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
+- `src/client/canvas-ui/diegetic-cartography.ts`: **236 lines** (threshold: 230)
 - `src/schemas/events.schema.ts`: **235 lines** (threshold: 230)
 - `src/sim/systems/safehouse.system.ts`: **235 lines** (threshold: 230)
 - `src/client/canvas-ui/artificer-bench-screen.ts`: **234 lines** (threshold: 230)
@@ -35,6 +36,7 @@
 - `src/schemas/core-events.schema.ts`: **233 lines** (threshold: 230)
 - `src/sim/spatial/architectural-typologies.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/dialogue-quest.system.ts`: **233 lines** (threshold: 230)
+- `src/sim/systems/environmental-hazards.system.ts`: **232 lines** (threshold: 230)
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **231 lines** (threshold: 230)
 
@@ -111,16 +113,16 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 51** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 51: City Causality Graph & Strategic Overworld Topology**: Model directional physical conduits (`STEAM_MAIN`, `COAL_BARGE_CANAL`, `SLUICE_DRAINAGE`, `PNEUMATIC_CHUTE`) connecting districts across strata (`src/schemas/city-graph.schema.ts`, `src/sim/spatial/city-graph.ts`). Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (`CONDUIT_STATUS_CHANGED`). Add an Infrastructure overlay view to the World Atlas (`[W]`). resolving unwiredCommands and telemetry anomalies. (Target: `src/client/ui/CharacterCreatorModal.tsx`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 51** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 51: City Causality Graph & Strategic Overworld Topology** *(STATUS: SCOPED & PREPPED — AWAITING DISPATCH)*: resolving unwiredCommands and telemetry anomalies. (Target: `src/client/projection/frame-adapter.ts`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/ui/CharacterCreatorModal.tsx to resolve modularityHotspot anomaly. (Target: `src/client/ui/CharacterCreatorModal.tsx` | Verification: `tests/sim/determinism.test.ts`)
+- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/projection/frame-adapter.ts to resolve modularityHotspot anomaly. (Target: `src/client/projection/frame-adapter.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
-Implement **Phase 51: City Causality Graph & Strategic Overworld Topology**: Model directional physical conduits (`STEAM_MAIN`, `COAL_BARGE_CANAL`, `SLUICE_DRAINAGE`, `PNEUMATIC_CHUTE`) connecting districts across strata (`src/schemas/city-graph.schema.ts`, `src/sim/spatial/city-graph.ts`). Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (`CONDUIT_STATUS_CHANGED`). Add an Infrastructure overlay view to the World Atlas (`[W]`). adhering to AGENTS.md and ARCHITECTURE.md:
+Implement **Phase 51: City Causality Graph & Strategic Overworld Topology** *(STATUS: SCOPED & PREPPED — AWAITING DISPATCH)*: adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
-2. Pre-split any src/ hotspot >= 245 lines (`src/client/ui/CharacterCreatorModal.tsx` (247 lines)) via `npm run hermes:split`.
+2. Pre-split any src/ hotspot >= 245 lines (`src/client/projection/frame-adapter.ts` (251 lines)) via `npm run hermes:split`.
 3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `REMOVE_PROSTHETIC`, `REPORT_CRIME`, `REST_AT_BED`, `SET_POSTURE`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
 4. Delegate blueprints (`generate:content`), event logs (`hermes:chronicler`), and test scaffolding (`hermes:testgen`) to local models.
 5. Run `npm run verify`, `npm run hermes:critic`, and `npm run sync:state`, then output the next copy-pasteable prompt.

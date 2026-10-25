@@ -8,6 +8,7 @@ import { computeActorStepNoiseDb, emitAcousticPulse } from './stealth-acoustics.
 import { resolveToggleDoor } from './transit.system.js';
 import { resolveStepOnTraps } from './physics-traps.system.js';
 import { resolveStepOnLiquids } from './liquids.system.js';
+import { applyStaminaExertion, computePainShockPenalty } from './physiological-penalties.js';
 
 export interface SystemMovementResult {
   state: WorldState;
@@ -61,6 +62,8 @@ export function computeMovementMechanics(
     } else if (uncompensatedMissingLegs === 1) {
       baseAp += 60;
     }
+
+    baseAp += computePainShockPenalty(entity).apPenalty;
   }
 
   if (entity.inventory && entity.inventory.currentMassGrams > entity.inventory.maxMassGrams) {
@@ -150,20 +153,23 @@ export function resolveMoveStep(
   }
 
   const { apSpent, steamSpentKpa } = computeMovementMechanics(state, actor);
-  const updatedActor: EntityRecord = {
-    ...actor,
-    position: {
-      ...origin,
-      x: targetPoint.x,
-      y: targetPoint.y,
+  const updatedActor: EntityRecord = applyStaminaExertion(
+    {
+      ...actor,
+      position: {
+        ...origin,
+        x: targetPoint.x,
+        y: targetPoint.y,
+      },
+      anatomy: actor.anatomy
+        ? {
+            ...actor.anatomy,
+            steamReserveKpa: Math.max(0, actor.anatomy.steamReserveKpa - steamSpentKpa),
+          }
+        : undefined,
     },
-    anatomy: actor.anatomy
-      ? {
-          ...actor.anatomy,
-          steamReserveKpa: Math.max(0, actor.anatomy.steamReserveKpa - steamSpentKpa),
-        }
-      : undefined,
-  };
+    2,
+  );
 
   const moveEvents: SimEvent[] = [
     {

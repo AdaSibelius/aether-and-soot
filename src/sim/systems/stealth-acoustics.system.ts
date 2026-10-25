@@ -1,8 +1,12 @@
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId, Point3D } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../core/world.js';
-import { computeActorFovRadius, computeVisibleTiles, isPointVisible } from '../spatial/fov.js';
+import { computeActorFovRadius, computeVisibleTiles, isPointVisible, pointKey } from '../spatial/fov.js';
+import { getTileCell } from '../spatial/grid.js';
+import { calculateGaslightField } from './gaslight.system.js';
 import { computeProstheticFovBonus } from './surgical-context.js';
+
+export { calculateGaslightField as computeDistrictLighting };
 
 export interface SystemAcousticResult {
   readonly state: WorldState;
@@ -128,7 +132,19 @@ export function canActorSpotTarget(
   const baseRadius = observer.actor?.isPlayer ? 10 : 8;
   const bonusRadius = computeProstheticFovBonus(state, observer) +
     (observer.traits?.includes('NIGHT_OPTICS') ? 2 : 0);
-  const visionRadius = computeActorFovRadius(observer, baseRadius, bonusRadius);
+  const rawVisionRadius = computeActorFovRadius(observer, baseRadius, bonusRadius);
+
+  const gaslightField = calculateGaslightField(state as WorldState, observer.position.stratum);
+  const targetGaslight = gaslightField.get(pointKey(target.position.x, target.position.y)) ?? 0;
+  const targetCell = getTileCell(grid, target.position.x, target.position.y);
+  const targetSmoke = targetCell?.smokePpm ?? 0;
+
+  let visionModifier = 0;
+  if (rawVisionRadius > 1) {
+    if (targetGaslight > 0) visionModifier += 4;
+    if (targetSmoke >= 50) visionModifier -= 3;
+  }
+  const visionRadius = Math.max(1, rawVisionRadius + visionModifier);
 
   const visibleTiles = computeVisibleTiles(
     grid,
@@ -154,3 +170,5 @@ export function canActorSpotTarget(
 
   return true;
 }
+
+export { canActorSpotTarget as evaluateStealthDetection };

@@ -111,32 +111,35 @@ export function advanceSootClouds(
   const grid = state.strata[stratum];
   if (!grid) return { state, events: [] };
 
-  let updatedGrid = grid;
+  let nextCells: typeof grid.cells | undefined;
   const events: SimEvent[] = [];
   const turn = state.turnCount + 1;
 
   for (let y = 0; y < grid.height; y++) {
     for (let x = 0; x < grid.width; x++) {
-      const cell = getTileCell(grid, x, y);
+      const cell = grid.cells[y * grid.width + x];
       if (!cell || (cell.smokePpm ?? 0) < 40) continue;
 
       const nx = x + wind.dx, ny = y + wind.dy;
       if (isWithinBounds(grid, nx, ny)) {
-        const dest = getTileCell(grid, nx, ny);
-        if (dest && !dest.blocksMovement) {
+        const destIdx = ny * grid.width + nx;
+        const srcIdx = y * grid.width + x;
+        const dest = (nextCells ?? grid.cells)[destIdx];
+        const currSrc = (nextCells ?? grid.cells)[srcIdx];
+        if (dest && currSrc && !dest.blocksMovement) {
           const driftPpm = Math.floor((cell.smokePpm ?? 0) * 0.3);
-          updatedGrid = setTileCell(updatedGrid, nx, ny, (c) => ({
-            ...c, smokePpm: (c.smokePpm ?? 0) + driftPpm,
-          }));
-          updatedGrid = setTileCell(updatedGrid, x, y, (c) => ({
-            ...c, smokePpm: Math.max(0, (c.smokePpm ?? 0) - driftPpm),
-          }));
+          if (driftPpm > 0) {
+            if (!nextCells) nextCells = [...grid.cells];
+            nextCells[destIdx] = { ...dest, smokePpm: (dest.smokePpm ?? 0) + driftPpm };
+            nextCells[srcIdx] = { ...currSrc, smokePpm: Math.max(0, (currSrc.smokePpm ?? 0) - driftPpm) };
+          }
         }
       }
     }
   }
 
-  let workingState = { ...state, strata: { ...state.strata, [stratum]: updatedGrid } };
+  const updatedGrid = nextCells ? { ...grid, cells: nextCells } : grid;
+  let workingState = nextCells ? { ...state, strata: { ...state.strata, [stratum]: updatedGrid } } : state;
 
   for (const actor of Object.values(workingState.entities)) {
     if (actor.actor && actor.position && actor.position.stratum === stratum) {

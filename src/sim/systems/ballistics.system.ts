@@ -8,6 +8,7 @@ import { computeVisibleTiles, isPointVisible } from '../spatial/fov.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { getEquipmentSpec } from './equipment.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
+import { processCrimeWitnesses } from './squad-witness.system.js';
 import { emitAcousticPulse } from './stealth-acoustics.system.js';
 
 function failBallistics(state: WorldState, actorId: EntityId, reason: string) {
@@ -136,6 +137,14 @@ export function resolveFireRangedWeapon(
   const acoustic = emitAcousticPulse(nextState, actor.position, shotNoiseDb, turn, actorId);
   nextState = acoustic.state;
 
+  const witnessEvents: SimEvent[] = [];
+  if (actor.actor?.isPlayer && target.aiController) {
+    const factionId = target.aiController.factionId;
+    const witnessRes = processCrimeWitnesses(nextState, actorId, factionId, 'ASSAULT');
+    nextState = witnessRes.state;
+    witnessEvents.push(...witnessRes.events);
+  }
+
   if (!hit) {
     const remainingHp = Object.values(target.anatomy.limbs)
       .reduce((sum, l) => sum + (l && !l.amputated ? l.hp : 0), 0);
@@ -143,7 +152,7 @@ export function resolveFireRangedWeapon(
     return {
       state: nextState,
       apSpent: STANDARD_ACTION_AP,
-      events: [{
+      events: [...witnessEvents, {
         type: 'RANGED_ATTACK_RESOLVED',
         turn,
         attackerId: actorId,
@@ -187,6 +196,6 @@ export function resolveFireRangedWeapon(
   return {
     state: nextState,
     apSpent: STANDARD_ACTION_AP,
-    events: [attackEvent, ...dmgRes.events, ...defeatRes.events, ...acoustic.events],
+    events: [...witnessEvents, attackEvent, ...dmgRes.events, ...defeatRes.events, ...acoustic.events],
   };
 }
