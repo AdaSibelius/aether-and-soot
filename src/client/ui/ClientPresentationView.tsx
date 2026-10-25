@@ -5,14 +5,13 @@ import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { CharacterModalShell, ModalWindowId } from './CharacterModalShell.js';
 import { CharacterCreatorModal } from './CharacterCreatorModal.js';
-import { DialogueModal } from './DialogueModal.js';
 import { HudLayout } from './HudLayout.js';
 import { LookCursorOverlay } from './LookCursorOverlay.js';
 import { ModalTopBar } from './ModalTopBar.js';
 import { QuickActionBar } from './QuickActionBar.js';
-import { SystemMenuModal } from './SystemMenuModal.js';
 import { resolveInspectedTileCoord } from '../client-interactions.js';
 import { FloatingTextCallout, FloatingTextOverlay } from '../renderer/floating-combat-text.js';
+import { PreactBridge } from './PreactBridge.js';
 
 export interface ClientMountHosts {
   readonly topBarHost: HTMLElement | null;
@@ -57,7 +56,43 @@ export function renderClientPresentationViews(
   ctx: ClientPresentationContext,
 ): void {
   const { topBarHost, overlayHost, actionBarHost, hudHost } = hosts;
+  const isDiegetic = ctx.useDiegeticCanvasUi ?? true;
 
+  if (isDiegetic) {
+    if (topBarHost) render(null, topBarHost);
+    if (actionBarHost) render(null, actionBarHost);
+    render(null, hudHost);
+
+    render(
+      <PreactBridge
+        worldState={ctx.worldState}
+        playerId={ctx.playerId}
+        isLookModeActive={ctx.isLookModeActive}
+        lookCursor={ctx.lookCursor}
+        cameraOrigin={ctx.cameraOrigin}
+        isSystemMenuOpen={ctx.isSystemMenuOpen}
+        isCrtScanlinesEnabled={ctx.isCrtScanlinesEnabled}
+        useDiegeticCanvasUi={isDiegetic}
+        activeDialogueNpcId={ctx.activeDialogueNpcId}
+        floatingItems={ctx.floatingItems}
+        onCommand={ctx.onCommand}
+        onOpenModal={ctx.onOpenModal}
+        onToggleLookMode={ctx.onToggleLookMode}
+        onTalk={ctx.onTalk}
+        onOpenSystemMenu={ctx.onOpenSystemMenu}
+        onCloseSystemMenu={ctx.onCloseSystemMenu}
+        onToggleCrtScanlines={ctx.onToggleCrtScanlines}
+        onToggleUiMode={ctx.onToggleUiMode}
+        onNewSeed={ctx.onNewSeed}
+        onLoadWorld={ctx.onLoadWorld}
+        onOpenCharacterCreator={ctx.onOpenCharacterCreator}
+      />,
+      overlayHost,
+    );
+    return;
+  }
+
+  // Fallback: Legacy HTML DOM Layout
   if (topBarHost) {
     render(
       <ModalTopBar
@@ -119,40 +154,13 @@ export function renderClientPresentationViews(
         onOpenSystemMenu={ctx.onOpenSystemMenu}
         onReEmbark={ctx.onOpenCharacterCreator}
       />
-      {!ctx.useDiegeticCanvasUi && (
-        <CharacterModalShell
-          state={ctx.worldState}
-          actorId={ctx.playerId}
-          activeWindow={ctx.activeModal}
-          onClose={ctx.onCloseModal}
-          onSelectWindow={ctx.onOpenModal}
-          onCommand={ctx.onCommand}
-        />
-      )}
-      {ctx.activeDialogueNpcId && (
-        <DialogueModal
-          state={ctx.worldState}
-          actorId={ctx.playerId}
-          targetNpcId={ctx.activeDialogueNpcId}
-          onCommand={ctx.onCommand}
-          onClose={() => ctx.onTalk(undefined)}
-          onOpenModal={(w) => {
-            ctx.onTalk(undefined);
-            ctx.onOpenModal(w);
-          }}
-        />
-      )}
-      <SystemMenuModal
+      <CharacterModalShell
         state={ctx.worldState}
-        isOpen={ctx.isSystemMenuOpen}
-        onClose={ctx.onCloseSystemMenu}
-        onNewSeed={ctx.onNewSeed}
-        onLoadWorld={ctx.onLoadWorld}
-        onOpenCharacterCreator={ctx.onOpenCharacterCreator}
-        crtScanlinesEnabled={ctx.isCrtScanlinesEnabled}
-        onToggleCrtScanlines={ctx.onToggleCrtScanlines}
-        useDiegeticCanvasUi={ctx.useDiegeticCanvasUi}
-        onToggleUiMode={ctx.onToggleUiMode}
+        actorId={ctx.playerId}
+        activeWindow={ctx.activeModal}
+        onClose={ctx.onCloseModal}
+        onSelectWindow={ctx.onOpenModal}
+        onCommand={ctx.onCommand}
       />
       <CharacterCreatorModal
         isOpen={ctx.isCreatorOpen}

@@ -137,7 +137,7 @@ export class GlyphStageRenderer {
       for (let uy = 0; uy < Math.min(uiBuffer.height, this.gridHeight); uy++) {
         for (let ux = 0; ux < Math.min(uiBuffer.width, this.gridWidth); ux++) {
           const uiCell = uiBuffer.getCell(ux, uy);
-          if (!uiCell) continue;
+          if (!uiCell || uiCell.bg === 'transparent') continue;
 
           const idx = uy * this.gridWidth + ux;
           const sprite = this.glyphSprites[idx];

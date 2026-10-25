@@ -1,24 +1,32 @@
 import { GameCommand } from '../schemas/commands.schema.js';
 import { CharacterCreationConfig } from '../schemas/character.schema.js';
-import { EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
+import { EntityId, EntityIdSchema } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
 import { generateVictorianDistrict } from '../sim/spatial/generator.js';
-import { getTileCell } from '../sim/spatial/grid.js';
 import { spawnDistrictNpcs } from '../sim/systems/ai.system.js';
 import { spawnDistrictItems } from '../sim/systems/item-spawner.js';
 import { applyCharacterCreation } from '../sim/systems/character-archetypes.js';
 import { handleGameKeydown } from './input/keyboard-router.js';
+import { resolveTileFromMouse } from './input/mouse-router.js';
 import { projectWorldToVisualFrame } from './projection/frame-adapter.js';
-import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer, WIDESCREEN_GRID_HEIGHT, WIDESCREEN_GRID_WIDTH } from './renderer/glyph-stage.js';
+import { GlyphStageRenderer, WIDESCREEN_GRID_HEIGHT, WIDESCREEN_GRID_WIDTH } from './renderer/glyph-stage.js';
 import { ModalWindowId } from './ui/CharacterModalShell.js';
 import { renderClientPresentationViews } from './ui/ClientPresentationView.js';
 import { getSoundscapeManager } from './audio/soundscape-manager.js';
-import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor, resolveDiegeticClickHit } from './client-interactions.js';
+import {
+  clampLookCursor,
+  cycleModalWindow,
+  findAdjacentDialogueNpc,
+  findAdjacentDoorTarget,
+  resolveInspectedTileCoord,
+  resolveLookAttackCommand,
+  resolveLookInteractCommand,
+} from './client-interactions.js';
 import { deriveFloatingCombatText, FloatingTextCallout } from './renderer/floating-combat-text.js';
 import { getDefaultSaveStorageAdapter } from './persistence/save-adapter.js';
 import { DesktopWindowManager } from './renderer/desktop-window-manager.js';
-import { generateModalUiBuffer } from './canvas-ui/modal-buffer-router.js';
+import { composeDiegeticUiBuffer, handleDiegeticHitAction } from './canvas-ui/diegetic-screen-composer.js';
 import { resolveThermodynamicStress } from './renderer/shader-uniforms.js';
 
 export interface ClientSessionMounts {
@@ -33,11 +41,7 @@ export function createFreshWorld(seed: number): WorldState {
   return spawnDistrictNpcs(spawnDistrictItems(generateVictorianDistrict(createInitialWorld({ seed })).state).state).state;
 }
 
-export function startClientSession(
-  mounts: ClientSessionMounts,
-  stageRenderer: GlyphStageRenderer,
-  initialSeed = 0xcafebabe,
-): void {
+export function startClientSession(mounts: ClientSessionMounts, stageRenderer: GlyphStageRenderer, initialSeed = 0xcafebabe): void {
   const { canvasHost, overlayHost, hudHost, actionBarHost, topBarHost } = mounts;
   const playerId = EntityIdSchema.parse('actor_player');
   let worldState = createFreshWorld(initialSeed);
@@ -53,13 +57,16 @@ export function startClientSession(
   let useDiegeticCanvasUi = true;
   let floatingCallouts: FloatingTextCallout[] = [];
   const modalNavState = { selectedIndex: 0 };
+  let embarkConfig: CharacterCreationConfig = {
+    professionId: 'DISGRACED_CHIRURGEON',
+    traitIds: ['NIGHT_OPTICS', 'BOILER_HEART'],
+    scenarioId: 'SPITALFIELDS_FOUNDRY_ROW',
+    seed: initialSeed,
+  };
 
   const soundscape = getSoundscapeManager();
   const saveAdapter = getDefaultSaveStorageAdapter();
-  const windowManager = new DesktopWindowManager({
-    onSuspend: () => soundscape.suspend(),
-    onResume: () => soundscape.resume(),
-  });
+  const windowManager = new DesktopWindowManager({ onSuspend: () => soundscape.suspend(), onResume: () => soundscape.resume() });
 
   const handleCommand = (cmd: GameCommand): void => {
     soundscape.initOnUserGesture();
@@ -67,9 +74,7 @@ export function startClientSession(
     worldState = outcome.state;
     soundscape.processSimEvents(outcome.events);
     const newCallouts = deriveFloatingCombatText(outcome.events, worldState);
-    if (newCallouts.length > 0) {
-      floatingCallouts = [...floatingCallouts, ...newCallouts];
-    }
+    if (newCallouts.length > 0) floatingCallouts = [...floatingCallouts, ...newCallouts];
     syncPresentation();
   };
 
@@ -105,84 +110,54 @@ export function startClientSession(
     syncPresentation();
   };
 
-  const lookAttack = (slot: LimbSlotId): void => {
-    if (!lookCursor) return;
-    const p = worldState.entities[playerId]?.position;
-    if (!p) return;
-    const target = findEntityAtLookCursor(worldState, p.stratum, lookCursor, playerId);
-    if (!target) return;
-    const isAdj = Math.max(Math.abs(p.x - lookCursor.x), Math.abs(p.y - lookCursor.y)) <= 1;
-    handleCommand(isAdj ? { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot } : { type: 'FIRE_RANGED_WEAPON', actorId: playerId, targetId: target.id, targetSlot: slot });
-  };
-
-  const lookInteract = (): void => {
-    if (!lookCursor) return;
-    const p = worldState.entities[playerId]?.position;
-    if (!p) return;
-    const grid = worldState.strata[p.stratum];
-    const cell = grid ? getTileCell(grid, lookCursor.x, lookCursor.y) : undefined;
-    if (cell?.terrainType === 'WOODEN_DOOR_CLOSED' || cell?.terrainType === 'WOODEN_DOOR_OPEN') {
-      handleCommand({ type: 'TOGGLE_DOOR', actorId: playerId, target: { x: lookCursor.x, y: lookCursor.y, stratum: p.stratum } });
-    } else {
-      handleCommand({ type: 'USE_PORTAL', actorId: playerId });
-    }
-  };
-
   const toggleAdjacentDoor = (): void => {
-    if (isLookModeActive) { lookInteract(); return; }
+    if (isLookModeActive) {
+      const cmd = resolveLookInteractCommand(worldState, playerId, lookCursor);
+      if (cmd) handleCommand(cmd);
+      return;
+    }
     const match = findAdjacentDoorTarget(worldState, playerId);
     if (match) handleCommand({ type: 'TOGGLE_DOOR', actorId: playerId, target: match });
-  };
-
-  const toggleCrtScanlines = (): void => {
-    isCrtScanlinesEnabled = !isCrtScanlinesEnabled;
-    stageRenderer.setCrtScanlinesEnabled(isCrtScanlinesEnabled);
-    syncPresentation();
-  };
-
-  const toggleUiMode = (): void => {
-    useDiegeticCanvasUi = !useDiegeticCanvasUi;
-    syncPresentation();
   };
 
   const syncPresentation = (advanceTime = true): void => {
     const nowMs = Date.now();
     floatingCallouts = floatingCallouts.filter((c) => nowMs - c.createdAtMs <= c.durationMs);
 
-    const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, {
-      width: WIDESCREEN_GRID_WIDTH,
-      height: WIDESCREEN_GRID_HEIGHT,
-    });
+    const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, { width: WIDESCREEN_GRID_WIDTH, height: WIDESCREEN_GRID_HEIGHT });
+    const inspectedTile = resolveInspectedTileCoord(isLookModeActive, lookCursor, mouseHoverCoord);
     const thermo = resolveThermodynamicStress(worldState, playerId);
-    const effectiveThermoStress = activeModal ? 0 : thermo.stressValue;
-    const uiBuffer = (activeModal && useDiegeticCanvasUi)
-      ? generateModalUiBuffer(activeModal, worldState, playerId, WIDESCREEN_GRID_WIDTH, WIDESCREEN_GRID_HEIGHT)
-      : undefined;
+    const uiBuffer = composeDiegeticUiBuffer({
+      isCreatorOpen, embarkConfig, activeModal, useDiegeticCanvasUi,
+      worldState, playerId, width: WIDESCREEN_GRID_WIDTH, height: WIDESCREEN_GRID_HEIGHT,
+      inspectedTile, isLookModeActive,
+    });
 
-    stageRenderer.renderFrame(visualFrame, uiBuffer, effectiveThermoStress, 16.67, advanceTime);
+    stageRenderer.renderFrame(visualFrame, uiBuffer, (activeModal || isCreatorOpen) ? 0 : thermo.stressValue, 16.67, advanceTime);
 
-    renderClientPresentationViews(
-      { topBarHost, overlayHost, actionBarHost, hudHost },
-      {
-        worldState, playerId, activeModal, isSystemMenuOpen, isLookModeActive,
-        isCreatorOpen, isCrtScanlinesEnabled, lookCursor, mouseHoverCoord,
-        cameraOrigin: visualFrame.cameraOrigin, activeDialogueNpcId,
-        floatingItems: floatingCallouts,
-        useDiegeticCanvasUi,
-        onToggleUiMode: toggleUiMode,
-        onCommand: handleCommand,
-        onOpenModal: (w) => { activeModal = w; syncPresentation(); },
-        onCloseModal: () => { activeModal = null; syncPresentation(); },
-        onOpenSystemMenu: () => { isSystemMenuOpen = true; syncPresentation(); },
-        onCloseSystemMenu: () => { isSystemMenuOpen = false; syncPresentation(); },
-        onToggleLookMode: toggleLookMode, onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
-        onNewSeed: (s) => { worldState = createFreshWorld(s); syncPresentation(); },
-        onLoadWorld: (loaded) => { worldState = loaded; syncPresentation(); },
-        onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
-        onCloseCharacterCreator: () => { isCreatorOpen = false; syncPresentation(); },
-        onEmbark: handleEmbark, onToggleCrtScanlines: toggleCrtScanlines,
+    renderClientPresentationViews({ topBarHost, overlayHost, actionBarHost, hudHost }, {
+      worldState, playerId, activeModal, isSystemMenuOpen, isLookModeActive,
+      isCreatorOpen, isCrtScanlinesEnabled, lookCursor, mouseHoverCoord,
+      cameraOrigin: visualFrame.cameraOrigin, activeDialogueNpcId,
+      floatingItems: floatingCallouts, useDiegeticCanvasUi,
+      onToggleUiMode: () => { useDiegeticCanvasUi = !useDiegeticCanvasUi; syncPresentation(); },
+      onCommand: handleCommand,
+      onOpenModal: (w) => { activeModal = w; syncPresentation(); },
+      onCloseModal: () => { activeModal = null; syncPresentation(); },
+      onOpenSystemMenu: () => { isSystemMenuOpen = true; syncPresentation(); },
+      onCloseSystemMenu: () => { isSystemMenuOpen = false; syncPresentation(); },
+      onToggleLookMode: toggleLookMode, onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
+      onNewSeed: (s) => { worldState = createFreshWorld(s); syncPresentation(); },
+      onLoadWorld: (loaded) => { worldState = loaded; syncPresentation(); },
+      onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
+      onCloseCharacterCreator: () => { isCreatorOpen = false; syncPresentation(); },
+      onEmbark: handleEmbark,
+      onToggleCrtScanlines: () => {
+        isCrtScanlinesEnabled = !isCrtScanlinesEnabled;
+        stageRenderer.setCrtScanlinesEnabled(isCrtScanlinesEnabled);
+        syncPresentation();
       },
-    );
+    });
 
     if (floatingCallouts.length > 0 && typeof requestAnimationFrame !== 'undefined') {
       requestAnimationFrame(() => syncPresentation(false));
@@ -190,27 +165,34 @@ export function startClientSession(
   };
 
   const updateTileFromMouse = (ev: MouseEvent): void => {
-    const rect = canvasHost.getBoundingClientRect();
-    const sx = Math.floor((ev.clientX - rect.left) / CELL_WIDTH_PX);
-    const sy = Math.floor((ev.clientY - rect.top) / CELL_HEIGHT_PX);
-    if (sx >= 0 && sx < WIDESCREEN_GRID_WIDTH && sy >= 0 && sy < WIDESCREEN_GRID_HEIGHT) {
-      const frame = projectWorldToVisualFrame(worldState, playerId, undefined, { width: WIDESCREEN_GRID_WIDTH, height: WIDESCREEN_GRID_HEIGHT });
-      const wx = frame.cameraOrigin.x + sx;
-      const wy = frame.cameraOrigin.y + sy;
-      if (!mouseHoverCoord || mouseHoverCoord.x !== wx || mouseHoverCoord.y !== wy) {
-        mouseHoverCoord = { x: wx, y: wy };
-        syncPresentation(false);
-      }
+    const coord = resolveTileFromMouse(ev, canvasHost, worldState, playerId);
+    if (coord && (!mouseHoverCoord || mouseHoverCoord.x !== coord.x || mouseHoverCoord.y !== coord.y)) {
+      mouseHoverCoord = coord;
+      syncPresentation(false);
     }
   };
 
   canvasHost.addEventListener('mousemove', updateTileFromMouse);
   canvasHost.addEventListener('click', (ev: MouseEvent) => {
     updateTileFromMouse(ev);
-    if (activeModal && useDiegeticCanvasUi) {
+    if (useDiegeticCanvasUi) {
       const hit = stageRenderer.resolveHitActionAt(ev.clientX, ev.clientY, canvasHost.getBoundingClientRect());
-      const cmd = resolveDiegeticClickHit(hit, worldState, playerId);
-      if (cmd) handleCommand(cmd);
+      if (hit) {
+        handleDiegeticHitAction(hit, {
+          onSelectProfession: (prof) => { embarkConfig = { ...embarkConfig, professionId: prof }; syncPresentation(); },
+          onToggleTrait: (t) => {
+            const has = embarkConfig.traitIds.includes(t);
+            const traitIds = has ? embarkConfig.traitIds.filter((x) => x !== t) : embarkConfig.traitIds.length < 2 ? [...embarkConfig.traitIds, t] : embarkConfig.traitIds;
+            embarkConfig = { ...embarkConfig, traitIds };
+            syncPresentation();
+          },
+          onSelectScenario: (scen) => { embarkConfig = { ...embarkConfig, scenarioId: scen }; syncPresentation(); },
+          onEmbark: () => { isCreatorOpen = false; handleEmbark(embarkConfig, worldState.seed); },
+          onOpenModal: (w) => { activeModal = w; syncPresentation(); },
+          onOpenSystemMenu: () => { isSystemMenuOpen = true; syncPresentation(); },
+          onDispatchCommand: handleCommand,
+        }, worldState, playerId);
+      }
     }
   });
 
@@ -222,7 +204,15 @@ export function startClientSession(
       onCloseModal: () => { activeModal = null; syncPresentation(); },
       onCycleModal: cycleModal,
       onSetModal: (modal) => { activeModal = modal; modalNavState.selectedIndex = 0; syncPresentation(); },
-      onToggleLookMode: toggleLookMode, onMoveLookCursor: moveLookCursor, onLookAttack: lookAttack, onLookInteract: lookInteract,
+      onToggleLookMode: toggleLookMode, onMoveLookCursor: moveLookCursor,
+      onLookAttack: (slot) => {
+        const cmd = resolveLookAttackCommand(worldState, playerId, lookCursor, slot);
+        if (cmd) handleCommand(cmd);
+      },
+      onLookInteract: () => {
+        const cmd = resolveLookInteractCommand(worldState, playerId, lookCursor);
+        if (cmd) handleCommand(cmd);
+      },
       onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk, onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
       currentPosture: worldState.entities[playerId]?.actor?.posture ?? 'STANDING',
       onCommand: handleCommand,
@@ -230,13 +220,9 @@ export function startClientSession(
   });
 
   window.__DEBUG_SIM__ = {
-    getState: () => worldState,
-    dispatch: handleCommand,
+    getState: () => worldState, dispatch: handleCommand,
     getVisualFrame: () => projectWorldToVisualFrame(worldState, playerId),
-    serialize: () => serializeWorld(worldState),
-    soundscape,
-    saveAdapter,
-    windowManager,
+    serialize: () => serializeWorld(worldState), soundscape, saveAdapter, windowManager,
   };
 
   syncPresentation();

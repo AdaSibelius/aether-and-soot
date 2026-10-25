@@ -16,11 +16,8 @@
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
 - `src/client/ui/CharacterCreatorModal.tsx`: **247 lines** (threshold: 230)
-- `src/client/ui/ItemDossierCard.tsx`: **245 lines** (threshold: 230)
 - `src/sim/systems/container.system.ts`: **245 lines** (threshold: 230)
-- `src/client/bootstrap-loop.ts`: **244 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **244 lines** (threshold: 230)
-- `src/client/ui/LookCursorOverlay.tsx`: **244 lines** (threshold: 230)
 - `src/sim/systems/dialogue-quest.system.ts`: **244 lines** (threshold: 230)
 - `src/client/ui/CraftingWindow.tsx`: **243 lines** (threshold: 230)
 - `src/client/projection/frame-adapter.ts`: **239 lines** (threshold: 230)
@@ -39,6 +36,7 @@
 - `src/sim/systems/environmental-hazards.system.ts`: **232 lines** (threshold: 230)
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **231 lines** (threshold: 230)
+- `src/client/bootstrap-loop.ts`: **230 lines** (threshold: 230)
 - `src/sim/systems/surgery.system.ts`: **230 lines** (threshold: 230)
 
 ## 3. Command Coverage & Dead-Mechanic Audit

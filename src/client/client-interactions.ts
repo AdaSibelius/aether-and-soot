@@ -114,4 +114,38 @@ export function resolveDiegeticClickHit(
   return null;
 }
 
+export function resolveLookAttackCommand(
+  state: WorldState,
+  playerId: EntityId,
+  lookCursor: { x: number; y: number } | null,
+  slot: LimbSlotId,
+): GameCommand | undefined {
+  if (!lookCursor) return undefined;
+  const p = state.entities[playerId]?.position;
+  if (!p) return undefined;
+  const target = findEntityAtLookCursor(state, p.stratum, lookCursor, playerId);
+  if (!target) return undefined;
+  const isAdj = Math.max(Math.abs(p.x - lookCursor.x), Math.abs(p.y - lookCursor.y)) <= 1;
+  return isAdj
+    ? { type: 'ATTACK_ACTOR', attackerId: playerId, targetId: target.id, targetSlot: slot }
+    : { type: 'FIRE_RANGED_WEAPON', actorId: playerId, targetId: target.id, targetSlot: slot };
+}
+
+export function resolveLookInteractCommand(
+  state: WorldState,
+  playerId: EntityId,
+  lookCursor: { x: number; y: number } | null,
+): GameCommand | undefined {
+  if (!lookCursor) return undefined;
+  const p = state.entities[playerId]?.position;
+  if (!p) return undefined;
+  const grid = state.strata[p.stratum];
+  const cell = grid ? getTileCell(grid, lookCursor.x, lookCursor.y) : undefined;
+  if (cell?.terrainType === 'WOODEN_DOOR_CLOSED' || cell?.terrainType === 'WOODEN_DOOR_OPEN') {
+    return { type: 'TOGGLE_DOOR', actorId: playerId, target: { x: lookCursor.x, y: lookCursor.y, stratum: p.stratum } };
+  }
+  return { type: 'USE_PORTAL', actorId: playerId };
+}
+
+
 

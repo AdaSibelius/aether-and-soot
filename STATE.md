@@ -3,12 +3,12 @@
 **Last Updated:** 2026-10-25
 
 ## Recent Commits
+- be46c1a: feat(client): implement 5-layer PixiJS stage and 4-pass GLSL diegetic shader suite
 - 9af4f25: feat(gov): modernize governance state machine, compiler, and tooling harness
 - 829c297: feat(lore): integrate procedural corpora and naturalist codex engine
-- 680addd: feat(sim): harmonize simulation pipeline and island feedback loops
 
 ## Immediate Next Priority
-- Phase 55: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.
+- Phase 56: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.
 
 ## 5. Self-Directed Prescriptions for Next Phase
 - **P1: Phase 55** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 55: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies. (Target: `src/sim/systems/economy.system.ts`, `src/sim/systems/trade.system.ts` | Verification: `tests/sim/determinism.test.ts`)
@@ -18,7 +18,7 @@
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
-Implement **Phase 55**: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. adhering to AGENTS.md and ARCHITECTURE.md:
+Implement **Phase 56**: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
 2. Pre-split any src/ hotspot >= 245 lines (`src/client/ui/CharacterCreatorModal.tsx` (247 lines)) via `npm run hermes:split`.
 3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.

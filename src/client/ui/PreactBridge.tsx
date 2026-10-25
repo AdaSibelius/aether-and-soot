@@ -1,0 +1,120 @@
+import { GameCommand } from '../../schemas/commands.schema.js';
+import { EntityId } from '../../schemas/primitives.schema.js';
+import { WorldState } from '../../sim/core/world.js';
+import { FloatingTextCallout, FloatingTextOverlay } from '../renderer/floating-combat-text.js';
+import { ModalWindowId } from './CharacterModalShell.js';
+import { DialogueModal } from './DialogueModal.js';
+import { LookCursorOverlay } from './LookCursorOverlay.js';
+import { SystemMenuModal } from './SystemMenuModal.js';
+
+export interface PreactBridgeProps {
+  readonly worldState: WorldState;
+  readonly playerId: EntityId;
+  readonly isLookModeActive: boolean;
+  readonly lookCursor: { x: number; y: number } | null;
+  readonly cameraOrigin: { x: number; y: number };
+  readonly isSystemMenuOpen: boolean;
+  readonly isCrtScanlinesEnabled: boolean;
+  readonly useDiegeticCanvasUi: boolean;
+  readonly activeDialogueNpcId: EntityId | null;
+  readonly floatingItems?: readonly FloatingTextCallout[] | undefined;
+  readonly onCommand: (cmd: GameCommand) => void;
+  readonly onOpenModal: (window: ModalWindowId) => void;
+  readonly onToggleLookMode: () => void;
+  readonly onTalk: (targetId?: EntityId) => void;
+  readonly onOpenSystemMenu: () => void;
+  readonly onCloseSystemMenu: () => void;
+  readonly onToggleCrtScanlines: () => void;
+  readonly onToggleUiMode?: (() => void) | undefined;
+  readonly onNewSeed: (seed: number) => void;
+  readonly onLoadWorld: (loaded: WorldState) => void;
+  readonly onOpenCharacterCreator: () => void;
+}
+
+/**
+ * Ultra-thin Preact bridge mounting only interactive interactive dialogs,
+ * keyboard cursor overlays, and floating combat text callouts.
+ * Replaces heavy HTML DOM CSS layouts with primary Canvas UI buffer.
+ */
+export function PreactBridge(props: PreactBridgeProps) {
+  const {
+    worldState,
+    playerId,
+    isLookModeActive,
+    lookCursor,
+    cameraOrigin,
+    isSystemMenuOpen,
+    isCrtScanlinesEnabled,
+    useDiegeticCanvasUi,
+    activeDialogueNpcId,
+    floatingItems,
+    onCommand,
+    onOpenModal,
+    onToggleLookMode,
+    onTalk,
+    onCloseSystemMenu,
+    onToggleCrtScanlines,
+    onToggleUiMode,
+    onNewSeed,
+    onLoadWorld,
+    onOpenCharacterCreator,
+  } = props;
+
+  return (
+    <div class="preact-bridge-layer" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
+      {/* 1. Tactical Look Cursor Overlay */}
+      <div style={{ pointerEvents: 'auto' }}>
+        <LookCursorOverlay
+          isActive={isLookModeActive}
+          cursor={lookCursor}
+          cameraOrigin={cameraOrigin}
+          state={worldState}
+          actorId={playerId}
+          onCommand={onCommand}
+          onClose={onToggleLookMode}
+          onTalk={onTalk}
+        />
+      </div>
+
+      {/* 2. Floating Combat Damage / Text */}
+      {floatingItems && floatingItems.length > 0 && (
+        <FloatingTextOverlay items={floatingItems} cameraOrigin={cameraOrigin} />
+      )}
+
+      {/* 3. Interactive Dialogue Modal */}
+      {activeDialogueNpcId && (
+        <div style={{ pointerEvents: 'auto' }}>
+          <DialogueModal
+            state={worldState}
+            actorId={playerId}
+            targetNpcId={activeDialogueNpcId}
+            onCommand={onCommand}
+            onClose={() => onTalk(undefined)}
+            onOpenModal={(w) => {
+              onTalk(undefined);
+              onOpenModal(w);
+            }}
+          />
+        </div>
+      )}
+
+      {/* 4. Esc / System Menu Modal */}
+      {isSystemMenuOpen && (
+        <div style={{ pointerEvents: 'auto' }}>
+          <SystemMenuModal
+            state={worldState}
+            isOpen={isSystemMenuOpen}
+            onClose={onCloseSystemMenu}
+            onNewSeed={onNewSeed}
+            onLoadWorld={onLoadWorld}
+            onOpenCharacterCreator={onOpenCharacterCreator}
+            crtScanlinesEnabled={isCrtScanlinesEnabled}
+            onToggleCrtScanlines={onToggleCrtScanlines}
+            useDiegeticCanvasUi={useDiegeticCanvasUi}
+            onToggleUiMode={onToggleUiMode}
+          />
+        </div>
+      )}
+    </div>
+  );
+}

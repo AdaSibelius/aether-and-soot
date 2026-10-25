@@ -1,9 +1,13 @@
 {
   "version": 1,
   "lastUpdated": "2026-10-25",
-  "activePhase": 54,
-  "immediateNextPriority": "Phase 55: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
+  "activePhase": 55,
+  "immediateNextPriority": "Phase 56: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
   "recentCommits": [
+    {
+      "hash": "be46c1a",
+      "message": "feat(client): implement 5-layer PixiJS stage and 4-pass GLSL diegetic shader suite"
+    },
     {
       "hash": "9af4f25",
       "message": "feat(gov): modernize governance state machine, compiler, and tooling harness"
@@ -11,10 +15,6 @@
     {
       "hash": "829c297",
       "message": "feat(lore): integrate procedural corpora and naturalist codex engine"
-    },
-    {
-      "hash": "680addd",
-      "message": "feat(sim): harmonize simulation pipeline and island feedback loops"
     }
   ],
   "phases": [
@@ -633,6 +633,30 @@
     },
     {
       "number": 55,
+      "title": "High-Density Victorian Mechanical Console UI",
+      "status": "COMPLETED",
+      "tier": "Tier G",
+      "summary": "Primary Canvas UI buffer embedding Bourdon pressure gauge, sanguine manometer, split-flap odometer, optical vernier tile scanner, and embarkation ledger.",
+      "details": [
+        "Deprecate HTML DOM HudLayout in favor of primary PixiJS CanvasUiBufferContainer",
+        "Implement Bourdon tube steam pressure gauge with dynamic radial needle",
+        "Implement galvanic sanguine manometer column in Victorian Imperial pints and drams",
+        "Implement split-flap mechanical odometer for turns and pre-decimal currency",
+        "Implement Caves of Qud-grade Optical Vernier Dossier for hovered tile metrics",
+        "Replace CharacterCreatorModal with canvas-native Embarkation Registry Ledger",
+        "Implement thin PreactBridge under 130 lines"
+      ],
+      "targetFiles": [
+        "src/client/canvas-ui/analog-gauges.ts",
+        "src/client/canvas-ui/tactical-vernier.ts",
+        "src/client/canvas-ui/embarkation-screen.ts",
+        "src/client/canvas-ui/tactical-console.ts",
+        "src/client/ui/PreactBridge.tsx"
+      ],
+      "verificationTest": "tests/sim/phase55-diegetic-ui.test.ts"
+    },
+    {
+      "number": 56,
       "title": "Causal Supply Chains & Disruption Cascades",
       "status": "PLANNED",
       "tier": "Tier G",
@@ -643,7 +667,7 @@
       ]
     },
     {
-      "number": 56,
+      "number": 57,
       "title": "Bounded World Chronicle, Witness Memory & Rumor Network",
       "status": "PLANNED",
       "tier": "Tier G",
@@ -654,7 +678,7 @@
       ]
     },
     {
-      "number": 57,
+      "number": 58,
       "title": "Investigation Journal & Forensic Environmental Clues",
       "status": "PLANNED",
       "tier": "Tier G",
@@ -673,31 +697,13 @@
       "status": "NEAR_CAP"
     },
     {
-      "file": "src/client/ui/ItemDossierCard.tsx",
-      "lines": 245,
-      "threshold": 230,
-      "status": "NEAR_CAP"
-    },
-    {
       "file": "src/sim/systems/container.system.ts",
       "lines": 245,
       "threshold": 230,
       "status": "NEAR_CAP"
     },
     {
-      "file": "src/client/bootstrap-loop.ts",
-      "lines": 244,
-      "threshold": 230,
-      "status": "NEAR_CAP"
-    },
-    {
       "file": "src/client/ui/InventoryWindow.tsx",
-      "lines": 244,
-      "threshold": 230,
-      "status": "NEAR_CAP"
-    },
-    {
-      "file": "src/client/ui/LookCursorOverlay.tsx",
       "lines": 244,
       "threshold": 230,
       "status": "NEAR_CAP"
@@ -807,6 +813,12 @@
     {
       "file": "src/client/ui/SystemMenuModal.tsx",
       "lines": 231,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/client/bootstrap-loop.ts",
+      "lines": 230,
       "threshold": 230,
       "status": "SAFE"
     },

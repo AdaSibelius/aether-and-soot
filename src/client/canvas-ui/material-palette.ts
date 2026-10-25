@@ -7,6 +7,11 @@ export const VICTORIAN_PALETTE = {
   SEPIA_INK: '#d2c29d',
   AETHER_BLUE: '#4deeea',
   INCANDESCENT_RED: '#ff3b1f',
+  WARN_RED: '#ff3b1f',
+  OK_GREEN: '#2ecc71',
+  POLISHED_BRASS: '#f1c40f',
+  COPPER_ACCENT: '#d35400',
+  VERDIGRIS_PATINA: '#16a085',
   RIVET_STEEL: '#7f8c8d',
   MUTED_PIPE: '#594928',
 } as const;

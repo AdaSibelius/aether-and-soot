@@ -1,8 +1,9 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
-import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
+import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { findEntitiesAtPoint, getTileCell } from '../../sim/spatial/grid.js';
 import { CELL_HEIGHT_PX, CELL_WIDTH_PX, WIDESCREEN_GRID_HEIGHT, WIDESCREEN_GRID_WIDTH } from '../renderer/glyph-stage.js';
+import { LookCursorLimbSelector } from './LookCursorLimbSelector.js';
 
 export interface LookCursorOverlayProps {
   readonly isActive: boolean;
@@ -14,12 +15,6 @@ export interface LookCursorOverlayProps {
   readonly onClose: () => void;
   readonly onTalk?: (targetNpcId: EntityId) => void;
 }
-
-const LIMB_TARGETS: readonly { slot: LimbSlotId; key: string; label: string }[] = [
-  { slot: 'HEAD', key: '1', label: 'Head [1]' }, { slot: 'TORSO', key: '2', label: 'Torso [2]' },
-  { slot: 'LEFT_ARM', key: '3', label: 'L-Arm [3]' }, { slot: 'RIGHT_ARM', key: '4', label: 'R-Arm [4]' },
-  { slot: 'LEFT_LEG', key: '5', label: 'L-Leg [5]' }, { slot: 'RIGHT_LEG', key: '6', label: 'R-Leg [6]' },
-];
 
 export function LookCursorOverlay({
   isActive, cursor, cameraOrigin, state, actorId, onCommand, onClose, onTalk,
@@ -108,37 +103,16 @@ export function LookCursorOverlay({
                   Torso: {targetActor.anatomy.limbs.TORSO?.hp ?? 0} HP | Blood: {targetActor.anatomy.bloodVolumePct}%
                 </div>
               )}
-              {isAdjacent ? (
-                <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', marginTop: '4px' }}>
-                    {LIMB_TARGETS.map((t) => (
-                      <button key={t.slot} type="button" onClick={() => onCommand({ type: 'ATTACK_ACTOR', attackerId: actorId, targetId: targetActor.id, targetSlot: t.slot })} style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center' }}>
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                  {!targetActor.aiController?.hostile && onTalk && (
-                    <button type="button" onClick={() => onTalk(targetActor.id)} style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', width: '100%', marginTop: '3px', color: 'var(--brass-gold)', border: '1px solid var(--brass-gold)', cursor: 'pointer' }}>
-                      [Talk (T)]
-                    </button>
-                  )}
-                </>
-              ) : canRangedShoot ? (
-                <>
-                  <div style={{ color: '#e67e22', fontSize: '9px', marginTop: '2px' }}>Fire ({dist} tiles | {wieldedSpec?.rangedSteamCostKpa}kPa):</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', marginTop: '2px' }}>
-                    {LIMB_TARGETS.map((t) => (
-                      <button key={t.slot} type="button" onClick={() => onCommand({ type: 'FIRE_RANGED_WEAPON', actorId, targetId: targetActor.id, targetSlot: t.slot })} style={{ padding: '2px 4px', fontSize: '9px', textAlign: 'center', color: '#e67e22' }}>
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div style={{ color: '#7f8c8d', fontSize: '9px' }}>
-                  {wieldedSpec?.rangedRange ? `Out of range (${dist}/${wieldedSpec.rangedRange})` : 'Step adjacent to strike limbs.'}
-                </div>
-              )}
+              <LookCursorLimbSelector
+                actorId={actorId}
+                targetActor={targetActor}
+                isAdjacent={isAdjacent}
+                canRangedShoot={canRangedShoot}
+                dist={dist}
+                wieldedSpec={wieldedSpec}
+                onCommand={onCommand}
+                onTalk={onTalk}
+              />
             </div>
           ) : isDoor ? (
             <div>
