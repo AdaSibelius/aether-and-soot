@@ -1,14 +1,20 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
-import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
+import { BlueprintIdSchema, EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { ModalWindowId } from '../ui/CharacterModalShell.js';
+import recipesData from '../../../data/items/recipes.json' with { type: 'json' };
 
 export interface ModalNavState {
   selectedIndex: number;
 }
 
+export interface ModalKeyEvent {
+  readonly key: string;
+  preventDefault(): void;
+}
+
 export function handleModalNavigationKey(
-  ev: KeyboardEvent,
+  ev: ModalKeyEvent,
   activeModal: ModalWindowId,
   state: Readonly<WorldState>,
   playerId: EntityId,
@@ -70,6 +76,31 @@ export function handleModalNavigationKey(
         });
       }
       return true;
+    }
+  }
+
+  if (activeModal === 'WORKBENCH') {
+    if (isUp) {
+      ev.preventDefault();
+      navState.selectedIndex = Math.max(0, navState.selectedIndex - 1);
+      return true;
+    }
+    if (isDown) {
+      ev.preventDefault();
+      navState.selectedIndex = Math.min(Math.max(0, recipesData.length - 1), navState.selectedIndex + 1);
+      return true;
+    }
+    if (isEnter) {
+      ev.preventDefault();
+      const recipe = recipesData[navState.selectedIndex];
+      if (recipe) {
+        onCommand({
+          type: 'CRAFT_RECIPE',
+          actorId: playerId,
+          recipeId: BlueprintIdSchema.parse(recipe.id),
+        });
+        return true;
+      }
     }
   }
 

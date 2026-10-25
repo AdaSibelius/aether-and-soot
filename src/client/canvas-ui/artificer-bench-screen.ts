@@ -1,97 +1,157 @@
-import { BlueprintId } from '../../schemas/primitives.schema.js';
+import { BlueprintId, EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
+import { resolveCatalogDisplayName } from '../projection/frame-adapter.js';
 import { UiCellBuffer } from './cell-buffer.js';
 import { drawIndustrialFrame } from './industrial-primitives.js';
 import { VICTORIAN_PALETTE } from './material-palette.js';
 import { UiRect } from './viewport-controls.js';
 import recipesData from '../../../data/items/recipes.json' with { type: 'json' };
 
+export type BenchCategory = 'ALL' | 'WEAPONS' | 'PROSTHETICS' | 'STEAM' | 'ALCHEMY';
+
 export interface ArtificerBenchRecipe {
   readonly id: string;
   readonly name: string;
+  readonly description?: string;
   readonly steamCostKpa: number;
   readonly apCost?: number;
   readonly outputBlueprintId?: string;
+  readonly outputQuantity?: number;
+  readonly requiresWorkbench?: boolean;
+  readonly stationType?: string;
+  readonly ingredients?: readonly { readonly blueprintId: string; readonly count: number }[];
 }
 
 export interface ArtificerBenchOptions {
   readonly selectedRecipeId?: BlueprintId | string;
   readonly scrollOffset?: number;
+  readonly activeCategory?: BenchCategory;
   readonly customRecipes?: readonly ArtificerBenchRecipe[];
 }
 
 const DEFAULT_BENCH_RECIPES: readonly ArtificerBenchRecipe[] = [
-  ...recipesData.map((r) => ({
-    id: r.id,
-    name: r.name,
-    steamCostKpa: r.steamCostKpa,
-    apCost: r.apCost,
-    outputBlueprintId: r.outputBlueprintId,
-  })),
+  ...(recipesData as readonly ArtificerBenchRecipe[]),
   {
     id: 'recipe_boiler_core_50kpa',
     name: 'Cast 50 kPa Internal Boiler Core',
+    description: 'Reinforced 50 kPa boiler core forged with triple-riveted soot-iron plates.',
     steamCostKpa: 50,
     apCost: 150,
     outputBlueprintId: 'item_boiler_core_50kpa',
   },
 ];
 
+const CATEGORIES: readonly BenchCategory[] = ['ALL', 'WEAPONS', 'PROSTHETICS', 'STEAM', 'ALCHEMY'];
+
+function matchesCategory(recipe: ArtificerBenchRecipe, cat: BenchCategory): boolean {
+  if (cat === 'ALL') return true;
+  const out = (recipe.outputBlueprintId ?? '').toLowerCase();
+  const id = recipe.id.toLowerCase();
+  const name = recipe.name.toLowerCase();
+  if (cat === 'PROSTHETICS') return out.startsWith('prosthetic') || id.includes('prosthetic') || name.includes('leg') || name.includes('arm');
+  if (cat === 'ALCHEMY') return out.includes('tonic') || out.includes('salt') || out.includes('salve') || id.includes('coagulant') || id.includes('brew');
+  if (cat === 'WEAPONS') return out.startsWith('weapon') || id.includes('blade') || id.includes('revolver') || id.includes('pistol') || id.includes('rifle');
+  if (cat === 'STEAM') return out.includes('steam') || out.includes('boiler') || out.includes('canister') || recipe.steamCostKpa >= 20;
+  return true;
+}
+
+function countInventoryItem(state: Readonly<WorldState>, playerId: EntityId | undefined, blueprintId: string): number {
+  if (!playerId) return 0;
+  const player = state.entities[playerId];
+  const items = player?.inventory?.containedEntityIds ?? [];
+  let count = 0;
+  for (const itemId of items) {
+    const itemEnt = state.entities[itemId];
+    if (itemEnt?.item?.blueprintId === blueprintId) {
+      count += itemEnt.item.quantity ?? 1;
+    }
+  }
+  return count;
+}
+
 export function renderArtificerBenchScreen(
   buf: UiCellBuffer,
   rect: UiRect,
-  _state: Readonly<WorldState>,
+  state: Readonly<WorldState>,
   options: ArtificerBenchOptions = {},
+  playerId?: EntityId,
 ): void {
-  const { selectedRecipeId, scrollOffset = 0, customRecipes } = options;
-  const recipes = customRecipes ?? DEFAULT_BENCH_RECIPES;
+  const { selectedRecipeId, scrollOffset = 0, activeCategory = 'ALL', customRecipes } = options;
+  const allRecipes = customRecipes ?? DEFAULT_BENCH_RECIPES;
+  const filteredRecipes = allRecipes.filter((r) => matchesCategory(r, activeCategory));
 
   // 1. Reinforced heavy iron housing
   drawIndustrialFrame(buf, rect, {
     tier: 'PRIMARY_IRON',
-    title: 'ARTIFICER WORKSTATION & STEAM LATHE',
+    title: 'ARTIFICER WORKSTATION & HIGH-PRESSURE STEAM LATHE',
   });
 
-  // 2. Faint CP437 gear & blueprint schematics in empty background regions
+  // 2. Faint CP437 gear & blueprint schematics in background
   for (let y = rect.y + 1; y < rect.y + rect.height - 1; y++) {
     for (let x = rect.x + 1; x < rect.x + rect.width - 1; x++) {
       if ((x * 7 + y * 13) % 29 === 0) {
         buf.setCell(x, y, '⚙', VICTORIAN_PALETTE.OXIDIZED_IRON, VICTORIAN_PALETTE.SOOT_IRON_BG);
-      } else if ((x * 5 + y * 11) % 37 === 0) {
-        buf.setCell(x, y, '┼', '#1c242b', VICTORIAN_PALETTE.SOOT_IRON_BG);
-      } else if ((x * 3 + y * 17) % 43 === 0) {
-        buf.setCell(x, y, '─', '#1c242b', VICTORIAN_PALETTE.SOOT_IRON_BG);
       }
     }
   }
 
-  // 3. Tag bottom furnace/chimney rows with localized SMOKE_MASK_REGION flags
+  // 3. Furnace / chimney smoke mask rows
   const bottomSmokeY = rect.y + rect.height - 3;
   for (let sx = rect.x + 2; sx < rect.x + rect.width - 2; sx++) {
     buf.setCell(sx, bottomSmokeY, '░', VICTORIAN_PALETTE.OXIDIZED_IRON, VICTORIAN_PALETTE.SOOT_IRON_BG, ['SMOKE_MASK_REGION']);
     buf.setCell(sx, bottomSmokeY + 1, '▒', '#261f18', VICTORIAN_PALETTE.SOOT_IRON_BG, ['SMOKE_MASK_REGION']);
   }
 
-  // 4. Header & Recipe blueprint roster
+  const isWidescreen = rect.width >= 70;
+  const player = playerId ? state.entities[playerId] : undefined;
+  const playerSteam = player?.anatomy?.steamReserveKpa ?? 0;
+
+  // 4. Header & Category Tabs
   const contentX = rect.x + 2;
-  const contentWidth = rect.width - 4;
-  let curY = rect.y + 2;
+  const leftWidth = isWidescreen ? 38 : rect.width - 4;
+  const dividerX = rect.x + 41;
+  const rightX = rect.x + 43;
+  const rightWidth = rect.width - 45;
 
-  buf.writeString(contentX, curY, '─[ HIGH-PRESSURE BLUEPRINTS ]──────────────────', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
-  curY += 2;
+  if (isWidescreen) {
+    let tabStr = '─[ BLUEPRINTS ]';
+    for (const cat of CATEGORIES) {
+      tabStr += ` [ ${cat} ]`;
+    }
+    buf.writeString(contentX, rect.y + 2, tabStr, VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(contentX, rect.y + 3, '─[ SCHEMATIC CATALOG ]────────────────', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, rect.y + 3, '═[ SCHEMATIC DOSSIER ]═', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
-  const maxRecipeRows = Math.max(1, rect.height - (curY - rect.y) - 4);
+    for (let dy = rect.y + 3; dy < rect.y + rect.height - 2; dy++) {
+      buf.setCell(dividerX, dy, '│', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    }
+  } else {
+    buf.writeString(contentX, rect.y + 2, '─[ HIGH-PRESSURE BLUEPRINTS ]──────────────────', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  }
+
+  // 5. Recipe list (starts at rect.y + 4)
+  const maxRecipeRows = Math.max(1, rect.height - 7);
+  const activeRecipe = (selectedRecipeId ? filteredRecipes.find((r) => r.id === selectedRecipeId) : undefined) ?? filteredRecipes[0];
 
   for (let idx = 0; idx < maxRecipeRows; idx++) {
     const rIdx = scrollOffset + idx;
-    const recipe = recipes[rIdx];
+    const recipe = filteredRecipes[rIdx];
     if (!recipe) continue;
 
-    const isSelected = selectedRecipeId === recipe.id;
+    const rowY = rect.y + 4 + idx;
+    const isSelected = activeRecipe?.id === recipe.id;
     const isHighPressure = recipe.steamCostKpa >= 50;
-    const rowY = curY + idx;
 
-    // High pressure recipes (>= 50 kPa) trigger mechanical shudder (TREMOR_JITTER)
+    const hasSteam = playerSteam >= recipe.steamCostKpa;
+    let hasIngredients = true;
+    for (const ing of recipe.ingredients ?? []) {
+      if (countInventoryItem(state, playerId, ing.blueprintId) < ing.count) {
+        hasIngredients = false;
+        break;
+      }
+    }
+    const craftable = hasSteam && hasIngredients;
+
     const shaderFlags: string[] = [];
     if (isHighPressure && isSelected) {
       shaderFlags.push('TREMOR_JITTER');
@@ -100,10 +160,11 @@ export function renderArtificerBenchScreen(
       shaderFlags.push('THERMO_CRITICAL_PULSE');
     }
 
-    const prefix = isSelected ? '► [CRAFT] ' : '  [BLUEP] ';
+    const prefix = isSelected ? '► ' : '  ';
+    const statusIcon = isWidescreen ? (craftable ? '[+] ' : '[-] ') : '';
+    const nameStr = recipe.name.length > 18 ? recipe.name.slice(0, 17) + '…' : recipe.name.padEnd(18, ' ');
     const pressureTag = `[${recipe.steamCostKpa.toString().padStart(2, ' ')} kPa]`;
-    const namePart = recipe.name.padEnd(30, ' ');
-    const line = `${prefix}${namePart} ${pressureTag}`;
+    const line = `${prefix}${statusIcon}${nameStr} ${pressureTag}`;
 
     let lineFg: string = VICTORIAN_PALETTE.SEPIA_INK;
     if (isHighPressure) {
@@ -113,12 +174,60 @@ export function renderArtificerBenchScreen(
     }
 
     const lineBg = isSelected ? VICTORIAN_PALETTE.OXIDIZED_IRON : VICTORIAN_PALETTE.SOOT_IRON_BG;
-    const hitKey = `craft_recipe:${recipe.id}`;
-
-    buf.writeString(contentX, rowY, line.slice(0, contentWidth), lineFg, lineBg, shaderFlags.length > 0 ? shaderFlags : undefined, hitKey);
+    buf.writeString(contentX, rowY, line.slice(0, leftWidth), lineFg, lineBg, shaderFlags.length > 0 ? shaderFlags : undefined, `craft_recipe:${recipe.id}`);
   }
 
-  // Status footer
+  // 6. Right Column (Schematic Dossier in widescreen)
+  if (isWidescreen && activeRecipe) {
+    let dY = rect.y + 4;
+    buf.writeString(rightX, dY, activeRecipe.name.slice(0, rightWidth), VICTORIAN_PALETTE.AMBER_GASLIGHT, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY += 2;
+
+    const station = activeRecipe.stationType ?? (activeRecipe.requiresWorkbench ? 'ARTIFICER_BENCH' : 'FIELD_ASSEMBLY');
+    buf.writeString(rightX, dY, `Station:   ${station}`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY++;
+
+    const steamOk = playerSteam >= activeRecipe.steamCostKpa;
+    const steamFg = steamOk ? VICTORIAN_PALETTE.AETHER_BLUE : VICTORIAN_PALETTE.INCANDESCENT_RED;
+    buf.writeString(rightX, dY, `Pressure:  ${activeRecipe.steamCostKpa} kPa (${playerSteam} kPa avail)`, steamFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY++;
+
+    buf.writeString(rightX, dY, `Action:    ${activeRecipe.apCost ?? 100} Action Points`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY += 2;
+
+    buf.writeString(rightX, dY, '─[ REQUIRED COMPONENTS ]──────', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY++;
+
+    let allIngOk = true;
+    for (const ing of activeRecipe.ingredients ?? []) {
+      const avail = countInventoryItem(state, playerId, ing.blueprintId);
+      const isOk = avail >= ing.count;
+      if (!isOk) allIngOk = false;
+      const checkIcon = isOk ? '[✓]' : '[✗]';
+      const checkFg = isOk ? VICTORIAN_PALETTE.AETHER_BLUE : VICTORIAN_PALETTE.INCANDESCENT_RED;
+      const ingName = resolveCatalogDisplayName('item', ing.blueprintId);
+      buf.writeString(rightX, dY, ` ${checkIcon} ${avail}/${ing.count} ${ingName}`.slice(0, rightWidth), checkFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
+      dY++;
+    }
+
+    if (activeRecipe.description) {
+      dY++;
+      buf.writeWrappedText({ x: rightX, y: dY, width: rightWidth, height: 4 }, activeRecipe.description, {
+        fg: VICTORIAN_PALETTE.MUTED_PIPE,
+        bg: VICTORIAN_PALETTE.SOOT_IRON_BG,
+      });
+      dY += 4;
+    }
+
+    dY = Math.max(dY, rect.y + rect.height - 4);
+    if (steamOk && allIngOk) {
+      buf.writeString(rightX, dY, '► [ ENTER / CLICK ] FABRICATE ITEM', VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.OXIDIZED_IRON, ['AETHER_HALATION'], `craft_recipe:${activeRecipe.id}`);
+    } else {
+      buf.writeString(rightX, dY, '  [!] INSUFFICIENT STEAM OR PARTS', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    }
+  }
+
+  // 7. Navigation Footer
   const footerY = rect.y + rect.height - 2;
-  buf.writeString(contentX, footerY, 'PNEUMATIC CHUCK: ENGAGED | FURNACE: 50 kPa READY', VICTORIAN_PALETTE.AMBER_GASLIGHT, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(contentX, footerY, '[←/→] Filter  [↑/↓] Select  [Enter] Craft  [Esc] Exit', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
 }
