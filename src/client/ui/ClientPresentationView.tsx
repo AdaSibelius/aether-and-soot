@@ -41,6 +41,7 @@ export interface ClientPresentationContext {
   readonly onToggleLookMode: () => void;
   readonly onToggleDoor: () => void;
   readonly onTalk: (targetId?: EntityId) => void;
+  readonly onCloseDialogue?: (() => void) | undefined;
   readonly onNewSeed: (seed: number) => void;
   readonly onLoadWorld: (loaded: WorldState) => void;
   readonly onOpenCharacterCreator: () => void;
@@ -79,6 +80,7 @@ export function renderClientPresentationViews(
         onOpenModal={ctx.onOpenModal}
         onToggleLookMode={ctx.onToggleLookMode}
         onTalk={ctx.onTalk}
+        onCloseDialogue={ctx.onCloseDialogue}
         onOpenSystemMenu={ctx.onOpenSystemMenu}
         onCloseSystemMenu={ctx.onCloseSystemMenu}
         onToggleCrtScanlines={ctx.onToggleCrtScanlines}

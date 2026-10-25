@@ -9,9 +9,9 @@ export interface DiegeticShaderUniformValues {
   bloomThresholds: [number, number]; // [amberMin, cyanMin]
 }
 
-export const DEFAULT_LENS_CURVATURE = 0.08;
-export const DEFAULT_SCANLINE_INTENSITY = 0.18;
-export const DEFAULT_CHROMATIC_ABERRATION = 0.0035;
+export const DEFAULT_LENS_CURVATURE = 0.03;
+export const DEFAULT_SCANLINE_INTENSITY = 0.08;
+export const DEFAULT_CHROMATIC_ABERRATION = 0.0008;
 
 export function createDefaultShaderUniformValues(
   widthPx = 1056,

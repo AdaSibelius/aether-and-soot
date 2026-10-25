@@ -11,6 +11,8 @@ export interface KeyboardRouterParams {
   readonly activeModal: ModalWindowId | null;
   readonly isLookModeActive: boolean;
   readonly isCreatorOpen?: boolean;
+  readonly isDialogueOpen?: boolean;
+  readonly onCloseDialogue?: () => void;
   readonly worldState?: Readonly<WorldState>;
   readonly modalNavState?: ModalNavState;
   readonly onNavigate?: () => void;
@@ -57,6 +59,10 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     onCloseModal, onCycleModal, onSetModal, onToggleLookMode, onMoveLookCursor,
     onLookAttack, onLookInteract, onToggleDoor, onTalk, onOpenCharacterCreator, onCommand } = params;
 
+  if (params.isDialogueOpen) {
+    if (ev.key === 'Escape' || ev.key === 't' || ev.key === 'T') { ev.preventDefault(); params.onCloseDialogue?.(); }
+    return;
+  }
   if (ev.key === 'Escape') {
     ev.preventDefault();
     if (params.isCreatorOpen && params.onCloseCharacterCreator) params.onCloseCharacterCreator();

@@ -66,12 +66,12 @@ export const DIEGETIC_FRAGMENT_SHADER = `
 
       // Pass 4: Thermodynamic heat haze & chromatic aberration
       float heatHaze = sin(curvedUV.y * 36.0 + uTime * 4.2) * cos(curvedUV.x * 28.0 - uTime * 3.1);
-      vec2 hazeOffset = vec2(heatHaze * 0.0018 * uThermoStress, 0.0);
+      vec2 hazeOffset = vec2(heatHaze * 0.0005 * uThermoStress, 0.0);
       vec2 baseUV = curvedUV + hazeOffset;
 
       vec2 centered = baseUV - vec2(0.5);
       float caDist = length(centered);
-      float caSplit = (uChromaticAberration + uThermoStress * 0.007) * caDist;
+      float caSplit = (uChromaticAberration + uThermoStress * 0.0012) * caDist;
       vec2 caDir = caDist > 0.001 ? normalize(centered) * caSplit : vec2(0.0);
 
       float r = texture(uTexture, baseUV - caDir).r;
@@ -95,15 +95,13 @@ export const DIEGETIC_FRAGMENT_SHADER = `
           col += bloom * vec3(1.15, 0.85, 0.30) * 0.16;
       }
 
-      // Pass 2: Trinitron / Edison aperture grille shadow mask
+      // Pass 2: Aperture grille shadow mask (luminance-only so glyphs never tint per pixel column)
       float scanline = sin(curvedUV.y * uResolution.y * 3.14159) * 0.5 + 0.5;
       col *= (1.0 - uScanlineIntensity * (1.0 - scanline));
 
       float triad = mod(curvedUV.x * uResolution.x, 3.0);
-      vec3 triadMask = vec3(0.94);
-      if (triad < 1.0) triadMask.r += 0.06;
-      else if (triad < 2.0) triadMask.g += 0.06;
-      else triadMask.b += 0.06;
+      vec3 triadMask = vec3(0.985);
+      if (triad < 1.0) triadMask += 0.015;
       col *= triadMask;
 
       // Outer bezel vignette

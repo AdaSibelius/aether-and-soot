@@ -98,6 +98,8 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
     if (adjId) { activeDialogueNpcId = adjId; syncPresentation(); }
   };
 
+  const closeDialogue = (): void => { activeDialogueNpcId = null; syncPresentation(false); };
+
   const cycleModal = (direction: 1 | -1): void => {
     if (!activeModal) return;
     activeModal = cycleModalWindow(activeModal, direction);
@@ -156,7 +158,7 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
       onCloseModal: () => { activeModal = null; syncPresentation(); },
       onOpenSystemMenu: () => { isSystemMenuOpen = true; syncPresentation(); },
       onCloseSystemMenu: () => { isSystemMenuOpen = false; syncPresentation(); },
-      onToggleLookMode: toggleLookMode, onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
+      onToggleLookMode: toggleLookMode, onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk, onCloseDialogue: closeDialogue,
       onNewSeed: (s) => { worldState = createFreshWorld(s); syncPresentation(); },
       onLoadWorld: (loaded) => { worldState = loaded; syncPresentation(); },
       onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
@@ -232,7 +234,8 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
         const cmd = resolveLookInteractCommand(worldState, playerId, lookCursor);
         if (cmd) handleCommand(cmd);
       },
-      onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
+      onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk, onCloseDialogue: closeDialogue,
+      isDialogueOpen: activeDialogueNpcId !== null,
       onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
       onCloseCharacterCreator: () => { isCreatorOpen = false; syncPresentation(); },
       currentPosture: worldState.entities[playerId]?.actor?.posture ?? 'STANDING',

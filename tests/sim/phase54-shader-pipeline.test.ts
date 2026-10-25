@@ -95,9 +95,9 @@ describe('Phase 54: Diegetic Presentation Shell & GLSL Shader Suite', () => {
     it('creates default uniform values and verifies physical optics constants', () => {
       const uniforms = createDefaultShaderUniformValues(1200, 800);
       expect(uniforms.lensCurvature).toBe(DEFAULT_LENS_CURVATURE);
-      expect(uniforms.lensCurvature).toBe(0.08);
+      expect(uniforms.lensCurvature).toBe(0.03);
       expect(uniforms.scanlineIntensity).toBe(DEFAULT_SCANLINE_INTENSITY);
-      expect(uniforms.scanlineIntensity).toBe(0.18);
+      expect(uniforms.scanlineIntensity).toBe(0.08);
       expect(uniforms.chromaticAberration).toBe(DEFAULT_CHROMATIC_ABERRATION);
       expect(uniforms.resolution).toEqual([1200, 800]);
       expect(uniforms.bloomThresholds).toEqual([0.65, 0.70]);

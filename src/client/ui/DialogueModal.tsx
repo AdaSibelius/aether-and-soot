@@ -1,4 +1,3 @@
-import { useEffect } from 'preact/hooks';
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
@@ -19,17 +18,6 @@ export function DialogueModal({ state, actorId, targetNpcId, onCommand, onClose,
   const treasury = state.economy.playerTreasuryPence;
   const ai = npc?.aiController;
   const isCompanion = ai?.companionOfActorId === actorId;
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
 
   if (!npc || !player || !ai) return null;
 
@@ -60,6 +48,7 @@ export function DialogueModal({ state, actorId, targetNpcId, onCommand, onClose,
         background: 'rgba(5, 7, 9, 0.85)', backdropFilter: 'blur(3px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
       }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         class="panel-box"

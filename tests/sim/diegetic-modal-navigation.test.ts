@@ -150,6 +150,34 @@ describe('Diegetic Modal Navigation & Command Responsiveness', () => {
     expect(navSynced).toBe(true);
   });
 
+  it('closes an open dialogue with Escape or T and swallows other keys', () => {
+    let closed = 0;
+    const commands: GameCommand[] = [];
+    const params = {
+      playerId,
+      isSystemMenuOpen: false,
+      activeModal: null,
+      isLookModeActive: false,
+      isDialogueOpen: true,
+      onCloseDialogue: () => { closed += 1; },
+      onToggleSystemMenu: () => { throw new Error('system menu must not open'); },
+      onCloseModal: () => {},
+      onCycleModal: () => {},
+      onSetModal: () => {},
+      onToggleLookMode: () => {},
+      onMoveLookCursor: () => {},
+      onLookAttack: () => {},
+      onLookInteract: () => {},
+      onTalk: () => { throw new Error('talk must not reopen'); },
+      onCommand: (c: GameCommand) => { commands.push(c); },
+    };
+    handleGameKeydown(makeKeyEvent('Escape'), params);
+    handleGameKeydown(makeKeyEvent('t'), params);
+    handleGameKeydown(makeKeyEvent('w'), params);
+    expect(closed).toBe(2);
+    expect(commands.length).toBe(0);
+  });
+
   it('updates selection state on first click and dispatches command on second click in handleDiegeticHitAction', () => {
     const state = createInitialWorld({ seed: 42 });
     const navState: ModalNavState = { selectedIndex: 0 };

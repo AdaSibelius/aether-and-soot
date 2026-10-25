@@ -22,6 +22,7 @@ export interface PreactBridgeProps {
   readonly onOpenModal: (window: ModalWindowId) => void;
   readonly onToggleLookMode: () => void;
   readonly onTalk: (targetId?: EntityId) => void;
+  readonly onCloseDialogue?: (() => void) | undefined;
   readonly onOpenSystemMenu: () => void;
   readonly onCloseSystemMenu: () => void;
   readonly onToggleCrtScanlines: () => void;
@@ -52,6 +53,7 @@ export function PreactBridge(props: PreactBridgeProps) {
     onOpenModal,
     onToggleLookMode,
     onTalk,
+    onCloseDialogue,
     onCloseSystemMenu,
     onToggleCrtScanlines,
     onToggleUiMode,
@@ -89,9 +91,9 @@ export function PreactBridge(props: PreactBridgeProps) {
             actorId={playerId}
             targetNpcId={activeDialogueNpcId}
             onCommand={onCommand}
-            onClose={() => onTalk(undefined)}
+            onClose={() => (onCloseDialogue ?? (() => onTalk(undefined)))()}
             onOpenModal={(w) => {
-              onTalk(undefined);
+              (onCloseDialogue ?? (() => onTalk(undefined)))();
               onOpenModal(w);
             }}
           />
