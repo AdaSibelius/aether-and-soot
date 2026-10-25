@@ -26,6 +26,7 @@
     "hermes:split:mock": "tsx tests/scripts/hermes-split.ts --mock",
     "hermes:critic": "tsx tests/scripts/hermes-critic.ts",
     "hermes:critic:mock": "tsx tests/scripts/hermes-critic.ts --mock",
+    "generate:arch-map": "tsx tests/scripts/generate-architecture-map.ts",
     "sync:state": "tsx tests/scripts/update-state.ts",
     "verify": "npm run typecheck && npm run check:boundaries && npm run validate:data && npm run test:sim"
   },

@@ -72,6 +72,8 @@ When a command is dispatched via `dispatchCommand(currentState, rawCommand)`:
 
 ## 3. Component & System Registry (Where Everything Lives)
 
+> **LIVE ARCHITECTURE MAP**: For an automated, real-time module list with exact line counts, exports, and modularity watchlist, consult [docs/architecture-map.md](./docs/architecture-map.md) (regenerated via `npm run generate:arch-map`).
+
 Use this lookup table to locate existing logic before writing any code.
 
 ### A. Schemas & Contracts (`src/schemas/`)

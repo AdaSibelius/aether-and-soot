@@ -7,7 +7,7 @@
 ## 1. Mandatory Pre-Flight Protocol (Execute Before Writing Code)
 
 ### Rule 1.1: The Anti-Duplication Search Rule
-Before creating any new type, helper function, component, or system, you **MUST** inspect [ARCHITECTURE.md](./ARCHITECTURE.md) and search the existing codebase (`grep` / file view) to verify it does not already exist:
+Before creating any new type, helper function, component, or system, you **MUST** inspect [ARCHITECTURE.md](./ARCHITECTURE.md) and [docs/architecture-map.md](./docs/architecture-map.md), and search the existing codebase (`grep` / file view) to verify it does not already exist:
 - **Spatial & Grid Lookups**: Do NOT write custom coordinate math or entity loops. Use `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, and `findBlockingEntityAtPoint` from `src/sim/spatial/grid.ts`, or `findPortalAtPoint` from `src/sim/spatial/portals.ts`.
 - **Line-of-Sight & Pathfinding**: Use `computeVisibleTiles` / `isPointVisible` from `src/sim/spatial/fov.ts` and `hasWalkablePath` from `src/sim/spatial/generator.ts`.
 - **Randomness**: Do NOT create new PRNG classes or call non-deterministic browser PRNGs. Use the `SeededRNG` instance hydrated in `src/sim/core/engine.ts` (`rng.nextInt(min, max)`, `rng.nextFloat()`, `rng.nextUint32()`).
@@ -58,6 +58,8 @@ At the end of every phase (after `npm run verify`), run `npm run hermes:critic` 
 ---
 
 ## 2. Non-Negotiable Architectural Guardrails
+
+> **PROCEDURAL SKILLS**: Detailed step-by-step feature recipes and modularity split patterns are defined in [.agents/skills/feature-recipe/SKILL.md](./.agents/skills/feature-recipe/SKILL.md). Local LLM tooling workflows are defined in [.agents/skills/hermes-tooling/SKILL.md](./.agents/skills/hermes-tooling/SKILL.md). Consult [docs/architecture-map.md](./docs/architecture-map.md) for live module telemetry and line counts.
 
 ### Rule 2.1: Strict Headless Separation (`src/sim/` vs `src/client/`)
 - Files inside `src/sim/` and `src/schemas/` **MUST NEVER** import from `src/client/`, `pixi.js`, `preact`, or reference browser globals (`window`, `document`, `requestAnimationFrame`, `HTMLCanvasElement`).
