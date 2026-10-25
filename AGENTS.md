@@ -107,6 +107,19 @@ git add -A && git commit -m "<concise descriptive summary>" && git push origin <
 - **Execution Sandbox Permission for Git**: Modifying `.git/` (`.git/index.lock`) and network transmission to `github.com` require unsandboxed permissions (`BypassSandbox: true` in Antigravity). Always execute git commit and push operations with `BypassSandbox: true`.
 - **Zero Dirty Working Tree Invariant**: Ending a turn with unstaged, uncommitted, or unpushed changes (`git status --porcelain` is non-empty, or local commits are ahead of `origin`) is a strict protocol violation. Never ask or wait for the user to commit/push changes you verified.
 
+### Autonomous Branch Retirement & Pruning Protocol
+Upon successful completion and verification of any feature, phase, or audit task on a feature branch (`feat/*`, `audit/*`):
+1. The agent **MUST NOT** leave stale feature branches lingering locally or on GitHub.
+2. Fast-forward merge the verified branch into `main`:
+   ```bash
+   git checkout main && git merge --ff-only <branch> && git push origin main
+   ```
+3. Immediately prune the merged branch both locally and remotely:
+   ```bash
+   git branch -d <branch> && git push origin --delete <branch>
+   ```
+4. Confirm with `git branch -a` that only `main` remains active and clean.
+
 ---
 
 ## 4. Autonomous Git & GitHub MCP Workflow

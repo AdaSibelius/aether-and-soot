@@ -11,9 +11,9 @@ This skill codifies the governance protocols binding daily-driver agents (Gemini
 
 ---
 
-## Protocol 1: GitHub MCP Issue & Branch Lifecycle
+## Protocol 1: GitHub MCP Issue, Branch Lifecycle & Autonomous Pruning
 
-Never instruct the user to run manual git operations. Manage tasks directly through `github-mcp-server`:
+Never instruct the user to run manual git operations. Manage tasks directly through `github-mcp-server` or shell commands with `BypassSandbox: true`:
 1. **Query Existing Issues**:
    - Call `list_issues` on `AdaSibelius/aether-and-soot` with `state: "OPEN"`.
 2. **Create Issue (If Missing)**:
@@ -27,8 +27,9 @@ Never instruct the user to run manual git operations. Manage tasks directly thro
      git checkout -b feat/issue<issue_number>-<slug>
      ```
    - Always run git commands with `BypassSandbox: true`.
-4. **Closing Issues**:
+4. **Closing Issues & Branch Retirement**:
    - Reference `Closes #<issue_number>` in all commit messages and pull requests.
+   - Once `npm run verify` passes with 0 errors at phase/task completion, the agent MUST immediately merge the feature branch into `main` (`git checkout main && git merge --ff-only <branch> && git push origin main`) and delete the branch locally and remotely (`git branch -d <branch> && git push origin --delete <branch>`). Do NOT leave merged feature branches open.
 
 ---
 
