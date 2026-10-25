@@ -3,9 +3,10 @@
 **Last Updated:** 2026-10-25
 
 ## Recent Commits
-- 935f274: docs: add in-game visual interface screenshot gallery across all 9 core modes
-- 8b2a4f7: docs(critic): update critic audit and synchronize STATE.md for Phase UI-5
-- 8c4ecc5: feat(tooling): implement Phase UI-5 hermes-vision-critic layout verifier & audit pipeline
+- 62e1fe3: chore: sync playtest report timestamp
+- 3becabf: docs(audit): update vision critic report with live gemma4:12b inference results (92/100 score)
+- e79cf95: feat(ui): implement centered widescreen camera, spatial floating combat text, and live telemetry table
+- 1f988d9: feat(ui): expand glyph atlas, dual-pane satchel/anatomy, and governance rules
 
 ## Immediate Next Priority
 - **Phase 51: City Causality Graph & Strategic Overworld Topology**: Model directional physical conduits (`STEAM_MAIN`, `COAL_BARGE_CANAL`, `SLUICE_DRAINAGE`, `PNEUMATIC_CHUTE`) connecting districts across strata (`src/schemas/city-graph.schema.ts`, `src/sim/spatial/city-graph.ts`). Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (`CONDUIT_STATUS_CHANGED`). Add an Infrastructure overlay view to the World Atlas (`[W]`).
