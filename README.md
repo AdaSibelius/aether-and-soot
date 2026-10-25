@@ -15,7 +15,27 @@ The player navigates an urban sprawl stratified into three vertical planes:
 
 ---
 
-## 2. Architectural Invariants ("Why Things Are The Way They Are")
+## 2. Visual Interface Showcase
+
+*Aether & Soot* renders through a widescreen 88×36 CP437 character-cell grid backed by PixiJS v8 and custom GLSL scanline CRT shaders. Tactical modals and instrument bezels feature double-line brass borders, segmented character-cell telemetry meters, and pneumatic ticker chronicles.
+
+| Victorian Street Overworld & Main HUD | CDDA-Style Artificer Workstation |
+| :---: | :---: |
+| ![Victorian Street Overworld & Main HUD](docs/screenshots/01_main_street_hud.png) | ![Artificer Workstation](docs/screenshots/02_artificer_workstation.png) |
+| **Metropolitan Stratum Atlas** | **Borough Turf & Commodity Exchange** |
+| ![Metropolitan Stratum Atlas](docs/screenshots/03_metropolitan_atlas.png) | ![Borough Turf & Commodity Exchange](docs/screenshots/04_market_exchange_turf.png) |
+| **Naturalist Philosophy Codex** | **Vitruvian Anatomy & Graft Bay** |
+| ![Naturalist Philosophy Codex](docs/screenshots/05_naturalist_codex.png) | ![Vitruvian Anatomy & Graft Bay](docs/screenshots/06_vitruvian_paperdoll.png) |
+| **Satchel Inventory & Dial Gauges** | **Look Mode Tactical Inspector** |
+| ![Satchel Inventory & Dial Gauges](docs/screenshots/07_satchel_inventory.png) | ![Look Mode Tactical Inspector](docs/screenshots/08_tactical_look_mode.png) |
+| **Character Creation & Vocation Embarkation** | |
+| ![Character Creation & Vocation Embarkation](docs/screenshots/09_character_embarkation.png) | |
+
+> See [docs/screenshots/README.md](docs/screenshots/README.md) for individual high-resolution screenshots and detailed interface breakdowns.
+
+---
+
+## 3. Architectural Invariants ("Why Things Are The Way They Are")
 
 The codebase is engineered specifically for **reliable autonomous AI pair programming** and **reproducible headless simulation**. Every rule is validated automatically on every commit via `npm run verify`.
 

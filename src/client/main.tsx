@@ -29,10 +29,40 @@ async function bootstrapClient(): Promise<void> {
   });
   canvasHost.appendChild(overlayHost);
 
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const seedParam = searchParams?.get('seed');
+  const parsedSeed = seedParam ? Number.parseInt(seedParam, 10) : 0xcafebabe;
+  const initialSeed = Number.isNaN(parsedSeed) ? 0xcafebabe : parsedSeed;
+
   startClientSession(
     { canvasHost, overlayHost, hudHost, actionBarHost, topBarHost },
     stageRenderer,
+    initialSeed,
   );
+
+  const modalParam = searchParams?.get('modal')?.toUpperCase();
+  if (modalParam) {
+    const keyMap: Record<string, string> = {
+      INVENTORY: 'i',
+      WORKBENCH: 'c',
+      EXCHANGE: 'm',
+      ANATOMY: 'A',
+      ATLAS: 'W',
+      CODEX: 'k',
+    };
+    const key = keyMap[modalParam];
+    if (key) {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    }
+  }
+
+  if (searchParams?.get('look') === 'true') {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'l', bubbles: true }));
+  }
+
+  if (searchParams?.get('creator') === 'true') {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'N', bubbles: true }));
+  }
 }
 
 void bootstrapClient();
