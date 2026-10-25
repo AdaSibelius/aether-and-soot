@@ -4,20 +4,21 @@
 
 ## Codebase Telemetry & Modularity Health
 
-- **Files Indexed**: 191
-- **Total Lines of Code**: 27768
+- **Files Indexed**: 199
+- **Total Lines of Code**: 28809
 - **Average File Size**: 145 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
-- **Near-Cap Files (>= 240 lines)**: 7 files
+- **Near-Cap Files (>= 240 lines)**: 8 files
 
 ### Near-Cap File Watchlist (Approaching 300-Line Ceiling)
 
 | File | Lines | Action Required |
 | :--- | :---: | :--- |
-| `src/client/main.tsx` | 247 | Extract sub-module before adding functions |
 | `src/client/ui/CharacterCreatorModal.tsx` | 247 | Extract sub-module before adding functions |
 | `src/client/ui/ItemDossierCard.tsx` | 245 | Extract sub-module before adding functions |
+| `src/sim/systems/container.system.ts` | 245 | Extract sub-module before adding functions |
 | `src/client/ui/InventoryWindow.tsx` | 244 | Extract sub-module before adding functions |
+| `src/client/ui/LookCursorOverlay.tsx` | 244 | Extract sub-module before adding functions |
 | `src/client/ui/CraftingWindow.tsx` | 243 | Extract sub-module before adding functions |
 | `src/schemas/domain-events.schema.ts` | 243 | Extract sub-module before adding functions |
 | `tests/scripts/hermes-critic.ts` | 240 | Extract sub-module before adding functions |
@@ -40,7 +41,8 @@ Strict Zod contracts for entities, components, commands, events, and declarative
 | `src/schemas/domain-commands.schema.ts` | 234 | ✅ OK | `StockPedestalCommandSchema`, `TriggerSupplyShockCommandSchema`, `PickUpItemCommandSchema`, `DropItemCommandSchema` |
 | `src/schemas/domain-events.schema.ts` | 243 | ⚠️ WARN | `ItemPickedUpEventSchema`, `ItemDroppedEventSchema`, `ItemUsedEventSchema`, `InventoryActionFailedEventSchema` |
 | `src/schemas/equipment.schema.ts` | 101 | ✅ OK | `EquipmentSlotSchema`, `EquipmentSlot`, `WeaponModSpecSchema`, `WeaponModSpec` |
-| `src/schemas/events.schema.ts` | 238 | ✅ OK | `SimEventSchema`, `SimEvent` |
+| `src/schemas/events.schema.ts` | 235 | ✅ OK | `SimEventSchema`, `SimEvent` |
+| `src/schemas/hazard-events.schema.ts` | 23 | ✅ OK | `HazardTypeSchema`, `HazardType`, `HazardTriggeredEventSchema`, `HazardTriggeredEvent` |
 | `src/schemas/liquid-events.schema.ts` | 60 | ✅ OK | `LiquidSpilledEventSchema`, `LiquidSpilledEvent`, `LiquidIgnitedEventSchema`, `LiquidIgnitedEvent` |
 | `src/schemas/metabolism-events.schema.ts` | 42 | ✅ OK | `AlchemicalConsumedEventSchema`, `AlchemicalConsumedEvent`, `ToxicityOverdoseEventSchema`, `ToxicityOverdoseEvent` |
 | `src/schemas/momentum-events.schema.ts` | 45 | ✅ OK | `PostureChangedEventSchema`, `PostureChangedEvent`, `EntityKnockedBackEventSchema`, `EntityKnockedBackEvent` |
@@ -64,11 +66,11 @@ Pure state container, deterministic PRNG hydration, command router, and turn/mac
 
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
-| `src/sim/core/action-resolver.ts` | 47 | ✅ OK | `getActingActorId(command: GameCommand): EntityId`, `resolveAction(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
+| `src/sim/core/action-resolver.ts` | 54 | ✅ OK | `getActingActorId(command: GameCommand): EntityId`, `resolveAction(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
 | `src/sim/core/command-resolution.ts` | 128 | ✅ OK | `isFailureEvent(event: SimEvent): boolean`, `extractFailureReason(events: readonly SimEvent[], fallback: unknown): string`, `createAppliedResolution(state: WorldState, events: readonly SimEvent[], apSpent: number, advancesTime: unknown, simulationTicks: number): CommandResolution`, `createRejectedResolution(state: WorldState, reason: string, events: readonly SimEvent[]): CommandResolution` |
-| `src/sim/core/command-router.ts` | 214 | ✅ OK | `routeDomainCommand(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
+| `src/sim/core/command-router.ts` | 218 | ✅ OK | `routeDomainCommand(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
 | `src/sim/core/engine.ts` | 59 | ✅ OK | `setInvariantAssertionsEnabled(enabled: boolean): void`, `isInvariantAssertionsEnabled(): boolean`, `dispatchCommand(currentState: WorldState, rawCommand: GameCommand, options: DispatchCommandOptions): DispatchTurnResult` |
-| `src/sim/core/invariants.ts` | 163 | ✅ OK | `validateWorldInvariants(state: Readonly<WorldState>): string[]`, `assertWorldInvariants(state: Readonly<WorldState>): void` |
+| `src/sim/core/invariants.ts` | 184 | ✅ OK | `validateWorldInvariants(state: Readonly<WorldState>): string[]`, `assertWorldInvariants(state: Readonly<WorldState>): void` |
 | `src/sim/core/rng.ts` | 77 | ✅ OK | `RNGStateSchema`, `RNGState` |
 | `src/sim/core/scheduler.ts` | 96 | ✅ OK | `advanceTurnSchedule(state: WorldState, actorId: EntityId, apSpent: number, newEvents: readonly SimEvent[], rng: SeededRNG, ticks: unknown): { state: WorldState; allEvents: SimEvent[] }` |
 | `src/sim/core/simulation-pipeline.ts` | 138 | ✅ OK | `advanceWorldEnvironment(state: WorldState, rng: SeededRNG, ticks: unknown): { state: WorldState; events: SimEvent[] }`, `advanceTemporalState(state: WorldState, actorId: EntityId, apSpent: number, events: readonly SimEvent[], rng: SeededRNG, ticks: unknown): { state: WorldState; events: SimEvent[] }`, `advancePerception(state: WorldState, focusActorId: EntityId): WorldState`, `executeSimulationPhases(resolution: CommandResolution, actingActorId: EntityId, rng: SeededRNG): DispatchTurnResult` |
@@ -110,10 +112,10 @@ Deterministic headless mechanics: anatomy, combat, momentum, metabolism, thermo,
 | `src/sim/systems/ballistics.system.ts` | 193 | ✅ OK | `resolveFireRangedWeapon(state: WorldState, actorId: EntityId, targetId: EntityId, targetSlot: LimbSlotId, rng: SeededRNG): { state: WorldState; events: SimEvent[]; apSpent: number }` |
 | `src/sim/systems/boiler-stoking.system.ts` | 220 | ✅ OK | `resolveRefillSteam(state: WorldState, actorId: EntityId, pressureAddedKpa: unknown, bypassFuelRequirement: unknown): SystemBoilerResult`, `resolveVentSteam(state: WorldState, actorId: EntityId, target: Point3D, pressureReleasedKpa: number, bypassReserveCheck: unknown): SystemBoilerResult` |
 | `src/sim/systems/character-archetype-defs.ts` | 101 | ✅ OK | `PROFESSIONS`, `TRAITS`, `SCENARIOS`, `ProfessionDefinition` |
-| `src/sim/systems/character-archetypes.ts` | 149 | ✅ OK | `applyCharacterCreation(state: WorldState, config: CharacterCreationConfig): WorldState` |
+| `src/sim/systems/character-archetypes.ts` | 152 | ✅ OK | `applyCharacterCreation(state: WorldState, config: CharacterCreationConfig): WorldState` |
 | `src/sim/systems/codex.system.ts` | 140 | ✅ OK | `discoverCodexEntry(state: WorldState, actorId: EntityId, entry: { id: string; category: CodexCategory; title: string; description: string; tags?: string[]; }): { state: WorldState; discovered: boolean; event?: SimEvent }`, `resolveConsultCodex(state: WorldState, cmd: ConsultCodexCommand): { state: WorldState; apSpent: number; advancesTime: boolean; events: SimEvent[] }` |
 | `src/sim/systems/combat.system.ts` | 200 | ✅ OK | `computeEffectiveCombatStats(actor: EntityRecord): { readonly meleeDamage: number; readonly accuracyPct: number; readonly bothArmsDisabled: boolean; }`, `resolveAttackActor(state: WorldState, attackerId: EntityId, targetId: EntityId, targetSlot: LimbSlotId, rng: SeededRNG): SystemAnatomyResult` |
-| `src/sim/systems/container.system.ts` | 209 | ✅ OK | `resolveLootContainer(state: WorldState, actorId: EntityId, containerId: EntityId, itemId: EntityId): ContainerResolutionResult` |
+| `src/sim/systems/container.system.ts` | 245 | ⚠️ WARN | `resolveLootContainer(state: WorldState, actorId: EntityId, containerId: EntityId, itemId: EntityId): ContainerResolutionResult` |
 | `src/sim/systems/crafting-utils.ts` | 70 | ✅ OK | `findAdjacentWorkbench(state: WorldState, actor: EntityRecord, stationType: 'ARTIFICER_BENCH' \| 'ALCHEMICAL_STILL'): EntityRecord \| undefined`, `allocateCraftedId(entities: Readonly<Record<string, EntityRecord>>, turnCount: number, blueprintId: BlueprintId): EntityId`, `recomputeMassGrams(entities: Readonly<Record<string, EntityRecord>>, containedIds: readonly EntityId[]): number`, `consumeIngredients(entities: Record<string, EntityRecord>, containedIds: EntityId[], ingredients: readonly { blueprintId: BlueprintId; count: number }[]): { entities: Record<string, EntityRecord>; containedIds: EntityId[]; ok: boolean }` |
 | `src/sim/systems/crafting.system.ts` | 127 | ✅ OK | `failCrafting(state: WorldState, actorId: EntityId, action: CraftingFailureEvent['action'], reason: CraftingFailureEvent['reason']): SystemInventoryResult`, `resolveCraftRecipe(state: WorldState, actorId: EntityId, recipeId: BlueprintId): SystemInventoryResult` |
 | `src/sim/systems/dialogue-quest.system.ts` | 233 | ✅ OK | `resolveAcceptContract(state: WorldState, actorId: EntityId, contractId: string): DialogueResolutionResult`, `resolveCompleteContract(state: WorldState, actorId: EntityId, contractId: string): DialogueResolutionResult`, `resolveHireCompanion(state: WorldState, actorId: EntityId, npcId: EntityId): DialogueResolutionResult`, `resolvePayChirurgeonHeal(state: WorldState, actorId: EntityId, chirurgeonId: EntityId): DialogueResolutionResult` |
@@ -121,8 +123,10 @@ Deterministic headless mechanics: anatomy, combat, momentum, metabolism, thermo,
 | `src/sim/systems/district-spawner.ts` | 225 | ✅ OK | `createDefaultNpcAnatomy(torsoHp: unknown, limbHp: unknown): AnatomyComponent`, `createProceduralDistrictContracts(): FactionContract[]`, `spawnDistrictNpcs(state: WorldState): { readonly state: WorldState; readonly spawnedNpcIds: readonly EntityId[]; }` |
 | `src/sim/systems/economy-macro.system.ts` | 94 | ✅ OK | `advanceDistrictEconomyMacroTick(state: WorldState, rng: SeededRNG, turn: number): { economy: DistrictEconomyLedger; events: SimEvent[] }` |
 | `src/sim/systems/economy.system.ts` | 198 | ✅ OK | `createInitialEconomyLedger(): DistrictEconomyLedger`, `computeBoundedPricePence(basePricePence: number, supplyUnits: number, demandUnits: number): number`, `resolveStockPedestal(state: WorldState, commodity: CommodityId, quantity: number, askingPriceMarkupPct: number): { state: WorldState; events: SimEvent[]; apSpent: number }`, `resolveTriggerSupplyShock(state: WorldState, commodity: CommodityId, supplyDelta: number, factionAffected: FactionId, reputationDelta: number): { state: WorldState; events: SimEvent[]; apSpent: number }` |
+| `src/sim/systems/environmental-hazards.system.ts` | 229 | ✅ OK | `resolveWhaleOilCascade(state: WorldState, origin: Point3D): { state: WorldState; events: SimEvent[]; tilesIgnited: number }`, `advanceSootClouds(state: WorldState, stratum: StratumId, wind: { dx: number; dy: number }): { state: WorldState; events: SimEvent[] }`, `advanceAcidDrips(state: WorldState, stratum: StratumId): { state: WorldState; events: SimEvent[] }`, `advanceEnvironmentalHazards(state: WorldState, stratum: StratumId): { state: WorldState; events: SimEvent[] }` |
 | `src/sim/systems/equipment.system.ts` | 173 | ✅ OK | `getEquipmentSpec(itemEntity: EntityRecord): EquipmentSpec \| undefined`, `computeEquippedBonuses(state: Readonly<WorldState>, actor: EntityRecord): EquipmentBonuses`, `resolveEquipItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): { state: WorldState; events: SimEvent[]; apSpent: number }`, `resolveUnequipItem(state: WorldState, actorId: EntityId, slot: EquipmentSlot): { state: WorldState; events: SimEvent[]; apSpent: number }` |
 | `src/sim/systems/furniture.system.ts` | 238 | ✅ OK | `resolveSmashTerrain(state: WorldState, actorId: EntityId, target: Point3D): FurnitureResolutionResult`, `resolveRestAtBed(state: WorldState, actorId: EntityId): FurnitureResolutionResult`, `resolveUseManual(state: WorldState, actorId: EntityId, itemEntityId: EntityId): FurnitureResolutionResult` |
+| `src/sim/systems/gaslight.system.ts` | 68 | ✅ OK | `calculateGaslightField(state: WorldState, stratum: StratumId): Map<string, number>` |
 | `src/sim/systems/inventory-use.system.ts` | 67 | ✅ OK | `resolveUseItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult` |
 | `src/sim/systems/inventory-utils.ts` | 126 | ✅ OK | `getCarryProfile(entity: EntityRecord): CarryProfile \| undefined`, `computeCarriedVolumeMl(state: Readonly<WorldState>, inventory: InventoryComponent): number`, `isInstalledOnActor(actor: EntityRecord, entityId: EntityId): boolean`, `withoutEntity(entities: Readonly<Record<string, EntityRecord>>, entityId: EntityId): Record<string, EntityRecord>` |
 | `src/sim/systems/inventory.system.ts` | 175 | ✅ OK | `resolvePickupItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult`, `resolveDropItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId, quantity: number): SystemInventoryResult` |
@@ -134,7 +138,7 @@ Deterministic headless mechanics: anatomy, combat, momentum, metabolism, thermo,
 | `src/sim/systems/momentum.system.ts` | 164 | ✅ OK | `resolveSetPosture(state: WorldState, actorId: EntityId, posture: Posture, turn: number): MomentumResolutionResult`, `resolveApplyMomentumVector(state: WorldState, targetId: EntityId, dx: number, dy: number, distanceTiles: number, _massKg: number \| undefined, turn: number, sourceEntityId: EntityId): MomentumResolutionResult` |
 | `src/sim/systems/monorail-transit.ts` | 105 | ✅ OK | `transferMonorailDistrict(state: WorldState, monorailEntityId: EntityId, destinationDistrictId: BlueprintId, passengerIds: readonly EntityId[]): MonorailTransitResult` |
 | `src/sim/systems/monorail.system.ts` | 212 | ✅ OK | `createMonorailCarEntity(carId: string, stationPos: Point3D, destinationDistrictId: BlueprintId, steamPressureKpa: unknown): EntityRecord`, `resolveBoardMonorail(state: WorldState, actorId: EntityId, monorailEntityId: EntityId): MonorailResolutionResult`, `resolveLaunchMonorail(state: WorldState, actorId: EntityId, monorailEntityId: EntityId, destinationDistrictId: BlueprintId): MonorailResolutionResult` |
-| `src/sim/systems/mortality.system.ts` | 120 | ✅ OK | `isActorFatal(actor: EntityRecord): boolean`, `resolveActorDefeatIfFatal(state: WorldState, targetId: EntityId, attackerId: EntityId): SystemMortalityResult` |
+| `src/sim/systems/mortality.system.ts` | 136 | ✅ OK | `isActorFatal(actor: EntityRecord): boolean`, `resolveActorDefeatIfFatal(state: WorldState, targetId: EntityId, attackerId: EntityId): SystemMortalityResult` |
 | `src/sim/systems/movement.system.ts` | 203 | ✅ OK | `computeMovementMechanics(state: Readonly<WorldState>, entity: EntityRecord): { apSpent: number; steamSpentKpa: number }`, `resolveMoveStep(state: WorldState, actorId: EntityId, dx: number, dy: number): SystemMovementResult` |
 | `src/sim/systems/npc-ecology.system.ts` | 193 | ✅ OK | `resolveNpcEcologyAction(state: WorldState, actorId: EntityId): NpcEcologyResult` |
 | `src/sim/systems/physics-traps.system.ts` | 199 | ✅ OK | `resolveBreachTile(state: WorldState, target: Point3D, turn: number, breachSource: 'EXPLOSION' \| 'PILEDRIVER'): { readonly state: WorldState; readonly events: SimEvent[]; readonly breached: boolean }`, `resolveKnockbackAndGravityFall(state: WorldState, actorId: EntityId, dx: number, dy: number, turn: number): PhysicsTrapResult`, `resolveStepOnTraps(state: WorldState, actorId: EntityId, point: Point3D, turn: number): PhysicsTrapResult`, `resolveBreachCommand(state: WorldState, actorId: EntityId, target: Point3D): PhysicsTrapResult` |
@@ -143,9 +147,9 @@ Deterministic headless mechanics: anatomy, combat, momentum, metabolism, thermo,
 | `src/sim/systems/pressure.system.ts` | 162 | ✅ OK | `resolvePressurizeVessel(state: WorldState, vesselEntityId: EntityId, pressureAddedKpa: number): SystemPressureResult` |
 | `src/sim/systems/prosthetic-abilities.system.ts` | 88 | ✅ OK | `executeProstheticAbility(state: WorldState, actor: EntityRecord, abilityId: string, turn: number, dir: { dx: number; dy: number }, target: Point3D, targetEntityId: EntityId): AbilityEffectResult` |
 | `src/sim/systems/prosthetic-activation.system.ts` | 76 | ✅ OK | `resolveActivateProsthetic(state: WorldState, actorId: EntityId, slot: LimbSlotId, direction: { dx: number; dy: number }, target: Point3D, targetEntityId: EntityId): SystemAnatomyResult` |
-| `src/sim/systems/prosthetics.system.ts` | 184 | ✅ OK | `failProsthetic(state: WorldState, actorId: EntityId, slot: LimbSlotId, reason: ProstheticFailReason): SystemAnatomyResult`, `resolveInstallProsthetic(state: WorldState, actorId: EntityId, prostheticEntityId: EntityId, slot: LimbSlotId): SystemAnatomyResult`, `resolveRemoveProsthetic(state: WorldState, actorId: EntityId, slot: LimbSlotId): SystemAnatomyResult`, `decrementProstheticCooldowns(state: WorldState, actorId: EntityId): WorldState` |
-| `src/sim/systems/prying.system.ts` | 89 | ✅ OK | `resolvePryObstacle(state: WorldState, actorId: EntityId, target: Point3D, toolEntityId: EntityId): PryObstacleResult` |
-| `src/sim/systems/pyrotechnics.system.ts` | 134 | ✅ OK | `resolveEmitSpark(state: WorldState, target: Point3D): SystemPyrotechnicResult` |
+| `src/sim/systems/prosthetics.system.ts` | 213 | ✅ OK | `failProsthetic(state: WorldState, actorId: EntityId, slot: LimbSlotId, reason: ProstheticFailReason): SystemAnatomyResult`, `resolveInstallProsthetic(state: WorldState, actorId: EntityId, prostheticEntityId: EntityId, slot: LimbSlotId): SystemAnatomyResult`, `resolveRemoveProsthetic(state: WorldState, actorId: EntityId, slot: LimbSlotId): SystemAnatomyResult`, `decrementProstheticCooldowns(state: WorldState, actorId: EntityId): WorldState` |
+| `src/sim/systems/prying.system.ts` | 91 | ✅ OK | `resolvePryObstacle(state: WorldState, actorId: EntityId, target: Point3D, toolEntityId: EntityId): PryObstacleResult` |
+| `src/sim/systems/pyrotechnics.system.ts` | 108 | ✅ OK | `resolveEmitSpark(state: WorldState, target: Point3D): SystemPyrotechnicResult` |
 | `src/sim/systems/safehouse.system.ts` | 235 | ✅ OK | `resolveClaimWorkshopDeed(state: WorldState, cmd: ClaimWorkshopDeedCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `resolveBuildStructure(state: WorldState, cmd: BuildStructureCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `resolveStoreItemInStructure(state: WorldState, cmd: StoreItemInStructureCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `resolveRetrieveItemFromStructure(state: WorldState, cmd: RetrieveItemFromStructureCommand): { state: WorldState; apSpent: number; events: SimEvent[] }` |
 | `src/sim/systems/salvage-repair.system.ts` | 149 | ✅ OK | `resolveSalvageItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult`, `resolveRepairLimb(state: WorldState, actorId: EntityId, slot: LimbSlotId): SystemInventoryResult` |
 | `src/sim/systems/skirmish-turf.system.ts` | 218 | ✅ OK | `getTurfAtPosition(state: WorldState, pos: Point3D): TurfSectorRecord \| undefined`, `registerTurfSector(state: WorldState, turf: TurfSectorRecord): WorldState`, `resolveInitiateTurfSkirmish(state: WorldState, cmd: InitiateTurfSkirmishCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `processActorTurfMovement(state: WorldState, actorId: EntityId, oldPos: Point3D, newPos: Point3D): { state: WorldState; events: SimEvent[] }` |
@@ -178,10 +182,12 @@ Headless projection frame adapter, PixiJS glyph rendering stage, and CRT post-pr
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
 | `src/client/projection/biome-palette.ts` | 215 | ✅ OK | `resolveDistrictBiome(districtId: string, stratum: StratumId): BiomeId`, `resolveBiomeTerrainVisual(terrainType: TerrainType, isVisible: boolean, isExplored: boolean, biomeId: BiomeId, connectingWallGlyph: string, steamPressureKpa: unknown): VisualGlyphSpec` |
-| `src/client/projection/frame-adapter.ts` | 232 | ✅ OK | `resolveCatalogDisplayName(kind: string, id: string): string`, `projectWorldToVisualFrame(state: Readonly<WorldState>, focusActorId: unknown, baseFovRadius: unknown, viewportOverride: { width: number; height: number }): VisualGridFrame` |
+| `src/client/projection/environmental-visuals.ts` | 88 | ✅ OK | `applySootVisualOverlay(base: VisualGlyphSpec, smokePpm: number, coalDustDensity: number, worldX: number, worldY: number, turnCount: number, isVisible: boolean): VisualGlyphSpec`, `applyLiquidSurfaceVisual(base: VisualGlyphSpec, liquidType: LiquidTypeId, volumeMl: number, isVisible: boolean): VisualGlyphSpec`, `applyGaslightVisual(base: VisualGlyphSpec, isGaslit: boolean): VisualGlyphSpec` |
+| `src/client/projection/frame-adapter.ts` | 222 | ✅ OK | `resolveCatalogDisplayName(kind: string, id: string): string`, `projectWorldToVisualFrame(state: Readonly<WorldState>, focusActorId: unknown, baseFovRadius: unknown, viewportOverride: { width: number; height: number }): VisualGridFrame` |
 | `src/client/projection/wall-connections.ts` | 114 | ✅ OK | `isWallTerrain(terrainType: TerrainType): boolean`, `getExplicitWallGlyph(terrainType: TerrainType): string \| undefined`, `resolveConnectingWallGlyph(grid: StratumGrid, x: number, y: number): string` |
 | `src/client/renderer/crt-filter.ts` | 81 | ✅ OK | `createCrtPostFilter(opacity: number): Filter` |
-| `src/client/renderer/glyph-stage.ts` | 140 | ✅ OK | `CELL_WIDTH_PX`, `CELL_HEIGHT_PX`, `WIDESCREEN_GRID_WIDTH`, `WIDESCREEN_GRID_HEIGHT` |
+| `src/client/renderer/glyph-atlas.ts` | 99 | ✅ OK | `createGlyphAtlas(cellWidth: number, cellHeight: number, fontFamily: unknown): GlyphAtlas` |
+| `src/client/renderer/glyph-stage.ts` | 141 | ✅ OK | `CELL_WIDTH_PX`, `CELL_HEIGHT_PX`, `WIDESCREEN_GRID_WIDTH`, `WIDESCREEN_GRID_HEIGHT` |
 
 ## Ring 3: Preact UI Panels (`src/client/ui/`)
 
@@ -233,12 +239,13 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   onSelectWindow,
   onCommand,
 }: CharacterModalShellProps): void` |
+| `src/client/ui/ClientPresentationView.tsx` | 153 | ✅ OK | `renderClientPresentationViews(hosts: ClientMountHosts, ctx: ClientPresentationContext): void` |
 | `src/client/ui/CodexWindow.tsx` | 161 | ✅ OK | `CodexWindow({ state, actorId, onCommand }: CodexWindowProps): void` |
 | `src/client/ui/CraftingPanel.tsx` | 168 | ✅ OK | `CraftingPanel({ state, actorId, onCommand }: CraftingPanelProps): void` |
 | `src/client/ui/CraftingWindow.tsx` | 243 | ⚠️ WARN | `CraftingWindow({ state, actorId, onCommand }: CraftingWindowProps): void` |
 | `src/client/ui/DialogueModal.tsx` | 214 | ✅ OK | `DialogueModal({ state, actorId, targetNpcId, onCommand, onClose, onOpenModal }: DialogueModalProps): void` |
 | `src/client/ui/EquippedGearPanel.tsx` | 99 | ✅ OK | `EquippedGearPanel({ state, actorId, onCommand }: EquippedGearPanelProps): void` |
-| `src/client/ui/EventFormatter.ts` | 210 | ✅ OK | `formatEventMessage(ev: SimEvent): string` |
+| `src/client/ui/EventFormatter.ts` | 211 | ✅ OK | `formatEventMessage(ev: SimEvent): string` |
 | `src/client/ui/EventFormatterDomain.ts` | 48 | ✅ OK | `aggregateChronicleEvents(events: readonly SimEvent[], maxLines: number): string[]` |
 | `src/client/ui/HudLayout.tsx` | 223 | ✅ OK | `HudLayout({
   state,
@@ -259,7 +266,7 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   onSelect,
   graftReady = false,
 }: LimbSlotCardProps): void` |
-| `src/client/ui/LookCursorOverlay.tsx` | 211 | ✅ OK | `LookCursorOverlay({
+| `src/client/ui/LookCursorOverlay.tsx` | 244 | ⚠️ WARN | `LookCursorOverlay({
   isActive, cursor, cameraOrigin, state, actorId, onCommand, onClose, onTalk,
 }: LookCursorOverlayProps): void` |
 | `src/client/ui/MarketLedger.tsx` | 171 | ✅ OK | `MarketLedger({ economy, contracts, onCommand, onFilterContracts }: MarketLedgerProps): void` |
@@ -274,7 +281,7 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
 }: MerchantCounterViewProps): void` |
 | `src/client/ui/ModalTopBar.tsx` | 82 | ✅ OK | `ModalTopBar({ activeModal, onOpenModal, onOpenSystemMenu }: ModalTopBarProps): void` |
 | `src/client/ui/MorgueModal.tsx` | 140 | ✅ OK | `MorgueModal({ state, onReEmbark }: MorgueModalProps): void` |
-| `src/client/ui/QuickActionBar.tsx` | 132 | ✅ OK | `QuickActionBar({
+| `src/client/ui/QuickActionBar.tsx` | 182 | ✅ OK | `QuickActionBar({
   state,
   actorId,
   isLookModeActive = false,
@@ -314,10 +321,12 @@ Browser bootstrap, keyboard/mouse input dispatching, and WebAudio synth integrat
 | `src/client/audio/synth-presets-combat.ts` | 116 | ✅ OK | `COMBAT_PRESETS` |
 | `src/client/audio/synth-presets-environment.ts` | 176 | ✅ OK | `ENVIRONMENT_PRESETS`, `STRATUM_AMBIENCE_PROFILES` |
 | `src/client/audio/synth-presets-mechanical.ts` | 127 | ✅ OK | `MECHANICAL_PRESETS` |
+| `src/client/bootstrap-loop.ts` | 201 | ✅ OK | `createFreshWorld(seed: number): WorldState`, `startClientSession(mounts: ClientSessionMounts, stageRenderer: GlyphStageRenderer, initialSeed: unknown): void` |
+| `src/client/canvas-ui/viewport-controls.ts` | 183 | ✅ OK | `drawScrollableRegion(buf: UiCellWriteTarget, rect: UiRect, lines: readonly string[], scrollOffset: number, options: { readonly fgText?: string; readonly bgText?: string; readonly fgScrollbar?: string; readonly fgTrack?: string; readonly bgTrack?: string; }): ScrollResult`, `drawDiegeticTextInput(buf: UiCellWriteTarget, rect: UiRect, label: string, value: string, isFocused: boolean, tick: number, options: { readonly fgBorder?: string; readonly fgLabel?: string; readonly fgValue?: string; readonly fgCursor?: string; readonly bg?: string; }): void` |
 | `src/client/client-debug-bridge.ts` | 14 | ✅ OK | `DebugSimBridge` |
 | `src/client/client-interactions.ts` | 72 | ✅ OK | `cycleModalWindow(current: ModalWindowId \| null, direction: 1 \| -1): ModalWindowId`, `findAdjacentDialogueNpc(state: WorldState, playerId: EntityId): EntityId \| undefined`, `findAdjacentDoorTarget(state: WorldState, playerId: EntityId): Point3D \| undefined`, `findEntityAtLookCursor(state: WorldState, stratum: StratumId, cursor: { x: number; y: number }, excludeId: EntityId): EntityRecord \| undefined` |
-| `src/client/input/keyboard-router.ts` | 217 | ✅ OK | `handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParams): void` |
-| `src/client/main.tsx` | 247 | ⚠️ WARN | *None (internal)* |
+| `src/client/input/keyboard-router.ts` | 232 | ✅ OK | `handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParams): void` |
+| `src/client/main.tsx` | 41 | ✅ OK | *None (internal)* |
 
 ## Tooling & Headless LLM Pipeline (`tests/scripts/`)
 
@@ -344,14 +353,14 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | `tests/scripts/local-llm-config.ts` | 211 | ✅ OK | `resolveEndpoint(override: string): string`, `resolveModel(tierOrFallback: ModelTier \| string, override: string): string`, `checkEndpointHealth(endpoint: string, timeoutMs: unknown): Promise<boolean>`, `getConnectionTelemetry(opts: { mock?: boolean; isHealthy?: boolean; endpoint?: string; model?: string; temperature?: number; enforceJsonSchema?: boolean; }): LlmConnectionTelemetry` |
 | `tests/scripts/local-llm-ledger.ts` | 142 | ✅ OK | `recordInferenceMetric(entry: InferenceLedgerInput, ledgerPath: string): InferenceLedgerEntry`, `clearInferenceLedger(ledgerPath: string): void`, `getInferenceLedgerSummary(ledgerPath: string): InferenceLedgerSummary` |
 | `tests/scripts/playtest-report.ts` | 142 | ✅ OK | `writeReport(config: PlaytestReportConfig, metrics: PlaytestMetrics): void` |
-| `tests/scripts/playtester-actions.ts` | 57 | ✅ OK | `LIMB_ENUM`, `STRUCTURE_ENUM`, `LlmActionPayloadSchema`, `LlmActionPayload` |
+| `tests/scripts/playtester-actions.ts` | 61 | ✅ OK | `LIMB_ENUM`, `STRUCTURE_ENUM`, `LlmActionPayloadSchema`, `LlmActionPayload` |
 | `tests/scripts/playtester-common.ts` | 31 | ✅ OK | `normalizeDirection(raw: string): string \| undefined` |
-| `tests/scripts/playtester-dispatcher.ts` | 147 | ✅ OK | `parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId): GameCommand` |
+| `tests/scripts/playtester-dispatcher.ts` | 151 | ✅ OK | `parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId): GameCommand` |
 | `tests/scripts/playtester-mock.ts` | 114 | ✅ OK | `generateMockAction(state: WorldState, playerId: EntityId, recentPositions: ReadonlyArray<{ x: number; y: number }>, scenario: PlaytestScenario): LlmActionPayload` |
 | `tests/scripts/playtester-policy.ts` | 121 | ✅ OK | `evaluateDecisionPolicy(state: WorldState, playerId: EntityId, opts: DecisionPolicyOptions): DecisionPolicyResult` |
 | `tests/scripts/playtester-projection-audit.ts` | 205 | ✅ OK | `auditClientProjection(state: WorldState, playerId: EntityId, options: AuditProjectionOptions): ClientProjectionAudit` |
-| `tests/scripts/playtester-scenarios.ts` | 164 | ✅ OK | `getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjectives`, `applyPlaytestScenario(state: WorldState, scenario: PlaytestScenario): WorldState` |
-| `tests/scripts/playtester-serializer.ts` | 201 | ✅ OK | `serializePlayerContext(state: WorldState, playerId: EntityId, options: ContextSerializationOptions): string` |
+| `tests/scripts/playtester-scenarios.ts` | 173 | ✅ OK | `getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjectives`, `applyPlaytestScenario(state: WorldState, scenario: PlaytestScenario): WorldState` |
+| `tests/scripts/playtester-serializer.ts` | 208 | ✅ OK | `serializePlayerContext(state: WorldState, playerId: EntityId, options: ContextSerializationOptions): string` |
 | `tests/scripts/scaffold-mechanic.ts` | 180 | ✅ OK | `parseScaffoldArgs(argv: readonly string[]): ScaffoldConfig`, `toPascalCase(snakeStr: string): string`, `generateScaffoldCode(config: ScaffoldConfig): { commandSchemaRel: string; commandSchemaCode: string; eventSchemaRel: string; eventSchemaCode: string; systemRel: string; systemCode: string; testRel: string; testCode: string; }`, `runScaffold(config: ScaffoldConfig, rootDir: string): Promise<void>` |
 | `tests/scripts/update-state.ts` | 207 | ✅ OK | `parseVerifiedPrescriptions(criticContent: string): BacklogPrescription[]`, `routeVerifiedPrescriptionsToRoadmap(criticPathOrRootDir: string, customRoadmapPath: string, customStatePath: string): { routedCount: number; prescriptions: BacklogPrescription[] }`, `getRecentCommits(count: unknown): string`, `getNextPriority(roadmapPath: string): string` |
 | `tests/scripts/validate-data.ts` | 83 | ✅ OK | *None (internal)* |
