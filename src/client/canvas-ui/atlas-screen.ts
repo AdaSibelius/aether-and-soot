@@ -45,7 +45,7 @@ export function renderAtlasScreen(
   const leftWidth = 38;
   const dividerX = rect.x + 41;
   const rightX = rect.x + 43;
-  const rightWidth = rect.width - 45;
+  const rightWidth = Math.min(38, rect.width - 46);
 
   // Brass separator divider column
   for (let dy = rect.y + 2; dy < rect.y + rect.height - 2; dy++) {
@@ -137,19 +137,19 @@ export function renderAtlasScreen(
   dY += 2;
 
   const depthStr = STRATUM_DEPTH_MAP[currentStratum] ?? currentStratum;
-  buf.writeString(rightX, dY, `Stratum:  ${currentStratum}`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Stratum:  ${currentStratum}`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
-  buf.writeString(rightX, dY, `Altitude: ${depthStr}`, VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Altitude: ${depthStr}`.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
-  buf.writeString(rightX, dY, `Position: [X:${playerPos?.x ?? 0}, Y:${playerPos?.y ?? 0}]`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Position: [X:${playerPos?.x ?? 0}, Y:${playerPos?.y ?? 0}]`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
 
   const shiftPhase = getShiftPhase(state.turnCount);
-  buf.writeString(rightX, dY, `Shift:    ${shiftPhase.replace('_', ' ')} (Turn ${state.turnCount})`, VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Shift:    ${shiftPhase.replace('_', ' ')} (Turn ${state.turnCount})`.slice(0, rightWidth), VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY += 2;
 
   // Environmental Telemetry at player coordinates
-  buf.writeString(rightX, dY, '─[ LOCAL ATMOSPHERIC READINGS ]─', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, '─[ LOCAL ATMOSPHERIC READINGS ]─'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
 
   const currentCell = grid && playerPos && playerPos.stratum === currentStratum
@@ -161,17 +161,17 @@ export function renderAtlasScreen(
   const smoke = currentCell?.smokePpm ?? 0;
   const zone = currentCell?.interiorZone ?? 'OPEN_STREET';
 
-  buf.writeString(rightX, dY, `Ambient Steam:   ${steamPressure} kPa`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Ambient Steam:   ${steamPressure} kPa`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
-  buf.writeString(rightX, dY, `Coal Dust Smog:  ${coalDust}% opacity`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Coal Dust Smog:  ${coalDust}% opacity`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
-  buf.writeString(rightX, dY, `Combustion Smoke:${smoke} PPM`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Combustion Smoke:${smoke} PPM`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
-  buf.writeString(rightX, dY, `Zonal Boundary:  ${zone}`, VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Zonal Boundary:  ${zone}`.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY += 2;
 
   // Known Transit Portals on current stratum
-  buf.writeString(rightX, dY, '─[ CONNECTING TRANSIT GATES ]─', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, '─[ CONNECTING TRANSIT GATES ]─'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;
 
   const gatesOnStratum = Object.values(state.entities).filter(
@@ -185,7 +185,7 @@ export function renderAtlasScreen(
       dY++;
     }
   } else {
-    buf.writeString(rightX, dY, 'No direct district gates on this stratum.', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, dY, 'No direct district gates on this stratum.'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     dY++;
   }
 

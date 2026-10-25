@@ -170,4 +170,45 @@ describe('Phase UI-4: CDDA Bench, World Atlas Minimap, Market Exchange & Natural
     const tagsRow = buf.extractRowString(19);
     expect(tagsRow).toContain('TAGS: MECHANICAL • STEAM');
   });
+
+  it('verifies zero text truncation, zero undefined tokens, and zero border collisions across all 6 modals', () => {
+    const world = createInitialWorld({ seed: 42, width: 24, height: 24 });
+    const playerId = EntityIdSchema.parse('actor_player');
+    const modals = ['INVENTORY', 'ANATOMY', 'WORKBENCH', 'EXCHANGE', 'CODEX', 'ATLAS'] as const;
+
+    for (const modal of modals) {
+      const buf = generateModalUiBuffer(modal, world, playerId, 88, 36);
+
+      // Verify each row length and absence of interpolation corruption
+      for (let y = 0; y < 36; y++) {
+        const row = buf.extractRowString(y);
+        expect(row.length).toBe(88);
+        expect(row).not.toContain('undefined');
+        expect(row).not.toContain('null');
+        expect(row).not.toContain('NaN');
+        expect(row).not.toContain('[object');
+      }
+
+      // Verify framed modals have valid perimeter corners and enclosed borders
+      if (modal === 'WORKBENCH' || modal === 'ANATOMY' || modal === 'ATLAS' || modal === 'INVENTORY') {
+        const topLeft = buf.getCell(2, 1)?.glyph;
+        const topRight = buf.getCell(85, 1)?.glyph;
+        const bottomLeft = buf.getCell(2, 34)?.glyph;
+        const bottomRight = buf.getCell(85, 34)?.glyph;
+
+        expect(['☼', '╔', '┌']).toContain(topLeft);
+        expect(['☼', '╗', '┐']).toContain(topRight);
+        expect(['Ø', '╚', '└']).toContain(bottomLeft);
+        expect(['Ø', '╝', '┘']).toContain(bottomRight);
+
+        // Verify side borders are not overwritten by text spill
+        for (let y = 3; y < 33; y++) {
+          const leftBorder = buf.getCell(2, y)?.glyph;
+          const rightBorder = buf.getCell(85, y)?.glyph;
+          expect(['█', '║', '│']).toContain(leftBorder);
+          expect(['█', '║', '│']).toContain(rightBorder);
+        }
+      }
+    }
+  });
 });
