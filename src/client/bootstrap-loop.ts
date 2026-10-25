@@ -138,17 +138,18 @@ export function startClientSession(
     syncPresentation();
   };
 
-  const syncPresentation = (): void => {
+  const syncPresentation = (advanceTime = true): void => {
     const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, {
       width: WIDESCREEN_GRID_WIDTH,
       height: WIDESCREEN_GRID_HEIGHT,
     });
     const thermo = resolveThermodynamicStress(worldState, playerId);
+    const effectiveThermoStress = activeModal ? 0 : thermo.stressValue;
     const uiBuffer = (activeModal && useDiegeticCanvasUi)
       ? generateModalUiBuffer(activeModal, worldState, playerId, WIDESCREEN_GRID_WIDTH, WIDESCREEN_GRID_HEIGHT)
       : undefined;
 
-    stageRenderer.renderFrame(visualFrame, uiBuffer, thermo.stressValue);
+    stageRenderer.renderFrame(visualFrame, uiBuffer, effectiveThermoStress, 16.67, advanceTime);
 
     renderClientPresentationViews(
       { topBarHost, overlayHost, actionBarHost, hudHost },
@@ -186,7 +187,7 @@ export function startClientSession(
       const wy = frame.cameraOrigin.y + sy;
       if (!mouseHoverCoord || mouseHoverCoord.x !== wx || mouseHoverCoord.y !== wy) {
         mouseHoverCoord = { x: wx, y: wy };
-        syncPresentation();
+        syncPresentation(false);
       }
     }
   };

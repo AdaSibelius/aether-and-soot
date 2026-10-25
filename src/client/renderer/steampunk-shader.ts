@@ -46,56 +46,54 @@ export const STEAMPUNK_FRAGMENT_SHADER = `
       vec2 centered = uv - vec2(0.5);
       float dist = length(centered);
 
-      // 1. Mild barrel distortion & chromatic fringe restricted to outer 8% edge
-      float edgeFactor = smoothstep(0.42, 0.50, dist) * uDistortionScale;
-      vec2 distortedUV = uv + centered * (edgeFactor * 0.022);
+      // 1. Crisp Edison Phosphor Surface — No wavy text distortion in reading area
+      // Restrict subtle lens vignette purely to the outermost rim (dist > 0.46)
+      float rimFactor = smoothstep(0.46, 0.50, dist) * uDistortionScale;
+      vec2 sampleUV = uv + centered * (rimFactor * 0.005);
 
-      float shift = 0.0009 * uDistortionScale * (1.0 + edgeFactor * 2.8);
-      float r = texture(uTexture, vec2(distortedUV.x + shift, distortedUV.y)).r;
-      float g = texture(uTexture, distortedUV).g;
-      float b = texture(uTexture, vec2(distortedUV.x - shift, distortedUV.y)).b;
-      vec3 col = vec3(r, g, b);
+      vec3 col = texture(uTexture, sampleUV).rgb;
 
-      // 2. Subtle procedural metal grain noise
-      float grain = fract(sin(dot(distortedUV * 80.0, vec2(12.9898, 78.233)) + uTime * 0.1) * 43758.5453);
-      col += (grain - 0.5) * 0.016;
+      // 2. Microscopic phosphor dust (barely perceptible grain)
+      float grain = fract(sin(dot(sampleUV * 120.0, vec2(12.9898, 78.233)) + uTime * 0.02) * 43758.5453);
+      col += (grain - 0.5) * 0.008;
 
-      // 3. Selective emissive bloom (warm gaslight amber & sharp aether blue)
+      // 3. Crisp selective phosphor bloom (warm gaslight amber & sharp aether blue)
       vec3 bloom = vec3(0.0);
-      float bShift = 0.0022;
-      bloom += texture(uTexture, distortedUV + vec2(bShift, 0.0)).rgb;
-      bloom += texture(uTexture, distortedUV - vec2(bShift, 0.0)).rgb;
-      bloom += texture(uTexture, distortedUV + vec2(0.0, bShift)).rgb;
-      bloom += texture(uTexture, distortedUV - vec2(0.0, bShift)).rgb;
+      float bShift = 0.0010;
+      bloom += texture(uTexture, sampleUV + vec2(bShift, 0.0)).rgb;
+      bloom += texture(uTexture, sampleUV - vec2(bShift, 0.0)).rgb;
+      bloom += texture(uTexture, sampleUV + vec2(0.0, bShift)).rgb;
+      bloom += texture(uTexture, sampleUV - vec2(0.0, bShift)).rgb;
       bloom *= 0.25;
 
-      if (bloom.b > 0.65 && bloom.g > 0.65) {
-          col += bloom * 0.24; // Sharp aether blue halation
-      } else if (bloom.r > 0.55 && bloom.g > 0.35) {
-          col += bloom * vec3(1.15, 0.85, 0.35) * 0.18; // Gaslight amber bloom
+      if (bloom.b > 0.70 && bloom.g > 0.65) {
+          col += bloom * 0.15; // Sharp aether cyan glow
+      } else if (bloom.r > 0.60 && bloom.g > 0.40) {
+          col += bloom * vec3(1.10, 0.85, 0.35) * 0.12; // Warm amber gaslight bloom
       }
 
       // 4. Localized procedural volumetric smoke plumes within masked UV bounds
       if (uSmokeMask.z > uSmokeMask.x &&
-          distortedUV.x >= uSmokeMask.x && distortedUV.x <= uSmokeMask.z &&
-          distortedUV.y >= uSmokeMask.y && distortedUV.y <= uSmokeMask.w) {
-          float smokeNoise = sin(distortedUV.x * 24.0 + uTime * 1.6) * cos((distortedUV.y - uTime * 0.9) * 18.0);
+          sampleUV.x >= uSmokeMask.x && sampleUV.x <= uSmokeMask.z &&
+          sampleUV.y >= uSmokeMask.y && sampleUV.y <= uSmokeMask.w) {
+          float smokeNoise = sin(sampleUV.x * 24.0 + uTime * 1.6) * cos((sampleUV.y - uTime * 0.9) * 18.0);
           float plume = smoothstep(0.15, 0.85, smokeNoise * 0.5 + 0.5) * 0.14;
           col = mix(col, vec3(0.20, 0.16, 0.13), plume);
       }
 
-      // 5. Thermodynamic stress pulse toward incandescent red (#ff3b1f)
+      // 5. Thermodynamic stress pulse restricted to outer edge bezel (never washes text)
       if (uThermoStress > 0.0) {
           float pulse = (sin(uTime * 4.5) * 0.5 + 0.5) * uThermoStress;
-          col = mix(col, col * vec3(1.35, 0.35, 0.25) + vec3(0.16, 0.02, 0.0) * pulse, pulse * 0.65);
+          float edgeStress = smoothstep(0.35, 0.50, dist) * pulse;
+          col = mix(col, col * vec3(1.35, 0.35, 0.25) + vec3(0.18, 0.02, 0.0) * edgeStress, edgeStress * 0.55);
       }
 
-      // 6. Horizontal scanlines & soot-glass vignette
-      float scanline = sin(distortedUV.y * 540.0 + uTime * 2.0) * uScanlineOpacity;
+      // 6. Ultra-fine hairline scanlines & soot-glass bezel
+      float scanline = sin(sampleUV.y * 720.0 + uTime * 1.0) * uScanlineOpacity;
       col -= scanline;
 
-      float vignette = 1.0 - dot(centered, centered) * 0.68;
-      col *= clamp(vignette, 0.36, 1.0);
+      float vignette = 1.0 - dot(centered, centered) * 0.55;
+      col *= clamp(vignette, 0.45, 1.0);
 
       finalColor = vec4(col, 1.0);
   }
@@ -144,7 +142,7 @@ export function resolveThermodynamicStress(
     };
   }
   return {
-    stressValue: maxStress * 0.3,
+    stressValue: 0.0,
     stressLevel: 'NOMINAL',
     reason: 'NOMINAL_OPERATION',
   };

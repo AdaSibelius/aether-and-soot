@@ -1,7 +1,7 @@
 import { Filter, GlProgram } from 'pixi.js';
 import { STEAMPUNK_FRAGMENT_SHADER, STEAMPUNK_VERTEX_SHADER } from './steampunk-shader.js';
 
-export const DEFAULT_SCANLINE_OPACITY = 0.033;
+export const DEFAULT_SCANLINE_OPACITY = 0.012;
 
 export interface SteampunkFilterOptions {
   readonly scanlineOpacity?: number;

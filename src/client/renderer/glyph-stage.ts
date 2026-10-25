@@ -5,10 +5,10 @@ import { createCrtPostFilter, DEFAULT_SCANLINE_OPACITY, updateSteampunkFilterUni
 import { createGlyphAtlas, GlyphAtlas } from './glyph-atlas.js';
 import { getPerformanceGovernor, PerformanceGovernor } from './performance-governor.js';
 
-export const CELL_WIDTH_PX = 22;
-export const CELL_HEIGHT_PX = 24;
-export const WIDESCREEN_GRID_WIDTH = 48;
-export const WIDESCREEN_GRID_HEIGHT = 30;
+export const CELL_WIDTH_PX = 12;
+export const CELL_HEIGHT_PX = 20;
+export const WIDESCREEN_GRID_WIDTH = 88;
+export const WIDESCREEN_GRID_HEIGHT = 36;
 export const DESKTOP_GRID_WIDTH = 120;
 export const DESKTOP_GRID_HEIGHT = 40;
 
@@ -96,8 +96,11 @@ export class GlyphStageRenderer {
     uiBuffer?: UiCellBuffer,
     thermoStress = 0,
     deltaMs = 16.67,
+    advanceTime = true,
   ): void {
-    this.elapsedSeconds += 0.05;
+    if (advanceTime) {
+      this.elapsedSeconds += 0.05;
+    }
     this.activeUiBuffer = uiBuffer ?? null;
     this.governor.recordFrameTime(deltaMs);
 

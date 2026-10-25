@@ -8,29 +8,29 @@ import { RECIPE_CATALOG } from '../../src/sim/data/item-catalog.js';
 
 describe('Phase 2.3: Viewport Aspect Ratio, Scanline Opacity, Quick Actions, and Modal Safeguards', () => {
   describe('CRT Filter & Scanline Opacity', () => {
-    it('reduces default scanline alpha opacity by 45% (0.06 -> 0.033)', () => {
-      expect(DEFAULT_SCANLINE_OPACITY).toBeCloseTo(0.033, 3);
+    it('reduces default scanline alpha opacity to ultra-fine hairline (0.012)', () => {
+      expect(DEFAULT_SCANLINE_OPACITY).toBeCloseTo(0.012, 3);
       expect(DEFAULT_SCANLINE_OPACITY).toBeLessThan(0.06);
     });
   });
 
   describe('Widescreen Viewport Grid Projection', () => {
-    it('defines 48x30 widescreen grid dimensions', () => {
-      expect(WIDESCREEN_GRID_WIDTH).toBe(48);
-      expect(WIDESCREEN_GRID_HEIGHT).toBe(30);
+    it('defines 88x36 high-density widescreen grid dimensions', () => {
+      expect(WIDESCREEN_GRID_WIDTH).toBe(88);
+      expect(WIDESCREEN_GRID_HEIGHT).toBe(36);
     });
 
-    it('projects a 48x30 visual frame when requested, eliminating lateral dead margins', () => {
-      const world = createInitialWorld({ seed: 42 });
+    it('projects a visual frame clamped to stratum bounds when requested', () => {
+      const world = createInitialWorld({ seed: 42, width: 88, height: 36 });
       const playerId = EntityIdSchema.parse('actor_player');
       const frame = projectWorldToVisualFrame(world, playerId, undefined, {
         width: WIDESCREEN_GRID_WIDTH,
         height: WIDESCREEN_GRID_HEIGHT,
       });
 
-      expect(frame.width).toBe(48);
-      expect(frame.height).toBe(30);
-      expect(frame.cells).toHaveLength(48 * 30);
+      expect(frame.width).toBe(88);
+      expect(frame.height).toBe(36);
+      expect(frame.cells).toHaveLength(88 * 36);
     });
   });
 
