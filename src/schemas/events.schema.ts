@@ -46,20 +46,16 @@ import {
   WeaponModActionFailedEventSchema,
 } from './weapon-mod-events.schema.js';
 import {
-  LiquidSpilledEventSchema,
-  LiquidIgnitedEventSchema,
-  ItemCoatedEventSchema,
-  AcidCorrosionTickEventSchema,
-  SurfaceSlippedEventSchema,
-  LiquidActionFailedEventSchema,
+  LiquidSpilledEventSchema, LiquidIgnitedEventSchema, ItemCoatedEventSchema,
+  AcidCorrosionTickEventSchema, SurfaceSlippedEventSchema, LiquidActionFailedEventSchema,
 } from './liquid-events.schema.js';
 import {
-  MonorailBoardedEventSchema,
-  MonorailLaunchedEventSchema,
-  MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema,
-  TransitActionFailedEventSchema2,
+  MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
+  CatacombsDepthDescendedEventSchema, TransitActionFailedEventSchema2,
 } from './transit-events.schema.js';
+import { HazardTriggeredEventSchema, type HazardTriggeredEvent, type HazardType } from './hazard-events.schema.js';
+export { HazardTriggeredEventSchema };
+export type { HazardTriggeredEvent, HazardType };
 export type {
   MonorailBoardedEvent,
   MonorailLaunchedEvent,
@@ -233,5 +229,6 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ActorTurfStateChangedEventSchema, TacticalManeuverRecordedEventSchema,
   ConvoyPreparationStartedEventSchema, ConvoyEscortAssignedEventSchema,
   ConvoyDeliveryConfirmedEventSchema, NpcGoalChangedEventSchema, SafehouseAuditCompletedEventSchema,
+  HazardTriggeredEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

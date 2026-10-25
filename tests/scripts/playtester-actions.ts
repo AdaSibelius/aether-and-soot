@@ -51,6 +51,10 @@ export const LlmActionPayloadSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('EMIT_SPARK'), targetRelX: z.number().int().default(0), targetRelY: z.number().int().default(0), reasoning: z.string().optional() }),
   z.object({ action: z.literal('INSTALL_WEAPON_MOD'), weaponId: z.string(), modId: z.string(), reasoning: z.string().optional() }),
   z.object({ action: z.literal('LOAD_AMMO'), weaponId: z.string(), ammoId: z.string(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('LOOT_CONTAINER'), containerId: z.string(), itemId: z.string().optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('PAY_CHIRURGEON_HEAL'), chirurgeonId: z.string(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('DESCEND_CATACOMBS'), stairEntityId: z.string().optional(), portalId: z.string().optional(), reasoning: z.string().optional() }),
+  z.object({ action: z.literal('EMIT_SQUAD_CALLOUT'), targetId: z.string().optional(), alertMessage: z.string().optional(), reasoning: z.string().optional() }),
 ]);
 
 export type LlmActionPayload = z.infer<typeof LlmActionPayloadSchema>;

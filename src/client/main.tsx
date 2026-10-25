@@ -1,4 +1,3 @@
-import { render } from 'preact';
 import { GameCommand } from '../schemas/commands.schema.js';
 import { CharacterCreationConfig } from '../schemas/character.schema.js';
 import { EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
@@ -12,16 +11,10 @@ import { applyCharacterCreation } from '../sim/systems/character-archetypes.js';
 import { handleGameKeydown } from './input/keyboard-router.js';
 import { projectWorldToVisualFrame } from './projection/frame-adapter.js';
 import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer, WIDESCREEN_GRID_HEIGHT, WIDESCREEN_GRID_WIDTH } from './renderer/glyph-stage.js';
-import { CharacterModalShell, ModalWindowId } from './ui/CharacterModalShell.js';
-import { CharacterCreatorModal } from './ui/CharacterCreatorModal.js';
-import { DialogueModal } from './ui/DialogueModal.js';
-import { HudLayout } from './ui/HudLayout.js';
-import { LookCursorOverlay } from './ui/LookCursorOverlay.js';
-import { ModalTopBar } from './ui/ModalTopBar.js';
-import { QuickActionBar } from './ui/QuickActionBar.js';
-import { SystemMenuModal } from './ui/SystemMenuModal.js';
+import { ModalWindowId } from './ui/CharacterModalShell.js';
+import { renderClientPresentationViews } from './ui/ClientPresentationView.js';
 import { getSoundscapeManager } from './audio/soundscape-manager.js';
-import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor, resolveInspectedTileCoord } from './client-interactions.js';
+import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor } from './client-interactions.js';
 import type { DebugSimBridge } from './client-debug-bridge.js';
 
 declare global {
@@ -140,63 +133,27 @@ async function bootstrapClient(): Promise<void> {
     });
     stageRenderer.renderFrame(visualFrame);
 
-    if (topBarHost) {
-      render(<ModalTopBar activeModal={activeModal} onOpenModal={(w) => { activeModal = w; syncPresentation(); }} onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }} />, topBarHost);
-    }
-
-    render(
-      <LookCursorOverlay
-        isActive={isLookModeActive} cursor={lookCursor} cameraOrigin={visualFrame.cameraOrigin}
-        state={worldState} actorId={playerId} onCommand={handleCommand} onClose={toggleLookMode} onTalk={handleTalk}
-      />,
-      overlayHost,
-    );
-
-    if (actionBarHost) {
-      render(
-        <QuickActionBar
-          state={worldState} actorId={playerId} isLookModeActive={isLookModeActive}
-          onToggleLookMode={toggleLookMode} onToggleDoor={toggleAdjacentDoor} onCommand={handleCommand}
-        />,
-        actionBarHost,
-      );
-    }
-
-    const inspectedTile = resolveInspectedTileCoord(isLookModeActive, lookCursor, mouseHoverCoord);
-
-    render(
-      <div>
-        <HudLayout
-          state={worldState} onCommand={handleCommand} hoveredTile={inspectedTile}
-          onOpenModal={(w) => { activeModal = w; syncPresentation(); }}
-          onOpenSystemMenu={() => { isSystemMenuOpen = true; syncPresentation(); }}
-          onReEmbark={() => { isCreatorOpen = true; syncPresentation(); }}
-        />
-        <CharacterModalShell
-          state={worldState} actorId={playerId} activeWindow={activeModal}
-          onClose={() => { activeModal = null; syncPresentation(); }}
-          onSelectWindow={(w) => { activeModal = w; syncPresentation(); }} onCommand={handleCommand}
-        />
-        {activeDialogueNpcId && (
-          <DialogueModal
-            state={worldState} actorId={playerId} targetNpcId={activeDialogueNpcId}
-            onCommand={handleCommand} onClose={() => { activeDialogueNpcId = null; syncPresentation(); }}
-            onOpenModal={(w) => { activeDialogueNpcId = null; activeModal = w; syncPresentation(); }}
-          />
-        )}
-        <SystemMenuModal
-          state={worldState} isOpen={isSystemMenuOpen} onClose={() => { isSystemMenuOpen = false; syncPresentation(); }}
-          onNewSeed={(s) => { worldState = createFreshWorld(s); syncPresentation(); }}
-          onLoadWorld={(loaded) => { worldState = loaded; syncPresentation(); }}
-          onOpenCharacterCreator={() => { isCreatorOpen = true; syncPresentation(); }}
-          crtScanlinesEnabled={isCrtScanlinesEnabled} onToggleCrtScanlines={toggleCrtScanlines}
-        />
-        <CharacterCreatorModal
-          isOpen={isCreatorOpen} initialSeed={worldState.seed}
-          onClose={() => { isCreatorOpen = false; syncPresentation(); }} onEmbark={handleEmbark}
-        />
-      </div>,
-      hudHost,
+    renderClientPresentationViews(
+      { topBarHost, overlayHost, actionBarHost, hudHost },
+      {
+        worldState, playerId, activeModal, isSystemMenuOpen, isLookModeActive,
+        isCreatorOpen, isCrtScanlinesEnabled, lookCursor, mouseHoverCoord,
+        cameraOrigin: visualFrame.cameraOrigin, activeDialogueNpcId,
+        onCommand: handleCommand,
+        onOpenModal: (w) => { activeModal = w; syncPresentation(); },
+        onCloseModal: () => { activeModal = null; syncPresentation(); },
+        onOpenSystemMenu: () => { isSystemMenuOpen = true; syncPresentation(); },
+        onCloseSystemMenu: () => { isSystemMenuOpen = false; syncPresentation(); },
+        onToggleLookMode: toggleLookMode,
+        onToggleDoor: toggleAdjacentDoor,
+        onTalk: handleTalk,
+        onNewSeed: (s) => { worldState = createFreshWorld(s); syncPresentation(); },
+        onLoadWorld: (loaded) => { worldState = loaded; syncPresentation(); },
+        onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
+        onCloseCharacterCreator: () => { isCreatorOpen = false; syncPresentation(); },
+        onEmbark: handleEmbark,
+        onToggleCrtScanlines: toggleCrtScanlines,
+      },
     );
   };
 

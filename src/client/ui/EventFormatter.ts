@@ -199,6 +199,7 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'STRUCTURE_BUILT': return `[T${ev.turn}] A new edifice rises from the aether, its brass and coal-iron frame a testament to our unyielding industrial might.`;
     case 'STRUCTURE_STORAGE_UPDATED': return `[T${ev.turn}] The storage facility's inventory has been updated with new supplies.`;
     case 'WORKSHOP_DEED_CLAIMED': return `[T${ev.turn}] A deed to a workshop claimed by the industrious soul, ready to forge the future.`;
+    case 'HAZARD_TRIGGERED': return `[T${ev.turn}] HAZARD! [${ev.severity}] ${ev.message} at (${ev.at.x}, ${ev.at.y})`;
   }
 }
 

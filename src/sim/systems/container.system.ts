@@ -4,6 +4,9 @@ import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { processCrimeWitnesses } from './squad-witness.system.js';
+import { resolveDamageLimb } from './anatomy.system.js';
+import { resolveActorDefeatIfFatal } from './mortality.system.js';
+import { resolveEmitSpark } from './pressure.system.js';
 import {
   computeCarriedVolumeMl,
   findMergeableStack,
@@ -21,20 +24,12 @@ export interface ContainerResolutionResult {
 const VALID_CONTAINER_KINDS = new Set(['LOCKER', 'CRATE', 'BOOKSHELF']);
 
 function failContainer(
-  state: WorldState,
-  actorId: EntityId,
+  state: WorldState, actorId: EntityId,
   reason: 'OUT_OF_RANGE' | 'NOT_A_CONTAINER' | 'CONTAINER_EMPTY' | 'VOLUME_EXCEEDED' | 'MASS_EXCEEDED',
 ): ContainerResolutionResult {
   return {
-    state,
-    events: [{
-      type: 'FURNITURE_ACTION_FAILED',
-      turn: state.turnCount + 1,
-      actorId,
-      action: 'LOOT_CONTAINER',
-      reason,
-    }],
-    apSpent: 0,
+    state, apSpent: 0,
+    events: [{ type: 'FURNITURE_ACTION_FAILED', turn: state.turnCount + 1, actorId, action: 'LOOT_CONTAINER', reason }],
   };
 }
 
@@ -171,6 +166,7 @@ export function resolveLootContainer(
       containedEntityIds: remainingContainerIds,
       currentMassGrams: containerMass,
     },
+    ...(container.trap ? { trap: { ...container.trap, armed: false } } : {}),
   };
   nextEntities[containerId] = updatedContainer;
 
@@ -182,6 +178,46 @@ export function resolveLootContainer(
       playerTreasuryPence: state.economy.playerTreasuryPence + penceGained,
     },
   };
+
+  const trapEvents: SimEvent[] = [];
+  if (container.trap?.armed && container.position) {
+    const kind = container.trap.trapKind;
+    const dmg = container.trap.damageMagnitude;
+    const turn = state.turnCount + 1;
+    trapEvents.push({
+      type: 'TRAP_TRIGGERED',
+      turn,
+      trapEntityId: containerId,
+      trapKind: kind,
+      victimActorId: actorId,
+      at: container.position,
+    });
+    trapEvents.push({
+      type: 'HAZARD_TRIGGERED',
+      turn,
+      hazardType: 'BOOBY_TRAP',
+      at: container.position,
+      actorId,
+      severity: 'MODERATE',
+      message: `Booby trap sprung from ${container.name}!`,
+    });
+    if (kind === 'SPRING_JAW') {
+      const jawRes = resolveDamageLimb(nextState, actorId, 'RIGHT_ARM', dmg);
+      nextState = jawRes.state;
+      trapEvents.push(...jawRes.events);
+    } else if (kind === 'STEAM_MINE') {
+      const steamDmg = resolveDamageLimb(nextState, actorId, 'TORSO', dmg);
+      nextState = steamDmg.state;
+      trapEvents.push(...steamDmg.events);
+    } else if (kind === 'SPARK_TRIPWIRE') {
+      const sparkRes = resolveEmitSpark(nextState, container.position);
+      nextState = sparkRes.state;
+      trapEvents.push(...sparkRes.events);
+    }
+    const def = resolveActorDefeatIfFatal(nextState, actorId);
+    nextState = def.state;
+    trapEvents.push(...def.events);
+  }
 
   const witnessEvents: SimEvent[] = [];
   if (container.aiController?.factionId) {
@@ -202,7 +238,7 @@ export function resolveLootContainer(
 
   return {
     state: nextState,
-    events: [lootedEvent, ...witnessEvents],
+    events: [...trapEvents, lootedEvent, ...witnessEvents],
     apSpent: STANDARD_ACTION_AP,
   };
 }
