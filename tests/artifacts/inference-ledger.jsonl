@@ -456,3 +456,10 @@
 {"timestamp":"2026-10-25T16:21:30.264Z","task":"hermes-critic","tier":"tier1","model":"lfm2.5:24b","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
 {"timestamp":"2026-10-25T16:21:30.685Z","task":"hermes-testgen","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
 {"timestamp":"2026-10-25T16:21:37.621Z","task":"hermes-scout","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T16:24:36.941Z","task":"hermes-scout","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":932,"completion_tokens":1613,"duration_ms":33096,"retry_count":0,"success":true,"cache_hit":false}
+{"timestamp":"2026-10-25T16:27:52.359Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T16:27:53.222Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T16:27:53.670Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T16:27:55.421Z","task":"hermes-critic","tier":"tier1","model":"lfm2.5:24b","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T16:27:55.971Z","task":"hermes-testgen","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T16:28:04.200Z","task":"hermes-scout","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}

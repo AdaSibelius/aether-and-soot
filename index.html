@@ -6,14 +6,17 @@
     <title>Aether &amp; Soot — Victorian Steampunk Roguelike</title>
     <style>
       :root {
-        --bg-soot: #0a0d0e;
-        --panel-bg: #11171a;
+        --bg-soot: #07090b;
+        --panel-bg: #0b0f12;
+        --panel-border: #3d2f1f;
+        --panel-border-bright: #d4af37;
         --brass-gold: #d4af37;
         --oxidized-copper: #cd7f32;
+        --tesla-cyan: #48c9b0;
         --parchment: #d5dbdb;
-        --muted-slate: #7f8c8d;
-        --ok-green: #58d68d;
-        --warn-red: #ec7063;
+        --muted-slate: #7a868a;
+        --ok-green: #52be80;
+        --warn-red: #e74c3c;
       }
       * {
         box-sizing: border-box;
@@ -32,44 +35,49 @@
       .app-frame {
         display: grid;
         grid-template-columns: auto 340px;
-        gap: 16px;
-        border: 2px solid var(--brass-gold);
-        background: #07090a;
-        padding: 14px;
-        box-shadow: 0 0 28px rgba(212, 175, 55, 0.15);
+        gap: 12px;
+        border: 2px double var(--brass-gold);
+        background: #050708;
+        padding: 10px;
+        box-shadow: 0 0 32px rgba(212, 175, 55, 0.18), inset 0 0 12px rgba(0, 0, 0, 0.85);
       }
       .viewport-column {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
       }
       #canvas-stage {
-        border: 1px solid #2c3e50;
+        border: 2px solid #221c15;
         position: relative;
         width: 1056px;
         max-width: 100%;
         height: 720px;
         margin: 0 auto;
         overflow: hidden;
+        box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.95);
       }
       .hud-sidebar {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
       }
       .panel-box {
         background: var(--panel-bg);
-        border: 1px solid #2e4053;
-        padding: 10px 12px;
-        font-size: 12px;
+        border: 1px solid var(--panel-border);
+        padding: 8px 10px;
+        font-size: 11px;
+        box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
       }
       .panel-header {
         color: var(--brass-gold);
         font-weight: bold;
         letter-spacing: 0.08em;
-        border-bottom: 1px solid #2e4053;
-        padding-bottom: 6px;
-        margin-bottom: 8px;
+        border-bottom: 1px solid var(--panel-border);
+        padding-bottom: 4px;
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
       .stat-row,
       .limb-item {
@@ -83,6 +91,9 @@
       .copper-text {
         color: var(--oxidized-copper);
       }
+      .tesla-text {
+        color: var(--tesla-cyan);
+      }
       .ok-text {
         color: var(--ok-green);
       }
@@ -95,17 +106,19 @@
         gap: 6px;
       }
       button {
-        background: #17202a;
+        background: #11181c;
         color: var(--brass-gold);
-        border: 1px solid var(--brass-gold);
-        padding: 6px 8px;
+        border: 1px solid var(--panel-border);
+        padding: 4px 8px;
         font-family: inherit;
         font-size: 11px;
         cursor: pointer;
         text-align: left;
+        transition: border-color 0.15s, background 0.15s;
       }
       button:hover {
-        background: #212f3d;
+        background: #1a252c;
+        border-color: var(--brass-gold);
       }
       .log-box {
         flex: 1;
@@ -115,7 +128,7 @@
         font-size: 11px;
         line-height: 1.4;
         padding: 2px 0;
-        border-bottom: 1px dashed #1c2833;
+        border-bottom: 1px dashed #172126;
       }
       .muted {
         color: var(--muted-slate);

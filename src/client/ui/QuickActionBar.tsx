@@ -59,18 +59,18 @@ export function QuickActionBar({
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '6px 10px',
-        background: '#0d1316',
-        border: '1px solid #2e4053',
-        gap: '6px',
+        padding: '5px 8px',
+        background: '#090e11',
+        border: '1px solid #3d2f1f',
+        gap: '4px',
       }}
     >
       {/* Tactical World Actions */}
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
         <button
           type="button"
           onClick={() => onCommand({ type: 'SET_POSTURE', actorId, posture: nextPosture[currentPosture] })}
-          style={{ padding: '3px 6px', fontSize: '10px' }}
+          style={{ padding: '2px 5px', fontSize: '10px' }}
           title={`Cycle Posture (Current: ${currentPosture}) [Z]`}
         >
           [Z] {currentPosture}
@@ -78,7 +78,7 @@ export function QuickActionBar({
         <button
           type="button"
           onClick={() => onCommand({ type: 'WAIT_TURN', actorId })}
-          style={{ padding: '3px 6px', fontSize: '10px' }}
+          style={{ padding: '2px 5px', fontSize: '10px' }}
           title="Wait 1 Turn [Space / .]"
         >
           [Space] Wait
@@ -86,7 +86,7 @@ export function QuickActionBar({
         <button
           type="button"
           onClick={() => onCommand({ type: 'PICK_UP_ITEM', actorId })}
-          style={{ padding: '3px 6px', fontSize: '10px' }}
+          style={{ padding: '2px 5px', fontSize: '10px' }}
           title="Pick up item from ground [G]"
         >
           [G] Take
@@ -94,7 +94,7 @@ export function QuickActionBar({
         <button
           type="button"
           onClick={() => onCommand({ type: 'USE_PORTAL', actorId })}
-          style={{ padding: '3px 6px', fontSize: '10px' }}
+          style={{ padding: '2px 5px', fontSize: '10px' }}
           title="Traverse vertical portal or transit gate [Enter / > / <]"
         >
           [&gt;/&lt;] Portal
@@ -103,7 +103,7 @@ export function QuickActionBar({
           <button
             type="button"
             onClick={onToggleDoor}
-            style={{ padding: '3px 6px', fontSize: '10px' }}
+            style={{ padding: '2px 5px', fontSize: '10px' }}
             title="Open or close adjacent door [O]"
           >
             [O] Door
@@ -118,7 +118,7 @@ export function QuickActionBar({
               pressureAddedKpa: 50,
             })
           }
-          style={{ padding: '3px 6px', fontSize: '10px' }}
+          style={{ padding: '2px 5px', fontSize: '10px' }}
           title="Stoke boiler (+50 kPa) [R]"
         >
           [R] Stoke
@@ -134,7 +134,7 @@ export function QuickActionBar({
               pressureReleasedKpa: 25,
             });
           }}
-          style={{ padding: '3px 6px', fontSize: '10px' }}
+          style={{ padding: '2px 5px', fontSize: '10px' }}
           title="Vent high pressure steam [V]"
         >
           [V] Vent
@@ -144,10 +144,12 @@ export function QuickActionBar({
             type="button"
             onClick={onToggleLookMode}
             style={{
-              padding: '3px 6px',
+              padding: '2px 5px',
               fontSize: '10px',
-              color: isLookModeActive ? 'var(--brass-gold)' : undefined,
-              borderColor: isLookModeActive ? 'var(--brass-gold)' : undefined,
+              color: isLookModeActive ? '#050708' : '#d4af37',
+              background: isLookModeActive ? '#d4af37' : '#11181c',
+              borderColor: isLookModeActive ? '#d4af37' : '#3d2f1f',
+              fontWeight: isLookModeActive ? 'bold' : 'normal',
             }}
             title="Toggle Keyboard Look / Target Mode [L]"
           >
@@ -161,10 +163,10 @@ export function QuickActionBar({
             disabled={ab.cooldown > 0}
             onClick={() => onCommand({ type: 'ACTIVATE_PROSTHETIC', actorId, slot: ab.slot })}
             style={{
-              padding: '3px 6px',
+              padding: '2px 5px',
               fontSize: '10px',
-              color: ab.cooldown > 0 ? '#7f8c8d' : '#5dade2',
-              borderColor: ab.cooldown > 0 ? '#34495e' : '#2980b9',
+              color: ab.cooldown > 0 ? '#7a868a' : '#48c9b0',
+              borderColor: ab.cooldown > 0 ? '#263238' : '#1b4f72',
             }}
             title={`Activate ${ab.label}${ab.cooldown > 0 ? ` (${ab.cooldown} turns cooldown)` : ''}`}
           >
@@ -173,8 +175,8 @@ export function QuickActionBar({
         ))}
       </div>
 
-      <div style={{ fontSize: '10px', color: '#7f8c8d' }}>
-        Tactical Actions
+      <div style={{ fontSize: '10px', color: '#7a868a', letterSpacing: '0.04em' }}>
+        PNEUMATIC ACTUATION
       </div>
     </div>
   );

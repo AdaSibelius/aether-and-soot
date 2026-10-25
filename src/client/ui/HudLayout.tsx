@@ -41,92 +41,104 @@ export function HudLayout({
 
   const bloodPct = Math.max(0, Math.min(100, player?.anatomy?.bloodVolumePct ?? 0));
   const steamKpa = player?.anatomy?.steamReserveKpa ?? 0;
-  const steamPct = Math.max(0, Math.min(100, (steamKpa / 200) * 100));
+  const maxSteamKpa = player?.anatomy?.maxSteamReserveKpa ?? 100;
+  const steamRatio = maxSteamKpa > 0 ? steamKpa / maxSteamKpa : 0;
+  const strainKw = player?.anatomy?.strainLoadKw ?? 0;
+  const governorCapKw = player?.anatomy?.governorCapacityKw ?? 100;
+  const strainRatio = governorCapKw > 0 ? strainKw / governorCapKw : 0;
+
+  const renderSegmentedBar = (ratio: number, totalChars = 14): string => {
+    const clamped = Math.max(0, Math.min(1, ratio));
+    const filled = Math.round(clamped * totalChars);
+    return '█'.repeat(filled) + '░'.repeat(totalChars - filled);
+  };
 
   return (
     <div class="hud-sidebar">
-      {/* District & Chronometer Header */}
+      {/* Tactical Telemetry */}
       <div class="panel-box">
-        <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>TACTICAL TELEMETRY</span>
+        <div class="panel-header">
+          <span>╔═[ TACTICAL TELEMETRY ]═╗</span>
           {onOpenSystemMenu && (
             <button
               type="button"
               onClick={onOpenSystemMenu}
               style={{ padding: '1px 5px', fontSize: '10px' }}
             >
-              [Esc] Menu
+              [Esc]
             </button>
           )}
         </div>
         <div class="stat-row">
-          <span>District:</span>
-          <span class="brass-text" style={{ fontSize: '11px' }}>
+          <span class="muted">District:</span>
+          <span class="brass-text" style={{ fontSize: '11px', fontWeight: 'bold' }}>
             {resolveCatalogDisplayName('district', state.currentDistrictId ?? 'district_spitalfields_soot_works')}
           </span>
         </div>
         <div class="stat-row">
-          <span>Stratum:</span>
+          <span class="muted">Stratum:</span>
           <span class="copper-text">{pos?.stratum ?? 'STREET'}</span>
         </div>
         <div class="stat-row">
-          <span>Position:</span>
-          <span>
+          <span class="muted">Coordinates:</span>
+          <span class="parchment">
             ({pos?.x ?? 0}, {pos?.y ?? 0})
           </span>
         </div>
         <div class="stat-row">
-          <span>Chronometer:</span>
+          <span class="muted">Chronometer:</span>
           <span>
-            Turn {state.turnCount} (Tick #{state.macroTickCount})
+            Turn {state.turnCount} <span class="muted">(Tick #{state.macroTickCount})</span>
           </span>
         </div>
       </div>
 
-      {/* Sanguine & Steam Reserves */}
+      {/* Vitals & Energy Reserves with CP437 Segmented Gauges */}
       <div class="panel-box">
-        <div class="panel-header">VITALS &amp; ENERGY RESERVES</div>
-        <div style={{ marginBottom: '6px' }}>
-          <div class="stat-row" style={{ fontSize: '11px' }}>
-            <span>Sanguine Volume:</span>
+        <div class="panel-header">
+          <span>╔═[ VITALS &amp; RESERVES ]═╗</span>
+          <span class="brass-text" style={{ fontSize: '10px' }}>{state.economy.playerTreasuryPence}d</span>
+        </div>
+        
+        {/* Sanguine Volume Bar */}
+        <div style={{ marginBottom: '4px' }}>
+          <div class="stat-row" style={{ fontSize: '10px' }}>
+            <span class="muted">Sanguine:</span>
             <span class={bloodPct < 40 ? 'warn-text' : 'ok-text'}>{bloodPct}%</span>
           </div>
-          <div style={{ background: '#1a0d0d', height: '6px', border: '1px solid #4a1515' }}>
-            <div
-              style={{
-                background: bloodPct < 40 ? '#ec7063' : '#e74c3c',
-                width: `${bloodPct}%`,
-                height: '100%',
-              }}
-            />
+          <div style={{ fontSize: '11px', letterSpacing: '0.04em', color: bloodPct < 40 ? 'var(--warn-red)' : 'var(--ok-green)' }}>
+            [{renderSegmentedBar(bloodPct / 100, 16)}]
           </div>
         </div>
 
-        <div style={{ marginBottom: '6px' }}>
-          <div class="stat-row" style={{ fontSize: '11px' }}>
-            <span>Boiler Pressure:</span>
-            <span class="copper-text">{steamKpa} / 200 kPa</span>
+        {/* Boiler Pressure Bar */}
+        <div style={{ marginBottom: '4px' }}>
+          <div class="stat-row" style={{ fontSize: '10px' }}>
+            <span class="muted">Boiler:</span>
+            <span class="copper-text">{steamKpa} / {maxSteamKpa} kPa</span>
           </div>
-          <div style={{ background: '#1c150c', height: '6px', border: '1px solid #5a3c1e' }}>
-            <div
-              style={{
-                background: '#cd7f32',
-                width: `${steamPct}%`,
-                height: '100%',
-              }}
-            />
+          <div style={{ fontSize: '11px', letterSpacing: '0.04em', color: steamRatio >= 0.85 ? 'var(--warn-red)' : 'var(--oxidized-copper)' }}>
+            [{renderSegmentedBar(steamRatio, 16)}]
           </div>
         </div>
 
-        <div class="stat-row">
-          <span>Cartel Treasury:</span>
-          <span class="brass-text">{state.economy.playerTreasuryPence}d</span>
-        </div>
+        {/* Governor Strain Bar */}
+        {strainKw > 0 && (
+          <div style={{ marginBottom: '4px' }}>
+            <div class="stat-row" style={{ fontSize: '10px' }}>
+              <span class="muted">Governor Strain:</span>
+              <span class="warn-text">{strainKw} / {governorCapKw} kW</span>
+            </div>
+            <div style={{ fontSize: '11px', letterSpacing: '0.04em', color: strainRatio >= 0.75 ? 'var(--warn-red)' : '#f39c12' }}>
+              [{renderSegmentedBar(strainRatio, 16)}]
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Nearby Detected Entities */}
+      {/* Nearby Acoustic Proximity Radar */}
       <div class="panel-box">
-        <div class="panel-header">PROXIMITY RADAR</div>
+        <div class="panel-header">╔═[ PROXIMITY RADAR ]═╗</div>
         {nearbyEntities.length === 0 ? (
           <div class="log-entry muted">No acoustic signals in immediate proximity.</div>
         ) : (
@@ -144,17 +156,17 @@ export function HudLayout({
                     <span
                       style={{
                         fontSize: '9px',
-                        padding: '1px 4px',
-                        marginRight: '6px',
-                        border: isHostile ? '1px solid #ec7063' : '1px solid var(--brass-gold)',
-                        color: isHostile ? '#ec7063' : 'var(--brass-gold)',
-                        borderRadius: '2px',
+                        padding: '0 3px',
+                        marginRight: '5px',
+                        border: isHostile ? '1px solid var(--warn-red)' : '1px solid var(--brass-gold)',
+                        color: isHostile ? 'var(--warn-red)' : 'var(--brass-gold)',
+                        borderRadius: '1px',
                         flexShrink: 0,
                       }}
                     >
                       {ent.aiController.role}
                     </span>
-                    <span style={{ color: isHostile ? '#ec7063' : '#d5dbdb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ color: isHostile ? 'var(--warn-red)' : '#d5dbdb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {actorName}
                     </span>
                   </span>
@@ -196,14 +208,15 @@ export function HudLayout({
         }}
       />
 
-      {/* Action Chronicle Log */}
+      {/* Action Chronicle Pneumatic Ticker */}
       <div class="panel-box log-box">
-        <div class="panel-header">ACTION CHRONICLE</div>
+        <div class="panel-header">╔═[ PNEUMATIC CHRONICLE ]═╗</div>
         {chronicleLines.length === 0 ? (
           <div class="log-entry muted">Awaiting pneumatic actuation...</div>
         ) : (
           chronicleLines.map((line, idx) => (
             <div key={`chronicle-${idx}`} class="log-entry">
+              <span style={{ color: '#d4af37', marginRight: '4px' }}>»</span>
               {line}
             </div>
           ))
