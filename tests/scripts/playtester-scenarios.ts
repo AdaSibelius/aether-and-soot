@@ -106,18 +106,21 @@ export function applyPlaytestScenario(state: WorldState, scenario: PlaytestScena
     grid = setTileCell(grid, pos.x, pos.y, (c) => ({ ...c, terrainType: 'COBBLESTONE_FLOOR', blocksMovement: false, blocksSight: false }));
     grid = setTileCell(grid, mX, pos.y, (c) => ({ ...c, terrainType: 'COBBLESTONE_FLOOR', blocksMovement: false, blocksSight: false }));
     const tonicId = EntityIdSchema.parse('loot_merchant_tonic');
+    const canisterId = EntityIdSchema.parse('loot_merchant_canister');
     nextEntities[tonicId] = {
       id: tonicId, name: 'Coagulant Tonic',
       visual: { glyph: '!', fgPrimary: '#E74C3C', fgSecondary: '#C0392B', bgColor: '#0A0D0E', shaderFlags: [] },
       item: { blueprintId: BlueprintIdSchema.parse('item_coagulant_tonic'), category: 'CONSUMABLE', quantity: 3, stackable: true, massGrams: 250, volumeMl: 250, useEffect: { kind: 'RESTORE_BLOOD', magnitude: 30 } },
     };
+    const merchantInvIds = [tonicId];
+    if (nextEntities[canisterId]) merchantInvIds.push(canisterId);
     nextEntities[merchantId] = {
       id: merchantId, name: 'Apothecary Chirurgeon',
       visual: { glyph: 'M', fgPrimary: '#F4D03F', fgSecondary: '#D4AF37', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
       actor: { energy: 0, speed: 80, isPlayer: false },
       position: { x: mX, y: pos.y, stratum: pos.stratum, blocksMovement: true, blocksSight: false },
       aiController: { factionId: 'CLOCKWORK_GUILD', role: 'MERCHANT', hostile: false, alertState: 'IDLE' },
-      inventory: { containedEntityIds: [tonicId], maxMassGrams: 30000, maxVolumeMl: 30000, currentMassGrams: 750 },
+      inventory: { containedEntityIds: merchantInvIds, maxMassGrams: 30000, maxVolumeMl: 30000, currentMassGrams: 1350 },
     };
     nextEconomy = { ...nextEconomy, playerTreasuryPence: 500 };
     if (player.anatomy) nextEntities[playerId] = { ...player, anatomy: { ...player.anatomy, bloodVolumePct: 70 } };
