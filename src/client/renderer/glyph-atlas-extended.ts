@@ -23,6 +23,7 @@ export const CP437_EXTENDED_GLYPHS: readonly string[] = Array.from(new Set([
   '≡', '±', '≥', '≤', '⌠', '⌡', '÷', '≈', '°', '∙', '·', '√', 'ⁿ', '²', '■', ' ',
   // Victorian Technical & Cartographic Symbology
   '⚙', '⌖', '◈', '◆', '◇', '□', '⚡', '⚠', '‡', '⣿', 'Ø', 'ø', '×', '✓', '✗', '…',
+  '╭', '╮', '╰', '╯', '╱', '╲', '—', '–', '★', '☆', '●', '◎',
 ]));
 
 const ATLAS_COLUMNS = 16;

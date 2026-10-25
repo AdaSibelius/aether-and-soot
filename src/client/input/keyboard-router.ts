@@ -10,8 +10,11 @@ export interface KeyboardRouterParams {
   readonly isSystemMenuOpen: boolean;
   readonly activeModal: ModalWindowId | null;
   readonly isLookModeActive: boolean;
+  readonly isCreatorOpen?: boolean;
   readonly worldState?: Readonly<WorldState>;
   readonly modalNavState?: ModalNavState;
+  readonly onNavigate?: () => void;
+  readonly onCreatorKey?: (key: string) => boolean;
   readonly onToggleSystemMenu: () => void;
   readonly onCloseModal: () => void;
   readonly onCycleModal: (direction: 1 | -1) => void;
@@ -23,6 +26,7 @@ export interface KeyboardRouterParams {
   readonly onToggleDoor?: () => void;
   readonly onTalk?: (targetNpcId?: EntityId) => void;
   readonly onOpenCharacterCreator?: () => void;
+  readonly onCloseCharacterCreator?: () => void;
   readonly currentPosture?: 'STANDING' | 'CROUCHED' | 'BRACED';
   readonly onTogglePosture?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
@@ -55,13 +59,21 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
 
   if (ev.key === 'Escape') {
     ev.preventDefault();
-    if (activeModal !== null) onCloseModal();
+    if (params.isCreatorOpen && params.onCloseCharacterCreator) params.onCloseCharacterCreator();
+    else if (activeModal !== null) onCloseModal();
     else if (isLookModeActive) onToggleLookMode();
     else onToggleSystemMenu();
     return;
   }
 
   if (isSystemMenuOpen) return;
+
+  if (params.isCreatorOpen) {
+    if (params.onCreatorKey?.(ev.key)) {
+      ev.preventDefault();
+    }
+    return;
+  }
 
   if (activeModal !== null) {
     if (ev.key === 'Tab') {
@@ -79,22 +91,8 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
       onCycleModal(1);
       return;
     }
-    const modalKeyMap: Record<string, ModalWindowId> = {
-      i: 'INVENTORY', I: 'INVENTORY',
-      a: 'ANATOMY', A: 'ANATOMY',
-      c: 'WORKBENCH', C: 'WORKBENCH',
-      m: 'EXCHANGE', M: 'EXCHANGE',
-      w: 'ATLAS', W: 'ATLAS',
-      k: 'CODEX', K: 'CODEX',
-    };
-    const targetModal = modalKeyMap[ev.key];
-    if (targetModal) {
-      ev.preventDefault();
-      onSetModal(activeModal === targetModal ? null : targetModal);
-      return;
-    }
 
-    // Modal internal list/item keyboard navigation
+    // Modal internal list/item keyboard navigation first so WASD/Arrows work
     if (params.worldState && params.modalNavState) {
       const handled = handleModalNavigationKey(
         ev,
@@ -103,8 +101,24 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
         playerId,
         params.modalNavState,
         onCommand,
+        params.onNavigate,
       );
       if (handled) return;
+    }
+
+    const modalKeyMap: Record<string, ModalWindowId> = {
+      i: 'INVENTORY', I: 'INVENTORY',
+      A: 'ANATOMY',
+      c: 'WORKBENCH', C: 'WORKBENCH',
+      m: 'EXCHANGE', M: 'EXCHANGE',
+      W: 'ATLAS',
+      k: 'CODEX', K: 'CODEX',
+    };
+    const targetModal = modalKeyMap[ev.key];
+    if (targetModal) {
+      ev.preventDefault();
+      onSetModal(activeModal === targetModal ? null : targetModal);
+      return;
     }
     return;
   }

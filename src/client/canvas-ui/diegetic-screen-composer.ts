@@ -1,12 +1,14 @@
 import { CharacterCreationConfig, ProfessionId, ScenarioId, TraitId } from '../../schemas/character.schema.js';
 import { GameCommand } from '../../schemas/commands.schema.js';
-import { EntityId } from '../../schemas/primitives.schema.js';
+import { EntityId, EntityIdSchema, LimbSlotId, StratumId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { resolveDiegeticClickHit } from '../client-interactions.js';
+import { ModalNavState } from '../input/modal-nav-router.js';
 import { ModalWindowId } from '../ui/CharacterModalShell.js';
 import { createUiCellBuffer, UiCellBuffer } from './cell-buffer.js';
 import { renderEmbarkationScreen } from './embarkation-screen.js';
-import { generateModalUiBuffer } from './modal-buffer-router.js';
+import { generateModalUiBuffer, ModalRouterOptions } from './modal-buffer-router.js';
+import { NaturalistTab } from './naturalist-ledger-screen.js';
 import { renderTacticalConsole } from './tactical-console.js';
 
 export interface DiegeticComposerParams {
@@ -20,6 +22,7 @@ export interface DiegeticComposerParams {
   readonly height: number;
   readonly inspectedTile: { x: number; y: number } | null;
   readonly isLookModeActive: boolean;
+  readonly modalOptions?: ModalRouterOptions | undefined;
 }
 
 export interface DiegeticHitCallbacks {
@@ -30,6 +33,8 @@ export interface DiegeticHitCallbacks {
   readonly onOpenModal: (w: ModalWindowId) => void;
   readonly onOpenSystemMenu: () => void;
   readonly onDispatchCommand: (cmd: GameCommand) => void;
+  readonly modalNavState?: ModalNavState | undefined;
+  readonly onNavigate?: (() => void) | undefined;
 }
 
 /**
@@ -58,6 +63,7 @@ export function composeDiegeticUiBuffer(params: DiegeticComposerParams): UiCellB
       params.playerId,
       params.width,
       params.height,
+      params.modalOptions,
     );
   }
 
@@ -120,6 +126,51 @@ export function handleDiegeticHitAction(
   if (hit === 'open_menu') {
     callbacks.onOpenSystemMenu();
     return true;
+  }
+  if (callbacks.modalNavState) {
+    const nav = callbacks.modalNavState;
+    if (hit.startsWith('select_item:')) {
+      const id = EntityIdSchema.parse(hit.replace('select_item:', ''));
+      if (nav.selectedItemId !== id) {
+        nav.selectedItemId = id;
+        callbacks.onNavigate?.();
+        return true;
+      }
+    } else if (hit.startsWith('select_limb:')) {
+      const slot = hit.replace('select_limb:', '') as LimbSlotId;
+      if (nav.selectedLimbSlot !== slot) {
+        nav.selectedLimbSlot = slot;
+        callbacks.onNavigate?.();
+        return true;
+      }
+    } else if (hit.startsWith('select_recipe:')) {
+      nav.selectedRecipeId = hit.replace('select_recipe:', '');
+      callbacks.onNavigate?.();
+      return true;
+    } else if (hit.startsWith('craft_recipe:')) {
+      const recId = hit.replace('craft_recipe:', '');
+      if (nav.selectedRecipeId !== recId) {
+        nav.selectedRecipeId = recId;
+        callbacks.onNavigate?.();
+        return true;
+      }
+    } else if (hit.startsWith('select_turf:')) {
+      nav.selectedSectorId = hit.replace('select_turf:', '');
+      callbacks.onNavigate?.();
+      return true;
+    } else if (hit.startsWith('select_stratum:')) {
+      nav.selectedStratum = hit.replace('select_stratum:', '') as StratumId;
+      callbacks.onNavigate?.();
+      return true;
+    } else if (hit.startsWith('select_codex:')) {
+      nav.selectedCodexEntryId = hit.replace('select_codex:', '');
+      callbacks.onNavigate?.();
+      return true;
+    } else if (hit.startsWith('select_codex_tab:')) {
+      nav.selectedCodexCategory = hit.replace('select_codex_tab:', '') as NaturalistTab;
+      callbacks.onNavigate?.();
+      return true;
+    }
   }
 
   const cmd = resolveDiegeticClickHit(hit, state, playerId);

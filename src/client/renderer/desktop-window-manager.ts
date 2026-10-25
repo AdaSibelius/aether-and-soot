@@ -41,6 +41,52 @@ export function computeAspectLockedScale(
   };
 }
 
+/**
+ * Maps browser client coordinates to logical grid cell coordinates proportionally
+ * against the rendered canvas bounding box.
+ */
+export function transformClientToGrid(
+  clientX: number,
+  clientY: number,
+  rect: { left: number; top: number; width: number; height: number },
+  gridWidth: number = WIDESCREEN_GRID_WIDTH,
+  gridHeight: number = WIDESCREEN_GRID_HEIGHT,
+): { col: number; row: number; inside: boolean } {
+  if (rect.width <= 0 || rect.height <= 0) {
+    return { col: 0, row: 0, inside: false };
+  }
+  const relX = clientX - rect.left;
+  const relY = clientY - rect.top;
+  const inside = relX >= 0 && relX < rect.width && relY >= 0 && relY < rect.height;
+  const col = Math.floor((relX / rect.width) * gridWidth);
+  const row = Math.floor((relY / rect.height) * gridHeight);
+  return { col, row, inside };
+}
+
+/**
+ * Applies computed aspect-locked scale metrics to the canvas host and overlay elements.
+ */
+export function applyViewportScale(
+  elements: { canvasHost: HTMLElement; overlayHost?: HTMLElement; appCanvas?: HTMLCanvasElement | null },
+  metrics: ViewportScaleMetrics,
+): void {
+  const { canvasHost, overlayHost, appCanvas } = elements;
+  canvasHost.style.width = `${metrics.scaledWidth}px`;
+  canvasHost.style.height = `${metrics.scaledHeight}px`;
+
+  if (appCanvas) {
+    appCanvas.style.width = '100%';
+    appCanvas.style.height = '100%';
+  }
+
+  if (overlayHost) {
+    overlayHost.style.width = `${WIDESCREEN_GRID_WIDTH * CELL_WIDTH_PX}px`;
+    overlayHost.style.height = `${WIDESCREEN_GRID_HEIGHT * CELL_HEIGHT_PX}px`;
+    overlayHost.style.transform = `scale(${metrics.scaleFactor})`;
+    overlayHost.style.transformOrigin = 'top left';
+  }
+}
+
 export async function toggleFullscreen(targetElement?: HTMLElement): Promise<boolean> {
   if (typeof document === 'undefined') return false;
   try {

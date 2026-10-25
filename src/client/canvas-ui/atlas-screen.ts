@@ -137,7 +137,16 @@ export function renderAtlasScreen(
   dY += 2;
 
   const depthStr = STRATUM_DEPTH_MAP[currentStratum] ?? currentStratum;
-  buf.writeString(rightX, dY, `Stratum:  ${currentStratum}`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(rightX, dY, `Stratum:  ${currentStratum} [↑/↓/1-4]`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  dY++;
+  const strataList: readonly StratumId[] = ['CATACOMBS', 'UNDERCROFT', 'STREET', 'SPIRE'];
+  let sx = rightX;
+  for (const st of strataList) {
+    const isSt = st === currentStratum;
+    const stLabel = `[${st.slice(0, 4)}]`;
+    buf.writeString(sx, dY, stLabel, isSt ? VICTORIAN_PALETTE.AETHER_BLUE : VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG, undefined, `select_stratum:${st}`);
+    sx += stLabel.length + 1;
+  }
   dY++;
   buf.writeString(rightX, dY, `Altitude: ${depthStr}`.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
   dY++;

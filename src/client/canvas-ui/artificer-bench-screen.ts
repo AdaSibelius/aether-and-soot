@@ -162,7 +162,7 @@ export function renderArtificerBenchScreen(
 
     const prefix = isSelected ? '► ' : '  ';
     const statusIcon = isWidescreen ? (craftable ? '[+] ' : '[-] ') : '';
-    const nameStr = recipe.name.length > 18 ? recipe.name.slice(0, 17) + '…' : recipe.name.padEnd(18, ' ');
+    const nameStr = recipe.name.length > 22 ? recipe.name.slice(0, 21) + '…' : recipe.name.padEnd(22, ' ');
     const pressureTag = `[${recipe.steamCostKpa.toString().padStart(2, ' ')} kPa]`;
     const line = `${prefix}${statusIcon}${nameStr} ${pressureTag}`;
 

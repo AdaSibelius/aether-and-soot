@@ -49,9 +49,10 @@ export function renderDiegeticPaperdoll(
     return;
   }
 
-  // Header & Pneumatic Governor Conduit Load
-  const governorLoad = `${anatomy.strainLoadKw ?? 0}/${anatomy.governorCapacityKw ?? 100}kW`;
-  buf.writeString(originX, originY, `ANATOMICAL WIREFRAME [Gov: ${governorLoad}]`, VICTORIAN_PALETTE.TARNISHED_BRASS);
+  // Header & Pneumatic Governor Conduit Load (in Victorian Horsepower)
+  const loadHp = Math.round((anatomy.strainLoadKw ?? 0) * 1.34);
+  const capHp = Math.round((anatomy.governorCapacityKw ?? 100) * 1.34);
+  buf.writeString(originX, originY, `WIREFRAME [Gov:${loadHp}/${capHp}HP]`, VICTORIAN_PALETTE.TARNISHED_BRASS);
 
   // Structural Wireframe Connectors (Pneumatic & Nervous Conduits)
   // Neck conduit

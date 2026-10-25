@@ -64,7 +64,7 @@ export function renderTacticalVernierDossier(
 ): void {
   drawMachinedBezel(buf, rect, {
     title: 'OPTICAL VERNIER',
-    subtitle: 'VERNIER APPARATUS MK. IV',
+    subtitle: 'VERNIER MK. IV',
     rivetStyle: 'BRASS_BOLTS',
   });
 
@@ -90,13 +90,14 @@ export function renderTacticalVernierDossier(
   const isGaslit = (gaslightField.get(pointKey(hoverCoord.x, hoverCoord.y)) ?? 0) > 0.15;
 
   // 1. Coordinates and Terrain Identity
-  const coordStr = `COORD: (${hoverCoord.x}, ${hoverCoord.y}) [${stratum}]`;
+  const maxLen = Math.max(10, width - 4);
+  const coordStr = `COORD:(${hoverCoord.x},${hoverCoord.y}) [${stratum}]`.slice(0, maxLen);
   buf.writeString(innerX, currY++, coordStr, VICTORIAN_PALETTE.POLISHED_BRASS);
 
   const tType = cell?.terrainType ?? 'EMPTY_ABYSS';
   const hardness = estimateTerrainHardness(tType);
-  buf.writeString(innerX, currY++, `SURFACE: ${tType.slice(0, width - 12)}`, '#ecf0f1');
-  buf.writeString(innerX, currY++, `HARD: ${hardness.mohs} Mohs [${hardness.rating.slice(0, 10)}]`, VICTORIAN_PALETTE.RIVET_STEEL);
+  buf.writeString(innerX, currY++, `SURF: ${tType.replace(/_/g, ' ')}`.slice(0, maxLen), '#ecf0f1');
+  buf.writeString(innerX, currY++, `HARD: ${hardness.mohs} Mohs [${hardness.rating.slice(0, 6)}]`.slice(0, maxLen), VICTORIAN_PALETTE.RIVET_STEEL);
 
   // 2. Atmospheric & Forensic Sensor Data
   const smokePpm = cell?.smokePpm ?? 0;
@@ -104,22 +105,18 @@ export function renderTacticalVernierDossier(
   const coalDust = Math.round((cell?.coalDustDensity ?? 0) * 100);
   const acousticsDb = estimateTerrainAcousticDb(tType);
 
-  currY++;
-  buf.writeString(innerX, currY++, '── SENSOR ARRAY ──', VICTORIAN_PALETTE.TARNISHED_BRASS);
-  buf.writeString(innerX, currY++, `SOOT CONC:  ${smokePpm} PPM ${smokePpm > 100 ? '⚠ HAZARD' : ''}`, smokePpm > 100 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.SEPIA_INK);
-  buf.writeString(innerX, currY++, `THERMAL:    ${steamKpa} kPa Steam`, steamKpa > 50 ? VICTORIAN_PALETTE.COPPER_ACCENT : VICTORIAN_PALETTE.SEPIA_INK);
-  buf.writeString(innerX, currY++, `COAL DUST:  ${coalDust}% Density`, coalDust > 25 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.SEPIA_INK);
-  buf.writeString(innerX, currY++, `ACOUSTIC:   ${acousticsDb} dB Footstep Echo`, VICTORIAN_PALETTE.VERDIGRIS_PATINA);
-  buf.writeString(innerX, currY++, `GASLIGHT:   ${isGaslit ? 'LUMINESCENT' : 'SHADOWED'}`, isGaslit ? '#f39c12' : '#7f8c8d');
+  buf.writeString(innerX, currY++, `SOOT CONC: ${smokePpm} PPM${smokePpm > 100 ? ' ⚠' : ''}`.slice(0, maxLen), smokePpm > 100 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.SEPIA_INK);
+  buf.writeString(innerX, currY++, `THERMAL:   ${steamKpa} kPa Steam`.slice(0, maxLen), steamKpa > 50 ? VICTORIAN_PALETTE.COPPER_ACCENT : VICTORIAN_PALETTE.SEPIA_INK);
+  buf.writeString(innerX, currY++, `COAL DUST: ${coalDust}% Density`.slice(0, maxLen), coalDust > 25 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.SEPIA_INK);
+  buf.writeString(innerX, currY++, `ACOUSTIC:  ${acousticsDb} dB Echo`.slice(0, maxLen), VICTORIAN_PALETTE.VERDIGRIS_PATINA);
+  buf.writeString(innerX, currY++, `GASLIGHT:  ${isGaslit ? 'LUMINESCENT' : 'SHADOWED'}`.slice(0, maxLen), isGaslit ? '#f39c12' : '#7f8c8d');
 
   // 3. Occupying Entities
-  if (entities.length > 0) {
-    currY++;
-    buf.writeString(innerX, currY++, '── DETECTED MASS ──', VICTORIAN_PALETTE.TARNISHED_BRASS);
-    for (const ent of entities.slice(0, 3)) {
+  if (entities.length > 0 && currY < y + rect.height - 1) {
+    for (const ent of entities.slice(0, 2)) {
       if (currY >= y + rect.height - 1) break;
       const glyph = ent.visual.glyph;
-      const name = ent.name.length > width - 8 ? `${ent.name.slice(0, width - 11)}...` : ent.name;
+      const name = ent.name.slice(0, maxLen - 3);
       const color = ent.actor ? (ent.aiController?.hostile ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.POLISHED_BRASS) : '#bdc3c7';
       buf.writeString(innerX, currY++, `${glyph} ${name}`, color);
     }

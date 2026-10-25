@@ -95,7 +95,7 @@ export function renderSatchelScreen(
       const rawName = itemComp?.blueprintId
         ? resolveCatalogDisplayName('item', itemComp.blueprintId)
         : (itemEntity?.name ?? itemId);
-      const name = rawName.length > 18 ? `${rawName.slice(0, 17)}…` : rawName.padEnd(18, ' ');
+      const name = rawName.length > 23 ? `${rawName.slice(0, 22)}…` : rawName.padEnd(23, ' ');
       const qty = (itemComp?.quantity ?? 1) > 1 ? ` x${itemComp?.quantity}` : '';
       const isSelected = activeItemId === itemId;
 
@@ -129,9 +129,9 @@ export function renderSatchelScreen(
     buf.writeString(rightX, dY, `Class:     ${catLabel}`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
     dY++;
 
-    const massKg = ((activeComp?.massGrams ?? 100) / 1000).toFixed(2);
-    const volMl = activeComp?.volumeMl ?? 250;
-    buf.writeString(rightX, dY, `Mass/Vol:  ${massKg} kg │ ${volMl} ml`, VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    const massOz = Math.max(1, Math.round((activeComp?.massGrams ?? 100) / 28.35));
+    const volDrams = Math.max(1, Math.round((activeComp?.volumeMl ?? 250) / 3.55));
+    buf.writeString(rightX, dY, `Mass/Vol:  ${massOz} oz Avdp │ ${volDrams} fl drams`, VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     dY++;
 
     if (activeEntity.prostheticSpec) {

@@ -76,17 +76,17 @@ export function renderEmbarkationScreen(
     const fg = isSelected ? VICTORIAN_PALETTE.POLISHED_BRASS ?? '#e6c875' : VICTORIAN_PALETTE.SEPIA_INK;
     const hit = `select_prof:${profId}`;
 
-    buf.writeString(leftX, curY, `${prefix}${prof.name.slice(0, colWidth - 8)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
+    buf.writeString(leftX, curY, `${prefix}${prof.name.slice(0, colWidth - 6)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
     curY++;
 
     if (isSelected) {
-      const descLines = prof.description.match(/.{1,26}(\s|$)/g) ?? [prof.description];
+      const descLines = prof.description.match(/.{1,21}(\s|$)/g) ?? [prof.description];
       for (const d of descLines.slice(0, 2)) {
-        buf.writeString(leftX + 4, curY, d.trim(), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
+        buf.writeString(leftX + 4, curY, d.trim().slice(0, colWidth - 5), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
         curY++;
       }
       if (prof.preGraftedBlueprintId) {
-        buf.writeString(leftX + 4, curY, `Graft: ${prof.preGraftedSlot}`, VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+        buf.writeString(leftX + 4, curY, `Graft: ${prof.preGraftedSlot}`.slice(0, colWidth - 5), VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.OXIDIZED_IRON);
         curY++;
       }
       curY++;
@@ -101,17 +101,17 @@ export function renderEmbarkationScreen(
   for (const traitId of ALL_TRAITS) {
     const trait = TRAITS[traitId];
     const isChecked = config.traitIds.includes(traitId);
-    const prefix = isChecked ? '► [√] ' : '  [ ] ';
+    const prefix = isChecked ? '► [✓] ' : '  [ ] ';
     const fg = isChecked ? VICTORIAN_PALETTE.AETHER_BLUE : VICTORIAN_PALETTE.SEPIA_INK;
     const hit = `toggle_trait:${traitId}`;
 
-    buf.writeString(midX, curY, `${prefix}${trait.name.slice(0, colWidth - 8)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
+    buf.writeString(midX, curY, `${prefix}${trait.name.slice(0, colWidth - 6)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
     curY++;
 
     if (isChecked) {
-      const descLines = trait.description.match(/.{1,26}(\s|$)/g) ?? [trait.description];
+      const descLines = trait.description.match(/.{1,21}(\s|$)/g) ?? [trait.description];
       for (const d of descLines.slice(0, 2)) {
-        buf.writeString(midX + 4, curY, d.trim(), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
+        buf.writeString(midX + 4, curY, d.trim().slice(0, colWidth - 5), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
         curY++;
       }
     }
@@ -128,28 +128,28 @@ export function renderEmbarkationScreen(
     const fg = isSelected ? VICTORIAN_PALETTE.TARNISHED_BRASS : VICTORIAN_PALETTE.SEPIA_INK;
     const hit = `select_scen:${scenId}`;
 
-    buf.writeString(rightX, curY, `${prefix}${scen.name.slice(0, colWidth - 8)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
+    buf.writeString(rightX, curY, `${prefix}${scen.name.slice(0, colWidth - 6)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
     curY += 2;
   }
 
   // Large Diegetic Red Wax Seal Embark Stamp Button
   const stampY = y + height - 8;
-  buf.writeString(rightX, stampY - 1, '─[ OFFICIAL ROYAL RATIFICATION ]─', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+  buf.writeString(rightX, stampY - 1, '─[ ROYAL RATIFICATION ]─', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
 
-  buf.writeString(rightX, stampY, '╔══════════════════════════╗', VICTORIAN_PALETTE.INCANDESCENT_RED, VICTORIAN_PALETTE.OXIDIZED_IRON);
+  buf.writeString(rightX, stampY, '╔════════════════════════╗', VICTORIAN_PALETTE.INCANDESCENT_RED, VICTORIAN_PALETTE.OXIDIZED_IRON);
   buf.writeString(
     rightX,
     stampY + 1,
-    '║ ☼ [AFFIX WAX SEAL & GO] ☼║',
+    '║ ☼ [AFFIX WAX SEAL] ☼   ║',
     VICTORIAN_PALETTE.INCANDESCENT_RED,
     VICTORIAN_PALETTE.OXIDIZED_IRON,
     ['THERMO_CRITICAL_PULSE'],
     'embark_action',
   );
-  buf.writeString(rightX, stampY + 2, '╚══════════════════════════╝', VICTORIAN_PALETTE.INCANDESCENT_RED, VICTORIAN_PALETTE.OXIDIZED_IRON);
+  buf.writeString(rightX, stampY + 2, '╚════════════════════════╝', VICTORIAN_PALETTE.INCANDESCENT_RED, VICTORIAN_PALETTE.OXIDIZED_IRON);
 
   // Footer: Keyboard Navigation / Typewriter Keys
   const footY = y + height - 2;
-  const footerHint = 'KEYS: [1-4] Trade │ [T] Trait Toggle │ [S] Scenario │ [ENTER] Ratify │ [ESC] Cancel';
-  buf.writeString(x + 3, footY, footerHint, VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+  const footerHint = 'KEYS: [1-4] Trade │ [T] Trait │ [S] Post │ [ENTER] Ratify │ [ESC] Exit';
+  buf.writeString(x + 3, footY, footerHint.slice(0, width - 6), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
 }

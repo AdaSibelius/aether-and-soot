@@ -15,9 +15,6 @@ async function bootstrapClient(): Promise<void> {
 
   const stageRenderer = await GlyphStageRenderer.create(canvasHost, WIDESCREEN_GRID_WIDTH, WIDESCREEN_GRID_HEIGHT);
   canvasHost.style.position = 'relative';
-  canvasHost.style.width = '1056px';
-  canvasHost.style.maxWidth = '100%';
-  canvasHost.style.height = '720px';
   const overlayHost = document.createElement('div');
   Object.assign(overlayHost.style, {
     position: 'absolute',

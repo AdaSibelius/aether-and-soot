@@ -4,11 +4,11 @@ import { ModalWindowId } from '../ui/CharacterModalShell.js';
 import { renderArtificerBenchScreen } from './artificer-bench-screen.js';
 import { renderAtlasScreen } from './atlas-screen.js';
 import { createUiCellBuffer, UiCellBuffer } from './cell-buffer.js';
-import { renderClockworkPaperdoll } from './diegetic-anatomy.js';
+import { renderDiegeticPaperdoll } from './dossier-paperdoll.js';
 import { renderFactionContaminationMap } from './diegetic-cartography.js';
 import { drawIndustrialFrame } from './industrial-primitives.js';
 import { VICTORIAN_PALETTE } from './material-palette.js';
-import { renderNaturalistLedgerScreen } from './naturalist-ledger-screen.js';
+import { NaturalistLedgerOptions, NaturalistTab, renderNaturalistLedgerScreen } from './naturalist-ledger-screen.js';
 import { renderSatchelScreen } from './satchel-screen.js';
 
 export interface ModalRouterOptions {
@@ -17,6 +17,8 @@ export interface ModalRouterOptions {
   readonly selectedRecipeId?: string;
   readonly selectedSectorId?: string;
   readonly selectedStratum?: StratumId;
+  readonly selectedCodexEntryId?: string;
+  readonly selectedCodexCategory?: NaturalistTab;
   readonly scrollOffset?: number;
 }
 
@@ -47,9 +49,7 @@ export function generateModalUiBuffer(
       });
       const player = state.entities[playerId];
       const anatomy = player?.anatomy;
-      const paperdollOpts: { selectedSlot?: LimbSlotId } = {};
-      if (options.selectedLimbSlot) paperdollOpts.selectedSlot = options.selectedLimbSlot;
-      renderClockworkPaperdoll(buf, mainRect.x + 6, mainRect.y + 4, anatomy, paperdollOpts);
+      renderDiegeticPaperdoll(buf, mainRect.x + 4, mainRect.y + 4, { anatomy });
 
       // Right-side diagnostic telemetry column (placed cleanly with ample room)
       const colX = mainRect.x + 36;
@@ -67,7 +67,7 @@ export function generateModalUiBuffer(
       let rowY = mainRect.y + 4;
       for (const slot of slots) {
         const limb = anatomy?.limbs[slot];
-        const isSel = options.selectedLimbSlot === slot;
+        const isSel = (options.selectedLimbSlot ?? 'TORSO') === slot;
         const prefix = isSel ? '► ' : '  ';
         const hpText = limb ? `${limb.hp}/${limb.maxHp} HP` : 'N/A';
         const typeText = limb?.installedProstheticEntityId ? '[MECHANICAL GRAFT]' : '[BIOLOGICAL]';
@@ -75,17 +75,19 @@ export function generateModalUiBuffer(
           ? VICTORIAN_PALETTE.INCANDESCENT_RED
           : limb?.installedProstheticEntityId
             ? VICTORIAN_PALETTE.AETHER_BLUE
-            : VICTORIAN_PALETTE.SEPIA_INK;
+            : isSel
+              ? VICTORIAN_PALETTE.AMBER_GASLIGHT
+              : VICTORIAN_PALETTE.SEPIA_INK;
 
-        buf.writeString(colX, rowY, `${prefix}${slot.padEnd(12)} ${hpText.padStart(10)} ${typeText}`, color, undefined, undefined, `select_limb:${slot}`);
+        buf.writeString(colX, rowY, `${prefix}${slot.padEnd(12)} ${hpText.padStart(10)} ${typeText}`, color, isSel ? VICTORIAN_PALETTE.OXIDIZED_IRON : undefined, undefined, `select_limb:${slot}`);
         rowY += 2;
       }
 
-      const strain = anatomy?.strainLoadKw ?? 0;
-      const governor = anatomy?.governorCapacityKw ?? 100;
+      const strainHp = Math.round((anatomy?.strainLoadKw ?? 0) * 1.34);
+      const governorHp = Math.round((anatomy?.governorCapacityKw ?? 100) * 1.34);
       buf.writeString(colX, mainRect.y + 22, '─[ BOILER GOVERNOR & CYBERNETICS ]──', VICTORIAN_PALETTE.TARNISHED_BRASS);
-      buf.writeString(colX, mainRect.y + 24, `Capacity: ${governor} kW │ Load: ${strain} kW (${Math.round(governor > 0 ? (strain / governor) * 100 : 0)}%)`, VICTORIAN_PALETTE.AMBER_GASLIGHT);
-      buf.writeString(colX, mainRect.y + 26, '[Click/Key] Target limb to inspect or graft.', VICTORIAN_PALETTE.MUTED_PIPE);
+      buf.writeString(colX, mainRect.y + 24, `Governor: ${governorHp} HP │ Load: ${strainHp} HP (${Math.round(governorHp > 0 ? (strainHp / governorHp) * 100 : 0)}%)`, VICTORIAN_PALETTE.AMBER_GASLIGHT);
+      buf.writeString(colX, mainRect.y + 26, '[Click/Key] Target limb │ [Enter] Graft', VICTORIAN_PALETTE.MUTED_PIPE);
       break;
     }
 
@@ -103,7 +105,12 @@ export function generateModalUiBuffer(
     }
 
     case 'CODEX': {
-      renderNaturalistLedgerScreen(buf, mainRect, state);
+      const codexOpts: NaturalistLedgerOptions = {
+        ...(options.selectedCodexEntryId ? { selectedEntryId: options.selectedCodexEntryId } : {}),
+        ...(options.selectedCodexCategory ? { selectedCategory: options.selectedCodexCategory } : {}),
+        ...(options.scrollOffset !== undefined ? { scrollOffset: options.scrollOffset } : {}),
+      };
+      renderNaturalistLedgerScreen(buf, mainRect, state, codexOpts);
       break;
     }
 

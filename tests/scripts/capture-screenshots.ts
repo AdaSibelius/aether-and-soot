@@ -110,6 +110,7 @@ function captureTarget(target: ScreenshotTarget): Promise<void> {
       `--user-data-dir=${USER_DATA_DIR}`,
       '--disable-gpu',
       '--window-size=1560,980',
+      '--virtual-time-budget=1500',
       `--screenshot=${outPath}`,
       url,
     ], { stdio: 'ignore' });

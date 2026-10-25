@@ -55,6 +55,10 @@ export class GlyphStageRenderer {
     return this.pipeline;
   }
 
+  public getCanvas(): HTMLCanvasElement {
+    return this.app.canvas;
+  }
+
   public setCrtScanlinesEnabled(enabled: boolean): void {
     this.pipeline.setFilterEnabled(enabled);
   }
@@ -129,7 +133,7 @@ export class GlyphStageRenderer {
       sprite.position.set(px, py);
       sprite.texture = this.atlas.getTexture(cell.visual.glyph);
       sprite.tint = hexToNumber(fgHex);
-      sprite.alpha = cell.visible ? 1.0 : cell.explored ? 0.42 : 0.0;
+      sprite.alpha = cell.visible ? 1.0 : cell.explored ? 0.42 : cell.visual.glyph !== ' ' ? 0.85 : 0.0;
     }
 
     // 2. Composite Diegetic UiCellBuffer Layer over World Grid
@@ -170,12 +174,29 @@ export class GlyphStageRenderer {
     }
   }
 
-  public resolveHitActionAt(clientX: number, clientY: number, canvasBoundingRect?: DOMRect): string | undefined {
+  public resolveHitActionAt(
+    clientX: number,
+    clientY: number,
+    canvasBoundingRect?: DOMRect | { left: number; top: number; width: number; height: number },
+  ): string | undefined {
     if (!this.activeUiBuffer) return undefined;
-    const left = canvasBoundingRect ? canvasBoundingRect.left : 0;
-    const top = canvasBoundingRect ? canvasBoundingRect.top : 0;
-    const col = Math.floor((clientX - left) / CELL_WIDTH_PX);
-    const row = Math.floor((clientY - top) / CELL_HEIGHT_PX);
+    const rect = canvasBoundingRect;
+    let col: number;
+    let row: number;
+    if (rect && rect.width > 0 && rect.height > 0) {
+      const relX = clientX - rect.left;
+      const relY = clientY - rect.top;
+      if (relX < 0 || relX >= rect.width || relY < 0 || relY >= rect.height) {
+        return undefined;
+      }
+      col = Math.floor((relX / rect.width) * this.gridWidth);
+      row = Math.floor((relY / rect.height) * this.gridHeight);
+    } else {
+      const left = rect ? rect.left : 0;
+      const top = rect ? rect.top : 0;
+      col = Math.floor((clientX - left) / CELL_WIDTH_PX);
+      row = Math.floor((clientY - top) / CELL_HEIGHT_PX);
+    }
     return this.activeUiBuffer.resolveHitActionAt(col, row);
   }
 
