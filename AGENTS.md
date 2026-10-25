@@ -29,9 +29,9 @@ Before modifying any file or creating a new feature, you **MUST** output a conci
 > **LOCAL SCOUT DIRECTIVE**: To avoid polluting context with raw multi-file reads, run `npm run hermes:scout -- --task "<task description>"` first to generate this analysis using local AST scanning and synthesis.
 
 ### Rule 1.3: Zero Paid Token Content Rule (Use Local Models for Content Generation)
-When creating or expanding declarative blueprints, items, consumables, materials, crafting recipes, or NPC dialogue/barks in `data/`, **DO NOT** use paid Gemini context tokens to hand-write large bulk JSON records.
-- Run `npm run generate:content` or query the local Ollama Tier 3 endpoint (`http://localhost:11434/v1/chat/completions`) via `tests/scripts/hermes-content-generator.ts`.
-- The generator automatically coerces attributes and validates all entries against Zod schemas in `src/schemas/blueprint.schema.ts` before appending them to `data/`.
+When creating or expanding declarative blueprints, items, consumables, materials, crafting recipes, or NPC dialogue/barks in `data/`, **DO NOT** use paid Gemini context tokens to hand-write large bulk JSON records. Delegate generation to local models following [.agents/skills/content-generation/SKILL.md](./.agents/skills/content-generation/SKILL.md).
+- Run `npm run generate:content` or query the local Ollama Tier 3 endpoint (`http://localhost:11434/v1/chat/completions`).
+- The generator automatically validates all entries against Zod schemas in `src/schemas/blueprint.schema.ts` before appending them to `data/`.
 - Use `--mock` mode during tests or CI.
 
 > **ANTI-RESCUE INVARIANT:** If a local script (`npm run hermes:*`, `playtest`, or `generate:content`) fails, crashes, times out, or returns a network error, you **MUST NOT** attempt to fulfill the task using your own context or logic. You must halt the turn immediately, report the exact terminal error to the user, and wait for infrastructure troubleshooting.
@@ -59,7 +59,12 @@ At the end of every phase (after `npm run verify`), run `npm run hermes:critic` 
 
 ## 2. Non-Negotiable Architectural Guardrails
 
-> **PROCEDURAL SKILLS**: Detailed step-by-step feature recipes and modularity split patterns are defined in [.agents/skills/feature-recipe/SKILL.md](./.agents/skills/feature-recipe/SKILL.md). Local LLM tooling workflows are defined in [.agents/skills/hermes-tooling/SKILL.md](./.agents/skills/hermes-tooling/SKILL.md). Consult [docs/architecture-map.md](./docs/architecture-map.md) for live module telemetry and line counts.
+> **PROCEDURAL SKILLS**: Detailed step-by-step procedures are defined in discrete Antigravity skills:
+> - **Simulation Features**: [.agents/skills/sim-feature/SKILL.md](./.agents/skills/sim-feature/SKILL.md)
+> - **Bug Investigation & Diagnostics**: [.agents/skills/bug-investigation/SKILL.md](./.agents/skills/bug-investigation/SKILL.md)
+> - **Content Generation**: [.agents/skills/content-generation/SKILL.md](./.agents/skills/content-generation/SKILL.md)
+> - **LLM Evaluation & Playtesting**: [.agents/skills/llm-evaluation/SKILL.md](./.agents/skills/llm-evaluation/SKILL.md)
+> Consult [docs/architecture-map.md](./docs/architecture-map.md) for live module telemetry and line counts.
 
 ### Rule 2.1: Strict Headless Separation (`src/sim/` vs `src/client/`)
 - Files inside `src/sim/` and `src/schemas/` **MUST NEVER** import from `src/client/`, `pixi.js`, `preact`, or reference browser globals (`window`, `document`, `requestAnimationFrame`, `HTMLCanvasElement`).
