@@ -8,9 +8,11 @@ export interface SystemMenuModalProps {
   readonly onClose: () => void;
   readonly onNewSeed: (seed: number) => void;
   readonly onLoadWorld: (savedWorld: WorldState) => void;
-  readonly onOpenCharacterCreator?: () => void;
-  readonly crtScanlinesEnabled?: boolean;
-  readonly onToggleCrtScanlines?: () => void;
+  readonly onOpenCharacterCreator?: (() => void) | undefined;
+  readonly crtScanlinesEnabled?: boolean | undefined;
+  readonly onToggleCrtScanlines?: (() => void) | undefined;
+  readonly useDiegeticCanvasUi?: boolean | undefined;
+  readonly onToggleUiMode?: (() => void) | undefined;
 }
 
 const LOCAL_STORAGE_KEY = 'aether_soot_save';
@@ -24,6 +26,8 @@ export function SystemMenuModal({
   onOpenCharacterCreator,
   crtScanlinesEnabled = true,
   onToggleCrtScanlines,
+  useDiegeticCanvasUi = true,
+  onToggleUiMode,
 }: SystemMenuModalProps) {
   if (!isOpen) return null;
 
@@ -158,6 +162,8 @@ export function SystemMenuModal({
         <SystemSettingsControls
           crtScanlinesEnabled={crtScanlinesEnabled}
           onToggleCrtScanlines={onToggleCrtScanlines}
+          useDiegeticCanvasUi={useDiegeticCanvasUi}
+          onToggleUiMode={onToggleUiMode}
         />
 
         <div class="panel-header" style={{ marginTop: '8px' }}>DISTRICT SEED GENERATION</div>

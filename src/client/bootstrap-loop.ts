@@ -17,6 +17,8 @@ import { getSoundscapeManager } from './audio/soundscape-manager.js';
 import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor } from './client-interactions.js';
 import { getDefaultSaveStorageAdapter } from './persistence/save-adapter.js';
 import { DesktopWindowManager } from './renderer/desktop-window-manager.js';
+import { generateModalUiBuffer } from './canvas-ui/modal-buffer-router.js';
+import { resolveThermodynamicStress } from './renderer/steampunk-shader.js';
 
 export interface ClientSessionMounts {
   readonly canvasHost: HTMLElement;
@@ -47,6 +49,7 @@ export function startClientSession(
   let isCrtScanlinesEnabled = true;
   let lookCursor: { x: number; y: number } | null = null;
   let activeDialogueNpcId: EntityId | null = null;
+  let useDiegeticCanvasUi = true;
 
   const soundscape = getSoundscapeManager();
   const saveAdapter = getDefaultSaveStorageAdapter();
@@ -130,12 +133,22 @@ export function startClientSession(
     syncPresentation();
   };
 
+  const toggleUiMode = (): void => {
+    useDiegeticCanvasUi = !useDiegeticCanvasUi;
+    syncPresentation();
+  };
+
   const syncPresentation = (): void => {
     const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, {
       width: WIDESCREEN_GRID_WIDTH,
       height: WIDESCREEN_GRID_HEIGHT,
     });
-    stageRenderer.renderFrame(visualFrame);
+    const thermo = resolveThermodynamicStress(worldState, playerId);
+    const uiBuffer = (activeModal && useDiegeticCanvasUi)
+      ? generateModalUiBuffer(activeModal, worldState, playerId, WIDESCREEN_GRID_WIDTH, WIDESCREEN_GRID_HEIGHT)
+      : undefined;
+
+    stageRenderer.renderFrame(visualFrame, uiBuffer, thermo.stressValue);
 
     renderClientPresentationViews(
       { topBarHost, overlayHost, actionBarHost, hudHost },
@@ -143,6 +156,8 @@ export function startClientSession(
         worldState, playerId, activeModal, isSystemMenuOpen, isLookModeActive,
         isCreatorOpen, isCrtScanlinesEnabled, lookCursor, mouseHoverCoord,
         cameraOrigin: visualFrame.cameraOrigin, activeDialogueNpcId,
+        useDiegeticCanvasUi,
+        onToggleUiMode: toggleUiMode,
         onCommand: handleCommand,
         onOpenModal: (w) => { activeModal = w; syncPresentation(); },
         onCloseModal: () => { activeModal = null; syncPresentation(); },

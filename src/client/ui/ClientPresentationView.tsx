@@ -46,6 +46,8 @@ export interface ClientPresentationContext {
   readonly onCloseCharacterCreator: () => void;
   readonly onEmbark: (cfg: CharacterCreationConfig, seed: number) => void;
   readonly onToggleCrtScanlines: () => void;
+  readonly useDiegeticCanvasUi?: boolean;
+  readonly onToggleUiMode?: () => void;
 }
 
 export function renderClientPresentationViews(
@@ -109,14 +111,16 @@ export function renderClientPresentationViews(
         onOpenSystemMenu={ctx.onOpenSystemMenu}
         onReEmbark={ctx.onOpenCharacterCreator}
       />
-      <CharacterModalShell
-        state={ctx.worldState}
-        actorId={ctx.playerId}
-        activeWindow={ctx.activeModal}
-        onClose={ctx.onCloseModal}
-        onSelectWindow={ctx.onOpenModal}
-        onCommand={ctx.onCommand}
-      />
+      {!ctx.useDiegeticCanvasUi && (
+        <CharacterModalShell
+          state={ctx.worldState}
+          actorId={ctx.playerId}
+          activeWindow={ctx.activeModal}
+          onClose={ctx.onCloseModal}
+          onSelectWindow={ctx.onOpenModal}
+          onCommand={ctx.onCommand}
+        />
+      )}
       {ctx.activeDialogueNpcId && (
         <DialogueModal
           state={ctx.worldState}
@@ -139,6 +143,8 @@ export function renderClientPresentationViews(
         onOpenCharacterCreator={ctx.onOpenCharacterCreator}
         crtScanlinesEnabled={ctx.isCrtScanlinesEnabled}
         onToggleCrtScanlines={ctx.onToggleCrtScanlines}
+        useDiegeticCanvasUi={ctx.useDiegeticCanvasUi}
+        onToggleUiMode={ctx.onToggleUiMode}
       />
       <CharacterCreatorModal
         isOpen={ctx.isCreatorOpen}

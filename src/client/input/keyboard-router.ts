@@ -66,6 +66,9 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     } else if (ev.key === 'i' || ev.key === 'I') {
       ev.preventDefault();
       onSetModal(activeModal === 'INVENTORY' ? null : 'INVENTORY');
+    } else if (ev.key === 'a' || ev.key === 'A') {
+      ev.preventDefault();
+      onSetModal(activeModal === 'ANATOMY' ? null : 'ANATOMY');
     } else if (ev.key === 'c' || ev.key === 'C') {
       ev.preventDefault();
       onSetModal(activeModal === 'WORKBENCH' ? null : 'WORKBENCH');

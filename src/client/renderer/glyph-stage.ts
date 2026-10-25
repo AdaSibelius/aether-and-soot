@@ -48,8 +48,9 @@ export class GlyphStageRenderer {
     try {
       this.crtFilter = createCrtPostFilter(DEFAULT_SCANLINE_OPACITY);
       this.app.stage.filters = [this.crtFilter];
-    } catch {
+    } catch (err) {
       // Fallback cleanly if WebGL context does not support custom filter compilation
+      console.warn('[GlyphStageRenderer] WebGL CRT Filter initialization fallback:', err);
     }
 
     this.app.stage.addChild(this.gridContainer);
@@ -72,6 +73,7 @@ export class GlyphStageRenderer {
   ): Promise<GlyphStageRenderer> {
     const app = new Application();
     await app.init({
+      preference: 'webgl',
       width: gridWidth * CELL_WIDTH_PX,
       height: gridHeight * CELL_HEIGHT_PX,
       backgroundColor: 0x0b0c0e, // Oxidized soot-iron background

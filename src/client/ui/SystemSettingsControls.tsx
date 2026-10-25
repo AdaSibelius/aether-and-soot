@@ -4,12 +4,16 @@ export interface SystemSettingsControlsProps {
   readonly crtScanlinesEnabled?: boolean | undefined;
   readonly onToggleCrtScanlines?: (() => void) | undefined;
   readonly onSettingsChanged?: (() => void) | undefined;
+  readonly useDiegeticCanvasUi?: boolean | undefined;
+  readonly onToggleUiMode?: (() => void) | undefined;
 }
 
 export function SystemSettingsControls({
   crtScanlinesEnabled = true,
   onToggleCrtScanlines,
   onSettingsChanged,
+  useDiegeticCanvasUi = true,
+  onToggleUiMode,
 }: SystemSettingsControlsProps) {
   const governor = getPerformanceGovernor();
   const currentTier = governor.getQualityTier();
@@ -88,6 +92,24 @@ export function SystemSettingsControls({
           Lens Optics: {disableDistortion ? '[FLAT]' : '[CURVED]'}
         </button>
       </div>
+
+      {onToggleUiMode && (
+        <button
+          type="button"
+          onClick={onToggleUiMode}
+          style={{
+            width: '100%',
+            padding: '4px 6px',
+            marginBottom: '6px',
+            fontSize: '10px',
+            color: useDiegeticCanvasUi ? 'var(--brass-gold)' : 'var(--ok-green)',
+            border: '1px solid #2e4053',
+            background: useDiegeticCanvasUi ? 'rgba(212, 175, 55, 0.15)' : '#17202a',
+          }}
+        >
+          Interface Mode: {useDiegeticCanvasUi ? '[DIEGETIC CANVAS UI]' : '[CLASSIC DOM WINDOWS]'}
+        </button>
+      )}
 
       {onToggleCrtScanlines && (
         <button
