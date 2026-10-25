@@ -111,6 +111,9 @@ export function serializePlayerContext(
   const contextualCommands: string[] = [];
   const groundEntities = findEntitiesAtPoint(state.entities, pos);
   if (groundEntities.some((e) => e.portal || e.districtGate)) contextualCommands.push('{"action": "USE_PORTAL"}');
+  if (groundEntities.some((e) => e.portal || (e.name ?? '').toLowerCase().includes('catacomb') || e.id.includes('catacomb'))) {
+    contextualCommands.push('{"action": "DESCEND_CATACOMBS"}');
+  }
   const groundItem = groundEntities.find((e) => e.item);
   if (groundItem) contextualCommands.push(`{"action": "PICK_UP", "itemId": "${groundItem.id}"}`);
 
@@ -120,6 +123,8 @@ export function serializePlayerContext(
     if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
       if (ent.actor && !ent.actor.isPlayer && ent.aiController?.hostile && (dx !== 0 || dy !== 0)) contextualCommands.push(`{"action": "ATTACK", "targetId": "${ent.id}", "limb": "TORSO"}`);
       if (ent.aiController?.role === 'MERCHANT' && ent.inventory?.containedEntityIds[0]) contextualCommands.push(`{"action": "BUY", "merchantId": "${ent.id}", "itemId": "${ent.inventory.containedEntityIds[0]}"}`);
+      if (ent.aiController?.role === 'CHIRURGEON') contextualCommands.push(`{"action": "PAY_CHIRURGEON_HEAL", "chirurgeonId": "${ent.id}"}`);
+      if (ent.furniture && ['LOCKER', 'CRATE', 'BOOKSHELF'].includes(ent.furniture.kind) && (ent.inventory?.containedEntityIds.length ?? 0) > 0) contextualCommands.push(`{"action": "LOOT_CONTAINER", "containerId": "${ent.id}"}`);
       const isCorpse = ent.name.toLowerCase().includes('corpse') || ((ent.anatomy?.bloodVolumePct ?? 100) <= 0);
       if (isCorpse && player.inventory) {
         const tool = player.inventory.containedEntityIds.find((id) => (state.entities[id]?.item?.blueprintId ?? '').includes('scalpel') || (state.entities[id]?.name ?? '').toLowerCase().includes('knife'));
@@ -162,6 +167,8 @@ export function serializePlayerContext(
   const safehouseList = Object.values(state.safehouses).map((s) => s.name).join(', ') || 'None';
   const codexCount = Object.keys(state.codex).length;
   if (codexCount > 0) contextualCommands.push('{"action": "CONSULT_CODEX"}');
+  const hasSquadAllies = Object.values(state.entities).some((e) => e.actor && !e.actor.isPlayer && !e.aiController?.hostile && e.position?.stratum === pos.stratum);
+  if (hasSquadAllies) contextualCommands.push('{"action": "EMIT_SQUAD_CALLOUT", "calloutKind": "ASSIST_TARGET"}');
 
   const damagedLimb = Object.entries(player.anatomy?.limbs ?? {}).find(([_, l]) => l.hp < l.maxHp);
   if (damagedLimb) contextualCommands.push(`{"action": "FIELD_REPAIR_LIMB", "slot": "${damagedLimb[0]}"}`);

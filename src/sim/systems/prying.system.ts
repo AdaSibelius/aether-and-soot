@@ -57,6 +57,8 @@ export function resolvePryObstacle(
   let toTerrain: string;
   if (cell.terrainType === 'WOODEN_DOOR_CLOSED') {
     toTerrain = 'WOODEN_DOOR_OPEN';
+  } else if (cell.terrainType === 'IRON_GRATE' && pryQuality >= 1) {
+    toTerrain = 'COBBLESTONE_FLOOR';
   } else if (cell.terrainType === 'DISTRICT_GATE' && pryQuality >= 2) {
     toTerrain = 'COBBLESTONE_FLOOR';
   } else {

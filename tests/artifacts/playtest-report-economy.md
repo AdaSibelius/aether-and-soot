@@ -1,6 +1,6 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-25T00:46:11.418Z
+- **Timestamp**: 2026-10-25T01:22:52.208Z
 - **Execution Mode**: Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 - **Scenario**: **SABOTAGE**
@@ -45,8 +45,8 @@
 | Category | Count | Share | Command Identifiers |
 | :--- | :--- | :--- | :--- |
 | **Active Commands** (>0 Dispatches) | 3 | 5% | `BUY_FROM_MERCHANT`, `PRESSURIZE_VESSEL`, `SELL_TO_MERCHANT` |
-| **Dormant Commands** (Serializer-Wired, 0 Dispatches) | 39 | - | `ACCEPT_CONTRACT`, `ACTIVATE_PROSTHETIC`, `APPLY_MOMENTUM_VECTOR`, `ATTACK_ACTOR`, `AUDIT_SAFEHOUSE_DEED`, `BOARD_MONORAIL`, `BREACH_TILE`, `BUILD_STRUCTURE`, `CLAIM_WORKSHOP_DEED`, `CLEAN_SPILL` |
-| **Unwired Commands** (Missing from Context) | 13 | - | `DESCEND_CATACOMBS`, `EMIT_SQUAD_CALLOUT`, `LOOT_CONTAINER`, `PAY_CHIRURGEON_HEAL`, `REMOVE_PROSTHETIC`, `REPORT_CRIME`, `REST_AT_BED`, `SET_POSTURE`, `SMASH_TERRAIN`, `THROW_FLASK` |
+| **Dormant Commands** (Serializer-Wired, 0 Dispatches) | 43 | - | `ACCEPT_CONTRACT`, `ACTIVATE_PROSTHETIC`, `APPLY_MOMENTUM_VECTOR`, `ATTACK_ACTOR`, `AUDIT_SAFEHOUSE_DEED`, `BOARD_MONORAIL`, `BREACH_TILE`, `BUILD_STRUCTURE`, `CLAIM_WORKSHOP_DEED`, `CLEAN_SPILL` |
+| **Unwired Commands** (Missing from Context) | 9 | - | `REMOVE_PROSTHETIC`, `REPORT_CRIME`, `REST_AT_BED`, `SET_POSTURE`, `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`, `TRIGGER_SUPPLY_SHOCK`, `UNINSTALL_WEAPON_MOD` |
 
 ## Client UI Projection & Chronicle Leak Audit
 

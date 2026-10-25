@@ -107,6 +107,10 @@ export function parseLlmResponseToCommand(
             case 'EMIT_SPARK': return { type: 'EMIT_SPARK', actorId: playerId, target: { x: pos.x + p.targetRelX, y: pos.y + p.targetRelY, stratum: pos.stratum } };
             case 'INSTALL_WEAPON_MOD': return { type: 'INSTALL_WEAPON_MOD', actorId: playerId, weaponEntityId: EntityIdSchema.parse(p.weaponId), modEntityId: EntityIdSchema.parse(p.modId) };
             case 'LOAD_AMMO': return { type: 'LOAD_AMMO', actorId: playerId, weaponEntityId: EntityIdSchema.parse(p.weaponId), ammoEntityId: EntityIdSchema.parse(p.ammoId) };
+            case 'LOOT_CONTAINER': return { type: 'LOOT_CONTAINER', actorId: playerId, containerId: EntityIdSchema.parse(p.containerId), ...(p.itemId ? { itemId: EntityIdSchema.parse(p.itemId) } : {}) };
+            case 'PAY_CHIRURGEON_HEAL': return { type: 'PAY_CHIRURGEON_HEAL', actorId: playerId, chirurgeonId: EntityIdSchema.parse(p.chirurgeonId) };
+            case 'DESCEND_CATACOMBS': return { type: 'DESCEND_CATACOMBS', actorId: playerId, stairEntityId: EntityIdSchema.parse(p.stairEntityId ?? p.portalId ?? 'portal_catacombs') };
+            case 'EMIT_SQUAD_CALLOUT': return { type: 'EMIT_SQUAD_CALLOUT', actorId: playerId, targetId: EntityIdSchema.parse(p.targetId ?? playerId), alertMessage: p.alertMessage ?? 'Intruder spotted! Rally to me!' };
           }
         }
         const normDir = normalizeDirection(String(rawObj.dir || rawObj.direction || ''));

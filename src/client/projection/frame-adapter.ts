@@ -5,6 +5,8 @@ import { computeVisibleTiles, pointKey } from '../../sim/spatial/fov.js';
 import { computeProstheticFovBonus } from '../../sim/systems/anatomy.system.js';
 import { resolveBiomeTerrainVisual, resolveDistrictBiome } from './biome-palette.js';
 import { resolveConnectingWallGlyph, WALL_BOX_GLYPHS } from './wall-connections.js';
+import { applyGaslightVisual, applyLiquidSurfaceVisual, applySootVisualOverlay } from './environmental-visuals.js';
+import { calculateGaslightField } from '../../sim/systems/gaslight.system.js';
 import limehouseJson from '../../../data/districts/limehouse_docks.json' with { type: 'json' };
 import sootWorksJson from '../../../data/districts/soot_works.json' with { type: 'json' };
 import whitechapelJson from '../../../data/districts/whitechapel_ward.json' with { type: 'json' };
@@ -148,6 +150,7 @@ export function projectWorldToVisualFrame(
   const cameraY = Math.max(0, Math.min(grid.height - viewportHeight, originY - Math.floor(viewportHeight / 2)));
 
   const districtBiome = resolveDistrictBiome(state.currentDistrictId, activeStratum);
+  const gaslightField = calculateGaslightField(state, activeStratum);
 
   const cells: RenderCellFrame[] = [];
   for (let vy = 0; vy < viewportHeight; vy++) {
@@ -159,34 +162,20 @@ export function projectWorldToVisualFrame(
       const isExplored = isVisible || (tile?.explored ?? false);
 
       const connectingWallGlyph = tile ? resolveConnectingWallGlyph(grid, worldX, worldY) : WALL_BOX_GLYPHS.DEFAULT;
-      const baseVisual = tile
-        ? resolveBiomeTerrainVisual(
-            tile.terrainType,
-            isVisible,
-            isExplored,
-            districtBiome,
-            connectingWallGlyph,
-            tile.steamPressureKpa ?? 0,
-          )
-        : resolveBiomeTerrainVisual(
-            'COBBLESTONE_FLOOR',
-            isVisible,
-            false,
-            districtBiome,
-            WALL_BOX_GLYPHS.DEFAULT,
-            0,
-          );
+      let cellVisual = tile
+        ? resolveBiomeTerrainVisual(tile.terrainType, isVisible, isExplored, districtBiome, connectingWallGlyph, tile.steamPressureKpa ?? 0)
+        : resolveBiomeTerrainVisual('COBBLESTONE_FLOOR', isVisible, false, districtBiome, WALL_BOX_GLYPHS.DEFAULT, 0);
+
+      if (tile) {
+        cellVisual = applyLiquidSurfaceVisual(cellVisual, tile.liquidType, tile.liquidVolumeMl, isVisible);
+        cellVisual = applySootVisualOverlay(cellVisual, tile.smokePpm ?? 0, tile.coalDustDensity ?? 0, worldX, worldY, state.turnCount, isVisible);
+      }
+      const isGaslit = (gaslightField.get(pointKey(worldX, worldY)) ?? 0) > 0.15;
+      cellVisual = applyGaslightVisual(cellVisual, isGaslit);
 
       cells.push({
-        x: vx,
-        y: vy,
-        worldX,
-        worldY,
-        visual: baseVisual,
-        visible: isVisible,
-        explored: isExplored,
-        steamPressureKpa: tile?.steamPressureKpa ?? 0,
-        coalDustDensity: tile?.coalDustDensity ?? 0,
+        x: vx, y: vy, worldX, worldY, visual: cellVisual, visible: isVisible, explored: isExplored,
+        steamPressureKpa: tile?.steamPressureKpa ?? 0, coalDustDensity: tile?.coalDustDensity ?? 0,
       });
     }
   }
@@ -209,9 +198,10 @@ export function projectWorldToVisualFrame(
       const idx = screenY * viewportWidth + screenX;
       const currentCell = cells[idx];
       if (currentCell) {
+        const isGaslit = (gaslightField.get(pointKey(pos.x, pos.y)) ?? 0) > 0.15;
         cells[idx] = {
           ...currentCell,
-          visual: entity.visual,
+          visual: applyGaslightVisual(entity.visual, isGaslit),
         };
       }
     }

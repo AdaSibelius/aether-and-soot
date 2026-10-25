@@ -3,9 +3,8 @@ import { Point3D } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { getTileCell, isWithinBounds, setTileCell } from '../spatial/grid.js';
-import { resolveDamageLimb } from './anatomy.system.js';
-import { resolveActorDefeatIfFatal } from './mortality.system.js';
 import { emitAcousticPulse } from './stealth-acoustics.system.js';
+import { resolveWhaleOilCascade } from './environmental-hazards.system.js';
 
 export const COAL_DUST_IGNITION_THRESHOLD = 0.2;
 const CARDINAL_DELTAS = [
@@ -37,37 +36,12 @@ export function resolveEmitSpark(state: WorldState, target: Point3D): SystemPyro
   let updatedGrid = grid;
   const turn = state.turnCount + 1;
 
-  // 1. Whale Oil Pool Ignition
+  // 1. Whale Oil Pool Ignition Cascade
   if (startCell && startCell.liquidType === 'WHALE_OIL' && (startCell.liquidVolumeMl ?? 0) > 0) {
-    const burnedVolume = startCell.liquidVolumeMl ?? 200;
-    updatedGrid = setTileCell(updatedGrid, target.x, target.y, (c) => ({
-      ...c,
-      liquidType: 'NONE',
-      liquidVolumeMl: 0,
-      steamPressureKpa: c.steamPressureKpa + 40,
-    }));
-
-    events.push({
-      type: 'LIQUID_IGNITED',
-      turn,
-      target,
-      liquidType: 'WHALE_OIL',
-      burnedVolumeMl: burnedVolume,
-      thermalDamage: 25,
-    });
-
-    // Inflict thermal scald trauma on occupants
-    for (const actor of Object.values(workingState.entities)) {
-      if (actor.actor && actor.position && actor.position.stratum === target.stratum &&
-          actor.position.x === target.x && actor.position.y === target.y) {
-        const dmg = resolveDamageLimb(workingState, actor.id, 'TORSO', 20);
-        workingState = dmg.state;
-        events.push(...dmg.events);
-        const def = resolveActorDefeatIfFatal(workingState, actor.id);
-        workingState = def.state;
-        events.push(...def.events);
-      }
-    }
+    const cascadeRes = resolveWhaleOilCascade(workingState, target);
+    workingState = cascadeRes.state;
+    events.push(...cascadeRes.events);
+    updatedGrid = workingState.strata[target.stratum] ?? updatedGrid;
   }
 
   // 2. Coal Dust Cloud Flood-Fill Ignition
