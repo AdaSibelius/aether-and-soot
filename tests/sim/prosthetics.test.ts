@@ -28,12 +28,14 @@ describe('Phase 37: Governor Bandwidth, Active Prosthetics & Corpse Harvesting',
     const initialStrain = world.entities[playerId]!.anatomy!.strainLoadKw;
 
     // Remove leg
-    world = dispatchCommand(world, {
+    const removeRes = dispatchCommand(world, {
       type: 'REMOVE_PROSTHETIC',
       actorId: playerId,
       slot: 'LEFT_LEG',
-    }).state;
+    });
+    world = removeRes.state;
 
+    expect(removeRes.events.some((e) => e.type === 'PROSTHETIC_REMOVED')).toBe(true);
     expect(world.entities[playerId]!.anatomy!.strainLoadKw).toBeLessThan(initialStrain);
   });
 

@@ -652,7 +652,7 @@
       "schemaFile": "src/schemas/domain-commands.schema.ts:L179",
       "dispatcherLine": "src/sim/core/command-router.ts:L146",
       "systemHandler": "src/sim/systems/prosthetics.system.ts:resolveActivateProsthetic",
-      "playerInvocationPath": null,
+      "playerInvocationPath": "src/client/ui/QuickActionBar.tsx:activeAbilities.map",
       "npcInvocationPath": null,
       "emittedEvents": [
         "PROSTHETIC_ACTIVATED",
@@ -665,7 +665,7 @@
         "ACTOR_FELL_STRATUM"
       ],
       "implementation": "COMPLETE",
-      "reachability": "UNREACHABLE",
+      "reachability": "PLAYER_REACHABLE",
       "verification": "VERIFIED",
       "testReferences": [
         "tests/sim/prosthetics.test.ts:L45"
@@ -675,14 +675,14 @@
       "schemaFile": "src/schemas/domain-commands.schema.ts:L189",
       "dispatcherLine": "src/sim/core/command-router.ts:L148",
       "systemHandler": "src/sim/systems/surgery.system.ts:resolveHarvestCorpse",
-      "playerInvocationPath": null,
+      "playerInvocationPath": "src/client/ui/LookCursorOverlay.tsx:corpseEntity",
       "npcInvocationPath": null,
       "emittedEvents": [
         "CYBERNETIC_HARVESTED",
         "HARVEST_ACTION_FAILED"
       ],
       "implementation": "COMPLETE",
-      "reachability": "UNREACHABLE",
+      "reachability": "PLAYER_REACHABLE",
       "verification": "VERIFIED",
       "testReferences": [
         "tests/sim/prosthetics.test.ts:L95"
@@ -692,13 +692,13 @@
       "schemaFile": "src/schemas/domain-commands.schema.ts:L198",
       "dispatcherLine": "src/sim/core/command-router.ts:L150",
       "systemHandler": "src/sim/systems/momentum.system.ts:resolveSetPosture",
-      "playerInvocationPath": null,
+      "playerInvocationPath": "src/client/input/keyboard-router.ts:handleGameKeydown ([Z]) & src/client/ui/QuickActionBar.tsx",
       "npcInvocationPath": null,
       "emittedEvents": [
         "POSTURE_CHANGED"
       ],
       "implementation": "COMPLETE",
-      "reachability": "UNREACHABLE",
+      "reachability": "PLAYER_REACHABLE",
       "verification": "VERIFIED",
       "testReferences": [
         "tests/sim/momentum.test.ts:L45"
@@ -779,7 +779,7 @@
       "schemaFile": "src/schemas/domain-commands.schema.ts:L237",
       "dispatcherLine": "src/sim/core/command-router.ts:L160",
       "systemHandler": "src/sim/systems/weapon-mods.system.ts:resolvePryObstacle",
-      "playerInvocationPath": null,
+      "playerInvocationPath": "src/client/ui/LookCursorOverlay.tsx:pryingTool",
       "npcInvocationPath": null,
       "emittedEvents": [
         "OBSTACLE_PRIED",
@@ -787,7 +787,7 @@
         "SOUND_EMITTED"
       ],
       "implementation": "COMPLETE",
-      "reachability": "UNREACHABLE",
+      "reachability": "PLAYER_REACHABLE",
       "verification": "VERIFIED",
       "testReferences": [
         "tests/sim/weapon-mods.test.ts:L185",
@@ -869,7 +869,7 @@
       "dispatcherLine": "src/sim/core/command-router.ts:L170",
       "systemHandler": "src/sim/systems/squad-witness.system.ts:resolveReportCrime",
       "playerInvocationPath": null,
-      "npcInvocationPath": null,
+      "npcInvocationPath": "src/sim/systems/squad-witness.system.ts:processCrimeWitnesses",
       "emittedEvents": [
         "WITNESS_CRIME_REPORTED",
         "GRUDGE_ACQUIRED",
@@ -877,9 +877,11 @@
         "SQUADMATE_RALLIED"
       ],
       "implementation": "COMPLETE",
-      "reachability": "UNREACHABLE",
-      "verification": "UNTESTED",
-      "testReferences": []
+      "reachability": "NPC_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/squad-witness.test.ts:L132"
+      ]
     },
     "BOARD_MONORAIL": {
       "schemaFile": "src/schemas/transit-commands.schema.ts:L4",

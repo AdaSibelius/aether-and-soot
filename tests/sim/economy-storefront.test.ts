@@ -69,7 +69,7 @@ describe('Phase 6: Factions, Macro-Tick Commodity Economy & Player Storefront', 
           ...player,
           inventory: {
             ...player.inventory!,
-            containedEntityIds: [bronzeEid],
+            containedEntityIds: [...(player.inventory?.containedEntityIds ?? []), bronzeEid],
             currentMassGrams: bronzeItem.item!.massGrams * 4,
           },
         },

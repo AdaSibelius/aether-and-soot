@@ -41,12 +41,12 @@ export function resolveSalvageItem(state: WorldState, actorId: EntityId, itemEnt
     if (!actor?.inventory) return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'NO_INVENTORY');
   }
 
+  if (isInstalledOnActor(actor, itemEntityId)) {
+    return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'ITEM_INSTALLED');
+  }
   const inv: InventoryComponent = actor.inventory;
   if (!inv.containedEntityIds.includes(itemEntityId)) {
     return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'ITEM_NOT_IN_INVENTORY');
-  }
-  if (isInstalledOnActor(actor, itemEntityId)) {
-    return failCrafting(workingState, actorId, 'SALVAGE_ITEM', 'ITEM_INSTALLED');
   }
 
   const target = workingState.entities[itemEntityId];

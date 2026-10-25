@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EntityRecord } from '../../src/schemas/components.schema.js';
-import { EntityIdSchema, LimbSlotId, StratumId } from '../../src/schemas/primitives.schema.js';
+import { BlueprintIdSchema, EntityIdSchema, LimbSlotId, StratumId } from '../../src/schemas/primitives.schema.js';
 import { assertWorldInvariants, validateWorldInvariants } from '../../src/sim/core/invariants.js';
 import { MAX_PERSISTENT_EVENT_LOG } from '../../src/sim/core/scheduler.js';
 import { dispatchCommand } from '../../src/sim/core/engine.js';
@@ -212,32 +212,69 @@ describe('Phase B: World Relational Invariants Guard & Event Log Ring-Buffer Hyg
     expect(violations.some((v) => v.includes('active aiController component'))).toBe(true);
   });
 
-  it('enforces eventLog ring-buffer ceiling of MAX_PERSISTENT_EVENT_LOG (250) across continuous simulation turns', () => {
+  it('enforces eventLog ring-buffer ceiling of MAX_PERSISTENT_EVENT_LOG (250)', () => {
     let world = createInitialWorld({ seed: 606, width: 16, height: 16 });
-
-    // Step 200 turns: each turn generates wait events
-    for (let step = 0; step < 150; step++) {
-      const res = dispatchCommand(world, {
-        type: 'WAIT_TURN',
-        actorId: playerId,
-      });
-      world = res.state;
+    for (let step = 0; step < 300; step++) {
+      world = dispatchCommand(world, { type: 'WAIT_TURN', actorId: playerId }).state;
     }
-
-    expect(world.turnCount).toBe(150);
-    expect(world.eventLog.length).toBeLessThanOrEqual(MAX_PERSISTENT_EVENT_LOG);
-
-    // Continue to 300 turns to guarantee ring buffer trimming
-    for (let step = 0; step < 150; step++) {
-      const res = dispatchCommand(world, {
-        type: 'WAIT_TURN',
-        actorId: playerId,
-      });
-      world = res.state;
-    }
-
     expect(world.turnCount).toBe(300);
     expect(world.eventLog.length).toBe(MAX_PERSISTENT_EVENT_LOG);
     expect(() => assertWorldInvariants(world)).not.toThrow();
+  });
+
+  it('detects orphaned items, rejects actions from deceased actors, and cleanly resolves lethal DAMAGE_LIMB', () => {
+    const world = createInitialWorld({ seed: 707 });
+    const orphanId = EntityIdSchema.parse('item_orphan_gear');
+    const orphanWorld: WorldState = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [orphanId]: {
+          id: orphanId,
+          name: 'Floating Gear',
+          visual: { glyph: '*', fgPrimary: '#fff', fgSecondary: '#888', bgColor: '#000', shaderFlags: [] },
+          item: { blueprintId: BlueprintIdSchema.parse('item_clockwork_gear'), category: 'MATERIAL', massGrams: 50, volumeMl: 20, quantity: 1, stackable: true },
+        },
+      },
+    };
+    expect(validateWorldInvariants(orphanWorld).some((v) => v.includes('is orphaned'))).toBe(true);
+
+    // Mortality rejection
+    const deadPlayerWorld: WorldState = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [playerId]: {
+          ...world.entities[playerId]!,
+          anatomy: { ...world.entities[playerId]!.anatomy!, bloodVolumePct: 0 },
+        },
+      },
+    };
+    const actRes = dispatchCommand(deadPlayerWorld, { type: 'WAIT_TURN', actorId: playerId });
+    expect(actRes.resolution.status).toBe('rejected');
+    if (actRes.resolution.status === 'rejected') {
+      expect(actRes.resolution.reason).toContain('deceased');
+    }
+
+    // Lethal DAMAGE_LIMB resolves defeat without invariant violation
+    const npcId = EntityIdSchema.parse('npc_lethal_target');
+    const liveNpcWorld: WorldState = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [npcId]: {
+          id: npcId,
+          name: 'Target Sentry',
+          visual: { glyph: 's', fgPrimary: '#f00', fgSecondary: '#500', bgColor: '#000', shaderFlags: [] },
+          position: { x: 5, y: 5, stratum: streetStratum, blocksMovement: true, blocksSight: false },
+          actor: { energy: 100, speed: 100, isPlayer: false },
+          anatomy: createDefaultNpcAnatomy(),
+        },
+      },
+    };
+    const lethalRes = dispatchCommand(liveNpcWorld, { type: 'DAMAGE_LIMB', actorId: playerId, targetId: npcId, slot: 'TORSO', damage: 100 });
+    expect(lethalRes.events.some((e) => e.type === 'ACTOR_DEFEATED')).toBe(true);
+    expect(lethalRes.state.entities[npcId]).toBeUndefined();
+    expect(() => assertWorldInvariants(lethalRes.state)).not.toThrow();
   });
 });

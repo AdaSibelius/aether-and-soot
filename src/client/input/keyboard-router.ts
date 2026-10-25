@@ -18,6 +18,8 @@ export interface KeyboardRouterParams {
   readonly onToggleDoor?: () => void;
   readonly onTalk?: () => void;
   readonly onOpenCharacterCreator?: () => void;
+  readonly currentPosture?: 'STANDING' | 'CROUCHED' | 'BRACED';
+  readonly onTogglePosture?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
 }
 
@@ -209,6 +211,19 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
   } else if (ev.key === 'g' || ev.key === ',') {
     ev.preventDefault();
     onCommand({ type: 'PICK_UP_ITEM', actorId: playerId });
+  } else if (ev.key === 'z' || ev.key === 'Z') {
+    ev.preventDefault();
+    if (params.onTogglePosture) {
+      params.onTogglePosture();
+    } else {
+      const next: Record<'STANDING' | 'CROUCHED' | 'BRACED', 'STANDING' | 'CROUCHED' | 'BRACED'> = {
+        STANDING: 'CROUCHED',
+        CROUCHED: 'BRACED',
+        BRACED: 'STANDING',
+      };
+      const cur = params.currentPosture ?? 'STANDING';
+      onCommand({ type: 'SET_POSTURE', actorId: playerId, posture: next[cur] });
+    }
   } else if ((ev.key === 'n' || ev.key === 'N') && onOpenCharacterCreator) {
     ev.preventDefault();
     onOpenCharacterCreator();

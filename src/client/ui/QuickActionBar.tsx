@@ -1,5 +1,5 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
-import { EntityId } from '../../schemas/primitives.schema.js';
+import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { ModalWindowId } from './CharacterModalShell.js';
 
@@ -26,6 +26,31 @@ export function QuickActionBar({
   const player = state.entities[actorId];
   const pos = player?.position;
 
+  const currentPosture: 'STANDING' | 'CROUCHED' | 'BRACED' = player?.actor?.posture ?? 'STANDING';
+  const nextPosture: Record<'STANDING' | 'CROUCHED' | 'BRACED', 'STANDING' | 'CROUCHED' | 'BRACED'> = {
+    STANDING: 'CROUCHED',
+    CROUCHED: 'BRACED',
+    BRACED: 'STANDING',
+  };
+
+  const activeAbilities: Array<{ abilityId: string; slot: LimbSlotId; label: string; cooldown: number }> = [];
+  if (player?.anatomy?.limbs) {
+    for (const [slotKey, limb] of Object.entries(player.anatomy.limbs)) {
+      if (limb.installedProstheticEntityId) {
+        const pEntity = state.entities[limb.installedProstheticEntityId];
+        const ability = pEntity?.prostheticSpec?.activeAbility;
+        if (ability) {
+          activeAbilities.push({
+            abilityId: ability.id,
+            slot: slotKey as LimbSlotId,
+            label: ability.id.replace(/_/g, ' '),
+            cooldown: ability.cooldownRemaining ?? 0,
+          });
+        }
+      }
+    }
+  }
+
   return (
     <div
       class="panel-box"
@@ -42,6 +67,14 @@ export function QuickActionBar({
     >
       {/* Tactical World Actions */}
       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => onCommand({ type: 'SET_POSTURE', actorId, posture: nextPosture[currentPosture] })}
+          style={{ padding: '3px 6px', fontSize: '10px' }}
+          title={`Cycle Posture (Current: ${currentPosture}) [Z]`}
+        >
+          [Z] {currentPosture}
+        </button>
         <button
           type="button"
           onClick={() => onCommand({ type: 'WAIT_TURN', actorId })}
@@ -121,6 +154,23 @@ export function QuickActionBar({
             {isLookModeActive ? '[L] Looking...' : '[L] Look'}
           </button>
         )}
+        {activeAbilities.map((ab) => (
+          <button
+            key={ab.slot}
+            type="button"
+            disabled={ab.cooldown > 0}
+            onClick={() => onCommand({ type: 'ACTIVATE_PROSTHETIC', actorId, slot: ab.slot })}
+            style={{
+              padding: '3px 6px',
+              fontSize: '10px',
+              color: ab.cooldown > 0 ? '#7f8c8d' : '#5dade2',
+              borderColor: ab.cooldown > 0 ? '#34495e' : '#2980b9',
+            }}
+            title={`Activate ${ab.label}${ab.cooldown > 0 ? ` (${ab.cooldown} turns cooldown)` : ''}`}
+          >
+            ⚡ {ab.label}{ab.cooldown > 0 ? ` (${ab.cooldown})` : ''}
+          </button>
+        ))}
       </div>
 
       <div style={{ fontSize: '10px', color: '#7f8c8d' }}>

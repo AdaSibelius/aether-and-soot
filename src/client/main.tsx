@@ -184,6 +184,7 @@ async function bootstrapClient(): Promise<void> {
       onLookAttack: lookAttack, onLookInteract: lookInteract,
       onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
       onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
+      currentPosture: worldState.entities[playerId]?.actor?.posture ?? 'STANDING',
       onCommand: handleCommand,
     });
   });

@@ -98,7 +98,7 @@ describe('Phase 50: Interactive World Features, Tactical Hazards & Mechanical Ag
         [playerId]: {
           ...state.entities[playerId]!,
           position: { ...state.entities[playerId]!.position!, x: 4, y: 4, stratum: 'STREET' },
-          inventory: { ...state.entities[playerId]!.inventory!, containedEntityIds: [toolId] },
+          inventory: { ...state.entities[playerId]!.inventory!, containedEntityIds: [...state.entities[playerId]!.inventory!.containedEntityIds, toolId] },
         },
       },
       strata: {

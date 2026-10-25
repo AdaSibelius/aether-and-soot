@@ -4,6 +4,8 @@ import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
 import { dispatchCommand } from '../../src/sim/core/engine.js';
 import { SeededRNG } from '../../src/sim/core/rng.js';
 import { assertWorldInvariants, createInitialWorld, deserializeWorld, serializeWorld } from '../../src/sim/core/world.js';
+import { generateVictorianDistrict } from '../../src/sim/spatial/generator.js';
+import { spawnDistrictNpcs } from '../../src/sim/systems/district-spawner.js';
 
 describe('Phase 1: Deterministic Simulation Kernel & Multi-Strata Portals', () => {
   const playerId = EntityIdSchema.parse('actor_player');
@@ -143,5 +145,30 @@ describe('Phase 1: Deterministic Simulation Kernel & Multi-Strata Portals', () =
         apSpent: 160,
       }),
     );
+  });
+
+  it('guarantees 50-turn save/restore equivalence in a populated district with active NPCs', () => {
+    const runDistrictSim = (withMidRunReload: boolean): string => {
+      const base = createInitialWorld({ seed: 50505, width: 24, height: 24 });
+      const gen = generateVictorianDistrict(base);
+      let world = spawnDistrictNpcs(gen.state).state;
+
+      for (let step = 0; step < 50; step++) {
+        if (withMidRunReload && step === 25) {
+          assertWorldInvariants(world);
+          const serialized = serializeWorld(world);
+          world = deserializeWorld(serialized);
+          assertWorldInvariants(world);
+        }
+        const res = dispatchCommand(world, { type: 'WAIT_TURN', actorId: playerId });
+        world = res.state;
+      }
+      assertWorldInvariants(world);
+      return serializeWorld(world);
+    };
+
+    const continuous = runDistrictSim(false);
+    const reloaded = runDistrictSim(true);
+    expect(deserializeWorld(reloaded)).toEqual(deserializeWorld(continuous));
   });
 });

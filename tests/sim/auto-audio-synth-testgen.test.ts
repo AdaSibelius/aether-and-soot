@@ -93,7 +93,7 @@ describe('Deterministic Audio Synth Preset Triggers Test (synth-definitions.ts)'
         [playerId]: {
           ...player,
           inventory: {
-            containedEntityIds: [prostheticId],
+            containedEntityIds: [...(player.inventory?.containedEntityIds ?? []), prostheticId],
             equippedSlots: {},
             maxMassGrams: 20000,
             maxVolumeMl: 10000,

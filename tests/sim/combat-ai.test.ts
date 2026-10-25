@@ -163,4 +163,38 @@ describe('Phase 10: Autonomous NPCs, Enemies, Faction AI & Targeted Limb Combat'
       }),
     );
   });
+
+  it('emits COMBAT_ACTION_FAILED when attempting to melee strike an out-of-range target', () => {
+    let world = setupDistrictWithNpcs(1003);
+    const warden = world.entities[wardenId]!;
+    const player = world.entities[playerId]!;
+
+    // Place player at distance 3 from the warden
+    world = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [playerId]: {
+          ...player,
+          position: { ...player.position!, x: warden.position!.x + 3, y: warden.position!.y, stratum: 'STREET' },
+        },
+      },
+    };
+
+    const distantAttack = dispatchCommand(world, {
+      type: 'ATTACK_ACTOR',
+      attackerId: playerId,
+      targetId: wardenId,
+      targetSlot: 'TORSO',
+    });
+
+    expect(distantAttack.events).toContainEqual(
+      expect.objectContaining({
+        type: 'COMBAT_ACTION_FAILED',
+        attackerId: playerId,
+        targetId: wardenId,
+        reason: 'OUT_OF_RANGE',
+      }),
+    );
+  });
 });

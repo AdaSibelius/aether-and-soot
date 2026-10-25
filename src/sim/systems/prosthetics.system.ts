@@ -35,6 +35,17 @@ export function resolveInstallProsthetic(
   const nextBlood = Math.max(0, actor.anatomy.bloodVolumePct - bloodLoss);
   const addedStrain = prosthetic.prostheticSpec.activeAbility ? 35 : 20;
 
+  const nextInventory = actor.inventory
+    ? {
+        ...actor.inventory,
+        containedEntityIds: actor.inventory.containedEntityIds.filter((id) => id !== prostheticEntityId),
+        currentMassGrams: actor.inventory.currentMassGrams + prosthetic.prostheticSpec.massGrams,
+      }
+    : undefined;
+
+  const { position: _pos1, ...prostheticWithoutPos } = prosthetic;
+  const updatedProsthetic: EntityRecord = prostheticWithoutPos;
+
   const updatedActor: EntityRecord = {
     ...actor,
     anatomy: {
@@ -49,17 +60,16 @@ export function resolveInstallProsthetic(
         },
       },
     },
-    inventory: actor.inventory
-      ? {
-          ...actor.inventory,
-          currentMassGrams: actor.inventory.currentMassGrams + prosthetic.prostheticSpec.massGrams,
-        }
-      : undefined,
+    inventory: nextInventory,
   };
 
   let nextState: WorldState = {
     ...state,
-    entities: { ...state.entities, [actorId]: updatedActor },
+    entities: {
+      ...state.entities,
+      [actorId]: updatedActor,
+      [prostheticEntityId]: updatedProsthetic,
+    },
   };
 
   const events: SimEvent[] = [
@@ -108,6 +118,26 @@ export function resolveRemoveProsthetic(
   const removedStrain = prosthetic?.prostheticSpec?.activeAbility ? 35 : 20;
 
   const { installedProstheticEntityId: _removed, ...restLimb } = targetLimb;
+  let updatedProsthetic: EntityRecord | undefined = undefined;
+  if (prosthetic) {
+    const { position: _pos2, ...prostheticWithoutPos } = prosthetic;
+    updatedProsthetic = prostheticWithoutPos;
+  }
+  let nextInventory = actor.inventory;
+
+  if (nextInventory) {
+    nextInventory = {
+      ...nextInventory,
+      containedEntityIds: [...nextInventory.containedEntityIds.filter((id) => id !== installedId), installedId],
+      currentMassGrams: Math.max(0, nextInventory.currentMassGrams - massRemoved),
+    };
+  } else if (updatedProsthetic && actor.position) {
+    updatedProsthetic = {
+      ...updatedProsthetic,
+      position: { ...actor.position, blocksMovement: false, blocksSight: false },
+    };
+  }
+
   const updatedActor: EntityRecord = {
     ...actor,
     anatomy: {
@@ -119,17 +149,16 @@ export function resolveRemoveProsthetic(
         [slot]: restLimb,
       },
     },
-    inventory: actor.inventory
-      ? {
-          ...actor.inventory,
-          currentMassGrams: Math.max(0, actor.inventory.currentMassGrams - massRemoved),
-        }
-      : undefined,
+    inventory: nextInventory,
   };
 
   let nextState: WorldState = {
     ...state,
-    entities: { ...state.entities, [actorId]: updatedActor },
+    entities: {
+      ...state.entities,
+      [actorId]: updatedActor,
+      ...(updatedProsthetic ? { [installedId]: updatedProsthetic } : {}),
+    },
   };
 
   const events: SimEvent[] = [

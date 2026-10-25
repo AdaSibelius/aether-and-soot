@@ -112,15 +112,15 @@ export function resolveDropItem(
     }
   }
 
+  if (isInstalledOnActor(actor, itemEntityId)) {
+    return createInventoryFailureResult(workingState, actorId, 'DROP', 'ITEM_INSTALLED', itemEntityId);
+  }
   const inv = actor.inventory;
   if (!inv.containedEntityIds.includes(itemEntityId)) {
     return createInventoryFailureResult(workingState, actorId, 'DROP', 'NOT_IN_INVENTORY', itemEntityId);
   }
   const item = workingState.entities[itemEntityId];
   if (!item) return createInventoryFailureResult(workingState, actorId, 'DROP', 'ITEM_NOT_FOUND', itemEntityId);
-  if (isInstalledOnActor(actor, itemEntityId)) {
-    return createInventoryFailureResult(workingState, actorId, 'DROP', 'ITEM_INSTALLED', itemEntityId);
-  }
   const profile = getCarryProfile(item);
   if (!profile) return createInventoryFailureResult(workingState, actorId, 'DROP', 'NOT_CARRYABLE', itemEntityId);
 

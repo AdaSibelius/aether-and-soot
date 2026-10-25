@@ -3,9 +3,9 @@
 **Last Updated:** 2026-10-25
 
 ## Recent Commits
+- 17bdfe5: docs(audit): systemic integrity and feature completeness audit (closes #84)
+- 3f11ea7: chore(sync): update STATE.md, critic audit, and hermes-critic for Tier E completion
 - e454d70: feat(sim): implement Phase 50 interactive world features and hazards (#82) (#83)
-- 4d493eb: feat(tooling): add TSX-aware split, mechanic scaffolder, and workflow skills (#81)
-- e7dba65: chore(repo): prune merged feature branches and update test telemetry
 
 ## Immediate Next Priority
 - All scheduled phases completed

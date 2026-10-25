@@ -53,6 +53,16 @@ export function LookCursorOverlay({
   const isCursorOnScreen = screenX >= 0 && screenX < WIDESCREEN_GRID_WIDTH && screenY >= 0 && screenY < WIDESCREEN_GRID_HEIGHT;
   const leftPx = screenX * CELL_WIDTH_PX, topPx = screenY * CELL_HEIGHT_PX;
 
+  const pryingTool = player?.inventory?.containedEntityIds
+    .map((id) => state.entities[id])
+    .find((e) => e && (e.item?.toolQualities?.PRYING || e.name.toLowerCase().includes('crowbar') || e.name.toLowerCase().includes('wrench')));
+
+  const surgicalTool = player?.inventory?.containedEntityIds
+    .map((id) => state.entities[id])
+    .find((e) => e && (e.item?.toolQualities?.SURGERY !== undefined || e.item?.surgicalQuality !== undefined || e.item?.blueprintId?.includes('scalpel') || e.name.toLowerCase().includes('scalpel')));
+
+  const corpseEntity = entitiesOnTile.find((e) => e.name.toLowerCase().includes('corpse') || (e.anatomy && e.anatomy.bloodVolumePct <= 0 && !e.actor));
+
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', overflow: 'hidden' }}>
       <div style={{
@@ -134,6 +144,12 @@ export function LookCursorOverlay({
             <div>
               <div class="brass-text" style={{ fontWeight: 'bold' }}>{cell?.terrainType === 'WOODEN_DOOR_CLOSED' ? '+ Closed Wooden Door' : '/ Open Wooden Door'}</div>
               <div style={{ color: '#7f8c8d', marginTop: '2px' }}>{isAdjacent ? 'Press [Enter] to toggle door' : 'Step adjacent to open/close'}</div>
+              {isAdjacent && pryingTool && cell?.terrainType === 'WOODEN_DOOR_CLOSED' && (
+                <button type="button" onClick={() => onCommand({ type: 'PRY_OBSTACLE', actorId, target: { x: cursor.x, y: cursor.y, stratum }, toolEntityId: pryingTool.id })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%', marginTop: '3px' }}>
+                  [Pry Obstacle]
+                </button>
+              )}
             </div>
           ) : isGlassWindow ? (
             <div>
@@ -189,12 +205,29 @@ export function LookCursorOverlay({
                 </button>
               )}
             </div>
+          ) : corpseEntity ? (
+            <div>
+              <div class="brass-text" style={{ fontWeight: 'bold' }}>{corpseEntity.visual.glyph} {corpseEntity.name}</div>
+              <div style={{ color: '#7f8c8d', margin: '2px 0 4px 0' }}>Fallen remains.</div>
+              {isAdjacent && surgicalTool && (
+                <button type="button" onClick={() => onCommand({ type: 'HARVEST_CORPSE', actorId, corpseEntityId: corpseEntity.id, toolEntityId: surgicalTool.id })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#3b2219', border: '1px solid #e67e22', color: '#e67e22', cursor: 'pointer', width: '100%', marginTop: '3px' }}>
+                  [Harvest Cybernetics]
+                </button>
+              )}
+            </div>
           ) : (
             <div>
               <div class="brass-text" style={{ fontWeight: 'bold' }}>{entitiesOnTile[0]?.visual.glyph ?? '.'} {entitiesOnTile[0]?.name ?? cell?.terrainType ?? 'Empty Space'}</div>
               <div style={{ color: '#7f8c8d', marginTop: '2px' }}>
                 {entitiesOnTile[0]?.portal ? 'Press [Enter] to traverse portal' : hasCoalDust ? 'Coal dust cloud hovering.' : 'Objects on tile'}
               </div>
+              {isAdjacent && pryingTool && (cell?.terrainType === 'IRON_GRATE' || cell?.terrainType === 'DISTRICT_GATE') && (
+                <button type="button" onClick={() => onCommand({ type: 'PRY_OBSTACLE', actorId, target: { x: cursor.x, y: cursor.y, stratum }, toolEntityId: pryingTool.id })}
+                  style={{ padding: '3px 6px', fontSize: '10px', background: '#1c2833', border: '1px solid var(--brass-gold)', color: 'var(--brass-gold)', cursor: 'pointer', width: '100%', marginTop: '3px' }}>
+                  [Pry Obstacle]
+                </button>
+              )}
               {hasCoalDust && (
                 <button type="button" onClick={() => onCommand({ type: 'EMIT_SPARK', actorId, target: { x: cursor.x, y: cursor.y, stratum } })}
                   style={{ padding: '3px 6px', fontSize: '10px', background: '#3b2219', border: '1px solid #e67e22', color: '#e67e22', cursor: 'pointer', width: '100%', marginTop: '4px' }}>

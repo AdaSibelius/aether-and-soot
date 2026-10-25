@@ -18,6 +18,13 @@ export function validateWorldInvariants(state: Readonly<WorldState>): string[] {
   const violations: string[] = [];
   const inventoryOwnership = new Map<EntityId, string>();
   const prostheticSockets = new Map<EntityId, string>();
+  const tradePedestalItems = new Set<string>();
+
+  for (const entity of Object.values(state.entities)) {
+    if (entity.tradePedestal?.itemEntityId) {
+      tradePedestalItems.add(entity.tradePedestal.itemEntityId);
+    }
+  }
 
   for (const [entityId, entity] of Object.entries(state.entities)) {
     // 1. Inventory & equipment validation
@@ -141,6 +148,20 @@ export function validateWorldInvariants(state: Readonly<WorldState>): string[] {
       violations.push(
         `Dead NPC '${entityId}' still has an active aiController component in state.entities.`,
       );
+    }
+  }
+
+  // 5. Orphaned physical item check: carried/socketed/pedestal vs unpositioned
+  for (const [entityId, entity] of Object.entries(state.entities)) {
+    if ((entity.item !== undefined || entity.prostheticSpec !== undefined) && entity.position === undefined) {
+      const isCarried = inventoryOwnership.has(entityId as EntityId);
+      const isSocketed = prostheticSockets.has(entityId as EntityId);
+      const isPedestal = tradePedestalItems.has(entityId);
+      if (!isCarried && !isSocketed && !isPedestal) {
+        violations.push(
+          `Item entity '${entityId}' is orphaned: possesses neither ground coordinates nor inventory/prosthetic/pedestal ownership.`,
+        );
+      }
     }
   }
 

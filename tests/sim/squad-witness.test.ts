@@ -127,4 +127,32 @@ describe('Phase 42: Witness Attribution, Squad Callouts & Faction Grudge Memory'
     expect(tickGuard.aiController?.hostile).toBe(true);
     expect(tickGuard.aiController?.grudgeTargetId).toBe(playerId);
   });
+
+  it('dispatches REPORT_CRIME to alert authorities and adjust faction reputation', () => {
+    let world = createInitialWorld({ seed: 105, width: 20, height: 20 });
+    const p = world.entities[playerId]!;
+    const citizen = makeNpc(EntityIdSchema.parse('npc_citizen_witness'), 'CITIZEN', 4);
+    const guard = makeNpc(guardId, 'GUARD', 6);
+    world = {
+      ...world,
+      entities: {
+        ...world.entities,
+        [playerId]: { ...p, position: { x: 2, y: 5, stratum: 'STREET', blocksMovement: true, blocksSight: false } },
+        [citizen.id]: citizen,
+        [guardId]: guard,
+      },
+    };
+
+    const initialRep = world.economy.factionReputation['CROWN_CONSTABULARY'] ?? 0;
+    const reportRes = dispatchCommand(world, {
+      type: 'REPORT_CRIME',
+      witnessId: citizen.id,
+      perpetratorId: playerId,
+      crime: 'THEFT',
+    });
+
+    expect(reportRes.events.some((e) => e.type === 'WITNESS_CRIME_REPORTED')).toBe(true);
+    const nextRep = reportRes.state.economy.factionReputation['CROWN_CONSTABULARY'] ?? 0;
+    expect(nextRep).toBeLessThan(initialRep);
+  });
 });

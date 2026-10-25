@@ -142,6 +142,9 @@ export function applyPlaytestScenario(state: WorldState, scenario: PlaytestScena
     nextEntities[fuelId] = { id: fuelId, name: 'Pressurized Steam Canister', visual: { glyph: '~', fgPrimary: '#3498DB', fgSecondary: '#2980B9', bgColor: '#0A0D0E', shaderFlags: [] }, item: { blueprintId: BlueprintIdSchema.parse('item_pressurized_steam_canister'), category: 'CONSUMABLE', massGrams: 600, volumeMl: 500, quantity: 1, stackable: true } };
     const playerAnatomy = player.anatomy ? { ...player.anatomy, limbs: { ...player.anatomy.limbs, LEFT_ARM: { ...player.anatomy.limbs['LEFT_ARM']!, hp: 35 } } } : undefined;
     const invIds = [legId, scrapId, fuelId];
+    for (const oldId of player.inventory?.containedEntityIds ?? []) {
+      if (!invIds.includes(oldId)) delete nextEntities[oldId];
+    }
     nextEntities[playerId] = { ...player, anatomy: playerAnatomy, inventory: { containedEntityIds: invIds, maxMassGrams: 40000, maxVolumeMl: 40000, currentMassGrams: 5300 } };
   } else if (scenario === 'sabotage') {
     const boilerId = EntityIdSchema.parse('env_foundry_boiler');
@@ -150,12 +153,18 @@ export function applyPlaytestScenario(state: WorldState, scenario: PlaytestScena
     nextEntities[merchantId] = { id: merchantId, name: 'Ironmonger Coal Broker', visual: { glyph: 'M', fgPrimary: '#F39C12', fgSecondary: '#D68910', bgColor: '#0A0D0E', shaderFlags: [] }, position: { x: pos.x - 1, y: pos.y, stratum: pos.stratum, blocksMovement: true, blocksSight: false }, aiController: { factionId: 'IRONMONGERS_CARTEL', role: 'MERCHANT', hostile: false, alertState: 'IDLE' }, inventory: { containedEntityIds: [], maxMassGrams: 50000, maxVolumeMl: 50000, currentMassGrams: 0 } };
     const coalId = EntityIdSchema.parse('item_player_coal');
     nextEntities[coalId] = { id: coalId, name: 'Anthracite Coal Briquette', visual: { glyph: '$', fgPrimary: '#34495E', fgSecondary: '#2C3E50', bgColor: '#0A0D0E', shaderFlags: [] }, item: { blueprintId: BlueprintIdSchema.parse('commodity_anthracite_briquette'), category: 'COMMODITY', massGrams: 1000, volumeMl: 800, quantity: 5, stackable: true } };
+    for (const oldId of player.inventory?.containedEntityIds ?? []) {
+      if (oldId !== coalId) delete nextEntities[oldId];
+    }
     nextEntities[playerId] = { ...player, inventory: { containedEntityIds: [coalId], maxMassGrams: 30000, maxVolumeMl: 30000, currentMassGrams: 1000 } };
   } else if (scenario === 'safehouse_transit') {
     const monorailId = EntityIdSchema.parse('env_monorail_cab');
     nextEntities[monorailId] = { id: monorailId, name: 'Pneumatic Monorail Cab', visual: { glyph: 'T', fgPrimary: '#1ABC9C', fgSecondary: '#16A085', bgColor: '#0A0D0E', shaderFlags: [] }, position: { x: pos.x, y: pos.y + 1, stratum: pos.stratum, blocksMovement: false, blocksSight: false }, monorailCar: { carId: 'env_monorail_cab', destinationDistrictId: BlueprintIdSchema.parse('district_gilded_spire'), steamPressureKpa: 200, speedMph: 45, occupiedByActorIds: [] } };
     const coalId = EntityIdSchema.parse('item_pedestal_coal');
     nextEntities[coalId] = { id: coalId, name: 'Anthracite Coal', visual: { glyph: '$', fgPrimary: '#34495E', fgSecondary: '#2C3E50', bgColor: '#0A0D0E', shaderFlags: [] }, item: { blueprintId: BlueprintIdSchema.parse('commodity_anthracite_briquette'), category: 'COMMODITY', massGrams: 1000, volumeMl: 800, quantity: 10, stackable: true } };
+    for (const oldId of player.inventory?.containedEntityIds ?? []) {
+      if (oldId !== coalId) delete nextEntities[oldId];
+    }
     nextEntities[playerId] = { ...player, inventory: { containedEntityIds: [coalId], maxMassGrams: 30000, maxVolumeMl: 30000, currentMassGrams: 1000 } };
   }
 

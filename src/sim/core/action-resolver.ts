@@ -1,8 +1,9 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
-import { CommandResolution } from './command-resolution.js';
+import { CommandResolution, createRejectedResolution } from './command-resolution.js';
 import { routeDomainCommand } from './command-router.js';
 import { SeededRNG } from './rng.js';
+import { isActorFatal } from '../systems/mortality.system.js';
 import {
   resolveMoveStepAction,
   resolveUsePortalAction,
@@ -31,6 +32,12 @@ export function resolveAction(
   command: GameCommand,
   rng: SeededRNG,
 ): CommandResolution {
+  const actingActorId = getActingActorId(command);
+  const actingEntity = state.entities[actingActorId];
+  if (actingEntity && isActorFatal(actingEntity)) {
+    return createRejectedResolution(state, 'Actor is deceased and cannot act', []);
+  }
+
   switch (command.type) {
     case 'MOVE_STEP':
       return resolveMoveStepAction(state, command);

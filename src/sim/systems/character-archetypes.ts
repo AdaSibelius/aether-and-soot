@@ -21,6 +21,9 @@ export function applyCharacterCreation(state: WorldState, config: CharacterCreat
   const scenario = SCENARIOS[config.scenarioId];
 
   let nextEntities: Record<string, EntityRecord> = { ...state.entities };
+  for (const oldId of basePlayer.inventory.containedEntityIds) {
+    delete nextEntities[oldId];
+  }
   const nextContainedIds: EntityId[] = [];
   let currentMassGrams = 0;
 

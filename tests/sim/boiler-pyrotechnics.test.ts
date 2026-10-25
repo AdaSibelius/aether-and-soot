@@ -60,7 +60,7 @@ describe('Phase 25: Boiler Stoking, Pyrotechnics & Gas Hazards', () => {
           ...world.entities[playerId]!,
           anatomy: { ...world.entities[playerId]!.anatomy!, steamReserveKpa: 0 },
           inventory: {
-            containedEntityIds: [canisterId], equippedSlots: {},
+            containedEntityIds: [...(world.entities[playerId]!.inventory?.containedEntityIds ?? []), canisterId], equippedSlots: {},
             currentMassGrams: 500, maxMassGrams: 20000, maxVolumeMl: 20000,
           },
         },
@@ -84,10 +84,15 @@ describe('Phase 25: Boiler Stoking, Pyrotechnics & Gas Hazards', () => {
     let world = createInitialWorld({ seed: 103, width: 10, height: 10 });
     const playerId = EntityIdSchema.parse('actor_player');
 
+    const {
+      [EntityIdSchema.parse('item_pneumatic_strider_leg')]: _l,
+      [EntityIdSchema.parse('item_aetheric_monocle')]: _m,
+      ...emptyPocketEntities
+    } = world.entities;
     world = {
       ...world,
       entities: {
-        ...world.entities,
+        ...emptyPocketEntities,
         [playerId]: {
           ...world.entities[playerId]!,
           anatomy: { ...world.entities[playerId]!.anatomy!, steamReserveKpa: 0 },

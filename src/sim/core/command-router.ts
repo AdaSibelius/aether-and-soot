@@ -1,6 +1,7 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { resolveDamageLimb, resolveInstallProsthetic, resolveRemoveProsthetic } from '../systems/anatomy.system.js';
+import { resolveActorDefeatIfFatal } from '../systems/mortality.system.js';
 import { resolveRefillSteam, resolveVentSteam } from '../systems/boiler-stoking.system.js';
 import { resolveAttackActor } from '../systems/combat.system.js';
 import { resolveCraftRecipe, resolveRepairLimb, resolveSalvageItem } from '../systems/crafting.system.js';
@@ -63,8 +64,11 @@ function executeDomainHandler(
       const coverRes = recordTacticalCoverManeuver(ventRes.state, command.actorId, 'VENT_STEAM_COVER', `${command.pressureReleasedKpa} kPa released`);
       return { ...coverRes, events: [...ventRes.events, ...coverRes.events], apSpent: ventRes.apSpent };
     }
-    case 'DAMAGE_LIMB':
-      return resolveDamageLimb(state, command.targetId, command.slot, command.damage);
+    case 'DAMAGE_LIMB': {
+      const dmgRes = resolveDamageLimb(state, command.targetId, command.slot, command.damage);
+      const defeatRes = resolveActorDefeatIfFatal(dmgRes.state, command.targetId, command.actorId);
+      return { ...defeatRes, events: [...dmgRes.events, ...defeatRes.events], apSpent: dmgRes.apSpent };
+    }
     case 'INSTALL_PROSTHETIC':
       return resolveInstallProsthetic(state, command.actorId, command.prostheticEntityId, command.slot);
     case 'REMOVE_PROSTHETIC':

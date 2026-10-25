@@ -109,10 +109,12 @@ describe('Phase 30: Diurnal Shift Clocks, Autonomous NPC Ecology & District Catc
 
     // Depleted tonic & blood <= 50% triggers SEEK_MEDICAL toward chirurgeon at (8, 10)
     let depletedWorld = setupEcologyScenario(25);
+    const tonicId = EntityIdSchema.parse('item_tonic_1');
+    const { [tonicId]: _depletedTonic, ...depletedEntities } = depletedWorld.entities;
     depletedWorld = {
       ...depletedWorld,
       entities: {
-        ...depletedWorld.entities,
+        ...depletedEntities,
         [citizenId]: {
           ...depletedWorld.entities[citizenId]!,
           anatomy: { ...depletedWorld.entities[citizenId]!.anatomy!, bloodVolumePct: 40 },

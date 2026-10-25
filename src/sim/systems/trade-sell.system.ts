@@ -36,12 +36,12 @@ export function resolveSellToMerchant(
     return createTradeFailure(state, actorId, 'SELL', 'OUT_OF_RANGE', merchantId);
   }
 
-  if (!actor.inventory.containedEntityIds.includes(itemEntityId)) {
-    return createTradeFailure(state, actorId, 'SELL', 'ITEM_NOT_FOUND', merchantId);
-  }
-
   if (isInstalledOnActor(actor, itemEntityId)) {
     return createTradeFailure(state, actorId, 'SELL', 'ITEM_INSTALLED', merchantId);
+  }
+
+  if (!actor.inventory.containedEntityIds.includes(itemEntityId)) {
+    return createTradeFailure(state, actorId, 'SELL', 'ITEM_NOT_FOUND', merchantId);
   }
 
   const itemEntity = state.entities[itemEntityId];

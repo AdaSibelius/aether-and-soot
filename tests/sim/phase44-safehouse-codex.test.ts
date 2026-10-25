@@ -86,7 +86,7 @@ describe('Phase 44: Artificer Safehouse Deeds, Furniture & Naturalist Codex', ()
         [playerId]: {
           ...world.entities[playerId]!,
           inventory: {
-            containedEntityIds: [itemId],
+            containedEntityIds: [...(world.entities[playerId]!.inventory?.containedEntityIds ?? []), itemId],
             maxMassGrams: 50000,
             maxVolumeMl: 40000,
             currentMassGrams: 200,
