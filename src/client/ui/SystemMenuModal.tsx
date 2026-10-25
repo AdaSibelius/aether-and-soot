@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { deserializeWorld, serializeWorld, WorldState } from '../../sim/core/world.js';
+import { SystemSettingsControls } from './SystemSettingsControls.js';
 
 export interface SystemMenuModalProps {
   readonly state: Readonly<WorldState>;
@@ -154,22 +155,10 @@ export function SystemMenuModal({
           </div>
         )}
 
-        {onToggleCrtScanlines && (
-          <div style={{ margin: '6px 0' }}>
-            <button
-              type="button"
-              onClick={onToggleCrtScanlines}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                color: crtScanlinesEnabled ? 'var(--ok-green)' : '#7f8c8d',
-                border: '1px solid #2e4053',
-              }}
-            >
-              CRT Scanlines: {crtScanlinesEnabled ? '[ACTIVE -45% Alpha]' : '[DISABLED]'}
-            </button>
-          </div>
-        )}
+        <SystemSettingsControls
+          crtScanlinesEnabled={crtScanlinesEnabled}
+          onToggleCrtScanlines={onToggleCrtScanlines}
+        />
 
         <div class="panel-header" style={{ marginTop: '8px' }}>DISTRICT SEED GENERATION</div>
         <div style={{ display: 'flex', gap: '6px', margin: '6px 0' }}>

@@ -3,6 +3,7 @@ import { UiCellBuffer } from '../canvas-ui/cell-buffer.js';
 import { VisualGridFrame } from '../projection/frame-adapter.js';
 import { createCrtPostFilter, DEFAULT_SCANLINE_OPACITY, updateSteampunkFilterUniforms } from './crt-filter.js';
 import { createGlyphAtlas, GlyphAtlas } from './glyph-atlas.js';
+import { getPerformanceGovernor, PerformanceGovernor } from './performance-governor.js';
 
 export const CELL_WIDTH_PX = 22;
 export const CELL_HEIGHT_PX = 24;
@@ -26,12 +27,20 @@ export class GlyphStageRenderer {
   private crtFilter: Filter | null = null;
   private elapsedSeconds = 0;
   private activeUiBuffer: UiCellBuffer | null = null;
+  private readonly governor: PerformanceGovernor;
 
-  private constructor(app: Application, atlas: GlyphAtlas, gridWidth: number, gridHeight: number) {
+  private constructor(
+    app: Application,
+    atlas: GlyphAtlas,
+    gridWidth: number,
+    gridHeight: number,
+    governor?: PerformanceGovernor,
+  ) {
     this.app = app;
     this.atlas = atlas;
     this.gridWidth = gridWidth;
     this.gridHeight = gridHeight;
+    this.governor = governor ?? getPerformanceGovernor();
     this.gridContainer = new Container();
     this.bgGraphics = new Graphics();
     this.gridContainer.addChild(this.bgGraphics);
@@ -44,6 +53,10 @@ export class GlyphStageRenderer {
     }
 
     this.app.stage.addChild(this.gridContainer);
+  }
+
+  public getGovernor(): PerformanceGovernor {
+    return this.governor;
   }
 
   public setCrtScanlinesEnabled(enabled: boolean): void {
@@ -80,12 +93,23 @@ export class GlyphStageRenderer {
     frame: VisualGridFrame,
     uiBuffer?: UiCellBuffer,
     thermoStress = 0,
+    deltaMs = 16.67,
   ): void {
     this.elapsedSeconds += 0.05;
     this.activeUiBuffer = uiBuffer ?? null;
+    this.governor.recordFrameTime(deltaMs);
 
     if (this.crtFilter) {
-      updateSteampunkFilterUniforms(this.crtFilter, this.elapsedSeconds, thermoStress);
+      const distortion = this.governor.getEffectiveDistortionScale();
+      const scanlines = this.governor.getEffectiveScanlineOpacity();
+      updateSteampunkFilterUniforms(
+        this.crtFilter,
+        this.elapsedSeconds,
+        thermoStress,
+        [0, 0, 0, 0],
+        distortion,
+        scanlines,
+      );
     }
 
     this.bgGraphics.clear();
@@ -143,10 +167,10 @@ export class GlyphStageRenderer {
             alpha: 1.0,
           });
 
-          // Mechanical Tremor Jitter on stressed components
+          // Mechanical Tremor Jitter on stressed components (bypassed if reduced motion or terminal tier)
           let jx = 0;
           let jy = 0;
-          if (uiCell.shaderFlags?.includes('TREMOR_JITTER')) {
+          if (uiCell.shaderFlags?.includes('TREMOR_JITTER') && this.governor.shouldApplyTremorJitter()) {
             const jitterPhase = (ux * 5 + uy * 7 + Math.floor(this.elapsedSeconds * 20)) % 4;
             jx = jitterPhase === 1 ? 1 : jitterPhase === 3 ? -1 : 0;
             jy = jitterPhase === 0 ? 1 : jitterPhase === 2 ? -1 : 0;

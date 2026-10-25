@@ -10,18 +10,27 @@ const STRUCTURAL_BORDER_GLYPHS = new Set([
 
 const CYLINDER_SPIN_GLYPHS = ['/', '-', '\\', '|', '⚙', '▒'];
 
+export interface MechanicalTransitionOptions {
+  readonly reducedMotion?: boolean;
+}
+
 /**
  * Pure deterministic non-blocking 100ms mechanical cylinder transition filter.
  * Overlays a settling wave of spinning slashes and brass cylinder glyphs across
  * interior content cells while preserving structural borders.
  *
- * @returns true if transition was in-progress and applied, false if complete (>= durationMs).
+ * @returns true if transition was in-progress and applied, false if complete (>= durationMs) or bypassed.
  */
 export function applyMechanicalCylinderScramble(
   targetBuffer: UiCellBuffer,
   elapsedMs: number,
   durationMs = 100,
+  options?: MechanicalTransitionOptions,
 ): boolean {
+  if (options?.reducedMotion) {
+    return false;
+  }
+
   if (elapsedMs >= durationMs || elapsedMs < 0) {
     return false; // Transition complete or bypassed; buffer remains settled.
   }

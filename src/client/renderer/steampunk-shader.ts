@@ -38,6 +38,7 @@ export const STEAMPUNK_FRAGMENT_SHADER = `
   uniform float uScanlineOpacity;
   uniform float uThermoStress;
   uniform vec4 uSmokeMask;
+  uniform float uDistortionScale;
 
   void main(void)
   {
@@ -46,10 +47,10 @@ export const STEAMPUNK_FRAGMENT_SHADER = `
       float dist = length(centered);
 
       // 1. Mild barrel distortion & chromatic fringe restricted to outer 8% edge
-      float edgeFactor = smoothstep(0.42, 0.50, dist);
+      float edgeFactor = smoothstep(0.42, 0.50, dist) * uDistortionScale;
       vec2 distortedUV = uv + centered * (edgeFactor * 0.022);
 
-      float shift = 0.0009 * (1.0 + edgeFactor * 2.8);
+      float shift = 0.0009 * uDistortionScale * (1.0 + edgeFactor * 2.8);
       float r = texture(uTexture, vec2(distortedUV.x + shift, distortedUV.y)).r;
       float g = texture(uTexture, distortedUV).g;
       float b = texture(uTexture, vec2(distortedUV.x - shift, distortedUV.y)).b;

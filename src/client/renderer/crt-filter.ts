@@ -7,6 +7,7 @@ export interface SteampunkFilterOptions {
   readonly scanlineOpacity?: number;
   readonly thermoStress?: number;
   readonly smokeMask?: [number, number, number, number];
+  readonly distortionScale?: number;
 }
 
 export function createCrtPostFilter(
@@ -20,6 +21,7 @@ export function createCrtPostFilter(
 
   const thermoStress = options.thermoStress ?? 0;
   const smokeMask = options.smokeMask ?? [0, 0, 0, 0];
+  const distortionScale = options.distortionScale ?? 1.0;
 
   return new Filter({
     glProgram,
@@ -29,6 +31,7 @@ export function createCrtPostFilter(
         uScanlineOpacity: { value: opacity, type: 'f32' },
         uThermoStress: { value: thermoStress, type: 'f32' },
         uSmokeMask: { value: new Float32Array(smokeMask), type: 'vec4<f32>' },
+        uDistortionScale: { value: distortionScale, type: 'f32' },
       },
     },
   });
@@ -39,10 +42,14 @@ export function updateSteampunkFilterUniforms(
   time: number,
   thermoStress = 0,
   smokeMask: [number, number, number, number] = [0, 0, 0, 0],
+  distortionScale = 1.0,
+  scanlineOpacity = DEFAULT_SCANLINE_OPACITY,
 ): void {
   const uniforms = filter.resources.crtUniforms?.uniforms;
   if (!uniforms) return;
   uniforms.uTime = time;
   uniforms.uThermoStress = thermoStress;
   uniforms.uSmokeMask = smokeMask;
+  uniforms.uDistortionScale = distortionScale;
+  uniforms.uScanlineOpacity = scanlineOpacity;
 }
