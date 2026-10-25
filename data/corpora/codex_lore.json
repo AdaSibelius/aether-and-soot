@@ -1,0 +1,72 @@
+[
+  {
+    "id": "codex_automaton_blueprints",
+    "name": "Naturalist Automaton Dissection Survey",
+    "category": "AUTOMATON",
+    "entries": [
+      {
+        "id": "codex_automaton_clockwork_warden",
+        "category": "AUTOMATON",
+        "title": "Clockwork Warden Internal Kinematics",
+        "description": "Autopsy reveals hardened phosphor-bronze escapements driven by high-torque mainsprings and reinforced pneumatic gait stabilizers.",
+        "tags": ["AUTOMATON", "KINEMATICS", "BRASS"]
+      },
+      {
+        "id": "codex_automaton_sump_scavenger",
+        "category": "AUTOMATON",
+        "title": "Sump Scavenger Salvage Anatomy",
+        "description": "Crude cobbled chassis incorporating salvaged boiler pipes, rubber gaskets, and makeshift steam pistons adapted for acidic sewer trenches.",
+        "tags": ["AUTOMATON", "SALVAGE", "SEWER"]
+      }
+    ]
+  },
+  {
+    "id": "codex_thermodynamics_studies",
+    "name": "Imperial Thermodynamics Compendium",
+    "category": "THERMODYNAMICS",
+    "entries": [
+      {
+        "id": "codex_thermodynamics_superheated_scald",
+        "category": "THERMODYNAMICS",
+        "title": "Superheated Vapor Scald Dynamics",
+        "description": "Empirical observation of superheated steam above 50 kPa confirms that phase transition upon flesh contact releases catastrophic latent heat.",
+        "tags": ["THERMODYNAMICS", "STEAM_SCALD", "PRESSURE"]
+      },
+      {
+        "id": "codex_thermodynamics_deflagration",
+        "category": "THERMODYNAMICS",
+        "title": "Suspended Coal Dust Deflagration",
+        "description": "Volumetric particulate density above critical threshold triggers rapid stoichiometric flame propagation upon contact with incendiary sparks.",
+        "tags": ["THERMODYNAMICS", "COAL_DUST", "IGNITION"]
+      }
+    ]
+  },
+  {
+    "id": "codex_infrastructure_records",
+    "name": "Metropolitan Infrastructure Survey",
+    "category": "INFRASTRUCTURE",
+    "entries": [
+      {
+        "id": "codex_infrastructure_water_pump",
+        "category": "INFRASTRUCTURE",
+        "title": "Hydraulic Drainage Sump Pump",
+        "description": "Massive Cornish beam pump continuous stroke keeps low-elevation street districts from flooding with Thames tidal mud and industrial effluent.",
+        "tags": ["INFRASTRUCTURE", "HYDRAULIC", "PUMP"]
+      },
+      {
+        "id": "codex_infrastructure_clocktower",
+        "category": "INFRASTRUCTURE",
+        "title": "Municipal Master Chronometer",
+        "description": "Central acoustic pendulum tower synchronizing the diurnal shift whistles and pneumatic relay telegraphs across all boroughs.",
+        "tags": ["INFRASTRUCTURE", "CLOCKWORK", "CHRONOMETER"]
+      },
+      {
+        "id": "codex_infrastructure_canal_lock",
+        "category": "INFRASTRUCTURE",
+        "title": "Hydraulic Barge Lock Basin",
+        "description": "Heavy timber and iron mitre gates regulating coal barge transit between the tidal Thames basin and the Spitalfields canal grid.",
+        "tags": ["INFRASTRUCTURE", "CANAL", "BARGE"]
+      }
+    ]
+  }
+]

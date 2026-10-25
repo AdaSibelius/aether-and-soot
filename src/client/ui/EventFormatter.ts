@@ -200,6 +200,10 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'STRUCTURE_STORAGE_UPDATED': return `[T${ev.turn}] The storage facility's inventory has been updated with new supplies.`;
     case 'WORKSHOP_DEED_CLAIMED': return `[T${ev.turn}] A deed to a workshop claimed by the industrious soul, ready to forge the future.`;
     case 'HAZARD_TRIGGERED': return `[T${ev.turn}] HAZARD! [${ev.severity}] ${ev.message} at (${ev.at.x}, ${ev.at.y})`;
+    case 'PROCEDURAL_BARK_EMITTED': return `[T${ev.turn}] ${ev.actorName} exclaims: "${ev.interpolatedText}"`;
+    case 'TURF_TARIFF_ENFORCED': return `[T${ev.turn}] Faction guard enforced ${ev.tariffPenceCharged}d tariff on turf ${ev.turfId}.`;
+    case 'SMOG_CHOKING_PULSE': return `[T${ev.turn}] Choking smog pulse: ${ev.smokePpm} PPM soot occludes breath.`;
+    case 'CORPSE_DESECRATION_WITNESSED': return `[T${ev.turn}] Corpse desecration witnessed! Reputation penalized by ${ev.reputationPenalty}.`;
   }
 }
 

@@ -19,6 +19,7 @@ export function getActingActorId(command: GameCommand): EntityId {
   if (command.type === 'ATTACK_ACTOR') return command.attackerId;
   if (command.type === 'APPLY_MOMENTUM_VECTOR') return command.sourceEntityId ?? command.targetId;
   if (command.type === 'REPORT_CRIME') return command.witnessId;
+  if (command.type === 'ENFORCE_TURF_AUTHORITY') return command.guardId;
   return command.actorId;
 }
 

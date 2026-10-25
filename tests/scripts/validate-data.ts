@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
 import {
+  BarkCorpusBlueprintSchema,
+  CodexLoreBlueprintSchema,
   CommodityBlueprintSchema,
   CraftingRecipeBlueprintSchema,
   DistrictBlueprintSchema,
@@ -74,8 +76,17 @@ function runDataValidation(): void {
     }
   }
 
+  const barks = validateJsonFile(
+    'data/corpora/barks.json',
+    z.array(BarkCorpusBlueprintSchema).min(1),
+  );
+  const codexLore = validateJsonFile(
+    'data/corpora/codex_lore.json',
+    z.array(CodexLoreBlueprintSchema).min(1),
+  );
+
   console.log(
-    `[validate:data] OK — Validated ${prosthetics.length} prosthetics, ${commodities.length} commodities, ${materials.length} materials/consumables, ${recipes.length} recipes, ${gases.length} gases/fluids, ${districts.length} districts.`,
+    `[validate:data] OK — Validated ${prosthetics.length} prosthetics, ${commodities.length} commodities, ${materials.length} materials/consumables, ${recipes.length} recipes, ${gases.length} gases/fluids, ${districts.length} districts, ${barks.length} bark corpora, ${codexLore.length} codex entries.`,
   );
 }
 

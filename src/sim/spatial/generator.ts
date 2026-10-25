@@ -1,7 +1,9 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
-import { BlueprintIdSchema, EntityIdSchema, Point2D } from '../../schemas/primitives.schema.js';
+import { SimEvent } from '../../schemas/events.schema.js';
+import { BlueprintIdSchema, EntityId, EntityIdSchema, Point2D } from '../../schemas/primitives.schema.js';
 import { SeededRNG } from '../core/rng.js';
 import { WorldState } from '../core/world.js';
+import { discoverCodexEntry } from '../systems/codex.system.js';
 import {
   buildSolidStratumGrid,
   carveBuildingWithDoor,
@@ -218,3 +220,18 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
 }
 
 export { hasWalkablePath } from './district-layout.js';
+
+export function inspectLandmarkCodex(
+  state: WorldState,
+  actorId: EntityId,
+  landmarkName: string,
+): { state: WorldState; discovered: boolean; event?: SimEvent } {
+  const norm = landmarkName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  return discoverCodexEntry(state, actorId, {
+    id: `codex_landmark_${norm}`,
+    category: 'INFRASTRUCTURE',
+    title: landmarkName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+    description: `Architectural survey of the ${landmarkName.replace(/_/g, ' ')} structure recorded in the naturalist codex.`,
+    tags: ['INFRASTRUCTURE', 'LANDMARK', norm],
+  });
+}

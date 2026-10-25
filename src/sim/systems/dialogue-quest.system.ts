@@ -1,5 +1,8 @@
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
+import { EmitProceduralBarkCommand } from '../../schemas/lore-commands.schema.js';
+import { emitProceduralBark } from '../data/corpora-catalog.js';
+import { SeededRNG } from '../core/rng.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { withoutEntity } from './inventory-utils.js';
@@ -229,4 +232,12 @@ export function resolvePayChirurgeonHeal(
     }],
     apSpent: STANDARD_ACTION_AP,
   };
+}
+
+export function resolveEmitProceduralBark(
+  state: WorldState,
+  cmd: EmitProceduralBarkCommand,
+  rng: SeededRNG,
+): DialogueResolutionResult {
+  return emitProceduralBark(state, cmd.actorId, cmd.trigger, rng, cmd.targetId);
 }

@@ -1,6 +1,7 @@
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId, FactionId, Point3D } from '../../schemas/primitives.schema.js';
 import { InitiateTurfSkirmishCommand } from '../../schemas/skirmish-commands.schema.js';
+import { EnforceTurfAuthorityCommand } from '../../schemas/lore-commands.schema.js';
 import { TurfSectorRecord } from '../../schemas/skirmish-records.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
@@ -46,23 +47,8 @@ export function resolveInitiateTurfSkirmish(
   };
 
   const events: SimEvent[] = [
-    {
-      type: 'TURF_CONTESTED',
-      turn,
-      turfId: turf.turfId,
-      districtId: turf.districtId,
-      controllingFactionId: turf.controllingFactionId,
-      contestingFactionId: factionId,
-      position: centerPos,
-    },
-    {
-      type: 'ACTOR_TURF_STATE_CHANGED',
-      turn,
-      actorId: cmd.actorId,
-      turfId: turf.turfId,
-      contested: true,
-      factionId,
-    },
+    { type: 'TURF_CONTESTED', turn, turfId: turf.turfId, districtId: turf.districtId, controllingFactionId: turf.controllingFactionId, contestingFactionId: factionId, position: centerPos },
+    { type: 'ACTOR_TURF_STATE_CHANGED', turn, actorId: cmd.actorId, turfId: turf.turfId, contested: true, factionId },
   ];
 
   return {
@@ -95,34 +81,12 @@ export function processActorTurfMovement(
 
     if (becomesContested && !newTurf.contested && factionId) {
       updatedTurfState[newTurf.turfId] = { ...newTurf, contested: true, lastSkirmishTurn: turn };
-      events.push({
-        type: 'TURF_CONTESTED',
-        turn,
-        turfId: newTurf.turfId,
-        districtId: newTurf.districtId,
-        controllingFactionId: newTurf.controllingFactionId,
-        contestingFactionId: factionId,
-        position: newPos,
-      });
+      events.push({ type: 'TURF_CONTESTED', turn, turfId: newTurf.turfId, districtId: newTurf.districtId, controllingFactionId: newTurf.controllingFactionId, contestingFactionId: factionId, position: newPos });
     }
 
-    events.push({
-      type: 'ACTOR_TURF_STATE_CHANGED',
-      turn,
-      actorId,
-      turfId: newTurf.turfId,
-      contested: becomesContested,
-      factionId,
-    });
+    events.push({ type: 'ACTOR_TURF_STATE_CHANGED', turn, actorId, turfId: newTurf.turfId, contested: becomesContested, factionId });
   } else if (oldTurf) {
-    events.push({
-      type: 'ACTOR_TURF_STATE_CHANGED',
-      turn,
-      actorId,
-      turfId: undefined,
-      contested: false,
-      factionId,
-    });
+    events.push({ type: 'ACTOR_TURF_STATE_CHANGED', turn, actorId, turfId: undefined, contested: false, factionId });
   }
 
   return { state: { ...state, turf: updatedTurfState }, events };
@@ -214,4 +178,47 @@ export function recordTacticalCoverManeuver(
   };
 
   return { state, events: [event] };
+}
+
+export function resolveEnforceTurfAuthority(
+  state: WorldState,
+  cmd: EnforceTurfAuthorityCommand,
+): { state: WorldState; events: SimEvent[]; apSpent?: number } {
+  const { guardId, intruderId, turfId, action } = cmd;
+  const guard = state.entities[guardId];
+  const intruder = state.entities[intruderId];
+  const turf = state.turf[turfId];
+  const turn = state.turnCount + 1;
+  const controllingFaction = turf?.controllingFactionId ?? guard?.aiController?.factionId ?? 'CROWN_CONSTABULARY';
+
+  const tariffPence = action === 'DEMAND_TARIFF' ? 25 : 0;
+  let refused = false;
+  let nextState = state;
+
+  if (action === 'DEMAND_TARIFF' && intruder?.actor?.isPlayer) {
+    if (state.economy.playerTreasuryPence >= tariffPence) {
+      nextState = {
+        ...state,
+        economy: {
+          ...state.economy,
+          playerTreasuryPence: state.economy.playerTreasuryPence - tariffPence,
+        },
+      };
+    } else {
+      refused = true;
+    }
+  }
+
+  const events: SimEvent[] = [{
+    type: 'TURF_TARIFF_ENFORCED',
+    turn,
+    guardId,
+    intruderId,
+    turfId,
+    controllingFactionId: controllingFaction,
+    tariffPenceCharged: tariffPence,
+    refused,
+  }];
+
+  return { state: nextState, events, apSpent: 50 };
 }

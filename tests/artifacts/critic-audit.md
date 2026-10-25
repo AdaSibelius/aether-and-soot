@@ -22,23 +22,24 @@
 - `src/sim/systems/container.system.ts`: **245 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **244 lines** (threshold: 230)
 - `src/client/ui/LookCursorOverlay.tsx`: **244 lines** (threshold: 230)
+- `src/sim/systems/dialogue-quest.system.ts`: **244 lines** (threshold: 230)
 - `src/client/ui/CraftingWindow.tsx`: **243 lines** (threshold: 230)
-- `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
 - `src/sim/systems/transit.system.ts`: **239 lines** (threshold: 230)
 - `src/client/input/keyboard-router.ts`: **238 lines** (threshold: 230)
+- `src/schemas/events.schema.ts`: **238 lines** (threshold: 230)
+- `src/sim/spatial/generator.ts`: **238 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
 - `src/client/canvas-ui/diegetic-cartography.ts`: **236 lines** (threshold: 230)
-- `src/schemas/events.schema.ts`: **235 lines** (threshold: 230)
 - `src/sim/systems/safehouse.system.ts`: **235 lines** (threshold: 230)
 - `src/client/canvas-ui/artificer-bench-screen.ts`: **234 lines** (threshold: 230)
 - `src/schemas/domain-commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/client/audio/procedural-synth.ts`: **233 lines** (threshold: 230)
 - `src/schemas/core-events.schema.ts`: **233 lines** (threshold: 230)
 - `src/sim/spatial/architectural-typologies.ts`: **233 lines** (threshold: 230)
-- `src/sim/systems/dialogue-quest.system.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/environmental-hazards.system.ts`: **232 lines** (threshold: 230)
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **231 lines** (threshold: 230)
+- `src/sim/systems/surgery.system.ts`: **230 lines** (threshold: 230)
 
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
@@ -113,14 +114,14 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 51** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 51: City Causality Graph & Strategic Overworld Topology** *(STATUS: SCOPED & PREPPED — AWAITING DISPATCH)*: resolving unwiredCommands and telemetry anomalies. (Target: `src/client/projection/frame-adapter.ts`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 53** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 53: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies. (Target: `src/client/projection/frame-adapter.ts`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/projection/frame-adapter.ts to resolve modularityHotspot anomaly. (Target: `src/client/projection/frame-adapter.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
-Implement **Phase 51: City Causality Graph & Strategic Overworld Topology** *(STATUS: SCOPED & PREPPED — AWAITING DISPATCH)*: adhering to AGENTS.md and ARCHITECTURE.md:
+Implement **Phase 53: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
 2. Pre-split any src/ hotspot >= 245 lines (`src/client/projection/frame-adapter.ts` (251 lines)) via `npm run hermes:split`.
 3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `REMOVE_PROSTHETIC`, `REPORT_CRIME`, `REST_AT_BED`, `SET_POSTURE`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.

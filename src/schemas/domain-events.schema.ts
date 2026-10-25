@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import {
-  BlueprintIdSchema, EntityIdSchema, ItemUseEffectSchema,
-  LimbSlotIdSchema, Point3DSchema, StratumIdSchema,
-} from './primitives.schema.js';
+import { BlueprintIdSchema, EntityIdSchema, ItemUseEffectSchema, LimbSlotIdSchema, Point3DSchema, StratumIdSchema,  } from './primitives.schema.js';
 
 export const ItemPickedUpEventSchema = z.object({
   type: z.literal('ITEM_PICKED_UP'), turn: z.number().int().nonnegative(),
@@ -130,32 +127,8 @@ export const CraftingFailedEventSchema = z.object({
   ]),
 });
 
-export const CombatAttackResolvedEventSchema = z.object({
-  type: z.literal('COMBAT_ATTACK_RESOLVED'),
-  turn: z.number().int().nonnegative(),
-  attackerId: EntityIdSchema,
-  targetId: EntityIdSchema,
-  targetSlot: LimbSlotIdSchema,
-  hit: z.boolean(),
-  damageDealt: z.number().int().nonnegative(),
-});
 
-export const ActorDefeatedEventSchema = z.object({
-  type: z.literal('ACTOR_DEFEATED'),
-  turn: z.number().int().nonnegative(),
-  actorId: EntityIdSchema,
-  actorName: z.string().min(1),
-  defeatedById: EntityIdSchema,
-  droppedEntityIds: z.array(EntityIdSchema),
-});
 
-export const CombatActionFailedEventSchema = z.object({
-  type: z.literal('COMBAT_ACTION_FAILED'),
-  turn: z.number().int().nonnegative(),
-  attackerId: EntityIdSchema,
-  targetId: EntityIdSchema.optional(),
-  reason: z.enum(['ATTACKER_NOT_FOUND', 'TARGET_NOT_FOUND', 'OUT_OF_RANGE', 'BOTH_ARMS_AMPUTATED', 'INVALID_TARGET_SLOT']),
-});
 
 export const MerchantTradeCompletedEventSchema = z.object({
   type: z.literal('MERCHANT_TRADE_COMPLETED'),
@@ -240,3 +213,4 @@ export const TrapTriggeredEventSchema = z.object({
   victimActorId: EntityIdSchema, at: Point3DSchema,
 });
 
+export { CombatAttackResolvedEventSchema, ActorDefeatedEventSchema, CombatActionFailedEventSchema } from './combat-events.schema.js';

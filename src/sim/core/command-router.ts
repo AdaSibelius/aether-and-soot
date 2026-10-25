@@ -11,13 +11,13 @@ import { resolveEmitSpark, resolvePressurizeVessel } from '../systems/pressure.s
 import { resolveRestAtBed, resolveSmashTerrain } from '../systems/furniture.system.js';
 import { resolveBuyFromMerchant, resolveSellToMerchant, resolveStockPedestal } from '../systems/trade.system.js';
 import { resolveToggleDoor, resolveTravelDistrict } from '../systems/transit.system.js';
-import { resolveAcceptContract, resolveCompleteContract, resolveHireCompanion, resolvePayChirurgeonHeal } from '../systems/dialogue-quest.system.js';
+import { resolveAcceptContract, resolveCompleteContract, resolveEmitProceduralBark, resolveHireCompanion, resolvePayChirurgeonHeal } from '../systems/dialogue-quest.system.js';
 import { resolveEquipItem, resolveUnequipItem } from '../systems/equipment.system.js';
 import { resolveFireRangedWeapon } from '../systems/ballistics.system.js';
 import { resolveLootContainer } from '../systems/container.system.js';
 import { resolveBreachCommand } from '../systems/physics-traps.system.js';
 import { resolveActivateProsthetic } from '../systems/prosthetics.system.js';
-import { resolveHarvestCorpse } from '../systems/surgery.system.js';
+import { resolveDissectCorpseAnatomy, resolveHarvestCorpse } from '../systems/surgery.system.js';
 import { resolveApplyMomentumVector, resolveSetPosture } from '../systems/momentum.system.js';
 import { resolveInstallWeaponMod, resolveLoadAmmo, resolvePryObstacle, resolveUninstallWeaponMod } from '../systems/weapon-mods.system.js';
 import { resolveCleanSpill, resolveCoatWeapon, resolveThrowFlask } from '../systems/liquids.system.js';
@@ -34,6 +34,7 @@ import { resolveConsultCodex } from '../systems/codex.system.js';
 import {
   processActorTurfCombat,
   recordTacticalCoverManeuver,
+  resolveEnforceTurfAuthority,
   resolveInitiateTurfSkirmish,
 } from '../systems/skirmish-turf.system.js';
 import {
@@ -195,6 +196,12 @@ function executeDomainHandler(
       return resolvePrepareSupplyConvoy(state, command);
     case 'AUDIT_SAFEHOUSE_DEED':
       return resolveAuditSafehouseDeed(state, command);
+    case 'EMIT_PROCEDURAL_BARK':
+      return resolveEmitProceduralBark(state, command, rng);
+    case 'DISSECT_CORPSE_ANATOMY':
+      return resolveDissectCorpseAnatomy(state, command);
+    case 'ENFORCE_TURF_AUTHORITY':
+      return resolveEnforceTurfAuthority(state, command);
     default:
       return undefined;
   }

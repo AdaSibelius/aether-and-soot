@@ -91,7 +91,7 @@ describe('Hermes Benchmark & Whole-Game Critic', () => {
 
   it('verifyCriticSanity accepts compliant prescriptions and quarantines non-existent file paths', () => {
     const audit: CriticAudit = {
-      phaseNumber: 51,
+      phaseNumber: 99,
       telemetryAnomalies: [{ metricKey: 'unwiredCommands', observedValue: 5, expectedThreshold: 0, severity: 'P1_HIGH' }],
       prescriptions: [
         {
@@ -115,7 +115,7 @@ describe('Hermes Benchmark & Whole-Game Critic', () => {
 
   it('verifyCriticSanity quarantines cross-boundary imports prohibited by check-boundaries.ts', () => {
     const audit: CriticAudit = {
-      phaseNumber: 51,
+      phaseNumber: 99,
       telemetryAnomalies: [{ metricKey: 'unwiredCommands', observedValue: 2, expectedThreshold: 0, severity: 'P1_HIGH' }],
       prescriptions: [{
         id: 'P1', category: 'UNREACHABLE_MECHANIC', title: 'Client Import In Sim', targetFiles: ['src/sim/core/engine.ts'],
@@ -131,7 +131,7 @@ describe('Hermes Benchmark & Whole-Game Critic', () => {
 
   it('verifyCriticSanity quarantines prescriptions failing to cite an anomaly or duplicating completed phases', () => {
     const audit: CriticAudit = {
-      phaseNumber: 51,
+      phaseNumber: 99,
       telemetryAnomalies: [{ metricKey: 'steamCloudsDeployed', observedValue: 0, expectedThreshold: 5, severity: 'P1_HIGH' }],
       prescriptions: [
         {

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   BlueprintIdSchema,
   CommodityIdSchema,
+  FactionIdSchema,
   ItemCategorySchema,
   ItemUseEffectSchema,
   LimbSlotIdSchema,
@@ -11,6 +12,7 @@ import {
   VisualGlyphSpecSchema,
 } from './primitives.schema.js';
 import { EquipmentSpecSchema } from './equipment.schema.js';
+import { CodexCategorySchema } from './safehouse-events.schema.js';
 
 export const BlueprintActiveAbilitySchema = z.object({
   id: z.string().min(1),
@@ -120,4 +122,52 @@ export const CraftingRecipeBlueprintSchema = z.object({
   apCost: z.number().int().positive().default(100),
 });
 export type CraftingRecipeBlueprint = z.infer<typeof CraftingRecipeBlueprintSchema>;
+
+export const BarkTriggerContextSchema = z.enum([
+  'TARGET_SIGHTED',
+  'CRIME_WITNESSED',
+  'SQUAD_RALLY',
+  'SMOG_CHOKING',
+  'BOILER_VENTING',
+  'TURF_TRESPASS',
+  'MERCHANT_GREETING',
+  'IDLE_DIURNAL',
+]);
+export type BarkTriggerContext = z.infer<typeof BarkTriggerContextSchema>;
+
+export const BarkEntrySchema = z.object({
+  id: z.string().min(1),
+  trigger: BarkTriggerContextSchema,
+  factionId: FactionIdSchema.optional(),
+  minimumReputation: z.number().int().optional(),
+  stratumRestriction: StratumIdSchema.optional(),
+  templateText: z.string().min(1),
+});
+export type BarkEntry = z.infer<typeof BarkEntrySchema>;
+
+export const BarkCorpusBlueprintSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  dialect: z.enum(['COCKNEY_SLANG', 'ROYAL_SOCIETY_ACADEMIC', 'SYNDICATE_THIEVES_CANT', 'CONSTABULARY_FORMAL']),
+  entries: z.array(BarkEntrySchema),
+});
+export type BarkCorpusBlueprint = z.infer<typeof BarkCorpusBlueprintSchema>;
+
+export const CodexLoreEntrySchema = z.object({
+  id: z.string().min(1),
+  category: CodexCategorySchema,
+  title: z.string().min(1),
+  description: z.string().min(1),
+  tags: z.array(z.string()).default([]),
+});
+export type CodexLoreEntry = z.infer<typeof CodexLoreEntrySchema>;
+
+export const CodexLoreBlueprintSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  category: CodexCategorySchema,
+  entries: z.array(CodexLoreEntrySchema),
+});
+export type CodexLoreBlueprint = z.infer<typeof CodexLoreBlueprintSchema>;
+
 

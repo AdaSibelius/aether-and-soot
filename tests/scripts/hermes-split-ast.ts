@@ -100,7 +100,9 @@ export function extractFunctionBlock(content: string, name: string): ExtractedBl
       depth--;
       if (depth === 0) {
         let end = i + 1;
-        if (content[end] === ';') end++;
+        while (end < content.length && (content[end] === ')' || content[end] === ';' || content[end] === ' ' || content[end] === '\t')) {
+          end++;
+        }
         if (content[end] === '\n') end++;
         return { block: content.slice(start, end).trim(), start, end };
       }

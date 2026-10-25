@@ -49,47 +49,35 @@ import {
   LiquidSpilledEventSchema, LiquidIgnitedEventSchema, ItemCoatedEventSchema,
   AcidCorrosionTickEventSchema, SurfaceSlippedEventSchema, LiquidActionFailedEventSchema,
 } from './liquid-events.schema.js';
+import { HazardTriggeredEventSchema, type HazardTriggeredEvent, type HazardType } from './hazard-events.schema.js';
+export { HazardTriggeredEventSchema };
+export type { HazardTriggeredEvent, HazardType };
 import {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
   CatacombsDepthDescendedEventSchema, TransitActionFailedEventSchema2,
 } from './transit-events.schema.js';
-import { HazardTriggeredEventSchema, type HazardTriggeredEvent, type HazardType } from './hazard-events.schema.js';
-export { HazardTriggeredEventSchema };
-export type { HazardTriggeredEvent, HazardType };
-export type {
-  MonorailBoardedEvent,
-  MonorailLaunchedEvent,
-  MonorailArrivedEvent,
-  CatacombsDepthDescendedEvent,
-  MonorailActionFailedEvent,
-} from './transit-events.schema.js';
 export {
-  MonorailBoardedEventSchema,
-  MonorailLaunchedEventSchema,
-  MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema,
-  TransitActionFailedEventSchema2,
-} from './transit-events.schema.js';
+  MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
+  CatacombsDepthDescendedEventSchema, TransitActionFailedEventSchema2,
+};
 export type {
-  WitnessCrimeReportedEvent,
-  SquadCalloutEmittedEvent,
-  SquadmateRalliedEvent,
-  GrudgeAcquiredEvent,
-  WitnessEvent,
-} from './witness-events.schema.js';
+  MonorailBoardedEvent, MonorailLaunchedEvent, MonorailArrivedEvent,
+  CatacombsDepthDescendedEvent, MonorailActionFailedEvent,
+} from './transit-events.schema.js';
+
 import {
-  WitnessCrimeReportedEventSchema,
-  SquadCalloutEmittedEventSchema,
-  SquadmateRalliedEventSchema,
-  GrudgeAcquiredEventSchema,
+  WitnessCrimeReportedEventSchema, SquadCalloutEmittedEventSchema,
+  SquadmateRalliedEventSchema, GrudgeAcquiredEventSchema, WitnessEventSchema,
 } from './witness-events.schema.js';
 export {
-  WitnessCrimeReportedEventSchema,
-  SquadCalloutEmittedEventSchema,
-  SquadmateRalliedEventSchema,
-  GrudgeAcquiredEventSchema,
-  WitnessEventSchema,
+  WitnessCrimeReportedEventSchema, SquadCalloutEmittedEventSchema,
+  SquadmateRalliedEventSchema, GrudgeAcquiredEventSchema, WitnessEventSchema,
+};
+export type {
+  WitnessCrimeReportedEvent, SquadCalloutEmittedEvent,
+  SquadmateRalliedEvent, GrudgeAcquiredEvent, WitnessEvent,
 } from './witness-events.schema.js';
+
 import {
   WorkshopDeedClaimedEventSchema, StructureBuiltEventSchema,
   StructureStorageUpdatedEventSchema, CodexEntryDiscoveredEventSchema,
@@ -99,12 +87,13 @@ export {
   WorkshopDeedClaimedEventSchema, StructureBuiltEventSchema,
   StructureStorageUpdatedEventSchema, CodexEntryDiscoveredEventSchema,
   CodexConsultedEventSchema, NpcCodexReactionEventSchema, SafehouseActionFailedEventSchema,
-} from './safehouse-events.schema.js';
+};
 export type {
   WorkshopDeedClaimedEvent, StructureBuiltEvent,
   StructureStorageUpdatedEvent, CodexEntryDiscoveredEvent,
   CodexConsultedEvent, NpcCodexReactionEvent, SafehouseActionFailedEvent,
 } from './safehouse-events.schema.js';
+
 import {
   TurfContestedEventSchema, TurfControlChangedEventSchema,
   ActorTurfStateChangedEventSchema, TacticalManeuverRecordedEventSchema,
@@ -118,7 +107,7 @@ export {
   ConvoyPreparationStartedEventSchema, ConvoyEscortAssignedEventSchema,
   ConvoyDeliveryConfirmedEventSchema, NpcGoalChangedEventSchema,
   SafehouseAuditCompletedEventSchema,
-} from './skirmish-politics-events.schema.js';
+};
 export type {
   TurfContestedEvent, TurfControlChangedEvent,
   ActorTurfStateChangedEvent, TacticalManeuverRecordedEvent,
@@ -126,6 +115,18 @@ export type {
   ConvoyDeliveryConfirmedEvent, NpcGoalChangedEvent,
   SafehouseAuditCompletedEvent,
 } from './skirmish-politics-events.schema.js';
+import {
+  ProceduralBarkEmittedEventSchema, TurfTariffEnforcedEventSchema,
+  SmogChokingPulseEventSchema, CorpseDesecrationWitnessedEventSchema,
+} from './lore-events.schema.js';
+export {
+  ProceduralBarkEmittedEventSchema, TurfTariffEnforcedEventSchema,
+  SmogChokingPulseEventSchema, CorpseDesecrationWitnessedEventSchema,
+} from './lore-events.schema.js';
+export type {
+  ProceduralBarkEmittedEvent, TurfTariffEnforcedEvent,
+  SmogChokingPulseEvent, CorpseDesecrationWitnessedEvent,
+} from './lore-events.schema.js';
 
 export {
   ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
@@ -230,5 +231,7 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ConvoyPreparationStartedEventSchema, ConvoyEscortAssignedEventSchema,
   ConvoyDeliveryConfirmedEventSchema, NpcGoalChangedEventSchema, SafehouseAuditCompletedEventSchema,
   HazardTriggeredEventSchema,
+  ProceduralBarkEmittedEventSchema, TurfTariffEnforcedEventSchema,
+  SmogChokingPulseEventSchema, CorpseDesecrationWitnessedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

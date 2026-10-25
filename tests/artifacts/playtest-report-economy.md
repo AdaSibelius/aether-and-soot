@@ -1,10 +1,10 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-25T20:49:12.814Z
+- **Timestamp**: 2026-10-25T21:13:33.988Z
 - **Execution Mode**: Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
-- **Scenario**: **ECONOMY**
-- **Seed**: 42
+- **Scenario**: **SABOTAGE**
+- **Seed**: 102
 - **Survival Status**: **SURVIVED**
 
 ## LLM Token & Inference Efficiency
@@ -16,15 +16,15 @@
 | **Total Tokens** | 0 | Aggregated token volume |
 | **Average Latency / Turn** | 0 ms | Wall-clock execution time per turn |
 | **Survival per 1,000 Tokens** | 1000 turns/1k tokens | Efficiency of longevity per token |
-| **Policy Stage Distribution** | S1 (Reflex): 3 | S2 (Fast Tier 3): 12 | S3 (Reasoning Tier 1): 0 | 3-stage hybrid decision distribution |
+| **Policy Stage Distribution** | S1 (Reflex): 0 | S2 (Fast Tier 3): 3 | S3 (Reasoning Tier 1): 47 | 3-stage hybrid decision distribution |
 
 ## Emergent Sandbox Mechanics Metrics
 
 | Metric | Recorded Value | Evaluation Notes |
 | :--- | :--- | :--- |
-| **Turns Survived** | 15 / 15 | Longevity under autonomous navigation |
-| **Acoustic Decibels Emitted** | 0 dB | Footsteps, door actions, and steam releases |
-| **Guard Sound Investigations** | 0 | NPCs transitioning to INVESTIGATING |
+| **Turns Survived** | 50 / 50 | Longevity under autonomous navigation |
+| **Acoustic Decibels Emitted** | 120 dB | Footsteps, door actions, and steam releases |
+| **Guard Sound Investigations** | 5 | NPCs transitioning to INVESTIGATING |
 | **Guard Combat Engagements** | 0 | NPCs acquiring visual lock in COMBAT |
 | **Steam Clouds Deployed** | 0 | Vented steam to obscure LOS |
 | **Clockwork Traps Triggered** | 0 | Hidden tripwires / spring jaws stepped on |
@@ -33,18 +33,18 @@
 | **Attack Misses / Obstructed** | 0 | Evasions, range misses, or deflections |
 | **Damage Dealt (Player)** | 0 HP | Targeted combat damage to hostiles |
 | **Damage Taken (Player)** | 0 HP | Trauma sustained from hostiles or hazards |
-| **Items Acquired** | 4 | Picked up from ground or bought from merchants |
-| **Items Used** | 1 | Consumed tonics or canisters |
+| **Items Acquired** | 49 | Picked up from ground or bought from merchants |
+| **Items Used** | 0 | Consumed tonics or canisters |
 | **Transitions Completed** | 0 | Stratum portals or district gates traversed |
 | **Final Blood Volume** | 100% | Haemodynamic stability |
-| **Unique Tiles Visited** | 9 | Distinct spatial tiles explored |
+| **Unique Tiles Visited** | 1 | Distinct spatial tiles explored |
 | **UI Projection Leaks Detected** | 0 | Client projection HUD/radar/chronicle leaks |
 
 ## Command Coverage Matrix
 
 | Category | Count | Share | Command Identifiers |
 | :--- | :--- | :--- | :--- |
-| **Active Commands** (>0 Dispatches) | 3 | 5% | `BUY_FROM_MERCHANT`, `MOVE_STEP`, `USE_ITEM` |
+| **Active Commands** (>0 Dispatches) | 3 | 5% | `BUY_FROM_MERCHANT`, `PRESSURIZE_VESSEL`, `SELL_TO_MERCHANT` |
 | **Dormant Commands** (Serializer-Wired, 0 Dispatches) | 43 | - | `ACCEPT_CONTRACT`, `ACTIVATE_PROSTHETIC`, `APPLY_MOMENTUM_VECTOR`, `ATTACK_ACTOR`, `AUDIT_SAFEHOUSE_DEED`, `BOARD_MONORAIL`, `BREACH_TILE`, `BUILD_STRUCTURE`, `CLAIM_WORKSHOP_DEED`, `CLEAN_SPILL` |
 | **Unwired Commands** (Missing from Context) | 9 | - | `REMOVE_PROSTHETIC`, `REPORT_CRIME`, `REST_AT_BED`, `SET_POSTURE`, `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`, `TRIGGER_SUPPLY_SHOCK`, `UNINSTALL_WEAPON_MOD` |
 
@@ -58,6 +58,6 @@
 
 | Command Type | Dispatches |
 | :--- | :--- |
-| `MOVE_STEP` | 10 |
-| `BUY_FROM_MERCHANT` | 4 |
-| `USE_ITEM` | 1 |
+| `SELL_TO_MERCHANT` | 26 |
+| `BUY_FROM_MERCHANT` | 23 |
+| `PRESSURIZE_VESSEL` | 1 |

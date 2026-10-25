@@ -12,26 +12,18 @@ import {
 import {
   BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema,
 } from './transit-commands.schema.js';
-export {
-  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema,
-} from './transit-commands.schema.js';
 export type {
   BoardMonorailCommand, LaunchMonorailCommand, DescendCatacombsCommand,
 } from './transit-commands.schema.js';
+
 import {
-  EmitSquadCalloutCommandSchema, ReportCrimeCommandSchema,
-} from './witness-commands.schema.js';
-export {
   EmitSquadCalloutCommandSchema, ReportCrimeCommandSchema,
 } from './witness-commands.schema.js';
 export type {
   EmitSquadCalloutCommand, ReportCrimeCommand, WitnessCommand,
 } from './witness-commands.schema.js';
+
 import {
-  ClaimWorkshopDeedCommandSchema, BuildStructureCommandSchema,
-  StoreItemInStructureCommandSchema, RetrieveItemFromStructureCommandSchema, ConsultCodexCommandSchema,
-} from './safehouse-commands.schema.js';
-export {
   ClaimWorkshopDeedCommandSchema, BuildStructureCommandSchema,
   StoreItemInStructureCommandSchema, RetrieveItemFromStructureCommandSchema, ConsultCodexCommandSchema,
 } from './safehouse-commands.schema.js';
@@ -39,21 +31,29 @@ export type {
   ClaimWorkshopDeedCommand, BuildStructureCommand,
   StoreItemInStructureCommand, RetrieveItemFromStructureCommand, ConsultCodexCommand,
 } from './safehouse-commands.schema.js';
+
 import {
-  InitiateTurfSkirmishCommandSchema,
-  PrepareSupplyConvoyCommandSchema,
-  AuditSafehouseDeedCommandSchema,
-} from './skirmish-commands.schema.js';
-export {
-  InitiateTurfSkirmishCommandSchema,
-  PrepareSupplyConvoyCommandSchema,
-  AuditSafehouseDeedCommandSchema,
+  InitiateTurfSkirmishCommandSchema, PrepareSupplyConvoyCommandSchema, AuditSafehouseDeedCommandSchema,
 } from './skirmish-commands.schema.js';
 export type {
-  InitiateTurfSkirmishCommand,
-  PrepareSupplyConvoyCommand,
-  AuditSafehouseDeedCommand,
+  InitiateTurfSkirmishCommand, PrepareSupplyConvoyCommand, AuditSafehouseDeedCommand,
 } from './skirmish-commands.schema.js';
+
+import {
+  EmitProceduralBarkCommandSchema, DissectCorpseAnatomyCommandSchema, EnforceTurfAuthorityCommandSchema,
+} from './lore-commands.schema.js';
+export type {
+  EmitProceduralBarkCommand, DissectCorpseAnatomyCommand, EnforceTurfAuthorityCommand,
+} from './lore-commands.schema.js';
+
+export {
+  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema,
+  EmitSquadCalloutCommandSchema, ReportCrimeCommandSchema,
+  ClaimWorkshopDeedCommandSchema, BuildStructureCommandSchema,
+  StoreItemInStructureCommandSchema, RetrieveItemFromStructureCommandSchema, ConsultCodexCommandSchema,
+  InitiateTurfSkirmishCommandSchema, PrepareSupplyConvoyCommandSchema, AuditSafehouseDeedCommandSchema,
+  EmitProceduralBarkCommandSchema, DissectCorpseAnatomyCommandSchema, EnforceTurfAuthorityCommandSchema,
+};
 export type {
   ActivateProstheticCommand,
   HarvestCorpseCommand,
@@ -221,5 +221,8 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   InitiateTurfSkirmishCommandSchema,
   PrepareSupplyConvoyCommandSchema,
   AuditSafehouseDeedCommandSchema,
+  EmitProceduralBarkCommandSchema,
+  DissectCorpseAnatomyCommandSchema,
+  EnforceTurfAuthorityCommandSchema,
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EntityIdSchema, Point3DSchema, StratumIdSchema } from './primitives.schema.js';
 import { StructureTypeSchema } from './safehouse-commands.schema.js';
 
-export const CodexCategorySchema = z.enum(['AUTOMATON', 'SCHEMATIC', 'REACTION']);
+export const CodexCategorySchema = z.enum(['AUTOMATON', 'SCHEMATIC', 'REACTION', 'THERMODYNAMICS', 'INFRASTRUCTURE']);
 export type CodexCategory = z.infer<typeof CodexCategorySchema>;
 
 export const WorkshopDeedClaimedEventSchema = z.object({

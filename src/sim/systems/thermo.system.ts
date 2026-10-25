@@ -3,6 +3,7 @@ import { StratumId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../core/world.js';
 import { getTileCell, isWithinBounds, setTileCell, StratumGrid, TileCell } from '../spatial/grid.js';
 import { resolveDamageLimb } from './anatomy.system.js';
+import { discoverCodexEntry } from './codex.system.js';
 import { computeEquippedBonuses } from './equipment.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
 
@@ -171,6 +172,18 @@ export function advanceThermodynamicsTick(state: WorldState): {
     const defeatRes = resolveActorDefeatIfFatal(workingState, entity.id);
     workingState = defeatRes.state;
     scaldEvents.push(...defeatRes.events);
+
+    if (entity.actor.isPlayer && cell.steamPressureKpa >= 50 && !defeatRes.events.some((e) => e.type === 'ACTOR_DEFEATED')) {
+      const codexRes = discoverCodexEntry(workingState, entity.id, {
+        id: 'codex_thermo_superheated_scald',
+        category: 'THERMODYNAMICS',
+        title: 'Superheated Steam Dynamics',
+        description: 'Direct physiological exposure to high-pressure steam reveals the thermodynamic principles of industrial thermal expansion and scalding thresholds.',
+        tags: ['THERMODYNAMICS', 'STEAM', 'PRESSURE', 'HAZARDS'],
+      });
+      workingState = codexRes.state;
+      if (codexRes.event) scaldEvents.push(codexRes.event);
+    }
   }
 
   return { state: workingState, events: scaldEvents };

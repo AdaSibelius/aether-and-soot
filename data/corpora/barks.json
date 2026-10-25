@@ -1,0 +1,190 @@
+[
+  {
+    "id": "corpus_cockney_slang",
+    "name": "East End London Cockney Dialect",
+    "dialect": "COCKNEY_SLANG",
+    "entries": [
+      {
+        "id": "bark_cockney_target",
+        "trigger": "TARGET_SIGHTED",
+        "templateText": "Oi, look what the Thames washed into {DISTRICT}! Keep yer mince pies on 'em!"
+      },
+      {
+        "id": "bark_cockney_crime",
+        "trigger": "CRIME_WITNESSED",
+        "templateText": "Blimey! A tea leaf pinching brass right in {DISTRICT}!"
+      },
+      {
+        "id": "bark_cockney_rally",
+        "trigger": "SQUAD_RALLY",
+        "templateText": "Up an' at 'em, lads! Don't let {FACTION} catch us napping!"
+      },
+      {
+        "id": "bark_cockney_smog",
+        "trigger": "SMOG_CHOKING",
+        "templateText": "*hack* *cough* Proper pea-souper today... lungs full o' anthracite!"
+      },
+      {
+        "id": "bark_cockney_boiler",
+        "trigger": "BOILER_VENTING",
+        "templateText": "Gawd blimey, she's spitting steam at {PRESSURE} kPa! Watch yer bacon!"
+      },
+      {
+        "id": "bark_cockney_trespass",
+        "trigger": "TURF_TRESPASS",
+        "templateText": " 'Ere now! This is {FACTION} manor! Hook it, mate, or get a clobbering!"
+      },
+      {
+        "id": "bark_cockney_merchant",
+        "trigger": "MERCHANT_GREETING",
+        "templateText": "Roll up, guv'nor! Finest gear in {DISTRICT}, honest shilling's worth!"
+      },
+      {
+        "id": "bark_cockney_idle",
+        "trigger": "IDLE_DIURNAL",
+        "templateText": "Another grueling {SHIFT} turn under the smokestacks."
+      }
+    ]
+  },
+  {
+    "id": "corpus_royal_society",
+    "name": "Royal Society Academic Dialect",
+    "dialect": "ROYAL_SOCIETY_ACADEMIC",
+    "entries": [
+      {
+        "id": "bark_academic_target",
+        "trigger": "TARGET_SIGHTED",
+        "templateText": "Remarkable! An anomalous specimen sighted within {DISTRICT}."
+      },
+      {
+        "id": "bark_academic_crime",
+        "trigger": "CRIME_WITNESSED",
+        "templateText": "Preposterous! Gross violation of municipal statutes observed in {DISTRICT}!"
+      },
+      {
+        "id": "bark_academic_rally",
+        "trigger": "SQUAD_RALLY",
+        "templateText": "Colleagues of {FACTION}, advance in strict formation! Secure the perimeter!"
+      },
+      {
+        "id": "bark_academic_smog",
+        "trigger": "SMOG_CHOKING",
+        "templateText": "The atmospheric coal particulate concentration exceeds acceptable physiological margins!"
+      },
+      {
+        "id": "bark_academic_boiler",
+        "trigger": "BOILER_VENTING",
+        "templateText": "Pneumatic pressure release logged at {PRESSURE} kPa. Thermodynamic equilibrium restoring."
+      },
+      {
+        "id": "bark_academic_trespass",
+        "trigger": "TURF_TRESPASS",
+        "templateText": "You have breached the restricted experimental domain of {FACTION}."
+      },
+      {
+        "id": "bark_academic_merchant",
+        "trigger": "MERCHANT_GREETING",
+        "templateText": "Greetings, scholar. I offer calibrated scientific apparatus and refined reagents."
+      },
+      {
+        "id": "bark_academic_idle",
+        "trigger": "IDLE_DIURNAL",
+        "templateText": "Conducting empirical observations during the {SHIFT} phase."
+      }
+    ]
+  },
+  {
+    "id": "corpus_thieves_cant",
+    "name": "Undercroft Thieves' Cant",
+    "dialect": "SYNDICATE_THIEVES_CANT",
+    "entries": [
+      {
+        "id": "bark_cant_target",
+        "trigger": "TARGET_SIGHTED",
+        "templateText": "Mark the cove skulking through {DISTRICT}."
+      },
+      {
+        "id": "bark_cant_crime",
+        "trigger": "CRIME_WITNESSED",
+        "templateText": "Nip the rogue! Lifting {FACTION} swag in broad daylight!"
+      },
+      {
+        "id": "bark_cant_rally",
+        "trigger": "SQUAD_RALLY",
+        "templateText": "Syndicate, draw iron! Rattle their clockwork!"
+      },
+      {
+        "id": "bark_cant_smog",
+        "trigger": "SMOG_CHOKING",
+        "templateText": "Thick black fog... good for the sneak, bad for the bellows."
+      },
+      {
+        "id": "bark_cant_boiler",
+        "trigger": "BOILER_VENTING",
+        "templateText": "Boiler hissed at {PRESSURE} kPa! Scuttle before the blast!"
+      },
+      {
+        "id": "bark_cant_trespass",
+        "trigger": "TURF_TRESPASS",
+        "templateText": "Yer on {FACTION} cobbles now, pigeon. Cough up the drop or bleed."
+      },
+      {
+        "id": "bark_cant_merchant",
+        "trigger": "MERCHANT_GREETING",
+        "templateText": "Quiet goods for clever hands. No questions asked in {DISTRICT}."
+      },
+      {
+        "id": "bark_cant_idle",
+        "trigger": "IDLE_DIURNAL",
+        "templateText": "Shadows stretch long on the {SHIFT}. The Underworld never sleeps."
+      }
+    ]
+  },
+  {
+    "id": "corpus_constabulary",
+    "name": "Crown Constabulary Formal Dialect",
+    "dialect": "CONSTABULARY_FORMAL",
+    "entries": [
+      {
+        "id": "bark_police_target",
+        "trigger": "TARGET_SIGHTED",
+        "templateText": "Halt in the Queen's name! Identify yourself in {DISTRICT}!"
+      },
+      {
+        "id": "bark_police_crime",
+        "trigger": "CRIME_WITNESSED",
+        "templateText": "Felonious breach detected! You are under arrest for crimes against {FACTION}!"
+      },
+      {
+        "id": "bark_police_rally",
+        "trigger": "SQUAD_RALLY",
+        "templateText": "Constabulary patrol, assemble on my mark! Subdue the belligerent!"
+      },
+      {
+        "id": "bark_police_smog",
+        "trigger": "SMOG_CHOKING",
+        "templateText": "Heavy smog advisory in effect. Visual range compromised."
+      },
+      {
+        "id": "bark_police_boiler",
+        "trigger": "BOILER_VENTING",
+        "templateText": "Industrial safety hazard: high pressure recorded at {PRESSURE} kPa."
+      },
+      {
+        "id": "bark_police_trespass",
+        "trigger": "TURF_TRESPASS",
+        "templateText": "Curfew and perimeter restrictions strictly enforced by order of {FACTION}."
+      },
+      {
+        "id": "bark_police_merchant",
+        "trigger": "MERCHANT_GREETING",
+        "templateText": "Licensed municipal supplies available for authorized personnel."
+      },
+      {
+        "id": "bark_police_idle",
+        "trigger": "IDLE_DIURNAL",
+        "templateText": "Municipal patrol ongoing throughout the {SHIFT} watch."
+      }
+    ]
+  }
+]
