@@ -12,6 +12,7 @@ export interface KeyboardRouterParams {
   readonly isLookModeActive: boolean;
   readonly isCreatorOpen?: boolean;
   readonly isDialogueOpen?: boolean;
+  readonly onSystemMenuKey?: (key: string) => boolean;
   readonly onCloseDialogue?: () => void;
   readonly worldState?: Readonly<WorldState>;
   readonly modalNavState?: ModalNavState;
@@ -72,7 +73,10 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     return;
   }
 
-  if (isSystemMenuOpen) return;
+  if (isSystemMenuOpen) {
+    if (!ev.metaKey && !ev.ctrlKey && params.onSystemMenuKey?.(ev.key)) ev.preventDefault();
+    return;
+  }
 
   if (params.isCreatorOpen) {
     if (params.onCreatorKey?.(ev.key)) {

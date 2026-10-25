@@ -9,6 +9,7 @@ import { createUiCellBuffer, UiCellBuffer } from './cell-buffer.js';
 import { renderEmbarkationScreen } from './embarkation-screen.js';
 import { generateModalUiBuffer, ModalRouterOptions } from './modal-buffer-router.js';
 import { NaturalistTab } from './naturalist-ledger-screen.js';
+import { renderSystemMenuScreen, SystemMenuView } from './system-menu-screen.js';
 import { renderTacticalConsole } from './tactical-console.js';
 
 export interface DiegeticComposerParams {
@@ -23,6 +24,7 @@ export interface DiegeticComposerParams {
   readonly inspectedTile: { x: number; y: number } | null;
   readonly isLookModeActive: boolean;
   readonly modalOptions?: ModalRouterOptions | undefined;
+  readonly systemMenu?: SystemMenuView | undefined;
 }
 
 export interface DiegeticHitCallbacks {
@@ -35,6 +37,7 @@ export interface DiegeticHitCallbacks {
   readonly onDispatchCommand: (cmd: GameCommand) => void;
   readonly modalNavState?: ModalNavState | undefined;
   readonly onNavigate?: (() => void) | undefined;
+  readonly onSystemMenuAction?: ((action: string) => boolean) | undefined;
 }
 
 /**
@@ -53,6 +56,12 @@ export function composeDiegeticUiBuffer(params: DiegeticComposerParams): UiCellB
       { x: 2, y: 1, width: params.width - 4, height: params.height - 2 },
       { config: params.embarkConfig },
     );
+    return buf;
+  }
+
+  if (params.systemMenu) {
+    const buf = createUiCellBuffer(params.width, params.height, { glyph: ' ', fg: '#000000', bg: 'transparent' });
+    renderSystemMenuScreen(buf, params.systemMenu);
     return buf;
   }
 
@@ -95,6 +104,9 @@ export function handleDiegeticHitAction(
   state: WorldState,
   playerId: EntityId,
 ): boolean {
+  if (hit.startsWith('sys:')) {
+    return callbacks.onSystemMenuAction?.(hit.slice(4)) ?? false;
+  }
   if (hit.startsWith('select_prof:')) {
     callbacks.onSelectProfession(hit.replace('select_prof:', '') as ProfessionId);
     return true;

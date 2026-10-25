@@ -29,6 +29,7 @@ import { applyViewportScale, computeAspectLockedScale, DesktopWindowManager } fr
 import { composeDiegeticUiBuffer, handleDiegeticHitAction } from './canvas-ui/diegetic-screen-composer.js';
 import { resolveThermodynamicStress } from './renderer/shader-uniforms.js';
 import { ModalNavState, resolveModalRouterOptions } from './input/modal-nav-router.js';
+import { createSystemMenuController } from './input/system-menu-controller.js';
 
 export interface ClientSessionMounts {
   readonly canvasHost: HTMLElement;
@@ -100,6 +101,17 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
 
   const closeDialogue = (): void => { activeDialogueNpcId = null; syncPresentation(false); };
 
+  const sysMenu = createSystemMenuController({
+    getState: () => worldState,
+    loadWorld: (w) => { worldState = w; },
+    newSeed: (s) => { worldState = createFreshWorld(s); },
+    close: () => { isSystemMenuOpen = false; },
+    openCreator: () => { isCreatorOpen = true; },
+    toggleCrt: () => { isCrtScanlinesEnabled = !isCrtScanlinesEnabled; stageRenderer.setCrtScanlinesEnabled(isCrtScanlinesEnabled); },
+    toggleUi: () => { useDiegeticCanvasUi = !useDiegeticCanvasUi; },
+    refresh: () => syncPresentation(),
+  });
+
   const cycleModal = (direction: 1 | -1): void => {
     if (!activeModal) return;
     activeModal = cycleModalWindow(activeModal, direction);
@@ -143,9 +155,12 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
       isCreatorOpen, embarkConfig, activeModal, useDiegeticCanvasUi,
       worldState, playerId, width: WIDESCREEN_GRID_WIDTH, height: WIDESCREEN_GRID_HEIGHT,
       inspectedTile, isLookModeActive, modalOptions,
+      systemMenu: isSystemMenuOpen
+        ? { seedInput: sysMenu.seedText(), statusMsg: sysMenu.status(), crtEnabled: isCrtScanlinesEnabled, diegeticUi: useDiegeticCanvasUi }
+        : undefined,
     });
 
-    stageRenderer.renderFrame(visualFrame, uiBuffer, (activeModal || isCreatorOpen) ? 0 : thermo.stressValue, 16.67, advanceTime);
+    stageRenderer.renderFrame(visualFrame, uiBuffer, (activeModal || isCreatorOpen || isSystemMenuOpen) ? 0 : thermo.stressValue, 16.67, advanceTime);
 
     renderClientPresentationViews({ topBarHost, overlayHost, actionBarHost, hudHost }, {
       worldState, playerId, activeModal, isSystemMenuOpen, isLookModeActive,
@@ -204,6 +219,7 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
           onOpenSystemMenu: () => { isSystemMenuOpen = true; syncPresentation(); },
           onDispatchCommand: handleCommand,
           modalNavState,
+          onSystemMenuAction: sysMenu.handleAction,
           onNavigate: () => syncPresentation(false),
         }, worldState, playerId);
       }
@@ -221,7 +237,8 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
         if (pIdx >= 0 && pIdx < profs.length) { embarkConfig = { ...embarkConfig, professionId: profs[pIdx]! }; syncPresentation(false); return true; }
         return false;
       },
-      onToggleSystemMenu: () => { isSystemMenuOpen = !isSystemMenuOpen; syncPresentation(); },
+      onSystemMenuKey: sysMenu.handleKey,
+      onToggleSystemMenu: () => { sysMenu.reset(); isSystemMenuOpen = !isSystemMenuOpen; syncPresentation(); },
       onCloseModal: () => { activeModal = null; syncPresentation(); },
       onCycleModal: cycleModal,
       onSetModal: (modal) => { activeModal = modal; modalNavState.selectedIndex = 0; syncPresentation(); },

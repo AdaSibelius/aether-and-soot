@@ -71,6 +71,11 @@ const TARGETS: readonly ScreenshotTarget[] = [
     query: '?seed=31415&creator=true',
     title: 'Character Creation & Victorian Vocation Embarkation',
   },
+  {
+    filename: '10_system_menu.png',
+    query: '?seed=31415&menu=true',
+    title: 'Chronos & Engine Archive System Menu',
+  },
 ];
 
 function createStaticServer(): http.Server {

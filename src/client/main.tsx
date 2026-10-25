@@ -60,6 +60,10 @@ async function bootstrapClient(): Promise<void> {
   if (searchParams?.get('creator') === 'true') {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'N', bubbles: true }));
   }
+
+  if (searchParams?.get('menu') === 'true') {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  }
 }
 
 void bootstrapClient();

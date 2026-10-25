@@ -5,7 +5,6 @@ import { FloatingTextCallout, FloatingTextOverlay } from '../renderer/floating-c
 import { ModalWindowId } from './CharacterModalShell.js';
 import { DialogueModal } from './DialogueModal.js';
 import { LookCursorOverlay } from './LookCursorOverlay.js';
-import { SystemMenuModal } from './SystemMenuModal.js';
 
 export interface PreactBridgeProps {
   readonly worldState: WorldState;
@@ -44,9 +43,6 @@ export function PreactBridge(props: PreactBridgeProps) {
     isLookModeActive,
     lookCursor,
     cameraOrigin,
-    isSystemMenuOpen,
-    isCrtScanlinesEnabled,
-    useDiegeticCanvasUi,
     activeDialogueNpcId,
     floatingItems,
     onCommand,
@@ -54,12 +50,6 @@ export function PreactBridge(props: PreactBridgeProps) {
     onToggleLookMode,
     onTalk,
     onCloseDialogue,
-    onCloseSystemMenu,
-    onToggleCrtScanlines,
-    onToggleUiMode,
-    onNewSeed,
-    onLoadWorld,
-    onOpenCharacterCreator,
   } = props;
 
   return (
@@ -96,24 +86,6 @@ export function PreactBridge(props: PreactBridgeProps) {
               (onCloseDialogue ?? (() => onTalk(undefined)))();
               onOpenModal(w);
             }}
-          />
-        </div>
-      )}
-
-      {/* 4. Esc / System Menu Modal */}
-      {isSystemMenuOpen && (
-        <div style={{ pointerEvents: 'auto' }}>
-          <SystemMenuModal
-            state={worldState}
-            isOpen={isSystemMenuOpen}
-            onClose={onCloseSystemMenu}
-            onNewSeed={onNewSeed}
-            onLoadWorld={onLoadWorld}
-            onOpenCharacterCreator={onOpenCharacterCreator}
-            crtScanlinesEnabled={isCrtScanlinesEnabled}
-            onToggleCrtScanlines={onToggleCrtScanlines}
-            useDiegeticCanvasUi={useDiegeticCanvasUi}
-            onToggleUiMode={onToggleUiMode}
           />
         </div>
       )}
