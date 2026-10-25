@@ -86,11 +86,11 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
   const hotspots = auditModularityHotspots(rootDir, 230);
   const roadmapPath = path.join(rootDir, 'ROADMAP.md');
   const nextPriority = fs.existsSync(roadmapPath)
-    ? (fs.readFileSync(roadmapPath, 'utf-8').match(/^-\s*\[\s*\]\s*(.*)$/m)?.[1]?.trim() ?? 'Phase 50')
-    : 'Phase 50';
+    ? (fs.readFileSync(roadmapPath, 'utf-8').match(/^-\s*\[\s*\]\s*(.*)$/m)?.[1]?.trim() ?? 'All scheduled phases completed')
+    : 'All scheduled phases completed';
 
   const phaseMatch = nextPriority.match(/Phase\s+(\d+)/i);
-  const phaseNumber = phaseMatch?.[1] ? Number(phaseMatch[1]) : 50;
+  const phaseNumber = phaseMatch?.[1] ? Number(phaseMatch[1]) : 51;
 
   const telemetry = await resolveConnectionTelemetry({
     mock: config.mock,
