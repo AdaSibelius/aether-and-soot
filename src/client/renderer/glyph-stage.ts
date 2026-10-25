@@ -1,9 +1,10 @@
-import { Application, Container, Filter, Graphics, Sprite } from 'pixi.js';
+import { Application, Graphics, Sprite } from 'pixi.js';
 import { UiCellBuffer } from '../canvas-ui/cell-buffer.js';
 import { VisualGridFrame } from '../projection/frame-adapter.js';
-import { createCrtPostFilter, DEFAULT_SCANLINE_OPACITY, updateSteampunkFilterUniforms } from './crt-filter.js';
-import { createGlyphAtlas, GlyphAtlas } from './glyph-atlas.js';
+import { createExtendedGlyphAtlas } from './glyph-atlas-extended.js';
+import { GlyphAtlas } from './glyph-atlas.js';
 import { getPerformanceGovernor, PerformanceGovernor } from './performance-governor.js';
+import { SteampunkRenderPipeline } from './steampunk-pipeline.js';
 
 export const CELL_WIDTH_PX = 12;
 export const CELL_HEIGHT_PX = 20;
@@ -18,14 +19,12 @@ function hexToNumber(hex: string): number {
 
 export class GlyphStageRenderer {
   private readonly app: Application;
-  private readonly gridContainer: Container;
+  private readonly pipeline: SteampunkRenderPipeline;
   private readonly bgGraphics: Graphics;
   private readonly glyphSprites: Sprite[] = [];
   private readonly atlas: GlyphAtlas;
   private readonly gridWidth: number;
   private readonly gridHeight: number;
-  private crtFilter: Filter | null = null;
-  private elapsedSeconds = 0;
   private activeUiBuffer: UiCellBuffer | null = null;
   private readonly governor: PerformanceGovernor;
 
@@ -41,29 +40,23 @@ export class GlyphStageRenderer {
     this.gridWidth = gridWidth;
     this.gridHeight = gridHeight;
     this.governor = governor ?? getPerformanceGovernor();
-    this.gridContainer = new Container();
+
+    this.pipeline = new SteampunkRenderPipeline(gridWidth * CELL_WIDTH_PX, gridHeight * CELL_HEIGHT_PX);
     this.bgGraphics = new Graphics();
-    this.gridContainer.addChild(this.bgGraphics);
-
-    try {
-      this.crtFilter = createCrtPostFilter(DEFAULT_SCANLINE_OPACITY);
-      this.app.stage.filters = [this.crtFilter];
-    } catch (err) {
-      // Fallback cleanly if WebGL context does not support custom filter compilation
-      console.warn('[GlyphStageRenderer] WebGL CRT Filter initialization fallback:', err);
-    }
-
-    this.app.stage.addChild(this.gridContainer);
+    this.pipeline.layers.worldTacticalContainer.addChild(this.bgGraphics);
+    this.app.stage.addChild(this.pipeline.rootStage);
   }
 
   public getGovernor(): PerformanceGovernor {
     return this.governor;
   }
 
+  public getPipeline(): SteampunkRenderPipeline {
+    return this.pipeline;
+  }
+
   public setCrtScanlinesEnabled(enabled: boolean): void {
-    if (this.crtFilter) {
-      this.app.stage.filters = enabled ? [this.crtFilter] : [];
-    }
+    this.pipeline.setFilterEnabled(enabled);
   }
 
   public static async create(
@@ -85,7 +78,7 @@ export class GlyphStageRenderer {
     hostElement.innerHTML = '';
     hostElement.appendChild(app.canvas);
 
-    const atlas = createGlyphAtlas(CELL_WIDTH_PX, CELL_HEIGHT_PX);
+    const atlas = createExtendedGlyphAtlas(CELL_WIDTH_PX, CELL_HEIGHT_PX);
     const renderer = new GlyphStageRenderer(app, atlas, gridWidth, gridHeight);
     renderer.initializeGlyphPool(gridWidth, gridHeight);
     return renderer;
@@ -98,24 +91,11 @@ export class GlyphStageRenderer {
     deltaMs = 16.67,
     advanceTime = true,
   ): void {
-    if (advanceTime) {
-      this.elapsedSeconds += 0.05;
-    }
     this.activeUiBuffer = uiBuffer ?? null;
     this.governor.recordFrameTime(deltaMs);
 
-    if (this.crtFilter) {
-      const distortion = this.governor.getEffectiveDistortionScale();
-      const scanlines = this.governor.getEffectiveScanlineOpacity();
-      updateSteampunkFilterUniforms(
-        this.crtFilter,
-        this.elapsedSeconds,
-        thermoStress,
-        [0, 0, 0, 0],
-        distortion,
-        scanlines,
-      );
-    }
+    const distortion = this.governor.getEffectiveDistortionScale();
+    this.pipeline.updateUniforms(thermoStress, deltaMs / 1000, distortion, advanceTime);
 
     this.bgGraphics.clear();
 
@@ -176,7 +156,7 @@ export class GlyphStageRenderer {
           let jx = 0;
           let jy = 0;
           if (uiCell.shaderFlags?.includes('TREMOR_JITTER') && this.governor.shouldApplyTremorJitter()) {
-            const jitterPhase = (ux * 5 + uy * 7 + Math.floor(this.elapsedSeconds * 20)) % 4;
+            const jitterPhase = (ux * 5 + uy * 7 + Math.floor(this.pipeline.getUniforms().time * 20)) % 4;
             jx = jitterPhase === 1 ? 1 : jitterPhase === 3 ? -1 : 0;
             jy = jitterPhase === 0 ? 1 : jitterPhase === 2 ? -1 : 0;
           }
@@ -207,7 +187,7 @@ export class GlyphStageRenderer {
         sprite.width = CELL_WIDTH_PX;
         sprite.height = CELL_HEIGHT_PX;
         sprite.tint = 0xd4af37;
-        this.gridContainer.addChild(sprite);
+        this.pipeline.layers.worldTacticalContainer.addChild(sprite);
         this.glyphSprites.push(sprite);
       }
     }

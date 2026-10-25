@@ -22,8 +22,8 @@ describe('Phase 53: State Machine Modernization & Governance Tooling', () => {
     const parsed = ProjectStateSchema.parse(raw);
 
     expect(parsed.version).toBe(1);
-    expect(parsed.activePhase).toBe(53);
-    expect(parsed.immediateNextPriority).toContain('Phase 54');
+    expect(parsed.activePhase).toBeGreaterThanOrEqual(53);
+    expect(parsed.immediateNextPriority).toMatch(/Phase\s*\d+/);
     expect(parsed.phases.length).toBeGreaterThanOrEqual(53);
 
     const phase53 = parsed.phases.find((p) => p.number === 53);

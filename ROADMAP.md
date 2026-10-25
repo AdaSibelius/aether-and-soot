@@ -68,8 +68,9 @@ Inspired by the visual density and procedural depth of *Cataclysm: Dark Days Ahe
 | **Phase VER-1**: 1,000-Turn Emergence Fuzzer | `npx vitest run tests/sim/emergence-fuzzer.test.ts` | `tests/sim/emergence-fuzzer.test.ts` (360ms) | `VERIFIED` (exit 0) |
 | **Tier G Prep**: Phase 51 Architectural Scoping | `npm run check:boundaries && npm run typecheck` | `ROADMAP.md`, `STATE.md` | `PREPPED` (exit 0) |
 | **Phase 53**: State Machine Modernization & Governance Tooling | `npm run test:sim -- -t "Phase 53"` | `.agents/state.json`, `src/schemas/project-state.schema.ts` | `VERIFIED` (exit 0) |
+| **Phase 54**: Diegetic Presentation Shell & GLSL Shader Suite | `npm run test:sim -- -t "Phase 54"` | `src/client/renderer/steampunk-pipeline.ts`, `diegetic-post-filter.ts` | `VERIFIED` (exit 0) |
 
-### Tier G: The Living City — Causal Geography, Authored Landmarks & Narrative Continuity (Phases 51–56)
+### Tier G: The Living City — Causal Geography, Authored Landmarks & Narrative Continuity (Phases 51–57)
 
 Synthesizing the systemic audit recommendations into a coherent, causal simulation of Victorian London: connecting districts through strategic infrastructure conduits, anchoring procedural generation with authored multi-state landmark hubs, simulating macro-commodity supply chains and scarcity cascades, bounding historical chronicle records for witness memory and rumor diffusion, and equipping the player with forensic investigation tools.
 
@@ -90,9 +91,14 @@ Synthesizing the systemic audit recommendations into a coherent, causal simulati
   - Scrubbed duplicate critic backlog tables and dynamically wired live Near-Cap Files telemetry into `AGENTS.md` Rule 2.2.
   - Upgraded critic target file resolution to map domain priorities to target files instead of top line counts.
   - Normalized git hooks and screenshot capture paths to dynamic `process.cwd()` execution.
-- [ ] **Phase 54: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.
-- [ ] **Phase 55: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks.
-- [ ] **Phase 56: Investigation Journal & Forensic Environmental Clues**: Detective UI (`[J]` Casebook & Investigation Ledger), forensic tile examination on breached/sabotaged machinery, and clue categorization (`OBSERVED`, `LEARNED`, `HEARD`). Assembling matching clues resolves inquiries to unlock unique faction contracts, safehouse passcodes, or diplomatic leverage.
+- [x] **Phase 54: Diegetic Presentation Shell & GLSL Shader Suite** *(Completed)*:
+  - Restructured PixiJS v8 stage into 5-layer depth-sorted container hierarchy (`WorldTacticalContainer`, `GaslightLightingContainer`, `DiegeticFrameContainer`, `CanvasUiBufferContainer`, `OpticalOverlayContainer`).
+  - Implemented 4-pass GLSL shader suite (spherical lens curvature `k=0.08`, Edison aperture shadow mask, dual-threshold amber/cyan bloom, and thermodynamic heat haze / chromatic aberration).
+  - Expanded `glyph-atlas-extended.ts` to full 256-glyph CP437 with sub-pixel alignment and Victorian technical symbols (`⚙`, `☼`, `╬`, `⌖`, `◈`, `░▒▓█`).
+  - Extracted `camera-governor.ts` from `frame-adapter.ts` to smoothly center viewports and render engraved copperplate architectural cross-sections along world borders.
+- [ ] **Phase 55: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.
+- [ ] **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks.
+- [ ] **Phase 57: Investigation Journal & Forensic Environmental Clues**: Detective UI (`[J]` Casebook & Investigation Ledger), forensic tile examination on breached/sabotaged machinery, and clue categorization (`OBSERVED`, `LEARNED`, `HEARD`). Assembling matching clues resolves inquiries to unlock unique faction contracts, safehouse passcodes, or diplomatic leverage.
 
 ### Tier F: Emergent Systemic Backlog (Critic Suggestions)
 
@@ -148,6 +154,6 @@ This serves as the permanent holding area for validated, out-of-scope systemic i
 
 | Priority | Category | Title | Directive | Target Files | Verification |
 | --- | --- | --- | --- | --- | --- |
-| P1 | UNREACHABLE_MECHANIC | Phase 54 | Focus core systems development on **Phase 54: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies. | `src/sim/systems/economy.system.ts, src/sim/systems/trade.system.ts` | `tests/sim/determinism.test.ts` |
+| P1 | UNREACHABLE_MECHANIC | Phase 55 | Focus core systems development on **Phase 55: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies. | `src/sim/systems/economy.system.ts, src/sim/systems/trade.system.ts` | `tests/sim/determinism.test.ts` |
 | P2 | SIM_BALANCE | Expand Playtest Serializer Command Surface | Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. | `tests/scripts/playtester-serializer.ts` | `tests/sim/determinism.test.ts` |
 | P3 | MODULE_SPLIT | Modularity Guard & File Splitting | Monitor and pre-split near-cap modules like tests/scripts/hermes-critic.ts and playtester-projection-audit.ts to enforce 250-line target. | `tests/scripts/hermes-critic.ts, tests/scripts/playtester-projection-audit.ts` | `tests/sim/determinism.test.ts` |

@@ -19,7 +19,7 @@ import { deriveFloatingCombatText, FloatingTextCallout } from './renderer/floati
 import { getDefaultSaveStorageAdapter } from './persistence/save-adapter.js';
 import { DesktopWindowManager } from './renderer/desktop-window-manager.js';
 import { generateModalUiBuffer } from './canvas-ui/modal-buffer-router.js';
-import { resolveThermodynamicStress } from './renderer/steampunk-shader.js';
+import { resolveThermodynamicStress } from './renderer/shader-uniforms.js';
 
 export interface ClientSessionMounts {
   readonly canvasHost: HTMLElement;
@@ -175,15 +175,12 @@ export function startClientSession(
         onCloseModal: () => { activeModal = null; syncPresentation(); },
         onOpenSystemMenu: () => { isSystemMenuOpen = true; syncPresentation(); },
         onCloseSystemMenu: () => { isSystemMenuOpen = false; syncPresentation(); },
-        onToggleLookMode: toggleLookMode,
-        onToggleDoor: toggleAdjacentDoor,
-        onTalk: handleTalk,
+        onToggleLookMode: toggleLookMode, onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
         onNewSeed: (s) => { worldState = createFreshWorld(s); syncPresentation(); },
         onLoadWorld: (loaded) => { worldState = loaded; syncPresentation(); },
         onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
         onCloseCharacterCreator: () => { isCreatorOpen = false; syncPresentation(); },
-        onEmbark: handleEmbark,
-        onToggleCrtScanlines: toggleCrtScanlines,
+        onEmbark: handleEmbark, onToggleCrtScanlines: toggleCrtScanlines,
       },
     );
 
@@ -225,10 +222,8 @@ export function startClientSession(
       onCloseModal: () => { activeModal = null; syncPresentation(); },
       onCycleModal: cycleModal,
       onSetModal: (modal) => { activeModal = modal; modalNavState.selectedIndex = 0; syncPresentation(); },
-      onToggleLookMode: toggleLookMode, onMoveLookCursor: moveLookCursor,
-      onLookAttack: lookAttack, onLookInteract: lookInteract,
-      onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,
-      onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
+      onToggleLookMode: toggleLookMode, onMoveLookCursor: moveLookCursor, onLookAttack: lookAttack, onLookInteract: lookInteract,
+      onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk, onOpenCharacterCreator: () => { isCreatorOpen = true; syncPresentation(); },
       currentPosture: worldState.entities[playerId]?.actor?.posture ?? 'STANDING',
       onCommand: handleCommand,
     });

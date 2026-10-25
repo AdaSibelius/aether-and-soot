@@ -1,9 +1,13 @@
 {
   "version": 1,
   "lastUpdated": "2026-10-25",
-  "activePhase": 53,
-  "immediateNextPriority": "Phase 54: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
+  "activePhase": 54,
+  "immediateNextPriority": "Phase 55: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
   "recentCommits": [
+    {
+      "hash": "9af4f25",
+      "message": "feat(gov): modernize governance state machine, compiler, and tooling harness"
+    },
     {
       "hash": "829c297",
       "message": "feat(lore): integrate procedural corpora and naturalist codex engine"
@@ -11,10 +15,6 @@
     {
       "hash": "680addd",
       "message": "feat(sim): harmonize simulation pipeline and island feedback loops"
-    },
-    {
-      "hash": "340a681",
-      "message": "docs(audit): add 3-track architectural, systemic, and UI evaluation report"
     }
   ],
   "phases": [
@@ -611,6 +611,28 @@
     },
     {
       "number": 54,
+      "title": "Diegetic Presentation Shell & GLSL Shader Suite",
+      "status": "COMPLETED",
+      "tier": "Tier G",
+      "summary": "5-layer PixiJS depth-sorted stage, 4-pass GLSL CRT/diegetic shader suite, CP437 extended atlas, and architectural border engravings.",
+      "details": [
+        "Create src/client/renderer/steampunk-pipeline.ts",
+        "Create src/client/renderer/diegetic-post-filter.ts",
+        "Create src/client/renderer/shader-uniforms.ts",
+        "Create src/client/renderer/glyph-atlas-extended.ts",
+        "Create src/client/projection/camera-governor.ts",
+        "Pre-split frame-adapter.ts and bootstrap-loop.ts under 250 lines"
+      ],
+      "targetFiles": [
+        "src/client/renderer/steampunk-pipeline.ts",
+        "src/client/renderer/diegetic-post-filter.ts",
+        "src/client/renderer/glyph-atlas-extended.ts",
+        "src/client/projection/camera-governor.ts"
+      ],
+      "verificationTest": "tests/sim/phase54-shader-pipeline.test.ts"
+    },
+    {
+      "number": 55,
       "title": "Causal Supply Chains & Disruption Cascades",
       "status": "PLANNED",
       "tier": "Tier G",
@@ -621,7 +643,7 @@
       ]
     },
     {
-      "number": 55,
+      "number": 56,
       "title": "Bounded World Chronicle, Witness Memory & Rumor Network",
       "status": "PLANNED",
       "tier": "Tier G",
@@ -632,7 +654,7 @@
       ]
     },
     {
-      "number": 56,
+      "number": 57,
       "title": "Investigation Journal & Forensic Environmental Clues",
       "status": "PLANNED",
       "tier": "Tier G",
@@ -644,18 +666,6 @@
     }
   ],
   "hotspots": [
-    {
-      "file": "src/client/projection/frame-adapter.ts",
-      "lines": 251,
-      "threshold": 230,
-      "status": "NEAR_CAP"
-    },
-    {
-      "file": "src/client/bootstrap-loop.ts",
-      "lines": 249,
-      "threshold": 230,
-      "status": "NEAR_CAP"
-    },
     {
       "file": "src/client/ui/CharacterCreatorModal.tsx",
       "lines": 247,
@@ -671,6 +681,12 @@
     {
       "file": "src/sim/systems/container.system.ts",
       "lines": 245,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/bootstrap-loop.ts",
+      "lines": 244,
       "threshold": 230,
       "status": "NEAR_CAP"
     },
@@ -697,6 +713,12 @@
       "lines": 243,
       "threshold": 230,
       "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/projection/frame-adapter.ts",
+      "lines": 239,
+      "threshold": 230,
+      "status": "SAFE"
     },
     {
       "file": "src/sim/systems/transit.system.ts",
@@ -800,8 +822,8 @@
       "id": "P1",
       "priority": "P1",
       "category": "UNREACHABLE_MECHANIC",
-      "title": "Phase 54",
-      "directive": "Focus core systems development on **Phase 54: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies.",
+      "title": "Phase 55",
+      "directive": "Focus core systems development on **Phase 55: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies.",
       "targetFiles": [
         "src/sim/systems/economy.system.ts",
         "src/sim/systems/trade.system.ts"

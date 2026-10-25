@@ -7,6 +7,7 @@ import { resolveBiomeTerrainVisual, resolveDistrictBiome } from './biome-palette
 import { resolveConnectingWallGlyph, WALL_BOX_GLYPHS } from './wall-connections.js';
 import { applyGaslightVisual, applyLiquidSurfaceVisual, applySootVisualOverlay } from './environmental-visuals.js';
 import { calculateGaslightField } from '../../sim/systems/gaslight.system.js';
+import { calculateCameraViewport, resolveOutOfBoundsVisual } from './camera-governor.js';
 import limehouseJson from '../../../data/districts/limehouse_docks.json' with { type: 'json' };
 import sootWorksJson from '../../../data/districts/soot_works.json' with { type: 'json' };
 import whitechapelJson from '../../../data/districts/whitechapel_ward.json' with { type: 'json' };
@@ -139,37 +140,24 @@ export function projectWorldToVisualFrame(
   const effectiveFovRadius = Math.max(2, baseFovRadius + fovBonus);
   const visibleSet = computeVisibleTiles(grid, originX, originY, effectiveFovRadius);
 
-  const reqW = viewportOverride?.width ?? DEFAULT_VIEWPORT_WIDTH;
-  const reqH = viewportOverride?.height ?? DEFAULT_VIEWPORT_HEIGHT;
-  const isCenteredWidescreen = Boolean(viewportOverride && viewportOverride.width > grid.width);
-  const viewportWidth = isCenteredWidescreen ? reqW : Math.min(reqW, grid.width);
-  const viewportHeight = isCenteredWidescreen ? reqH : Math.min(reqH, grid.height);
-  const offsetX = isCenteredWidescreen ? Math.floor((reqW - grid.width) / 2) : 0;
-  const offsetY = isCenteredWidescreen ? Math.floor((reqH - grid.height) / 2) : 0;
-
-  const cameraX = isCenteredWidescreen
-    ? 0
-    : Math.max(0, Math.min(grid.width - viewportWidth, originX - Math.floor(viewportWidth / 2)));
-  const cameraY = isCenteredWidescreen
-    ? 0
-    : Math.max(0, Math.min(grid.height - viewportHeight, originY - Math.floor(viewportHeight / 2)));
+  const vp = calculateCameraViewport(
+    grid.width,
+    grid.height,
+    originX,
+    originY,
+    DEFAULT_VIEWPORT_WIDTH,
+    DEFAULT_VIEWPORT_HEIGHT,
+    viewportOverride,
+  );
 
   const districtBiome = resolveDistrictBiome(state.currentDistrictId, activeStratum);
   const gaslightField = calculateGaslightField(state, activeStratum);
 
-  const outOfBoundsVisual: VisualGlyphSpec = {
-    glyph: '·',
-    fgPrimary: '#1a2228',
-    fgSecondary: '#1a2228',
-    bgColor: '#080a0c',
-    shaderFlags: [],
-  };
-
   const cells: RenderCellFrame[] = [];
-  for (let vy = 0; vy < viewportHeight; vy++) {
-    for (let vx = 0; vx < viewportWidth; vx++) {
-      const worldX = cameraX + vx - offsetX;
-      const worldY = cameraY + vy - offsetY;
+  for (let vy = 0; vy < vp.viewportHeight; vy++) {
+    for (let vx = 0; vx < vp.viewportWidth; vx++) {
+      const worldX = vp.cameraX + vx - vp.offsetX;
+      const worldY = vp.cameraY + vy - vp.offsetY;
 
       if (worldX < 0 || worldX >= grid.width || worldY < 0 || worldY >= grid.height) {
         cells.push({
@@ -177,7 +165,7 @@ export function projectWorldToVisualFrame(
           y: vy,
           worldX,
           worldY,
-          visual: outOfBoundsVisual,
+          visual: resolveOutOfBoundsVisual(worldX, worldY, grid.width, grid.height, state.turnCount),
           visible: false,
           explored: false,
           steamPressureKpa: 0,
@@ -221,10 +209,10 @@ export function projectWorldToVisualFrame(
     const tileExplored = inFov || (grid.cells[pos.y * grid.width + pos.x]?.explored ?? false);
     if (!inFov && !tileExplored) continue;
 
-    const screenX = pos.x - cameraX + offsetX;
-    const screenY = pos.y - cameraY + offsetY;
-    if (screenX >= 0 && screenX < viewportWidth && screenY >= 0 && screenY < viewportHeight) {
-      const idx = screenY * viewportWidth + screenX;
+    const screenX = pos.x - vp.cameraX + vp.offsetX;
+    const screenY = pos.y - vp.cameraY + vp.offsetY;
+    if (screenX >= 0 && screenX < vp.viewportWidth && screenY >= 0 && screenY < vp.viewportHeight) {
+      const idx = screenY * vp.viewportWidth + screenX;
       const currentCell = cells[idx];
       if (currentCell) {
         const isGaslit = (gaslightField.get(pointKey(pos.x, pos.y)) ?? 0) > 0.15;
@@ -240,9 +228,9 @@ export function projectWorldToVisualFrame(
     turnCount: state.turnCount,
     macroTickCount: state.macroTickCount,
     activeStratum,
-    width: viewportWidth,
-    height: viewportHeight,
-    cameraOrigin: { x: cameraX - offsetX, y: cameraY - offsetY },
+    width: vp.viewportWidth,
+    height: vp.viewportHeight,
+    cameraOrigin: { x: vp.cameraX - vp.offsetX, y: vp.cameraY - vp.offsetY },
     effectiveFovRadius,
     playerOrigin: { x: originX, y: originY },
     cells,

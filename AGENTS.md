@@ -75,7 +75,7 @@ At the end of every phase (after `npm run verify`), run `npm run hermes:critic` 
 - Target file length: **<= 250 lines**.
 - Hard automated failure ceiling: **300 lines** (enforced by `tests/scripts/check-boundaries.ts`).
 - Keep modules single-responsibility: one domain system per file in `src/sim/systems/`, one UI panel per file in `src/client/ui/`.
-- **Warning on Near-Cap Files (>= 240 lines)**: `src/client/projection/frame-adapter.ts` (251 lines), `src/client/bootstrap-loop.ts` (249 lines), `src/client/ui/CharacterCreatorModal.tsx` (247 lines), `src/client/ui/ItemDossierCard.tsx` (245 lines), `src/sim/systems/container.system.ts` (245 lines), `src/client/ui/InventoryWindow.tsx` (244 lines), `src/client/ui/LookCursorOverlay.tsx` (244 lines), `src/sim/systems/dialogue-quest.system.ts` (244 lines), `src/client/ui/CraftingWindow.tsx` (243 lines). Do NOT add new functions to these files—extract sub-modules via `npm run hermes:split` before adding new logic.
+- **Warning on Near-Cap Files (>= 240 lines)**: `src/client/ui/CharacterCreatorModal.tsx` (247 lines), `src/client/ui/ItemDossierCard.tsx` (245 lines), `src/sim/systems/container.system.ts` (245 lines), `src/client/bootstrap-loop.ts` (244 lines), `src/client/ui/InventoryWindow.tsx` (244 lines), `src/client/ui/LookCursorOverlay.tsx` (244 lines), `src/sim/systems/dialogue-quest.system.ts` (244 lines), `src/client/ui/CraftingWindow.tsx` (243 lines). Do NOT add new functions to these files—extract sub-modules via `npm run hermes:split` before adding new logic.
 
 ### Rule 2.3: Zero Untyped Boundaries & Flat Relational ECS
 - `any`, `as unknown as`, and `@ts-ignore` / `@ts-expect-error` are **FORBIDDEN**.
