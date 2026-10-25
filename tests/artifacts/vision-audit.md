@@ -1,5 +1,5 @@
 # Aether & Soot — UI Layout & Vision Critic Audit
-Generated: 2026-10-25T18:51:17.820Z | Model: gemma4:12b-extended (Mode: MOCK)
+Generated: 2026-10-25T19:12:56.968Z | Model: gemma4:12b-extended (Mode: MOCK)
 
 ## 1. Deterministic Screen Boundary Audits (88x36 Grid)
 | Modal Screen | Status | Clipping Errors | Unmapped Glyphs | Border Collisions |

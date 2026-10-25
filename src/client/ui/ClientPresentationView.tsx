@@ -12,6 +12,7 @@ import { ModalTopBar } from './ModalTopBar.js';
 import { QuickActionBar } from './QuickActionBar.js';
 import { SystemMenuModal } from './SystemMenuModal.js';
 import { resolveInspectedTileCoord } from '../client-interactions.js';
+import { FloatingTextCallout, FloatingTextOverlay } from '../renderer/floating-combat-text.js';
 
 export interface ClientMountHosts {
   readonly topBarHost: HTMLElement | null;
@@ -32,6 +33,7 @@ export interface ClientPresentationContext {
   readonly mouseHoverCoord: { x: number; y: number } | null;
   readonly cameraOrigin: { x: number; y: number };
   readonly activeDialogueNpcId: EntityId | null;
+  readonly floatingItems?: readonly FloatingTextCallout[];
   readonly onCommand: (cmd: GameCommand) => void;
   readonly onOpenModal: (window: ModalWindowId) => void;
   readonly onCloseModal: () => void;
@@ -68,16 +70,21 @@ export function renderClientPresentationViews(
   }
 
   render(
-    <LookCursorOverlay
-      isActive={ctx.isLookModeActive}
-      cursor={ctx.lookCursor}
-      cameraOrigin={ctx.cameraOrigin}
-      state={ctx.worldState}
-      actorId={ctx.playerId}
-      onCommand={ctx.onCommand}
-      onClose={ctx.onToggleLookMode}
-      onTalk={ctx.onTalk}
-    />,
+    <div>
+      <LookCursorOverlay
+        isActive={ctx.isLookModeActive}
+        cursor={ctx.lookCursor}
+        cameraOrigin={ctx.cameraOrigin}
+        state={ctx.worldState}
+        actorId={ctx.playerId}
+        onCommand={ctx.onCommand}
+        onClose={ctx.onToggleLookMode}
+        onTalk={ctx.onTalk}
+      />
+      {ctx.floatingItems && ctx.floatingItems.length > 0 && (
+        <FloatingTextOverlay items={ctx.floatingItems} cameraOrigin={ctx.cameraOrigin} />
+      )}
+    </div>,
     overlayHost,
   );
 

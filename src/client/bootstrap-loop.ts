@@ -1,6 +1,6 @@
 import { GameCommand } from '../schemas/commands.schema.js';
 import { CharacterCreationConfig } from '../schemas/character.schema.js';
-import { BlueprintIdSchema, EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
+import { EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
 import { generateVictorianDistrict } from '../sim/spatial/generator.js';
@@ -14,7 +14,8 @@ import { CELL_HEIGHT_PX, CELL_WIDTH_PX, GlyphStageRenderer, WIDESCREEN_GRID_HEIG
 import { ModalWindowId } from './ui/CharacterModalShell.js';
 import { renderClientPresentationViews } from './ui/ClientPresentationView.js';
 import { getSoundscapeManager } from './audio/soundscape-manager.js';
-import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor } from './client-interactions.js';
+import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor, resolveDiegeticClickHit } from './client-interactions.js';
+import { deriveFloatingCombatText, FloatingTextCallout } from './renderer/floating-combat-text.js';
 import { getDefaultSaveStorageAdapter } from './persistence/save-adapter.js';
 import { DesktopWindowManager } from './renderer/desktop-window-manager.js';
 import { generateModalUiBuffer } from './canvas-ui/modal-buffer-router.js';
@@ -50,6 +51,7 @@ export function startClientSession(
   let lookCursor: { x: number; y: number } | null = null;
   let activeDialogueNpcId: EntityId | null = null;
   let useDiegeticCanvasUi = true;
+  let floatingCallouts: FloatingTextCallout[] = [];
   const modalNavState = { selectedIndex: 0 };
 
   const soundscape = getSoundscapeManager();
@@ -64,6 +66,10 @@ export function startClientSession(
     const outcome = dispatchCommand(worldState, cmd);
     worldState = outcome.state;
     soundscape.processSimEvents(outcome.events);
+    const newCallouts = deriveFloatingCombatText(outcome.events, worldState);
+    if (newCallouts.length > 0) {
+      floatingCallouts = [...floatingCallouts, ...newCallouts];
+    }
     syncPresentation();
   };
 
@@ -140,6 +146,9 @@ export function startClientSession(
   };
 
   const syncPresentation = (advanceTime = true): void => {
+    const nowMs = Date.now();
+    floatingCallouts = floatingCallouts.filter((c) => nowMs - c.createdAtMs <= c.durationMs);
+
     const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, {
       width: WIDESCREEN_GRID_WIDTH,
       height: WIDESCREEN_GRID_HEIGHT,
@@ -158,6 +167,7 @@ export function startClientSession(
         worldState, playerId, activeModal, isSystemMenuOpen, isLookModeActive,
         isCreatorOpen, isCrtScanlinesEnabled, lookCursor, mouseHoverCoord,
         cameraOrigin: visualFrame.cameraOrigin, activeDialogueNpcId,
+        floatingItems: floatingCallouts,
         useDiegeticCanvasUi,
         onToggleUiMode: toggleUiMode,
         onCommand: handleCommand,
@@ -176,6 +186,10 @@ export function startClientSession(
         onToggleCrtScanlines: toggleCrtScanlines,
       },
     );
+
+    if (floatingCallouts.length > 0 && typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => syncPresentation(false));
+    }
   };
 
   const updateTileFromMouse = (ev: MouseEvent): void => {
@@ -198,18 +212,8 @@ export function startClientSession(
     updateTileFromMouse(ev);
     if (activeModal && useDiegeticCanvasUi) {
       const hit = stageRenderer.resolveHitActionAt(ev.clientX, ev.clientY, canvasHost.getBoundingClientRect());
-      if (hit?.startsWith('select_limb:')) {
-        const slot = hit.replace('select_limb:', '') as LimbSlotId;
-        const player = worldState.entities[playerId];
-        const graft = player?.inventory?.containedEntityIds.find((id) => worldState.entities[id]?.prostheticSpec?.targetLimbSlot === slot);
-        if (graft) handleCommand({ type: 'INSTALL_PROSTHETIC', actorId: playerId, slot, prostheticEntityId: graft });
-      } else if (hit?.startsWith('select_item:')) {
-        const itemEntityId = EntityIdSchema.parse(hit.replace('select_item:', ''));
-        handleCommand({ type: 'USE_ITEM', actorId: playerId, itemEntityId });
-      } else if (hit?.startsWith('craft_recipe:')) {
-        const recipeId = BlueprintIdSchema.parse(hit.replace('craft_recipe:', ''));
-        handleCommand({ type: 'CRAFT_RECIPE', actorId: playerId, recipeId });
-      }
+      const cmd = resolveDiegeticClickHit(hit, worldState, playerId);
+      if (cmd) handleCommand(cmd);
     }
   });
 

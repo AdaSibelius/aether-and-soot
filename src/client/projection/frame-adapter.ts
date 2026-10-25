@@ -23,9 +23,7 @@ export const DEFAULT_VIEWPORT_HEIGHT = 20;
 export const DEFAULT_FOV_RADIUS = 10;
 
 const DISTRICT_CATALOG: ReadonlyArray<{ id: string; name: string }> = [
-  ...limehouseJson,
-  ...sootWorksJson,
-  ...whitechapelJson,
+  ...limehouseJson, ...sootWorksJson, ...whitechapelJson,
 ];
 
 const KNOWN_LANDMARKS: Readonly<Record<string, string>> = {
@@ -143,20 +141,51 @@ export function projectWorldToVisualFrame(
 
   const reqW = viewportOverride?.width ?? DEFAULT_VIEWPORT_WIDTH;
   const reqH = viewportOverride?.height ?? DEFAULT_VIEWPORT_HEIGHT;
-  const viewportWidth = Math.min(reqW, grid.width);
-  const viewportHeight = Math.min(reqH, grid.height);
+  const isCenteredWidescreen = Boolean(viewportOverride && viewportOverride.width > grid.width);
+  const viewportWidth = isCenteredWidescreen ? reqW : Math.min(reqW, grid.width);
+  const viewportHeight = isCenteredWidescreen ? reqH : Math.min(reqH, grid.height);
+  const offsetX = isCenteredWidescreen ? Math.floor((reqW - grid.width) / 2) : 0;
+  const offsetY = isCenteredWidescreen ? Math.floor((reqH - grid.height) / 2) : 0;
 
-  const cameraX = Math.max(0, Math.min(grid.width - viewportWidth, originX - Math.floor(viewportWidth / 2)));
-  const cameraY = Math.max(0, Math.min(grid.height - viewportHeight, originY - Math.floor(viewportHeight / 2)));
+  const cameraX = isCenteredWidescreen
+    ? 0
+    : Math.max(0, Math.min(grid.width - viewportWidth, originX - Math.floor(viewportWidth / 2)));
+  const cameraY = isCenteredWidescreen
+    ? 0
+    : Math.max(0, Math.min(grid.height - viewportHeight, originY - Math.floor(viewportHeight / 2)));
 
   const districtBiome = resolveDistrictBiome(state.currentDistrictId, activeStratum);
   const gaslightField = calculateGaslightField(state, activeStratum);
 
+  const outOfBoundsVisual: VisualGlyphSpec = {
+    glyph: '·',
+    fgPrimary: '#1a2228',
+    fgSecondary: '#1a2228',
+    bgColor: '#080a0c',
+    shaderFlags: [],
+  };
+
   const cells: RenderCellFrame[] = [];
   for (let vy = 0; vy < viewportHeight; vy++) {
     for (let vx = 0; vx < viewportWidth; vx++) {
-      const worldX = cameraX + vx;
-      const worldY = cameraY + vy;
+      const worldX = cameraX + vx - offsetX;
+      const worldY = cameraY + vy - offsetY;
+
+      if (worldX < 0 || worldX >= grid.width || worldY < 0 || worldY >= grid.height) {
+        cells.push({
+          x: vx,
+          y: vy,
+          worldX,
+          worldY,
+          visual: outOfBoundsVisual,
+          visible: false,
+          explored: false,
+          steamPressureKpa: 0,
+          coalDustDensity: 0,
+        });
+        continue;
+      }
+
       const tile = grid.cells[worldY * grid.width + worldX];
       const isVisible = visibleSet.has(pointKey(worldX, worldY));
       const isExplored = isVisible || (tile?.explored ?? false);
@@ -192,8 +221,8 @@ export function projectWorldToVisualFrame(
     const tileExplored = inFov || (grid.cells[pos.y * grid.width + pos.x]?.explored ?? false);
     if (!inFov && !tileExplored) continue;
 
-    const screenX = pos.x - cameraX;
-    const screenY = pos.y - cameraY;
+    const screenX = pos.x - cameraX + offsetX;
+    const screenY = pos.y - cameraY + offsetY;
     if (screenX >= 0 && screenX < viewportWidth && screenY >= 0 && screenY < viewportHeight) {
       const idx = screenY * viewportWidth + screenX;
       const currentCell = cells[idx];
@@ -213,7 +242,7 @@ export function projectWorldToVisualFrame(
     activeStratum,
     width: viewportWidth,
     height: viewportHeight,
-    cameraOrigin: { x: cameraX, y: cameraY },
+    cameraOrigin: { x: cameraX - offsetX, y: cameraY - offsetY },
     effectiveFovRadius,
     playerOrigin: { x: originX, y: originY },
     cells,

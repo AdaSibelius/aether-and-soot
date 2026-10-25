@@ -1,5 +1,6 @@
 import { EntityRecord } from '../schemas/components.schema.js';
-import { EntityId, Point3D, StratumId } from '../schemas/primitives.schema.js';
+import { BlueprintIdSchema, EntityId, EntityIdSchema, LimbSlotId, Point3D, StratumId } from '../schemas/primitives.schema.js';
+import { GameCommand } from '../schemas/commands.schema.js';
 import { WorldState } from '../sim/core/world.js';
 import { getTileCell } from '../sim/spatial/grid.js';
 import { ModalWindowId } from './ui/CharacterModalShell.js';
@@ -87,4 +88,30 @@ export function resolveInspectedTileCoord(
 }
 
 export const getInspectedTileCoord = resolveInspectedTileCoord;
+
+export function resolveDiegeticClickHit(
+  hit: string | undefined,
+  worldState: WorldState,
+  playerId: EntityId,
+): GameCommand | null {
+  if (!hit) return null;
+  if (hit.startsWith('select_limb:')) {
+    const slot = hit.replace('select_limb:', '') as LimbSlotId;
+    const player = worldState.entities[playerId];
+    const graft = player?.inventory?.containedEntityIds.find(
+      (id) => worldState.entities[id]?.prostheticSpec?.targetLimbSlot === slot,
+    );
+    if (graft) {
+      return { type: 'INSTALL_PROSTHETIC', actorId: playerId, slot, prostheticEntityId: graft };
+    }
+  } else if (hit.startsWith('select_item:')) {
+    const itemEntityId = EntityIdSchema.parse(hit.replace('select_item:', ''));
+    return { type: 'USE_ITEM', actorId: playerId, itemEntityId };
+  } else if (hit.startsWith('craft_recipe:')) {
+    const recipeId = BlueprintIdSchema.parse(hit.replace('craft_recipe:', ''));
+    return { type: 'CRAFT_RECIPE', actorId: playerId, recipeId };
+  }
+  return null;
+}
+
 

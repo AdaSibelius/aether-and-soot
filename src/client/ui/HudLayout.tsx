@@ -6,6 +6,7 @@ import { ModalWindowId } from './CharacterModalShell.js';
 import { aggregateChronicleEvents } from './EventFormatter.js';
 import { MorgueModal } from './MorgueModal.js';
 import { TileInspectorPanel } from './TileInspectorPanel.js';
+import { TickerTapeLog } from './TickerTapeLog.js';
 
 export interface HudLayoutProps {
   readonly state: Readonly<WorldState>;
@@ -105,7 +106,7 @@ export function HudLayout({
         {/* Sanguine Volume Bar */}
         <div style={{ marginBottom: '4px' }}>
           <div class="stat-row" style={{ fontSize: '10px' }}>
-            <span class="muted">Sanguine:</span>
+            <span class="muted">♦ Sanguine:</span>
             <span class={bloodPct < 40 ? 'warn-text' : 'ok-text'}>{bloodPct}%</span>
           </div>
           <div style={{ fontSize: '11px', letterSpacing: '0.04em', color: bloodPct < 40 ? 'var(--warn-red)' : 'var(--ok-green)' }}>
@@ -116,7 +117,7 @@ export function HudLayout({
         {/* Boiler Pressure Bar */}
         <div style={{ marginBottom: '4px' }}>
           <div class="stat-row" style={{ fontSize: '10px' }}>
-            <span class="muted">Boiler:</span>
+            <span class="muted">⚙ Boiler:</span>
             <span class="copper-text">{steamKpa} / {maxSteamKpa} kPa</span>
           </div>
           <div style={{ fontSize: '11px', letterSpacing: '0.04em', color: steamRatio >= 0.85 ? 'var(--warn-red)' : 'var(--oxidized-copper)' }}>
@@ -128,7 +129,7 @@ export function HudLayout({
         {strainKw > 0 && (
           <div style={{ marginBottom: '4px' }}>
             <div class="stat-row" style={{ fontSize: '10px' }}>
-              <span class="muted">Governor Strain:</span>
+              <span class="muted">⚡ Strain:</span>
               <span class="warn-text">{strainKw} / {governorCapKw} kW</span>
             </div>
             <div style={{ fontSize: '11px', letterSpacing: '0.04em', color: strainRatio >= 0.75 ? 'var(--warn-red)' : '#f39c12' }}>
@@ -211,20 +212,8 @@ export function HudLayout({
         }}
       />
 
-      {/* Action Chronicle Pneumatic Ticker */}
-      <div class="panel-box log-box">
-        <div class="panel-header">╔═[ PNEUMATIC CHRONICLE ]═╗</div>
-        {chronicleLines.length === 0 ? (
-          <div class="log-entry muted">Awaiting pneumatic actuation...</div>
-        ) : (
-          chronicleLines.map((line, idx) => (
-            <div key={`chronicle-${idx}`} class="log-entry">
-              <span style={{ color: '#d4af37', marginRight: '4px' }}>»</span>
-              {line}
-            </div>
-          ))
-        )}
-      </div>
+      {/* Edison Ticker-Tape Chronicle */}
+      <TickerTapeLog chronicleLines={chronicleLines} />
 
       <MorgueModal
         state={state}

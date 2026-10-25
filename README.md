@@ -72,7 +72,7 @@ flowchart TD
 
 ### Why Headless Core / Presentation Shell Separation Exists
 - **Zero Browser Dependencies in Core (`src/sim/` and `src/schemas/`)**: No imports from `pixi.js`, `preact`, `window`, `document`, or DOM globals are permitted.
-- **Sub-Second Test Execution**: 26 test suites (112 tests) covering 5-district procgen, cellular automata, ballistics, stealth acoustics, NPC diurnal shifts, and trap physics run in **<900ms** in Node.js without spinning up headless browser overhead.
+- **Sub-Second Test Execution**: 80 test suites (416 tests) covering 5-district procgen, cellular automata, ballistics, stealth acoustics, NPC diurnal shifts, trap physics, and diegetic canvas UI run in **<5s** in Node.js without spinning up headless browser overhead.
 - **Strict Unidirectional Mutability**: The presentation shell (`src/client/`) only holds `Readonly<WorldState>`. State mutations can only happen by dispatching a validated `GameCommand` to `dispatchCommand()`.
 
 ### Why Deterministic PRNG & Flat Relational ECS Are Non-Negotiable
@@ -236,7 +236,7 @@ npm run verify
 1. **`npm run typecheck`**: Strict TypeScript verification (`noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`).
 2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all source files.
 3. **`npm run validate:data`**: Validates all declarative JSON blueprints in `data/` against Zod schemas.
-4. **`npm run test:sim`**: Executes all 54 headless deterministic test suites (254 tests).
+4. **`npm run test:sim`**: Executes all 80 headless deterministic test suites (416 tests).
 
 ---
 
@@ -292,3 +292,32 @@ npm run generate:content:mock -- --type materials --count 3
 # Generate live Victorian materials using local Ollama (hermes3:8b) and append to data/
 npm run generate:content -- --type materials --count 2 --theme "Whitechapel gas lanterns and soot pipes" --append
 ```
+
+---
+
+## 9. Role-Based Routing Matrix
+
+To keep context windows lean and prevent architectural drift, contributors and agents must route through designated entry points:
+
+| Role / Persona | Focus Domain | Key Documentation & Guidelines | Primary Tools & Commands |
+| :--- | :--- | :--- | :--- |
+| **Executive AI Agent** (Antigravity / Argon) | Full-stack orchestration, ECS core, client projection, schema updates | `AGENTS.md`, `ARCHITECTURE.md`, `STATE.md`, `.agents/rules/` | `npm run verify`, `npm run hermes:critic`, `npm run sync:state` |
+| **Local Model Worker** (Ollama Tiers 1–3) | Bulk blueprints, test scaffolding, AST file splitting, playtesting | `.agents/skills/hermes-tooling/SKILL.md`, `.agents/skills/content-generation/` | `npm run hermes:scout`, `npm run hermes:testgen`, `npm run generate:content` |
+| **Human System Architect** | Balance evaluation, roadmap gating, design pillar arbitration | `ARCHITECTURE.md`, `ROADMAP.md`, `tests/artifacts/` | `npm run playtest`, `npm run build && npm run preview` |
+| **Procedural Lore Designer** | Markov dialogue, district flavor, bark corpora, item lore | `.agents/rules/lore-procgen.md`, `data/dialogue/`, `data/districts/` | `npm run generate:content`, `npm run hermes:chronicler` |
+
+---
+
+## 10. Live Architectural & Gameplay Telemetry
+
+| Metric / Dimension | Current Value | Verification Gate / Validator |
+| :--- | :--- | :--- |
+| **Deterministic Unit Test Suites** | 80 suites (416 tests passing, 0 failures) | `npm run test:sim` (`vitest run`) |
+| **TypeScript Typecheck** | 0 errors (`strict: true`, `noUncheckedIndexedAccess: true`) | `npm run typecheck` (`tsc --noEmit`) |
+| **Architectural Boundaries** | 303 source files checked (0 violations, hard 300-line cap) | `npm run check:boundaries` |
+| **Agent Governance Health** | 100% PASS (3 progressive disclosure rules, pre-tool hooks) | `npm run check:governance` |
+| **Vision Critic UI Score** | 98/100 (100% modal pass, 0 atlas leaks, 0 collisions) | `npm run hermes:vision:mock` |
+| **Declarative JSON Blueprints** | 43 blueprints across 5 districts, 9 recipes, 5 prosthetics | `npm run validate:data` |
+| **Target Viewport Resolution** | 88×36 character cells (centered district projection) | `src/client/projection/frame-adapter.ts` |
+| **Tactical Modal Screens** | 6 diegetic modals (Satchel, Anatomy, Workbench, Exchange, Atlas, Codex) | `src/client/canvas-ui/modal-buffer-router.ts` |
+
