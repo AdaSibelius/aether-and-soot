@@ -15,6 +15,8 @@ import { ModalWindowId } from './ui/CharacterModalShell.js';
 import { renderClientPresentationViews } from './ui/ClientPresentationView.js';
 import { getSoundscapeManager } from './audio/soundscape-manager.js';
 import { clampLookCursor, cycleModalWindow, findAdjacentDialogueNpc, findAdjacentDoorTarget, findEntityAtLookCursor } from './client-interactions.js';
+import { getDefaultSaveStorageAdapter } from './persistence/save-adapter.js';
+import { DesktopWindowManager } from './renderer/desktop-window-manager.js';
 
 export interface ClientSessionMounts {
   readonly canvasHost: HTMLElement;
@@ -47,6 +49,11 @@ export function startClientSession(
   let activeDialogueNpcId: EntityId | null = null;
 
   const soundscape = getSoundscapeManager();
+  const saveAdapter = getDefaultSaveStorageAdapter();
+  const windowManager = new DesktopWindowManager({
+    onSuspend: () => soundscape.suspend(),
+    onResume: () => soundscape.resume(),
+  });
 
   const handleCommand = (cmd: GameCommand): void => {
     soundscape.initOnUserGesture();
@@ -194,6 +201,8 @@ export function startClientSession(
     getVisualFrame: () => projectWorldToVisualFrame(worldState, playerId),
     serialize: () => serializeWorld(worldState),
     soundscape,
+    saveAdapter,
+    windowManager,
   };
 
   syncPresentation();

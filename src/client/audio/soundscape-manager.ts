@@ -47,6 +47,14 @@ export class SoundscapeManager {
   public getSynth(): ProceduralWebAudioSynth {
     return this.synth;
   }
+
+  public suspend(): void {
+    this.synth.suspend();
+  }
+
+  public resume(): void {
+    this.synth.resume();
+  }
 }
 
 let globalSoundscape: SoundscapeManager | null = null;

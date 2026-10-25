@@ -43,6 +43,18 @@ export class ProceduralWebAudioSynth {
     return true;
   }
 
+  public suspend(): void {
+    if (this.ctx && this.ctx.state === 'running') {
+      void this.ctx.suspend();
+    }
+  }
+
+  public resume(): void {
+    if (this.ctx && this.ctx.state === 'suspended') {
+      void this.ctx.resume();
+    }
+  }
+
   public setMuted(muted: boolean): void {
     this.isMuted = muted;
     if (this.masterGain && this.ctx) {

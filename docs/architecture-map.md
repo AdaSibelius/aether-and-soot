@@ -4,11 +4,11 @@
 
 ## Codebase Telemetry & Modularity Health
 
-- **Files Indexed**: 209
-- **Total Lines of Code**: 30040
+- **Files Indexed**: 214
+- **Total Lines of Code**: 30785
 - **Average File Size**: 144 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
-- **Near-Cap Files (>= 240 lines)**: 8 files
+- **Near-Cap Files (>= 240 lines)**: 9 files
 
 ### Near-Cap File Watchlist (Approaching 300-Line Ceiling)
 
@@ -22,6 +22,7 @@
 | `src/client/ui/CraftingWindow.tsx` | 243 | Extract sub-module before adding functions |
 | `src/schemas/domain-events.schema.ts` | 243 | Extract sub-module before adding functions |
 | `tests/scripts/hermes-critic.ts` | 240 | Extract sub-module before adding functions |
+| `tests/scripts/playtester-projection-audit.ts` | 240 | Extract sub-module before adding functions |
 
 ## Ring 1: Schemas & Contracts (`src/schemas/`)
 
@@ -185,9 +186,12 @@ Headless projection frame adapter, PixiJS glyph rendering stage, and CRT post-pr
 | `src/client/projection/environmental-visuals.ts` | 88 | ✅ OK | `applySootVisualOverlay(base: VisualGlyphSpec, smokePpm: number, coalDustDensity: number, worldX: number, worldY: number, turnCount: number, isVisible: boolean): VisualGlyphSpec`, `applyLiquidSurfaceVisual(base: VisualGlyphSpec, liquidType: LiquidTypeId, volumeMl: number, isVisible: boolean): VisualGlyphSpec`, `applyGaslightVisual(base: VisualGlyphSpec, isGaslit: boolean): VisualGlyphSpec` |
 | `src/client/projection/frame-adapter.ts` | 222 | ✅ OK | `resolveCatalogDisplayName(kind: string, id: string): string`, `projectWorldToVisualFrame(state: Readonly<WorldState>, focusActorId: unknown, baseFovRadius: unknown, viewportOverride: { width: number; height: number }): VisualGridFrame` |
 | `src/client/projection/wall-connections.ts` | 114 | ✅ OK | `isWallTerrain(terrainType: TerrainType): boolean`, `getExplicitWallGlyph(terrainType: TerrainType): string \| undefined`, `resolveConnectingWallGlyph(grid: StratumGrid, x: number, y: number): string` |
-| `src/client/renderer/crt-filter.ts` | 81 | ✅ OK | `createCrtPostFilter(opacity: number): Filter` |
+| `src/client/renderer/crt-filter.ts` | 56 | ✅ OK | `createCrtPostFilter(opacity: number, options: SteampunkFilterOptions): Filter`, `updateSteampunkFilterUniforms(filter: Filter, time: number, thermoStress: unknown, smokeMask: [number, number, number, number], distortionScale: unknown, scanlineOpacity: unknown): void` |
+| `src/client/renderer/desktop-window-manager.ts` | 125 | ✅ OK | `computeAspectLockedScale(container: WindowDimensions, baseWidth: number, baseHeight: number, integerScaleOnly: unknown): ViewportScaleMetrics`, `toggleFullscreen(targetElement: HTMLElement): Promise<boolean>` |
 | `src/client/renderer/glyph-atlas.ts` | 99 | ✅ OK | `createGlyphAtlas(cellWidth: number, cellHeight: number, fontFamily: unknown): GlyphAtlas` |
-| `src/client/renderer/glyph-stage.ts` | 141 | ✅ OK | `CELL_WIDTH_PX`, `CELL_HEIGHT_PX`, `WIDESCREEN_GRID_WIDTH`, `WIDESCREEN_GRID_HEIGHT` |
+| `src/client/renderer/glyph-stage.ts` | 211 | ✅ OK | `CELL_WIDTH_PX`, `CELL_HEIGHT_PX`, `WIDESCREEN_GRID_WIDTH`, `WIDESCREEN_GRID_HEIGHT` |
+| `src/client/renderer/performance-governor.ts` | 115 | ✅ OK | `getPerformanceGovernor(): PerformanceGovernor` |
+| `src/client/renderer/steampunk-shader.ts` | 152 | ✅ OK | `resolveThermodynamicStress(state: Readonly<WorldState>, actorId: EntityId): ThermodynamicStressResult` |
 
 ## Ring 3: Preact UI Panels (`src/client/ui/`)
 
@@ -290,7 +294,7 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   onCommand,
 }: QuickActionBarProps): void` |
 | `src/client/ui/SatchelPanel.tsx` | 121 | ✅ OK | `ItemGlyphBadge({ entity }: { readonly entity: EntityRecord }): void`, `SatchelPanel({ state, actorId, onCommand }: SatchelPanelProps): void` |
-| `src/client/ui/SystemMenuModal.tsx` | 236 | ✅ OK | `SystemMenuModal({
+| `src/client/ui/SystemMenuModal.tsx` | 225 | ✅ OK | `SystemMenuModal({
   state,
   isOpen,
   onClose,
@@ -300,6 +304,11 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   crtScanlinesEnabled = true,
   onToggleCrtScanlines,
 }: SystemMenuModalProps): void` |
+| `src/client/ui/SystemSettingsControls.tsx` | 110 | ✅ OK | `SystemSettingsControls({
+  crtScanlinesEnabled = true,
+  onToggleCrtScanlines,
+  onSettingsChanged,
+}: SystemSettingsControlsProps): void` |
 | `src/client/ui/TileInspectorPanel.tsx` | 202 | ✅ OK | `getEmptyTileDescriptor(terrainType: string): string`, `TileInspectorPanel({
   state,
   actorId,
@@ -315,13 +324,13 @@ Browser bootstrap, keyboard/mouse input dispatching, and WebAudio synth integrat
 
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
-| `src/client/audio/procedural-synth.ts` | 221 | ✅ OK | *None (internal)* |
-| `src/client/audio/soundscape-manager.ts` | 60 | ✅ OK | `getSoundscapeManager(): SoundscapeManager` |
+| `src/client/audio/procedural-synth.ts` | 233 | ✅ OK | *None (internal)* |
+| `src/client/audio/soundscape-manager.ts` | 68 | ✅ OK | `getSoundscapeManager(): SoundscapeManager` |
 | `src/client/audio/synth-definitions.ts` | 88 | ✅ OK | `mapSimEventToAudioPresets(event: SimEvent): AcousticSoundEffect[]` |
 | `src/client/audio/synth-presets-combat.ts` | 116 | ✅ OK | `COMBAT_PRESETS` |
 | `src/client/audio/synth-presets-environment.ts` | 176 | ✅ OK | `ENVIRONMENT_PRESETS`, `STRATUM_AMBIENCE_PROFILES` |
 | `src/client/audio/synth-presets-mechanical.ts` | 127 | ✅ OK | `MECHANICAL_PRESETS` |
-| `src/client/bootstrap-loop.ts` | 201 | ✅ OK | `createFreshWorld(seed: number): WorldState`, `startClientSession(mounts: ClientSessionMounts, stageRenderer: GlyphStageRenderer, initialSeed: unknown): void` |
+| `src/client/bootstrap-loop.ts` | 210 | ✅ OK | `createFreshWorld(seed: number): WorldState`, `startClientSession(mounts: ClientSessionMounts, stageRenderer: GlyphStageRenderer, initialSeed: unknown): void` |
 | `src/client/canvas-ui/artificer-bench-screen.ts` | 125 | ✅ OK | `renderArtificerBenchScreen(buf: UiCellBuffer, rect: UiRect, _state: Readonly<WorldState>, options: ArtificerBenchOptions): void` |
 | `src/client/canvas-ui/cell-buffer.ts` | 158 | ✅ OK | `createUiCellBuffer(width: number, height: number, defaultCell: Partial<UiCell>): UiCellBuffer` |
 | `src/client/canvas-ui/diegetic-anatomy.ts` | 124 | ✅ OK | `renderClockworkPaperdoll(buf: UiCellBuffer, originX: number, originY: number, anatomy: AnatomyComponent \| undefined, options: ClockworkPaperdollOptions): void` |
@@ -329,14 +338,15 @@ Browser bootstrap, keyboard/mouse input dispatching, and WebAudio synth integrat
 | `src/client/canvas-ui/industrial-primitives.ts` | 192 | ✅ OK | `drawIndustrialFrame(buf: UiCellBuffer, rect: UiRect, options: IndustrialFrameOptions): void`, `drawBrassToggleTabs(buf: UiCellBuffer, x: number, y: number, tabs: readonly BrassToggleTab[], activeTabId: string): void`, `drawDiegeticGauge(buf: UiCellBuffer, x: number, y: number, width: number, ratio: number, options: DiegeticGaugeOptions): void` |
 | `src/client/canvas-ui/material-palette.ts` | 57 | ✅ OK | `resolveThermodynamicPalette(stressLevel: ThermodynamicStressLevel): ThermodynamicPaletteResult` |
 | `src/client/canvas-ui/mechanical-conduits.ts` | 115 | ✅ OK | `drawAsciiConduit(buf: UiCellBuffer, fromPoint: ConduitPoint, toPoint: ConduitPoint, options: ConduitRouteOptions): ConduitRouteResult` |
-| `src/client/canvas-ui/mechanical-transition.ts` | 66 | ✅ OK | `applyMechanicalCylinderScramble(targetBuffer: UiCellBuffer, elapsedMs: number, durationMs: unknown): boolean` |
+| `src/client/canvas-ui/mechanical-transition.ts` | 75 | ✅ OK | `applyMechanicalCylinderScramble(targetBuffer: UiCellBuffer, elapsedMs: number, durationMs: unknown, options: MechanicalTransitionOptions): boolean` |
 | `src/client/canvas-ui/naturalist-ledger-screen.ts` | 139 | ✅ OK | `renderNaturalistLedgerScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, options: NaturalistLedgerOptions): void` |
 | `src/client/canvas-ui/satchel-screen.ts` | 97 | ✅ OK | `renderSatchelScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, playerId: EntityId, options: SatchelScreenOptions): void` |
 | `src/client/canvas-ui/viewport-controls.ts` | 160 | ✅ OK | `drawScrollableRegion(buf: UiCellWriteTarget, rect: UiRect, lines: readonly string[], scrollOffset: number, options: { readonly fgText?: string; readonly bgText?: string; readonly fgScrollbar?: string; readonly fgTrack?: string; readonly bgTrack?: string; }): ScrollResult`, `drawDiegeticTextInput(buf: UiCellWriteTarget, rect: UiRect, label: string, value: string, isFocused: boolean, tick: number, options: { readonly fgBorder?: string; readonly fgLabel?: string; readonly fgValue?: string; readonly fgCursor?: string; readonly bg?: string; }): void` |
-| `src/client/client-debug-bridge.ts` | 14 | ✅ OK | `DebugSimBridge` |
+| `src/client/client-debug-bridge.ts` | 17 | ✅ OK | `DebugSimBridge` |
 | `src/client/client-interactions.ts` | 72 | ✅ OK | `cycleModalWindow(current: ModalWindowId \| null, direction: 1 \| -1): ModalWindowId`, `findAdjacentDialogueNpc(state: WorldState, playerId: EntityId): EntityId \| undefined`, `findAdjacentDoorTarget(state: WorldState, playerId: EntityId): Point3D \| undefined`, `findEntityAtLookCursor(state: WorldState, stratum: StratumId, cursor: { x: number; y: number }, excludeId: EntityId): EntityRecord \| undefined` |
 | `src/client/input/keyboard-router.ts` | 232 | ✅ OK | `handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParams): void` |
 | `src/client/main.tsx` | 41 | ✅ OK | *None (internal)* |
+| `src/client/persistence/save-adapter.ts` | 133 | ✅ OK | `createSaveStorageAdapter(preferredType: 'LOCAL_STORAGE' \| 'NATIVE_FILESYSTEM' \| 'IN_MEMORY'): SaveStorageAdapter`, `getDefaultSaveStorageAdapter(): SaveStorageAdapter` |
 
 ## Tooling & Headless LLM Pipeline (`tests/scripts/`)
 
@@ -368,7 +378,7 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | `tests/scripts/playtester-dispatcher.ts` | 151 | ✅ OK | `parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId): GameCommand` |
 | `tests/scripts/playtester-mock.ts` | 114 | ✅ OK | `generateMockAction(state: WorldState, playerId: EntityId, recentPositions: ReadonlyArray<{ x: number; y: number }>, scenario: PlaytestScenario): LlmActionPayload` |
 | `tests/scripts/playtester-policy.ts` | 121 | ✅ OK | `evaluateDecisionPolicy(state: WorldState, playerId: EntityId, opts: DecisionPolicyOptions): DecisionPolicyResult` |
-| `tests/scripts/playtester-projection-audit.ts` | 205 | ✅ OK | `auditClientProjection(state: WorldState, playerId: EntityId, options: AuditProjectionOptions): ClientProjectionAudit` |
+| `tests/scripts/playtester-projection-audit.ts` | 240 | ⚠️ WARN | `auditUiCellBuffer(buffer: UiCellBuffer, locationName: unknown): ProjectionLeak[]`, `auditClientProjection(state: WorldState, playerId: EntityId, options: AuditProjectionOptions): ClientProjectionAudit` |
 | `tests/scripts/playtester-scenarios.ts` | 173 | ✅ OK | `getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjectives`, `applyPlaytestScenario(state: WorldState, scenario: PlaytestScenario): WorldState` |
 | `tests/scripts/playtester-serializer.ts` | 208 | ✅ OK | `serializePlayerContext(state: WorldState, playerId: EntityId, options: ContextSerializationOptions): string` |
 | `tests/scripts/scaffold-mechanic.ts` | 180 | ✅ OK | `parseScaffoldArgs(argv: readonly string[]): ScaffoldConfig`, `toPascalCase(snakeStr: string): string`, `generateScaffoldCode(config: ScaffoldConfig): { commandSchemaRel: string; commandSchemaCode: string; eventSchemaRel: string; eventSchemaCode: string; systemRel: string; systemCode: string; testRel: string; testCode: string; }`, `runScaffold(config: ScaffoldConfig, rootDir: string): Promise<void>` |
