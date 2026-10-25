@@ -1,0 +1,1077 @@
+{
+  "commands": {
+    "MOVE_STEP": {
+      "schemaFile": "src/schemas/commands.schema.ts:L99",
+      "dispatcherLine": "src/sim/core/action-resolver.ts:L35",
+      "systemHandler": "src/sim/systems/movement.system.ts:resolveMoveStep",
+      "playerInvocationPath": "src/client/input/keyboard-router.ts:L199",
+      "npcInvocationPath": "src/sim/systems/ai.system.ts:L62",
+      "emittedEvents": [
+        "ENTITY_MOVED",
+        "MOVEMENT_BLOCKED",
+        "TACTICAL_MANEUVER_RECORDED",
+        "ACTOR_TURF_STATE_CHANGED",
+        "LIQUID_SPILLED",
+        "SURFACE_SLIPPED",
+        "POSTURE_CHANGED",
+        "ACID_CORROSION_TICK",
+        "TRAP_TRIGGERED",
+        "ACTOR_FELL_STRATUM",
+        "SOUND_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "BOTH",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L73",
+        "tests/sim/determinism.test.ts:L43",
+        "tests/sim/movement.system.test.ts:L25"
+      ]
+    },
+    "USE_PORTAL": {
+      "schemaFile": "src/schemas/commands.schema.ts:L106",
+      "dispatcherLine": "src/sim/core/action-resolver.ts:L37",
+      "systemHandler": "src/sim/systems/movement.system.ts:resolveUsePortal",
+      "playerInvocationPath": "src/client/input/keyboard-router.ts:L205",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "STRATUM_CHANGED",
+        "PORTAL_FAILED",
+        "TACTICAL_MANEUVER_RECORDED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L82",
+        "tests/sim/determinism.test.ts:L72"
+      ]
+    },
+    "WAIT_TURN": {
+      "schemaFile": "src/schemas/commands.schema.ts:L107",
+      "dispatcherLine": "src/sim/core/action-resolver.ts:L39",
+      "systemHandler": "src/sim/core/spatial-actions.ts:resolveWaitTurnAction",
+      "playerInvocationPath": "src/client/input/keyboard-router.ts:L208",
+      "npcInvocationPath": null,
+      "emittedEvents": [],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L72",
+        "tests/sim/simulation-clock.test.ts:L35"
+      ]
+    },
+    "VENT_STEAM": {
+      "schemaFile": "src/schemas/commands.schema.ts:L109",
+      "dispatcherLine": "src/sim/core/command-router.ts:L61",
+      "systemHandler": "src/sim/systems/boiler-stoking.system.ts:resolveVentSteam",
+      "playerInvocationPath": "src/client/ui/QuickActionBar.tsx:L98",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "STEAM_VENTED",
+        "STEAM_VENT_FAILED",
+        "TACTICAL_MANEUVER_RECORDED",
+        "SOUND_EMITTED",
+        "THERMAL_SCALD"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/thermo-steam.test.ts:L30",
+        "tests/sim/phase45-turf-escort-politics.test.ts:L70"
+      ]
+    },
+    "DAMAGE_LIMB": {
+      "schemaFile": "src/schemas/commands.schema.ts:L117",
+      "dispatcherLine": "src/sim/core/command-router.ts:L66",
+      "systemHandler": "src/sim/systems/anatomy.system.ts:resolveDamageLimb",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "LIMB_DAMAGED",
+        "LIMB_AMPUTATED"
+      ],
+      "implementation": "PARTIAL",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L85",
+        "tests/sim/anatomy-prosthetic.test.ts:L16"
+      ]
+    },
+    "INSTALL_PROSTHETIC": {
+      "schemaFile": "src/schemas/commands.schema.ts:L125",
+      "dispatcherLine": "src/sim/core/command-router.ts:L68",
+      "systemHandler": "src/sim/systems/anatomy.system.ts:resolveInstallProsthetic",
+      "playerInvocationPath": "src/client/ui/AnatomyGraftPanel.tsx:L103",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "PROSTHETIC_INSTALLED",
+        "PROSTHETIC_ACTION_FAILED",
+        "ACTOR_DEFEATED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L78",
+        "tests/sim/anatomy-prosthetic.test.ts:L49"
+      ]
+    },
+    "REMOVE_PROSTHETIC": {
+      "schemaFile": "src/schemas/commands.schema.ts:L132",
+      "dispatcherLine": "src/sim/core/command-router.ts:L70",
+      "systemHandler": "src/sim/systems/anatomy.system.ts:resolveRemoveProsthetic",
+      "playerInvocationPath": "src/client/ui/AnatomyGraftPanel.tsx:L66",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "PROSTHETIC_REMOVED",
+        "PROSTHETIC_ACTION_FAILED",
+        "ACTOR_DEFEATED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase46-audio-soundscape.test.ts:L45",
+        "tests/sim/phase46-audio-events.test.ts:L48"
+      ]
+    },
+    "REFILL_STEAM": {
+      "schemaFile": "src/schemas/commands.schema.ts:L138",
+      "dispatcherLine": "src/sim/core/command-router.ts:L72",
+      "systemHandler": "src/sim/systems/boiler-stoking.system.ts:resolveRefillSteam",
+      "playerInvocationPath": "src/client/ui/QuickActionBar.tsx:L83",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "STEAM_REFILLED",
+        "STEAM_REFILL_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L77",
+        "tests/sim/anatomy-prosthetic.test.ts:L131"
+      ]
+    },
+    "PRESSURIZE_VESSEL": {
+      "schemaFile": "src/schemas/commands.schema.ts:L145",
+      "dispatcherLine": "src/sim/core/command-router.ts:L74",
+      "systemHandler": "src/sim/systems/pressure.system.ts:resolvePressurizeVessel",
+      "playerInvocationPath": "src/client/ui/LookCursorOverlay.tsx:L166",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "VESSEL_PRESSURIZED",
+        "VESSEL_RUPTURED",
+        "WALL_BREACHED",
+        "SOUND_EMITTED",
+        "SUPPLY_SHOCK_TRIGGERED",
+        "LIMB_DAMAGED",
+        "ACTOR_DEFEATED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/thermo-steam.test.ts:L103",
+        "tests/sim/phase50-interactive-hazards.test.ts:L76"
+      ]
+    },
+    "EMIT_SPARK": {
+      "schemaFile": "src/schemas/commands.schema.ts:L152",
+      "dispatcherLine": "src/sim/core/command-router.ts:L76",
+      "systemHandler": "src/sim/systems/pressure.system.ts:resolveEmitSpark",
+      "playerInvocationPath": "src/client/ui/LookCursorOverlay.tsx:L199",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "COAL_DUST_IGNITED",
+        "LIQUID_IGNITED",
+        "HAZARD_TRIGGERED",
+        "LIMB_DAMAGED",
+        "ACTOR_DEFEATED",
+        "SOUND_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/thermo-steam.test.ts:L149",
+        "tests/sim/phase50-interactive-hazards.test.ts:L164"
+      ]
+    },
+    "STOCK_PEDESTAL": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L80",
+      "dispatcherLine": "src/sim/core/command-router.ts:L78",
+      "systemHandler": "src/sim/systems/trade.system.ts:resolveStockPedestal",
+      "playerInvocationPath": "src/client/ui/MarketLedger.tsx:L88",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "PEDESTAL_STOCKED",
+        "TRADE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/economy-storefront.test.ts:L45",
+        "tests/sim/grounded-economy.test.ts:L70"
+      ]
+    },
+    "TRIGGER_SUPPLY_SHOCK": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L88",
+      "dispatcherLine": "src/sim/core/command-router.ts:L84",
+      "systemHandler": "src/sim/systems/economy.system.ts:resolveTriggerSupplyShock",
+      "playerInvocationPath": "src/client/ui/MarketLedger.tsx:L102",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "SUPPLY_SHOCK_TRIGGERED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/grounded-economy.test.ts:L110"
+      ]
+    },
+    "PICK_UP_ITEM": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L42",
+      "dispatcherLine": "src/sim/core/command-router.ts:L86",
+      "systemHandler": "src/sim/systems/inventory.system.ts:resolvePickupItem",
+      "playerInvocationPath": "src/client/input/keyboard-router.ts:L211",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_PICKED_UP",
+        "INVENTORY_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L75",
+        "tests/sim/inventory-items.test.ts:L25"
+      ]
+    },
+    "DROP_ITEM": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L47",
+      "dispatcherLine": "src/sim/core/command-router.ts:L88",
+      "systemHandler": "src/sim/systems/inventory.system.ts:resolveDropItem",
+      "playerInvocationPath": "src/client/ui/SatchelPanel.tsx:L91",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_DROPPED",
+        "INVENTORY_ACTION_FAILED",
+        "CONVOY_DELIVERY_CONFIRMED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L74",
+        "tests/sim/inventory-items.test.ts:L75",
+        "tests/sim/phase45-turf-escort-politics.test.ts:L127"
+      ]
+    },
+    "USE_ITEM": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L54",
+      "dispatcherLine": "src/sim/core/command-router.ts:L97",
+      "systemHandler": "src/sim/systems/inventory.system.ts:resolveUseItem",
+      "playerInvocationPath": "src/client/ui/SatchelPanel.tsx:L83",
+      "npcInvocationPath": "src/sim/systems/npc-ecology.system.ts:L113",
+      "emittedEvents": [
+        "ITEM_CONSUMED",
+        "INVENTORY_ACTION_FAILED",
+        "ALCHEMICAL_CONSUMED",
+        "TOXICITY_OVERDOSE",
+        "STAMINA_DEPLETED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "BOTH",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/inventory-items.test.ts:L110",
+        "tests/sim/metabolism.test.ts:L55"
+      ]
+    },
+    "TOGGLE_DOOR": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L97",
+      "dispatcherLine": "src/sim/core/command-router.ts:L99",
+      "systemHandler": "src/sim/systems/transit.system.ts:resolveToggleDoor",
+      "playerInvocationPath": "src/client/input/keyboard-router.ts:L180",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "DOOR_TOGGLED",
+        "TRANSIT_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/district-transit.test.ts:L83",
+        "tests/sim/auto-architectural-features.test.ts:L126"
+      ]
+    },
+    "TRAVEL_DISTRICT": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L103",
+      "dispatcherLine": "src/sim/core/command-router.ts:L101",
+      "systemHandler": "src/sim/systems/transit.system.ts:resolveTravelDistrict",
+      "playerInvocationPath": "src/client/ui/AtlasDossierView.tsx:L64",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "DISTRICT_TRANSITED",
+        "TRANSIT_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/district-transit.test.ts:L268",
+        "tests/sim/phase49-overworld-atlas.test.ts:L45"
+      ]
+    },
+    "CRAFT_RECIPE": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L109",
+      "dispatcherLine": "src/sim/core/command-router.ts:L103",
+      "systemHandler": "src/sim/systems/crafting.system.ts:resolveCraftRecipe",
+      "playerInvocationPath": "src/client/ui/CraftingWindow.tsx:L72",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_CRAFTED",
+        "CRAFTING_ACTION_FAILED",
+        "CONVOY_PREPARATION_STARTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/crafting-salvage.test.ts:L35",
+        "tests/sim/phase2-3-viewport-quickaction-crafting.test.ts:L65"
+      ]
+    },
+    "SALVAGE_ITEM": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L115",
+      "dispatcherLine": "src/sim/core/command-router.ts:L112",
+      "systemHandler": "src/sim/systems/crafting.system.ts:resolveSalvageItem",
+      "playerInvocationPath": "src/client/ui/CraftingWindow.tsx:L224",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_SALVAGED",
+        "CRAFTING_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/crafting-salvage.test.ts:L80"
+      ]
+    },
+    "REPAIR_LIMB": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L121",
+      "dispatcherLine": "src/sim/core/command-router.ts:L114",
+      "systemHandler": "src/sim/systems/crafting.system.ts:resolveRepairLimb",
+      "playerInvocationPath": "src/client/ui/AnatomyGraftPanel.tsx:L87",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "LIMB_REPAIRED",
+        "CRAFTING_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/crafting-salvage.test.ts:L125"
+      ]
+    },
+    "ATTACK_ACTOR": {
+      "schemaFile": "src/schemas/commands.schema.ts:L158",
+      "dispatcherLine": "src/sim/core/command-router.ts:L116",
+      "systemHandler": "src/sim/systems/combat.system.ts:resolveAttackActor",
+      "playerInvocationPath": "src/client/main.tsx:L101",
+      "npcInvocationPath": "src/sim/systems/ai.system.ts:L58",
+      "emittedEvents": [
+        "COMBAT_ATTACK_RESOLVED",
+        "LIMB_DAMAGED",
+        "LIMB_AMPUTATED",
+        "ACTOR_DEFEATED",
+        "WITNESS_CRIME_REPORTED",
+        "GRUDGE_ACQUIRED",
+        "SQUAD_CALLOUT_EMITTED",
+        "TURF_CONTESTED",
+        "ACTOR_TURF_STATE_CHANGED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "BOTH",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/command-contracts.test.ts:L84",
+        "tests/sim/combat-ai.test.ts:L35",
+        "tests/sim/phase45-turf-escort-politics.test.ts:L60"
+      ]
+    },
+    "BUY_FROM_MERCHANT": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L60",
+      "dispatcherLine": "src/sim/core/command-router.ts:L80",
+      "systemHandler": "src/sim/systems/trade.system.ts:resolveBuyFromMerchant",
+      "playerInvocationPath": "src/client/ui/MerchantCounterView.tsx:L73",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "MERCHANT_TRADE_COMPLETED",
+        "TRADE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/merchant-trade.test.ts:L45"
+      ]
+    },
+    "SELL_TO_MERCHANT": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L69",
+      "dispatcherLine": "src/sim/core/command-router.ts:L82",
+      "systemHandler": "src/sim/systems/trade.system.ts:resolveSellToMerchant",
+      "playerInvocationPath": "src/client/ui/MerchantCounterView.tsx:L129",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "MERCHANT_TRADE_COMPLETED",
+        "TRADE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/merchant-trade.test.ts:L95"
+      ]
+    },
+    "SMASH_TERRAIN": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L128",
+      "dispatcherLine": "src/sim/core/command-router.ts:L121",
+      "systemHandler": "src/sim/systems/furniture.system.ts:resolveSmashTerrain",
+      "playerInvocationPath": "src/client/ui/LookCursorOverlay.tsx:L143",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "TERRAIN_SMASHED",
+        "FURNITURE_ACTION_FAILED",
+        "SOUND_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/buildings-manuals.test.ts:L45"
+      ]
+    },
+    "REST_AT_BED": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L134",
+      "dispatcherLine": "src/sim/core/command-router.ts:L123",
+      "systemHandler": "src/sim/systems/furniture.system.ts:resolveRestAtBed",
+      "playerInvocationPath": "src/client/ui/LookCursorOverlay.tsx:L180",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ACTOR_RESTED",
+        "FURNITURE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/buildings-manuals.test.ts:L95"
+      ]
+    },
+    "ACCEPT_CONTRACT": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L140",
+      "dispatcherLine": "src/sim/core/command-router.ts:L125",
+      "systemHandler": "src/sim/systems/dialogue-quest.system.ts:resolveAcceptContract",
+      "playerInvocationPath": "src/client/ui/DialogueModal.tsx:L183",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CONTRACT_ACCEPTED",
+        "DIALOGUE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/dialogue-contracts.test.ts:L45"
+      ]
+    },
+    "COMPLETE_CONTRACT": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L146",
+      "dispatcherLine": "src/sim/core/command-router.ts:L127",
+      "systemHandler": "src/sim/systems/dialogue-quest.system.ts:resolveCompleteContract",
+      "playerInvocationPath": "src/client/ui/DialogueModal.tsx:L193",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CONTRACT_COMPLETED",
+        "DIALOGUE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/dialogue-contracts.test.ts:L90"
+      ]
+    },
+    "HIRE_COMPANION": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L152",
+      "dispatcherLine": "src/sim/core/command-router.ts:L129",
+      "systemHandler": "src/sim/systems/dialogue-quest.system.ts:resolveHireCompanion",
+      "playerInvocationPath": "src/client/ui/DialogueModal.tsx:L134",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "COMPANION_HIRED",
+        "DIALOGUE_ACTION_FAILED",
+        "CONVOY_ESCORT_ASSIGNED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/dialogue-contracts.test.ts:L135",
+        "tests/sim/phase45-turf-escort-politics.test.ts:L121"
+      ]
+    },
+    "PAY_CHIRURGEON_HEAL": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L158",
+      "dispatcherLine": "src/sim/core/command-router.ts:L134",
+      "systemHandler": "src/sim/systems/dialogue-quest.system.ts:resolvePayChirurgeonHeal",
+      "playerInvocationPath": "src/client/ui/DialogueModal.tsx:L102",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CHIRURGEON_HEALED",
+        "DIALOGUE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/dialogue-contracts.test.ts:L175",
+        "tests/sim/phase50-interactive-hazards.test.ts:L149"
+      ]
+    },
+    "EQUIP_ITEM": {
+      "schemaFile": "src/schemas/equipment.schema.ts:L21",
+      "dispatcherLine": "src/sim/core/command-router.ts:L136",
+      "systemHandler": "src/sim/systems/equipment.system.ts:resolveEquipItem",
+      "playerInvocationPath": "src/client/ui/InventoryWindow.tsx:L92",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_EQUIPPED",
+        "EQUIPMENT_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/equipment-ballistics.test.ts:L43"
+      ]
+    },
+    "UNEQUIP_ITEM": {
+      "schemaFile": "src/schemas/equipment.schema.ts:L27",
+      "dispatcherLine": "src/sim/core/command-router.ts:L138",
+      "systemHandler": "src/sim/systems/equipment.system.ts:resolveUnequipItem",
+      "playerInvocationPath": "src/client/ui/EquippedGearPanel.tsx:L81",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_UNEQUIPPED",
+        "EQUIPMENT_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/equipment-ballistics.test.ts:L52"
+      ]
+    },
+    "FIRE_RANGED_WEAPON": {
+      "schemaFile": "src/schemas/equipment.schema.ts:L33",
+      "dispatcherLine": "src/sim/core/command-router.ts:L140",
+      "systemHandler": "src/sim/systems/ballistics.system.ts:resolveFireRangedWeapon",
+      "playerInvocationPath": "src/client/main.tsx:L101",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "RANGED_ATTACK_RESOLVED",
+        "EQUIPMENT_ACTION_FAILED",
+        "SOUND_EMITTED",
+        "LIMB_DAMAGED",
+        "LIMB_AMPUTATED",
+        "ACTOR_DEFEATED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/equipment-ballistics.test.ts:L171"
+      ]
+    },
+    "LOOT_CONTAINER": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L164",
+      "dispatcherLine": "src/sim/core/command-router.ts:L142",
+      "systemHandler": "src/sim/systems/container.system.ts:resolveLootContainer",
+      "playerInvocationPath": "src/client/ui/LookCursorOverlay.tsx:L186",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CONTAINER_LOOTED",
+        "FURNITURE_ACTION_FAILED",
+        "TRAP_TRIGGERED",
+        "HAZARD_TRIGGERED",
+        "LIMB_DAMAGED",
+        "ACTOR_DEFEATED",
+        "WITNESS_CRIME_REPORTED",
+        "GRUDGE_ACQUIRED",
+        "SQUAD_CALLOUT_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/containers-currency.test.ts:L45",
+        "tests/sim/phase50-interactive-hazards.test.ts:L49"
+      ]
+    },
+    "BREACH_TILE": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L172",
+      "dispatcherLine": "src/sim/core/command-router.ts:L144",
+      "systemHandler": "src/sim/systems/physics-traps.system.ts:resolveBreachCommand",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "WALL_BREACHED",
+        "PHYSICS_ACTION_FAILED",
+        "SOUND_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/physics-traps-falls.test.ts:L70"
+      ]
+    },
+    "ACTIVATE_PROSTHETIC": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L179",
+      "dispatcherLine": "src/sim/core/command-router.ts:L146",
+      "systemHandler": "src/sim/systems/prosthetics.system.ts:resolveActivateProsthetic",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "PROSTHETIC_ACTIVATED",
+        "PROSTHETIC_ACTION_FAILED",
+        "GOVERNOR_OVERLOADED",
+        "ENTITY_MOVED",
+        "SOUND_EMITTED",
+        "MOMENTUM_COLLISION_IMPACT",
+        "TERRAIN_SMASHED",
+        "ACTOR_FELL_STRATUM"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/prosthetics.test.ts:L45"
+      ]
+    },
+    "HARVEST_CORPSE": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L189",
+      "dispatcherLine": "src/sim/core/command-router.ts:L148",
+      "systemHandler": "src/sim/systems/surgery.system.ts:resolveHarvestCorpse",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CYBERNETIC_HARVESTED",
+        "HARVEST_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/prosthetics.test.ts:L95"
+      ]
+    },
+    "SET_POSTURE": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L198",
+      "dispatcherLine": "src/sim/core/command-router.ts:L150",
+      "systemHandler": "src/sim/systems/momentum.system.ts:resolveSetPosture",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "POSTURE_CHANGED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/momentum.test.ts:L45"
+      ]
+    },
+    "APPLY_MOMENTUM_VECTOR": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L204",
+      "dispatcherLine": "src/sim/core/command-router.ts:L152",
+      "systemHandler": "src/sim/systems/momentum.system.ts:resolveApplyMomentumVector",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ENTITY_KNOCKED_BACK",
+        "MOMENTUM_COLLISION_IMPACT",
+        "TERRAIN_SMASHED",
+        "ACTOR_FELL_STRATUM",
+        "SOUND_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/momentum.test.ts:L80"
+      ]
+    },
+    "INSTALL_WEAPON_MOD": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L216",
+      "dispatcherLine": "src/sim/core/command-router.ts:L154",
+      "systemHandler": "src/sim/systems/weapon-mods.system.ts:resolveInstallWeaponMod",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "WEAPON_MOD_INSTALLED",
+        "WEAPON_MOD_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/weapon-mods.test.ts:L45"
+      ]
+    },
+    "UNINSTALL_WEAPON_MOD": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L223",
+      "dispatcherLine": "src/sim/core/command-router.ts:L156",
+      "systemHandler": "src/sim/systems/weapon-mods.system.ts:resolveUninstallWeaponMod",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "WEAPON_MOD_UNINSTALLED",
+        "WEAPON_MOD_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/weapon-mods.test.ts:L95"
+      ]
+    },
+    "LOAD_AMMO": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L230",
+      "dispatcherLine": "src/sim/core/command-router.ts:L158",
+      "systemHandler": "src/sim/systems/weapon-mods.system.ts:resolveLoadAmmo",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "AMMO_LOADED",
+        "WEAPON_MOD_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/weapon-mods.test.ts:L140"
+      ]
+    },
+    "PRY_OBSTACLE": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L237",
+      "dispatcherLine": "src/sim/core/command-router.ts:L160",
+      "systemHandler": "src/sim/systems/weapon-mods.system.ts:resolvePryObstacle",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "OBSTACLE_PRIED",
+        "WEAPON_MOD_ACTION_FAILED",
+        "SOUND_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/weapon-mods.test.ts:L185",
+        "tests/sim/phase50-interactive-hazards.test.ts:L110"
+      ]
+    },
+    "COAT_WEAPON": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L245",
+      "dispatcherLine": "src/sim/core/command-router.ts:L162",
+      "systemHandler": "src/sim/systems/liquids.system.ts:resolveCoatWeapon",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_COATED",
+        "LIQUID_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/liquids.test.ts:L45"
+      ]
+    },
+    "THROW_FLASK": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L252",
+      "dispatcherLine": "src/sim/core/command-router.ts:L164",
+      "systemHandler": "src/sim/systems/liquids.system.ts:resolveThrowFlask",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "LIQUID_SPILLED",
+        "LIQUID_ACTION_FAILED",
+        "ACID_CORROSION_TICK"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/liquids.test.ts:L85"
+      ]
+    },
+    "CLEAN_SPILL": {
+      "schemaFile": "src/schemas/domain-commands.schema.ts:L260",
+      "dispatcherLine": "src/sim/core/command-router.ts:L166",
+      "systemHandler": "src/sim/systems/liquids.system.ts:resolveCleanSpill",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "SPILL_CLEANED",
+        "LIQUID_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/liquids.test.ts:L125"
+      ]
+    },
+    "EMIT_SQUAD_CALLOUT": {
+      "schemaFile": "src/schemas/witness-commands.schema.ts:L4",
+      "dispatcherLine": "src/sim/core/command-router.ts:L168",
+      "systemHandler": "src/sim/systems/squad-witness.system.ts:resolveEmitSquadCallout",
+      "playerInvocationPath": null,
+      "npcInvocationPath": "src/sim/systems/ai.system.ts:L161",
+      "emittedEvents": [
+        "SQUAD_CALLOUT_EMITTED",
+        "SQUADMATE_RALLIED",
+        "SOUND_EMITTED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "NPC_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/squad-witness.test.ts:L92"
+      ]
+    },
+    "REPORT_CRIME": {
+      "schemaFile": "src/schemas/witness-commands.schema.ts:L12",
+      "dispatcherLine": "src/sim/core/command-router.ts:L170",
+      "systemHandler": "src/sim/systems/squad-witness.system.ts:resolveReportCrime",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "WITNESS_CRIME_REPORTED",
+        "GRUDGE_ACQUIRED",
+        "SQUAD_CALLOUT_EMITTED",
+        "SQUADMATE_RALLIED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "UNTESTED",
+      "testReferences": []
+    },
+    "BOARD_MONORAIL": {
+      "schemaFile": "src/schemas/transit-commands.schema.ts:L4",
+      "dispatcherLine": "src/sim/core/command-router.ts:L172",
+      "systemHandler": "src/sim/systems/monorail.system.ts:resolveBoardMonorail",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "MONORAIL_BOARDED",
+        "TRANSIT_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/catacombs-monorail.test.ts:L45"
+      ]
+    },
+    "LAUNCH_MONORAIL": {
+      "schemaFile": "src/schemas/transit-commands.schema.ts:L10",
+      "dispatcherLine": "src/sim/core/command-router.ts:L174",
+      "systemHandler": "src/sim/systems/monorail.system.ts:resolveLaunchMonorail",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "MONORAIL_LAUNCHED",
+        "MONORAIL_ARRIVED",
+        "TRANSIT_ACTION_FAILED",
+        "DISTRICT_TRANSITED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/catacombs-monorail.test.ts:L75"
+      ]
+    },
+    "DESCEND_CATACOMBS": {
+      "schemaFile": "src/schemas/transit-commands.schema.ts:L17",
+      "dispatcherLine": "src/sim/core/command-router.ts:L176",
+      "systemHandler": "src/sim/spatial/catacombs.ts:resolveDescendCatacombs",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CATACOMBS_DEPTH_DESCENDED",
+        "TRANSIT_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/catacombs-monorail.test.ts:L120"
+      ]
+    },
+    "CLAIM_WORKSHOP_DEED": {
+      "schemaFile": "src/schemas/safehouse-commands.schema.ts:L5",
+      "dispatcherLine": "src/sim/core/command-router.ts:L178",
+      "systemHandler": "src/sim/systems/safehouse.system.ts:resolveClaimWorkshopDeed",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "WORKSHOP_DEED_CLAIMED",
+        "SAFEHOUSE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase44-safehouse-codex.test.ts:L45"
+      ]
+    },
+    "BUILD_STRUCTURE": {
+      "schemaFile": "src/schemas/safehouse-commands.schema.ts:L11",
+      "dispatcherLine": "src/sim/core/command-router.ts:L180",
+      "systemHandler": "src/sim/systems/safehouse.system.ts:resolveBuildStructure",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "STRUCTURE_BUILT",
+        "SAFEHOUSE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase44-safehouse-codex.test.ts:L80"
+      ]
+    },
+    "STORE_ITEM_IN_STRUCTURE": {
+      "schemaFile": "src/schemas/safehouse-commands.schema.ts:L20",
+      "dispatcherLine": "src/sim/core/command-router.ts:L182",
+      "systemHandler": "src/sim/systems/safehouse.system.ts:resolveStoreItemInStructure",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_STORED_IN_STRUCTURE",
+        "SAFEHOUSE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase44-safehouse-codex.test.ts:L115"
+      ]
+    },
+    "RETRIEVE_ITEM_FROM_STRUCTURE": {
+      "schemaFile": "src/schemas/safehouse-commands.schema.ts:L27",
+      "dispatcherLine": "src/sim/core/command-router.ts:L184",
+      "systemHandler": "src/sim/systems/safehouse.system.ts:resolveRetrieveItemFromStructure",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "ITEM_RETRIEVED_FROM_STRUCTURE",
+        "SAFEHOUSE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase44-safehouse-codex.test.ts:L145"
+      ]
+    },
+    "CONSULT_CODEX": {
+      "schemaFile": "src/schemas/safehouse-commands.schema.ts:L34",
+      "dispatcherLine": "src/sim/core/command-router.ts:L186",
+      "systemHandler": "src/sim/systems/codex.system.ts:resolveConsultCodex",
+      "playerInvocationPath": "src/client/ui/CodexWindow.tsx:L25",
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CODEX_ENTRY_DISCOVERED",
+        "SAFEHOUSE_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "PLAYER_REACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase44-safehouse-codex.test.ts:L175",
+        "tests/sim/command-contracts.test.ts:L76"
+      ]
+    },
+    "INITIATE_TURF_SKIRMISH": {
+      "schemaFile": "src/schemas/skirmish-commands.schema.ts:L4",
+      "dispatcherLine": "src/sim/core/command-router.ts:L188",
+      "systemHandler": "src/sim/systems/skirmish-turf.system.ts:resolveInitiateTurfSkirmish",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "TURF_CONTESTED",
+        "TURF_CONTROL_CHANGED",
+        "SKIRMISH_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase45-turf-escort-politics.test.ts:L45"
+      ]
+    },
+    "PREPARE_SUPPLY_CONVOY": {
+      "schemaFile": "src/schemas/skirmish-commands.schema.ts:L12",
+      "dispatcherLine": "src/sim/core/command-router.ts:L190",
+      "systemHandler": "src/sim/systems/supply-escort.system.ts:resolvePrepareSupplyConvoy",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "CONVOY_PREPARATION_STARTED",
+        "SKIRMISH_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase45-turf-escort-politics.test.ts:L105"
+      ]
+    },
+    "AUDIT_SAFEHOUSE_DEED": {
+      "schemaFile": "src/schemas/skirmish-commands.schema.ts:L21",
+      "dispatcherLine": "src/sim/core/command-router.ts:L192",
+      "systemHandler": "src/sim/systems/politics-audit.system.ts:resolveAuditSafehouseDeed",
+      "playerInvocationPath": null,
+      "npcInvocationPath": null,
+      "emittedEvents": [
+        "SAFEHOUSE_AUDIT_COMPLETED",
+        "NPC_GOAL_CHANGED",
+        "SKIRMISH_ACTION_FAILED"
+      ],
+      "implementation": "COMPLETE",
+      "reachability": "UNREACHABLE",
+      "verification": "VERIFIED",
+      "testReferences": [
+        "tests/sim/phase45-turf-escort-politics.test.ts:L150"
+      ]
+    }
+  }
+}
