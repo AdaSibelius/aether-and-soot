@@ -3,7 +3,6 @@ import path from 'node:path';
 import { runPlaytestSession, PlaytestMetrics } from './llm-playtester.js';
 import { PlaytestScenario } from './playtester-scenarios.js';
 import {
-  resolveEndpoint,
   resolveModel,
   queryLocalOllama,
   resolveConnectionTelemetry,
@@ -27,33 +26,37 @@ import {
   formatCriticReport,
 } from './critic-report.js';
 
+import { CriticConfig, parseCriticArgs } from './critic-config.js';
+
 export {
   CriticAuditSchema, CriticPrescriptionSchema, TelemetryAnomalySchema, verifyCriticSanity,
   auditCommandCoverage, auditModularityHotspots, buildHandoffPrompt, formatCriticReport,
+  parseCriticArgs,
 };
-export type { CriticAudit, CriticPrescription, CriticSanityResult, TelemetryAnomaly, CommandCoverage };
+export type { CriticAudit, CriticPrescription, CriticSanityResult, TelemetryAnomaly, CommandCoverage, CriticConfig };
 
-export interface CriticConfig {
-  readonly skipPlaytest: boolean;
-  readonly model: string;
-  readonly endpoint: string;
-  readonly mock: boolean;
-  readonly output: string;
-}
+export function resolvePhaseDomainTargetFiles(nextPriority: string, rootDir: string): string[] {
+  const text = nextPriority.toLowerCase();
+  let candidateFiles: string[] = [];
 
-export function parseCriticArgs(argv: string[]): CriticConfig {
-  const args = argv.slice(2);
-  const getArg = (flag: string) => {
-    const idx = args.indexOf(flag);
-    return idx !== -1 && args[idx + 1] ? args[idx + 1] : undefined;
-  };
-  return {
-    skipPlaytest: args.includes('--skip-playtest'),
-    mock: args.includes('--mock'),
-    model: getArg('--model') ?? resolveModel('tier1'),
-    endpoint: getArg('--endpoint') ?? resolveEndpoint(),
-    output: getArg('--output') ?? 'tests/artifacts/critic-audit.md',
-  };
+  if (text.includes('state machine') || text.includes('governance') || text.includes('tooling') || text.includes('devops')) {
+    candidateFiles = ['tests/scripts/update-state.ts', 'src/schemas/project-state.schema.ts'];
+  } else if (text.includes('supply') || text.includes('commodity') || text.includes('scarcity') || text.includes('cascade')) {
+    candidateFiles = ['src/sim/systems/economy.system.ts', 'src/sim/systems/trade.system.ts'];
+  } else if (text.includes('chronicle') || text.includes('rumor') || text.includes('witness')) {
+    candidateFiles = ['src/sim/systems/squad-witness.system.ts', 'src/sim/systems/dialogue-quest.system.ts'];
+  } else if (text.includes('clue') || text.includes('investigation') || text.includes('journal') || text.includes('forensic')) {
+    candidateFiles = ['src/sim/systems/surgery.system.ts', 'src/sim/systems/stealth-acoustics.system.ts'];
+  } else if (text.includes('conduit') || text.includes('graph') || text.includes('topography') || text.includes('atlas')) {
+    candidateFiles = ['src/sim/spatial/generator.ts', 'src/sim/spatial/overworld-matrix.ts'];
+  } else if (text.includes('landmark') || text.includes('prefab')) {
+    candidateFiles = ['src/sim/spatial/building-prefabs.ts', 'src/sim/spatial/generator.ts'];
+  } else {
+    candidateFiles = ['src/sim/core/simulation-pipeline.ts', 'src/sim/core/engine.ts'];
+  }
+
+  const existing = candidateFiles.filter((f) => fs.existsSync(path.resolve(rootDir, f)));
+  return existing.length > 0 ? existing : ['src/sim/core/engine.ts'];
 }
 
 export async function runCritic(config: CriticConfig, rootDir: string): Promise<string> {
@@ -166,7 +169,7 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
           id: 'P1',
           category: 'UNREACHABLE_MECHANIC',
           title: `${nextPriority.split(':')[0]?.replace(/\*+/g, '').trim() || 'Next Roadmap Phase'}`,
-          targetFiles: hotspots.slice(0, 1).map((h) => h.file).concat('src/sim/core/engine.ts').filter((f) => fs.existsSync(path.resolve(rootDir, f))),
+          targetFiles: resolvePhaseDomainTargetFiles(nextPriority, rootDir),
           affectedSchemas: ['src/schemas/commands.schema.ts'],
           implementationDirective: `Focus core systems development on ${nextPriority} resolving unwiredCommands and telemetry anomalies.`,
           verificationTestFile: defaultVerificationTest,

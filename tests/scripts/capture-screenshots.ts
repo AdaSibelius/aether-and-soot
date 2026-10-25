@@ -6,8 +6,8 @@ import { spawn } from 'node:child_process';
 const PORT = 4180;
 const DIST_DIR = path.resolve(process.cwd(), 'dist');
 const OUTPUT_DIR = path.resolve(process.cwd(), 'docs/screenshots');
-const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const USER_DATA_DIR = '/tmp/chrome-headless-screenshots';
+const CHROME_PATH = process.env['CHROME_PATH'] ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const USER_DATA_DIR = path.resolve(process.cwd(), '.cache/chrome-headless-screenshots');
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',

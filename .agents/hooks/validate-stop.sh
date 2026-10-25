@@ -2,7 +2,8 @@
 # Antigravity Stop Gate Hook for Aether & Soot
 # Always exits with code 0 and outputs top-level JSON {"allow_tool": ...}
 
-cd /Users/emmett/Desktop/Game || exit 0
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/../.." || cd "${PROJECT_ROOT:-$(pwd)}" || exit 0
 
 OUTPUT=$(npm run typecheck 2>&1)
 if [ $? -ne 0 ]; then

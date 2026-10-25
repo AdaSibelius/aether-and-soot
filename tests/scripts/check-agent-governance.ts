@@ -100,10 +100,11 @@ export function auditAgentGovernance(workspaceRoot: string): GovernanceReport {
                 hookErrors.push(`Event '${ev}' must not contain nested 'hooks' wrapper.`);
               }
               const cmd = handler['command'] as string | undefined;
-              if (!cmd || !path.isAbsolute(cmd)) {
-                hookErrors.push(`Handler in '${ev}' must specify an absolute command path: '${cmd}'`);
-              } else if (!fs.existsSync(cmd)) {
-                hookErrors.push(`Command file does not exist on disk: '${cmd}'`);
+              const resolvedCmd = cmd ? (path.isAbsolute(cmd) ? cmd : path.resolve(workspaceRoot, cmd)) : undefined;
+              if (!resolvedCmd) {
+                hookErrors.push(`Handler in '${ev}' must specify a command path: '${cmd}'`);
+              } else if (!fs.existsSync(resolvedCmd)) {
+                hookErrors.push(`Command file does not exist on disk: '${resolvedCmd}'`);
               }
               const timeout = handler['timeout'] as number | undefined;
               if (timeout === undefined || timeout < 15 || timeout > 60) {
@@ -126,10 +127,11 @@ export function auditAgentGovernance(workspaceRoot: string): GovernanceReport {
                 hookErrors.push(`Handler in '${ev}' must specify a regex matcher.`);
               }
               const cmd = handler['command'] as string | undefined;
-              if (!cmd || !path.isAbsolute(cmd)) {
-                hookErrors.push(`Handler in '${ev}' must specify an absolute command path: '${cmd}'`);
-              } else if (!fs.existsSync(cmd)) {
-                hookErrors.push(`Command file does not exist on disk: '${cmd}'`);
+              const resolvedCmd = cmd ? (path.isAbsolute(cmd) ? cmd : path.resolve(workspaceRoot, cmd)) : undefined;
+              if (!resolvedCmd) {
+                hookErrors.push(`Handler in '${ev}' must specify a command path: '${cmd}'`);
+              } else if (!fs.existsSync(resolvedCmd)) {
+                hookErrors.push(`Command file does not exist on disk: '${resolvedCmd}'`);
               }
             }
           }

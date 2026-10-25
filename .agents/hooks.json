@@ -2,13 +2,13 @@
   "PreToolUse": [
     {
       "matcher": "write_file|edit_file",
-      "command": "/Users/emmett/Desktop/Game/.agents/hooks/validate-pre-tool.sh",
+      "command": ".agents/hooks/validate-pre-tool.sh",
       "timeout": 30
     }
   ],
   "Stop": [
     {
-      "command": "/Users/emmett/Desktop/Game/.agents/hooks/validate-stop.sh",
+      "command": ".agents/hooks/validate-stop.sh",
       "timeout": 30
     }
   ]

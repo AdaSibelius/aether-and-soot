@@ -1,0 +1,837 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-10-25",
+  "activePhase": 53,
+  "immediateNextPriority": "Phase 54: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
+  "recentCommits": [
+    {
+      "hash": "829c297",
+      "message": "feat(lore): integrate procedural corpora and naturalist codex engine"
+    },
+    {
+      "hash": "680addd",
+      "message": "feat(sim): harmonize simulation pipeline and island feedback loops"
+    },
+    {
+      "hash": "340a681",
+      "message": "docs(audit): add 3-track architectural, systemic, and UI evaluation report"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "title": "Headless Simulation Core",
+      "status": "COMPLETED",
+      "tier": "Core",
+      "summary": "Core ECS data model, deterministic SeededRNG, and immutable turn pipeline.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/core/world.ts"
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Three-Strata Verticality & Portals",
+      "status": "COMPLETED",
+      "tier": "Core",
+      "summary": "Undercroft, Street, and Spire strata with portal connections.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/spatial/portals.ts"
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Anatomy & Cybernetic Graft Architecture",
+      "status": "COMPLETED",
+      "tier": "Core",
+      "summary": "Limb-slot anatomy and prosthetic installations.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/anatomy.system.ts"
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Thermodynamics & Steam Pressure Grid",
+      "status": "COMPLETED",
+      "tier": "Core",
+      "summary": "Double-buffered cellular automata for steam, heat, and coal dust.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/thermo.system.ts"
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Macro-Economy & Supply Shocks",
+      "status": "COMPLETED",
+      "tier": "Core",
+      "summary": "Bounded supply/demand pricing and faction reputation.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/economy.system.ts"
+      ]
+    },
+    {
+      "number": 6,
+      "title": "PixiJS & Preact Presentation Shell",
+      "status": "COMPLETED",
+      "tier": "Core",
+      "summary": "Headless-separated client projection frame adapter and UI layout.",
+      "details": [],
+      "targetFiles": [
+        "src/client/projection/frame-adapter.ts"
+      ]
+    },
+    {
+      "number": 7,
+      "title": "World Items, Ground Spawning & True Inventory",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Items, ground dropping/pickup, and encumbrance.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/inventory.system.ts"
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Multi-Building District ProcGen & Transit",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "District layout generation, doors, and district travel.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/spatial/district-layout.ts"
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Artificer Crafting, Salvage & Steam Workbenches",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Recipe-based crafting, salvage, and limb repair.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/crafting.system.ts"
+      ]
+    },
+    {
+      "number": 10,
+      "title": "Autonomous NPCs & Targeted Limb Combat",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Faction-driven AI and targeted limb combat mechanics.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/combat.system.ts"
+      ]
+    },
+    {
+      "number": 11,
+      "title": "Physical Storefront Inventories & Merchant Trading",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Barter and trade pedestals with merchant NPCs.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/trade.system.ts"
+      ]
+    },
+    {
+      "number": 12,
+      "title": "Multi-Screen UI Panels & Tile Inspector",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Inspect modal and tactical telemetry display.",
+      "details": [],
+      "targetFiles": [
+        "src/client/ui/SystemMenuModal.tsx"
+      ]
+    },
+    {
+      "number": 13,
+      "title": "Qud-Style Modal Shell & Tactical Sidebar",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Standard modal wrapper and quick action bar.",
+      "details": [],
+      "targetFiles": [
+        "src/client/ui/CharacterModalShell.tsx"
+      ]
+    },
+    {
+      "number": 14,
+      "title": "Two-Column Satchel Window & Item Dossiers",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Full satchel inspection with alphabetical hotkeys.",
+      "details": [],
+      "targetFiles": [
+        "src/client/ui/InventoryWindow.tsx"
+      ]
+    },
+    {
+      "number": 15,
+      "title": "Vitruvian Paperdoll & Schematic Workbench",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Paperdoll visualizer and crafting interface.",
+      "details": [],
+      "targetFiles": [
+        "src/client/ui/AnatomyWindow.tsx"
+      ]
+    },
+    {
+      "number": 16,
+      "title": "Dual-Column Merchant Trade Window",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Merchant barter interface and cartel ledger.",
+      "details": [],
+      "targetFiles": [
+        "src/client/ui/TradeWindow.tsx"
+      ]
+    },
+    {
+      "number": 17,
+      "title": "Multi-Stratum World Atlas & Look Cursor Mode",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "World map overview and tactical look cursor.",
+      "details": [],
+      "targetFiles": [
+        "src/client/ui/AtlasWindow.tsx"
+      ]
+    },
+    {
+      "number": 18,
+      "title": "Scrolling District Viewports & Fog of War",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Large district navigation and state caching.",
+      "details": [],
+      "targetFiles": [
+        "src/client/projection/frame-adapter.ts"
+      ]
+    },
+    {
+      "number": 19,
+      "title": "Building Prefabs & Schematic Manuals",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Prefabs with glass windows and readable books.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/spatial/building-prefabs.ts"
+      ]
+    },
+    {
+      "number": 20,
+      "title": "Interactive Dialogue & Chirurgeon Clinics",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Branching dialogue, faction contracts, and chirurgeons.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/dialogue-quest.system.ts"
+      ]
+    },
+    {
+      "number": 21,
+      "title": "Character Creation & Archetype Perks",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Professions, backgrounds, and starting trait allocation.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/character-archetypes.ts"
+      ]
+    },
+    {
+      "number": 22,
+      "title": "Equipment Slots & Ballistics System",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Wearable gear, weapons, and ranged raycast ballistics.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/equipment.system.ts"
+      ]
+    },
+    {
+      "number": 23,
+      "title": "Containers, Loot Tables & Currency Pouches",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Furniture containers and crown pence loot drops.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/container.system.ts"
+      ]
+    },
+    {
+      "number": 24,
+      "title": "Grounded Trade & Live Spawners",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Pedestal transactions and autonomous district spawns.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/district-spawner.ts"
+      ]
+    },
+    {
+      "number": 25,
+      "title": "Boiler Stoking, Pyrotechnics & Gas Hazards",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Fuel combustion, boiler explosions, and coal gas leaks.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/boiler-stoking.system.ts"
+      ]
+    },
+    {
+      "number": 26,
+      "title": "Procedural Overworld Grid & Biomes",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Multi-district overworld matrix and thematic biomes.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/spatial/overworld-matrix.ts"
+      ]
+    },
+    {
+      "number": 27,
+      "title": "Undercroft Sewer Dungeons & Spire Catwalks",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Multi-room sewer layouts and high-altitude walkways.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/spatial/strata-dungeons.ts"
+      ]
+    },
+    {
+      "number": 28,
+      "title": "Unified Mortality, Morgue & Cybernetics",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Lethal trauma resolution, gear drop, and morgue screen.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/mortality.system.ts"
+      ]
+    },
+    {
+      "number": 29,
+      "title": "Acoustic Propagation & Smog Stealth",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Decibel noise propagation and smog occlusion.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/stealth-acoustics.system.ts"
+      ]
+    },
+    {
+      "number": 30,
+      "title": "Diurnal Shift Clocks & NPC Ecology",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Day/night work shifts and off-screen district catchup.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/npc-ecology.system.ts"
+      ]
+    },
+    {
+      "number": 31,
+      "title": "Structural Wall Breaching & Trap Mechanics",
+      "status": "COMPLETED",
+      "tier": "Archive",
+      "summary": "Destructible walls, gravity pit falls, and clockwork traps.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/physics-traps.system.ts"
+      ]
+    },
+    {
+      "number": 32,
+      "title": "Local Codebase Scout & Pre-Flight Analyzer",
+      "status": "COMPLETED",
+      "tier": "Tooling",
+      "summary": "AST file ranking and impact checklist generator.",
+      "details": [],
+      "targetFiles": [
+        "tests/scripts/hermes-scout.ts"
+      ]
+    },
+    {
+      "number": 33,
+      "title": "Self-Healing Unit Test Generator",
+      "status": "COMPLETED",
+      "tier": "Tooling",
+      "summary": "Compiler-guided Vitest generator with anti-tautology invariant.",
+      "details": [],
+      "targetFiles": [
+        "tests/scripts/hermes-testgen.ts"
+      ]
+    },
+    {
+      "number": 34,
+      "title": "Exhaustive SimEvent Chronicler",
+      "status": "COMPLETED",
+      "tier": "Tooling",
+      "summary": "Automatic synchronization of HUD event formatters with domain schemas.",
+      "details": [],
+      "targetFiles": [
+        "tests/scripts/hermes-chronicler.ts"
+      ]
+    },
+    {
+      "number": 35,
+      "title": "Declarative Blueprint & Prefab Factory",
+      "status": "COMPLETED",
+      "tier": "Tooling",
+      "summary": "Local generation for materials, prosthetics, and prefabs.",
+      "details": [],
+      "targetFiles": [
+        "tests/scripts/hermes-content-generator.ts"
+      ]
+    },
+    {
+      "number": 36,
+      "title": "Modularity Ceiling Splitter Assistant",
+      "status": "COMPLETED",
+      "tier": "Tooling",
+      "summary": "AST-guided extraction tool enforcing the 300-line ceiling.",
+      "details": [],
+      "targetFiles": [
+        "tests/scripts/hermes-split.ts"
+      ]
+    },
+    {
+      "number": 37,
+      "title": "Boiler Governor Bandwidth & Active Prosthetics",
+      "status": "COMPLETED",
+      "tier": "Tier A",
+      "summary": "Strain capacity gating and active cybernetic abilities.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/prosthetics.system.ts"
+      ]
+    },
+    {
+      "number": 38,
+      "title": "Alchemical Toxicity, Pain Shock & Stamina",
+      "status": "COMPLETED",
+      "tier": "Tier A",
+      "summary": "Metabolism toxicity, stamina exhaustion, and combat stimulants.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/metabolism.system.ts"
+      ]
+    },
+    {
+      "number": 39,
+      "title": "Momentum Physics, Knockback & Postures",
+      "status": "COMPLETED",
+      "tier": "Tier B",
+      "summary": "Concussive knockback vectors and tactical stealth postures.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/momentum.system.ts"
+      ]
+    },
+    {
+      "number": 40,
+      "title": "CDDA Tool Qualities & Weapon Modifications",
+      "status": "COMPLETED",
+      "tier": "Tier B",
+      "summary": "Tool qualities, weapon mods, and chambered pressure ammo.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/weapon-mods.system.ts"
+      ]
+    },
+    {
+      "number": 41,
+      "title": "Surface Liquid Chemistry & Weapon Coating",
+      "status": "COMPLETED",
+      "tier": "Tier C",
+      "summary": "Surface liquid pooling, flammable oil, and acid spills.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/liquids.system.ts"
+      ]
+    },
+    {
+      "number": 42,
+      "title": "Witness Attribution, Squad Callouts & Grudges",
+      "status": "COMPLETED",
+      "tier": "Tier C",
+      "summary": "Line-of-sight crime witness reporting and squad rally alerts.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/squad-witness.system.ts"
+      ]
+    },
+    {
+      "number": 43,
+      "title": "Chalk Catacombs & Derelict Monorail",
+      "status": "COMPLETED",
+      "tier": "Tier C",
+      "summary": "Sub-undercroft infinite delve and inter-district monorail transit.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/spatial/catacombs.ts"
+      ]
+    },
+    {
+      "number": 44,
+      "title": "Artificer Safehouse Deeds & Naturalist Codex",
+      "status": "COMPLETED",
+      "tier": "Tier C",
+      "summary": "Freehold workshop deeds, construction, and codex entries.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/safehouse.system.ts"
+      ]
+    },
+    {
+      "number": 45,
+      "title": "Turf Skirmishes & Economic Supply Escorts",
+      "status": "COMPLETED",
+      "tier": "Tier D",
+      "summary": "Borough territory control scores and supply escort convoys.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/skirmish-turf.system.ts"
+      ]
+    },
+    {
+      "number": 46,
+      "title": "Procedural WebAudio Soundscape & Acoustic Synth",
+      "status": "COMPLETED",
+      "tier": "Tier D",
+      "summary": "Algorithmic procedural audio for steam, machinery, and ambience.",
+      "details": [],
+      "targetFiles": [
+        "src/client/audio/procedural-synth.ts"
+      ]
+    },
+    {
+      "number": 47,
+      "title": "Procedural Biomes & CP437 Glyph Visuals",
+      "status": "COMPLETED",
+      "tier": "Tier E",
+      "summary": "Rich Victorian architectural biomes and CP437 glyphs.",
+      "details": [],
+      "targetFiles": [
+        "src/client/projection/biome-palette.ts"
+      ]
+    },
+    {
+      "number": 48,
+      "title": "Multi-Room Building Prefab Engine",
+      "status": "COMPLETED",
+      "tier": "Tier E",
+      "summary": "Floorplan interior zoning across clinic, bank, and boilerhouse.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/spatial/building-prefabs.ts"
+      ]
+    },
+    {
+      "number": 49,
+      "title": "Large Overworld Matrix & Multi-Stratum Atlas",
+      "status": "COMPLETED",
+      "tier": "Tier E",
+      "summary": "64x48 district sizing and multi-view interactive atlas.",
+      "details": [],
+      "targetFiles": [
+        "src/client/ui/AtlasWindow.tsx"
+      ]
+    },
+    {
+      "number": 50,
+      "title": "Interactive Hazards & Tangible Agency",
+      "status": "COMPLETED",
+      "tier": "Tier E",
+      "summary": "Dynamic gaslight, acid drips, crowbar prying, and locked containers.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/environmental-hazards.system.ts"
+      ]
+    },
+    {
+      "number": 51,
+      "title": "Simulation Loop Harmonization & Island System Integration",
+      "status": "COMPLETED",
+      "tier": "Tier G",
+      "summary": "Cross-domain feedback loops: lighting/stealth, turf/tariffs, and stamina/pain shock.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/core/simulation-pipeline.ts"
+      ]
+    },
+    {
+      "number": 52,
+      "title": "Corpus Lore Injection & Naturalist Codex Engine",
+      "status": "COMPLETED",
+      "tier": "Tier G",
+      "summary": "Procedural corpora barks, token interpolation, and autopsy/scald codex discoveries.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/data/corpora-catalog.ts"
+      ]
+    },
+    {
+      "number": 53,
+      "title": "State Machine Modernization & Governance Tooling",
+      "status": "COMPLETED",
+      "tier": "Tier G",
+      "summary": "Eliminate documentation drift with .agents/state.json single source of truth and pure compiler update-state.",
+      "details": [
+        "Create src/schemas/project-state.schema.ts",
+        "Author .agents/state.json as machine-verified source of truth",
+        "Refactor tests/scripts/update-state.ts to pure compiler",
+        "Scrub duplicate backlog rows in ROADMAP.md and update AGENTS.md Near-Cap Files table"
+      ],
+      "targetFiles": [
+        "src/schemas/project-state.schema.ts",
+        "tests/scripts/update-state.ts",
+        ".agents/state.json"
+      ],
+      "verificationTest": "tests/sim/phase53-governance-state.test.ts"
+    },
+    {
+      "number": 54,
+      "title": "Causal Supply Chains & Disruption Cascades",
+      "status": "PLANNED",
+      "tier": "Tier G",
+      "summary": "Macro-tick simulation of vital commodities (coal, tincture, rations) with downstream scarcity cascades.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/economy.system.ts"
+      ]
+    },
+    {
+      "number": 55,
+      "title": "Bounded World Chronicle, Witness Memory & Rumor Network",
+      "status": "PLANNED",
+      "tier": "Tier G",
+      "summary": "Circular buffer of historical world events and shift-change rumor diffusion.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/squad-witness.system.ts"
+      ]
+    },
+    {
+      "number": 56,
+      "title": "Investigation Journal & Forensic Environmental Clues",
+      "status": "PLANNED",
+      "tier": "Tier G",
+      "summary": "Detective UI ([J] Casebook & Ledger), forensic machinery examination, and clue categorization.",
+      "details": [],
+      "targetFiles": [
+        "src/sim/systems/surgery.system.ts"
+      ]
+    }
+  ],
+  "hotspots": [
+    {
+      "file": "src/client/projection/frame-adapter.ts",
+      "lines": 251,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/bootstrap-loop.ts",
+      "lines": 249,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/ui/CharacterCreatorModal.tsx",
+      "lines": 247,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/ui/ItemDossierCard.tsx",
+      "lines": 245,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/sim/systems/container.system.ts",
+      "lines": 245,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/ui/InventoryWindow.tsx",
+      "lines": 244,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/ui/LookCursorOverlay.tsx",
+      "lines": 244,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/sim/systems/dialogue-quest.system.ts",
+      "lines": 244,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/ui/CraftingWindow.tsx",
+      "lines": 243,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/sim/systems/transit.system.ts",
+      "lines": 239,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/client/input/keyboard-router.ts",
+      "lines": 238,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/schemas/events.schema.ts",
+      "lines": 238,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/spatial/generator.ts",
+      "lines": 238,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/systems/furniture.system.ts",
+      "lines": 238,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/client/canvas-ui/diegetic-cartography.ts",
+      "lines": 236,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/systems/safehouse.system.ts",
+      "lines": 235,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/client/canvas-ui/artificer-bench-screen.ts",
+      "lines": 234,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/schemas/domain-commands.schema.ts",
+      "lines": 234,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/client/audio/procedural-synth.ts",
+      "lines": 233,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/schemas/core-events.schema.ts",
+      "lines": 233,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/spatial/architectural-typologies.ts",
+      "lines": 233,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/systems/environmental-hazards.system.ts",
+      "lines": 232,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/systems/metabolism.system.ts",
+      "lines": 232,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/client/ui/SystemMenuModal.tsx",
+      "lines": 231,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/systems/surgery.system.ts",
+      "lines": 230,
+      "threshold": 230,
+      "status": "SAFE"
+    }
+  ],
+  "prescriptions": [
+    {
+      "id": "P1",
+      "priority": "P1",
+      "category": "UNREACHABLE_MECHANIC",
+      "title": "Phase 54",
+      "directive": "Focus core systems development on **Phase 54: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies.",
+      "targetFiles": [
+        "src/sim/systems/economy.system.ts",
+        "src/sim/systems/trade.system.ts"
+      ],
+      "verification": "tests/sim/determinism.test.ts"
+    },
+    {
+      "id": "P2",
+      "priority": "P2",
+      "category": "SIM_BALANCE",
+      "title": "Expand Playtest Serializer Command Surface",
+      "directive": "Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count.",
+      "targetFiles": [
+        "tests/scripts/playtester-serializer.ts"
+      ],
+      "verification": "tests/sim/determinism.test.ts",
+      "citedMetricKey": "unwiredCommands"
+    },
+    {
+      "id": "P3",
+      "priority": "P3",
+      "category": "MODULE_SPLIT",
+      "title": "Modularity Guard & File Splitting",
+      "directive": "Monitor and pre-split near-cap modules like tests/scripts/hermes-critic.ts and playtester-projection-audit.ts to enforce 250-line target.",
+      "targetFiles": [
+        "tests/scripts/hermes-critic.ts",
+        "tests/scripts/playtester-projection-audit.ts"
+      ],
+      "verification": "tests/sim/determinism.test.ts",
+      "citedMetricKey": "modularityHotspot"
+    }
+  ]
+}
