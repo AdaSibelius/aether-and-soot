@@ -1,45 +1,50 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
 **Generated:** 2026-10-25 | **Benchmark Engine:** Hermes Critic v1.0
-- **Execution Mode**: LIVE_INFERENCE (live local model: lfm2.5:24b @ http://localhost:11434/v1/chat/completions)
-- **LLM Telemetry**: Mode: LIVE_INFERENCE | Temperature: 0.1 | Enforce JSON Schema: true
+- **Execution Mode**: MOCK_FALLBACK (playtester-mock.ts)
+- **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 
 ## 1. Whole-Game Emergence & Readiness Score (0/100)
 - **Score Breakdown**:
   - Headless Determinism & Boundary Isolation: **25/25**
   - Spatial, Acoustic & Environmental Depth: **22/25**
   - NPC Ecological Parity vs Player: **18/25**
-  - Command Surface Playtest Coverage: **3/25**
+  - Command Surface Playtest Coverage: **4/25**
 - **Overall Assessment**: *Aether & Soot* exhibits exceptional deterministic headless rigor matching CDDA simulation fidelity and Caves of Qud tactile worldcraft, with complete Core/Shell separation.
 
 ## 2. Architectural & Modularity Health
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
 - `src/client/ui/CharacterCreatorModal.tsx`: **247 lines** (threshold: 230)
+- `src/client/bootstrap-loop.ts`: **245 lines** (threshold: 230)
 - `src/client/ui/ItemDossierCard.tsx`: **245 lines** (threshold: 230)
 - `src/sim/systems/container.system.ts`: **245 lines** (threshold: 230)
 - `src/client/ui/InventoryWindow.tsx`: **244 lines** (threshold: 230)
 - `src/client/ui/LookCursorOverlay.tsx`: **244 lines** (threshold: 230)
 - `src/client/ui/CraftingWindow.tsx`: **243 lines** (threshold: 230)
 - `src/schemas/domain-events.schema.ts`: **243 lines** (threshold: 230)
+- `src/client/ui/HudLayout.tsx`: **239 lines** (threshold: 230)
 - `src/sim/systems/transit.system.ts`: **239 lines** (threshold: 230)
+- `src/client/input/keyboard-router.ts`: **238 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
 - `src/schemas/events.schema.ts`: **235 lines** (threshold: 230)
 - `src/sim/systems/safehouse.system.ts`: **235 lines** (threshold: 230)
+- `src/client/canvas-ui/artificer-bench-screen.ts`: **234 lines** (threshold: 230)
 - `src/schemas/domain-commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/client/audio/procedural-synth.ts`: **233 lines** (threshold: 230)
 - `src/schemas/core-events.schema.ts`: **233 lines** (threshold: 230)
 - `src/sim/spatial/architectural-typologies.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/dialogue-quest.system.ts`: **233 lines** (threshold: 230)
-- `src/client/input/keyboard-router.ts`: **232 lines** (threshold: 230)
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
+- `src/client/ui/SystemMenuModal.tsx`: **231 lines** (threshold: 230)
 
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
 - `ATTACK_ACTOR` (7 dispatches)
-- `BUY_FROM_MERCHANT` (3 dispatches)
-- `MOVE_STEP` (29 dispatches)
-- `TOGGLE_DOOR` (13 dispatches)
+- `BUY_FROM_MERCHANT` (4 dispatches)
+- `MOVE_STEP` (10 dispatches)
+- `USE_ITEM` (1 dispatches)
+- `USE_PORTAL` (30 dispatches)
 - `VENT_STEAM` (1 dispatches)
 - **Dormant Commands (Wired in Serializer, 0 Dispatches)**:
 - `ACCEPT_CONTRACT`
@@ -80,8 +85,7 @@
 - `SELL_TO_MERCHANT`
 - `STOCK_PEDESTAL`
 - `STORE_ITEM_IN_STRUCTURE`
-- `USE_ITEM`
-- `USE_PORTAL`
+- `TOGGLE_DOOR`
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `REMOVE_PROSTHETIC`
@@ -107,7 +111,9 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 51: City Causality Graph & Strategic Overworld Topology** [UNREACHABLE_MECHANIC]: Model directional physical conduits (STEAM_MAIN, COAL_BARGE_CANAL, SLUICE_DRAINAGE, PNEUMATIC_CHUTE) connecting districts across strata. Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (CONDUIT_STATUS_CHANGED). Add an Infrastructure overlay view to the World Atlas ([W]). (Target: `src/sim/core/engine.ts`, `src/client/ui/CharacterCreatorModal.tsx`, `src/client/ui/ItemDossierCard.tsx`, `src/sim/systems/container.system.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 51** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 51: City Causality Graph & Strategic Overworld Topology**: Model directional physical conduits (`STEAM_MAIN`, `COAL_BARGE_CANAL`, `SLUICE_DRAINAGE`, `PNEUMATIC_CHUTE`) connecting districts across strata (`src/schemas/city-graph.schema.ts`, `src/sim/spatial/city-graph.ts`). Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (`CONDUIT_STATUS_CHANGED`). Add an Infrastructure overlay view to the World Atlas (`[W]`). resolving unwiredCommands and telemetry anomalies. (Target: `src/client/ui/CharacterCreatorModal.tsx`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/ui/CharacterCreatorModal.tsx to resolve modularityHotspot anomaly. (Target: `src/client/ui/CharacterCreatorModal.tsx` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 

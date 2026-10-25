@@ -3,15 +3,17 @@
 **Last Updated:** 2026-10-25
 
 ## Recent Commits
-- ac95fc1: feat(desktop): implement Phase UI-7 SaveStorageAdapter and DesktopWindowManager
-- 1122ae1: feat(renderer): implement Phase UI-6 performance governor, accessibility gate, and UiCellBuffer audit
-- 800f927: feat(renderer): implement Phase UI-5 unified steampunk shader, smoke masks, and thermodynamic stress
+- 8c4ecc5: feat(tooling): implement Phase UI-5 hermes-vision-critic layout verifier & audit pipeline
+- 19ea947: test(ui): add 6-modal zero-truncation & border-collision verification
+- 0a2b180: feat(ui): implement Phase UI-4 CDDA artificer bench, atlas minimap, market exchange & codex
 
 ## Immediate Next Priority
 - **Phase 51: City Causality Graph & Strategic Overworld Topology**: Model directional physical conduits (`STEAM_MAIN`, `COAL_BARGE_CANAL`, `SLUICE_DRAINAGE`, `PNEUMATIC_CHUTE`) connecting districts across strata (`src/schemas/city-graph.schema.ts`, `src/sim/spatial/city-graph.ts`). Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (`CONDUIT_STATUS_CHANGED`). Add an Infrastructure overlay view to the World Atlas (`[W]`).
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 51: City Causality Graph & Strategic Overworld Topology** [UNREACHABLE_MECHANIC]: Model directional physical conduits (STEAM_MAIN, COAL_BARGE_CANAL, SLUICE_DRAINAGE, PNEUMATIC_CHUTE) connecting districts across strata. Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (CONDUIT_STATUS_CHANGED). Add an Infrastructure overlay view to the World Atlas ([W]). (Target: `src/sim/core/engine.ts`, `src/client/ui/CharacterCreatorModal.tsx`, `src/client/ui/ItemDossierCard.tsx`, `src/sim/systems/container.system.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 51** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 51: City Causality Graph & Strategic Overworld Topology**: Model directional physical conduits (`STEAM_MAIN`, `COAL_BARGE_CANAL`, `SLUICE_DRAINAGE`, `PNEUMATIC_CHUTE`) connecting districts across strata (`src/schemas/city-graph.schema.ts`, `src/sim/spatial/city-graph.ts`). Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (`CONDUIT_STATUS_CHANGED`). Add an Infrastructure overlay view to the World Atlas (`[W]`). resolving unwiredCommands and telemetry anomalies. (Target: `src/client/ui/CharacterCreatorModal.tsx`, `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/ui/CharacterCreatorModal.tsx to resolve modularityHotspot anomaly. (Target: `src/client/ui/CharacterCreatorModal.tsx` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 
@@ -28,4 +30,4 @@ Implement **Phase 51: City Causality Graph & Strategic Overworld Topology**: Mod
 
 | Priority | Category | Title | Directive | Target Files | Verification |
 | --- | --- | --- | --- | --- | --- |
-| P1 | UNREACHABLE_MECHANIC | Phase 51: City Causality Graph & Strategic Overworld Topology | Model directional physical conduits (STEAM_MAIN, COAL_BARGE_CANAL, SLUICE_DRAINAGE, PNEUMATIC_CHUTE) connecting districts across strata. Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (CONDUIT_STATUS_CHANGED). Add an Infrastructure overlay view to the World Atlas ([W]). | `src/sim/core/engine.ts`, `src/client/ui/CharacterCreatorModal.tsx`, `src/client/ui/ItemDossierCard.tsx`, `src/sim/systems/container.system.ts` | `tests/sim/determinism.test.ts` |
+| P1 | UNREACHABLE_MECHANIC | Phase 51 | Focus core systems development on **Phase 51: City Causality Graph & Strategic Overworld Topology**: Model directional physical conduits (`STEAM_MAIN`, `COAL_BARGE_CANAL`, `SLUICE_DRAINAGE`, `PNEUMATIC_CHUTE`) connecting districts across strata (`src/schemas/city-graph.schema.ts`, `src/sim/spatial/city-graph.ts`). Disrupted conduits propagate downstream pressure/flow loss during macro-ticks (`CONDUIT_STATUS_CHANGED`). Add an Infrastructure overlay view to the World Atlas (`[W]`). resolving unwiredCommands and telemetry anomalies. | `src/client/ui/CharacterCreatorModal.tsx`, `src/sim/core/engine.ts` | `tests/sim/determinism.test.ts` |
