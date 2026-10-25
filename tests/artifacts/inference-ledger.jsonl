@@ -324,3 +324,16 @@
 {"timestamp":"2026-10-25T14:25:13.350Z","task":"hermes-testgen","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
 {"timestamp":"2026-10-25T14:25:13.362Z","task":"hermes-critic","tier":"tier1","model":"lfm2.5:24b","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
 {"timestamp":"2026-10-25T14:25:14.638Z","task":"hermes-scout","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:27:44.570Z","task":"hermes-scout","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":995,"completion_tokens":1324,"duration_ms":29207,"retry_count":0,"success":true,"cache_hit":false}
+{"timestamp":"2026-10-25T14:30:22.860Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:22.950Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:23.008Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:23.210Z","task":"hermes-critic","tier":"tier1","model":"lfm2.5:24b","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:23.247Z","task":"hermes-testgen","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:24.545Z","task":"hermes-scout","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:51.700Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:51.794Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:51.863Z","task":"llm-playtester","tier":"tier3","model":"test-model","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:52.065Z","task":"hermes-testgen","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:52.089Z","task":"hermes-critic","tier":"tier1","model":"lfm2.5:24b","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}
+{"timestamp":"2026-10-25T14:30:53.371Z","task":"hermes-scout","tier":"tier2","model":"gemma4:12b-extended","prompt_tokens":0,"completion_tokens":0,"duration_ms":0,"retry_count":0,"success":true,"cache_hit":true}

@@ -4,8 +4,8 @@
 
 ## Codebase Telemetry & Modularity Health
 
-- **Files Indexed**: 199
-- **Total Lines of Code**: 28809
+- **Files Indexed**: 202
+- **Total Lines of Code**: 29193
 - **Average File Size**: 145 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
 - **Near-Cap Files (>= 240 lines)**: 8 files
@@ -322,7 +322,10 @@ Browser bootstrap, keyboard/mouse input dispatching, and WebAudio synth integrat
 | `src/client/audio/synth-presets-environment.ts` | 176 | ✅ OK | `ENVIRONMENT_PRESETS`, `STRATUM_AMBIENCE_PROFILES` |
 | `src/client/audio/synth-presets-mechanical.ts` | 127 | ✅ OK | `MECHANICAL_PRESETS` |
 | `src/client/bootstrap-loop.ts` | 201 | ✅ OK | `createFreshWorld(seed: number): WorldState`, `startClientSession(mounts: ClientSessionMounts, stageRenderer: GlyphStageRenderer, initialSeed: unknown): void` |
-| `src/client/canvas-ui/viewport-controls.ts` | 183 | ✅ OK | `drawScrollableRegion(buf: UiCellWriteTarget, rect: UiRect, lines: readonly string[], scrollOffset: number, options: { readonly fgText?: string; readonly bgText?: string; readonly fgScrollbar?: string; readonly fgTrack?: string; readonly bgTrack?: string; }): ScrollResult`, `drawDiegeticTextInput(buf: UiCellWriteTarget, rect: UiRect, label: string, value: string, isFocused: boolean, tick: number, options: { readonly fgBorder?: string; readonly fgLabel?: string; readonly fgValue?: string; readonly fgCursor?: string; readonly bg?: string; }): void` |
+| `src/client/canvas-ui/cell-buffer.ts` | 158 | ✅ OK | `createUiCellBuffer(width: number, height: number, defaultCell: Partial<UiCell>): UiCellBuffer` |
+| `src/client/canvas-ui/industrial-primitives.ts` | 192 | ✅ OK | `drawIndustrialFrame(buf: UiCellBuffer, rect: UiRect, options: IndustrialFrameOptions): void`, `drawBrassToggleTabs(buf: UiCellBuffer, x: number, y: number, tabs: readonly BrassToggleTab[], activeTabId: string): void`, `drawDiegeticGauge(buf: UiCellBuffer, x: number, y: number, width: number, ratio: number, options: DiegeticGaugeOptions): void` |
+| `src/client/canvas-ui/material-palette.ts` | 57 | ✅ OK | `resolveThermodynamicPalette(stressLevel: ThermodynamicStressLevel): ThermodynamicPaletteResult` |
+| `src/client/canvas-ui/viewport-controls.ts` | 160 | ✅ OK | `drawScrollableRegion(buf: UiCellWriteTarget, rect: UiRect, lines: readonly string[], scrollOffset: number, options: { readonly fgText?: string; readonly bgText?: string; readonly fgScrollbar?: string; readonly fgTrack?: string; readonly bgTrack?: string; }): ScrollResult`, `drawDiegeticTextInput(buf: UiCellWriteTarget, rect: UiRect, label: string, value: string, isFocused: boolean, tick: number, options: { readonly fgBorder?: string; readonly fgLabel?: string; readonly fgValue?: string; readonly fgCursor?: string; readonly bg?: string; }): void` |
 | `src/client/client-debug-bridge.ts` | 14 | ✅ OK | `DebugSimBridge` |
 | `src/client/client-interactions.ts` | 72 | ✅ OK | `cycleModalWindow(current: ModalWindowId \| null, direction: 1 \| -1): ModalWindowId`, `findAdjacentDialogueNpc(state: WorldState, playerId: EntityId): EntityId \| undefined`, `findAdjacentDoorTarget(state: WorldState, playerId: EntityId): Point3D \| undefined`, `findEntityAtLookCursor(state: WorldState, stratum: StratumId, cursor: { x: number; y: number }, excludeId: EntityId): EntityRecord \| undefined` |
 | `src/client/input/keyboard-router.ts` | 232 | ✅ OK | `handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParams): void` |
