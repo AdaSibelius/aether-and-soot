@@ -1,6 +1,6 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { EntityId, EntityIdSchema } from '../../schemas/primitives.schema.js';
+import { EntityId, EntityIdSchema, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../core/world.js';
 import { createEntityFromBlueprint } from '../data/item-catalog.js';
 import { withoutEntity } from './inventory-utils.js';
@@ -74,12 +74,28 @@ export function resolveActorDefeatIfFatal(
     }
     nextEntities = withoutEntity(nextEntities, targetId);
   } else {
+    const nextLimbs = { ...(target.anatomy?.limbs ?? {}) };
+    for (const [slot, limb] of Object.entries(nextLimbs)) {
+      if (limb?.installedProstheticEntityId) {
+        nextLimbs[slot as LimbSlotId] = { ...limb, installedProstheticEntityId: undefined };
+      }
+    }
     nextEntities[targetId] = {
       ...target,
       actor: {
         ...target.actor,
         energy: 0,
       },
+      inventory: target.inventory ? {
+        ...target.inventory,
+        containedEntityIds: [],
+        equippedSlots: {},
+        currentMassGrams: 0,
+      } : undefined,
+      anatomy: target.anatomy ? {
+        ...target.anatomy,
+        limbs: nextLimbs as typeof target.anatomy.limbs,
+      } : undefined,
     };
   }
 
