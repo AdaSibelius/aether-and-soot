@@ -193,12 +193,24 @@ export function renderFactionContaminationMap(
       { commodity: 'PHOSPHOR_BRONZE' as CommodityId, basePricePence: 110, currentPricePence: 108, supplyUnits: 40, demandUnits: 60 },
     ];
 
+    const COMMODITY_SHORT_NAMES: Record<string, string> = {
+      ANTHRACITE_COAL: 'Anthracite',
+      PHOSPHOR_BRONZE: 'Phosphor Brz',
+      AETHER_SALT: 'Aether Salt',
+      VULCANIZED_RUBBER: 'Rubber Resin',
+      BRASS_GEAR_STOCK: 'Brass Gears',
+      AETHER_VIAL: 'Aether Vial',
+      CLOCKWORK_MAINSPRING: 'Clockwork Spr',
+    };
+
     let qY = rect.y + 6;
     for (const q of quoteRows.slice(0, 4)) {
       const diff = q.currentPricePence - q.basePricePence;
       const trend = diff > 0 ? `▲+${diff}d` : diff < 0 ? `▼${diff}d` : '▬ 0d';
       const trendFg = diff > 0 ? VICTORIAN_PALETTE.INCANDESCENT_RED : diff < 0 ? VICTORIAN_PALETTE.AETHER_BLUE : VICTORIAN_PALETTE.SEPIA_INK;
-      const nameStr = (q.commodity as string).replace('_', ' ').slice(0, 14).padEnd(14, ' ');
+      const comKey = q.commodity as string;
+      const rawName = COMMODITY_SHORT_NAMES[comKey] ?? comKey.replace(/_/g, ' ');
+      const nameStr = rawName.slice(0, 13).padEnd(13, ' ');
       const priceStr = `${q.currentPricePence}d`.padStart(5, ' ');
       const supStr = `${q.supplyUnits}u`.padStart(7, ' ');
       buf.writeString(rightX, qY, `${nameStr} ${priceStr} ${supStr}  ${trend}`.slice(0, rightWidth), trendFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
@@ -208,7 +220,7 @@ export function renderFactionContaminationMap(
     qY++;
     buf.writeString(rightX, qY, '─[ BROKER COUNTER & PEDESTALS ]─────'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY++;
-    buf.writeString(rightX, qY, 'Stationed Broker: Spitalfields Guild Clerk'.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, qY, 'Broker: Spitalfields Guild Clerk'.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY++;
     buf.writeString(rightX, qY, 'Trade Rate: 100% Par Value (Tariff)'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY += 2;

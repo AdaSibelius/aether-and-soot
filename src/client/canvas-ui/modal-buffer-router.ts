@@ -53,9 +53,18 @@ export function generateModalUiBuffer(
 
       // Right-side diagnostic telemetry column (placed cleanly with ample room)
       const colX = mainRect.x + 36;
-      buf.writeString(colX, mainRect.y + 3, '═[ LIMB TELEMETRY & GRAFT STATUS ]═', VICTORIAN_PALETTE.TARNISHED_BRASS);
-      const slots: readonly LimbSlotId[] = ['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG'];
-      let rowY = mainRect.y + 6;
+      buf.writeString(colX, mainRect.y + 2, '═[ LIMB TELEMETRY & GRAFT STATUS ]═', VICTORIAN_PALETTE.TARNISHED_BRASS);
+      const slots: readonly LimbSlotId[] = [
+        'HEAD',
+        'OCULAR_MOUNT',
+        'TORSO',
+        'CHASSIS_CORE',
+        'LEFT_ARM',
+        'RIGHT_ARM',
+        'LEFT_LEG',
+        'RIGHT_LEG',
+      ];
+      let rowY = mainRect.y + 4;
       for (const slot of slots) {
         const limb = anatomy?.limbs[slot];
         const isSel = options.selectedLimbSlot === slot;
@@ -68,9 +77,15 @@ export function generateModalUiBuffer(
             ? VICTORIAN_PALETTE.AETHER_BLUE
             : VICTORIAN_PALETTE.SEPIA_INK;
 
-        buf.writeString(colX, rowY, `${prefix}${slot.padEnd(10)} ${hpText.padStart(10)} ${typeText}`, color, undefined, undefined, `select_limb:${slot}`);
+        buf.writeString(colX, rowY, `${prefix}${slot.padEnd(12)} ${hpText.padStart(10)} ${typeText}`, color, undefined, undefined, `select_limb:${slot}`);
         rowY += 2;
       }
+
+      const strain = anatomy?.strainLoadKw ?? 0;
+      const governor = anatomy?.governorCapacityKw ?? 100;
+      buf.writeString(colX, mainRect.y + 22, '─[ BOILER GOVERNOR & CYBERNETICS ]──', VICTORIAN_PALETTE.TARNISHED_BRASS);
+      buf.writeString(colX, mainRect.y + 24, `Capacity: ${governor} kW │ Load: ${strain} kW (${Math.round(governor > 0 ? (strain / governor) * 100 : 0)}%)`, VICTORIAN_PALETTE.AMBER_GASLIGHT);
+      buf.writeString(colX, mainRect.y + 26, '[Click/Key] Target limb to inspect or graft.', VICTORIAN_PALETTE.MUTED_PIPE);
       break;
     }
 

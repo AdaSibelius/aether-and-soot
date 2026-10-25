@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { generateModalUiBuffer } from '../../src/client/canvas-ui/modal-buffer-router.js';
 import { ModalWindowId } from '../../src/client/ui/CharacterModalShell.js';
+import { ATLAS_GLYPHS } from '../../src/client/renderer/glyph-atlas.js';
 import { EntityIdSchema } from '../../src/schemas/primitives.schema.js';
 import { createInitialWorld, WorldState } from '../../src/sim/core/world.js';
 import { queryLocalOllama, resolveEndpoint, resolveModel, TIER_2_CODE_MODEL } from './local-llm-config.js';
@@ -54,6 +55,9 @@ export function parseVisionCriticArgs(argv: string[]): VisionCriticConfig {
 
 export function runDeterministicLayoutAudit(world: WorldState, playerId = EntityIdSchema.parse('actor_player')): DeterministicModalAudit[] {
   const results: DeterministicModalAudit[] = [];
+  const glyphSet = new Set(ATLAS_GLYPHS);
+  const rawIdPattern = /\b(item_|mat_|prosthetic_|district_|recipe_)[a-z0-9_]+/;
+  const brokenTruncation = /\b[A-Za-z]{3,}\?/;
 
   for (const modal of MODALS) {
     const buf = generateModalUiBuffer(modal, world, playerId, 88, 36);
@@ -69,11 +73,28 @@ export function runDeterministicLayoutAudit(world: WorldState, playerId = Entity
       for (const token of ['undefined', 'null', 'NaN', '[object Object]']) {
         if (row.includes(token)) unmappedGlyphs.push(`Row ${y} contains '${token}'`);
       }
+      const rawMatch = row.match(rawIdPattern);
+      if (rawMatch) {
+        unmappedGlyphs.push(`Row ${y} contains leaked raw ID: '${rawMatch[0]}'`);
+      }
+      if (brokenTruncation.test(row)) {
+        unmappedGlyphs.push(`Row ${y} contains broken question-mark glyph: '${row.trim()}'`);
+      }
+      if (row.includes('[?/?]')) {
+        unmappedGlyphs.push(`Row ${y} contains unmapped arrow glyphs '[?/?]'`);
+      }
       // Right margin bounds check (columns 86, 87 must remain empty margin)
       for (let x = 86; x < 88; x++) {
         const cell = buf.getCell(x, y);
         if (cell && cell.glyph !== ' ') {
           clippingErrors.push(`Cell (${x}, ${y}) spilled into outer margin: '${cell.glyph}'`);
+        }
+      }
+      // Check for unmapped glyphs in atlas
+      for (let x = 0; x < 88; x++) {
+        const cell = buf.getCell(x, y);
+        if (cell && !glyphSet.has(cell.glyph)) {
+          unmappedGlyphs.push(`Cell (${x}, ${y}) unmapped in ATLAS_GLYPHS: '${cell.glyph}'`);
         }
       }
     }
@@ -104,8 +125,10 @@ export async function runVisionCritic(config: VisionCriticConfig, rootDir: strin
   const audits = runDeterministicLayoutAudit(world);
   const deterministicPassed = audits.every((a) => a.passed);
 
-  let visualScore = 96;
-  let visualCritique = 'Deterministic 88x36 widescreen grid verified. Zero right-edge text clipping, zero border collisions, and high-contrast Edison phosphor palette.';
+  let visualScore = deterministicPassed ? 98 : 40;
+  let visualCritique = deterministicPassed
+    ? 'Deterministic 88x36 widescreen grid verified. Zero unmapped atlas glyphs, zero raw ID leaks, zero border collisions, and high-contrast Edison phosphor palette.'
+    : `Deterministic layout violations detected: ${audits.filter((a) => !a.passed).map((a) => `${a.modal} (unmapped: ${a.unmappedGlyphs.length}, clipping: ${a.clippingErrors.length}, borders: ${a.borderCollisions.length})`).join(', ')}`;
 
   if (!config.mock) {
     try {

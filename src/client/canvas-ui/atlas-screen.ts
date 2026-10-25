@@ -181,15 +181,11 @@ export function renderAtlasScreen(
   if (gatesOnStratum.length > 0) {
     for (const g of gatesOnStratum.slice(0, 3)) {
       const destName = resolveCatalogDisplayName('district', g.districtGate!.targetDistrictId);
-      buf.writeString(rightX, dY, `╬ ${g.districtGate!.gateLabel} -> ${destName}`.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+      buf.writeString(rightX, dY, `╬ Gate to ${destName}`.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
       dY++;
     }
   } else {
     buf.writeString(rightX, dY, 'No direct district gates on this stratum.'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     dY++;
   }
-
-  // Footer navigation hint
-  const footerY = rect.y + rect.height - 2;
-  buf.writeString(leftX, footerY, '[Tab] Switch Modal  [Esc] Return to Streets', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
 }

@@ -61,25 +61,25 @@ function getTacticalData(entry: CodexEntryRecord): { vulnerability: string; armo
   const tags = entry.tags ?? [];
   if (tags.includes('MECHANICAL') || tags.includes('STEAM')) {
     return {
-      vulnerability: 'Pneumatic line breach / Steam joint rupture',
-      armor: 'Galvanized Soot-Plate (Resists slashing)',
-      yield1: '1x Brass Gear Cluster',
-      yield2: '2x Vulcanized Rubber Gaskets',
+      vulnerability: 'Pneumatics',
+      armor: 'Soot-Plate',
+      yield1: '1x Brass Gears',
+      yield2: '2x Rubber Gaskets',
     };
   }
   if (tags.includes('ALCHEMICAL') || tags.includes('FLORA')) {
     return {
-      vulnerability: 'Desiccation / Incandescent flame',
-      armor: 'Organic Membrane (Vulnerable to aether)',
-      yield1: '2x Crystallised Aether Salt',
-      yield2: '1x Distilled Resin Phial',
+      vulnerability: 'Flame / Heat',
+      armor: 'Membrane',
+      yield1: '2x Aether Salt',
+      yield2: '1x Resin Phial',
     };
   }
   return {
-    vulnerability: 'Concussive blunt trauma to frame',
-    armor: 'Cast Iron Riveted Housing',
-    yield1: '1x Cast-Iron Plate',
-    yield2: '1x Pneumatic Valve Assembly',
+    vulnerability: 'Blunt Force',
+    armor: 'Cast Iron',
+    yield1: '1x Iron Plate',
+    yield2: '1x Steam Valve',
   };
 }
 

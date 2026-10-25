@@ -48,6 +48,11 @@ export function renderClockworkPaperdoll(
     return { fg, bg, shader, action: `select_limb:${slot}` };
   };
 
+  // 0. OCULAR MOUNT (Row 0, above/left of head)
+  const ocularVis = getSlotVisuals('OCULAR_MOUNT');
+  const ocularGlyph = isProsthetic('OCULAR_MOUNT') ? '[☼]' : isAmputated('OCULAR_MOUNT') ? '[x]' : '[·]';
+  buf.writeString(originX + 2, originY, ocularGlyph, ocularVis.fg, ocularVis.bg, ocularVis.shader, ocularVis.action);
+
   // 1. HEAD (Row 0)
   const headVis = getSlotVisuals('HEAD');
   const headGlyphs = isAmputated('HEAD') ? '( x )' : isProsthetic('HEAD') ? '[#☼#]' : '( ~ )';
@@ -58,9 +63,10 @@ export function renderClockworkPaperdoll(
   buf.setCell(originX + 8, originY + 1, '|', VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.SOOT_IRON_BG);
   buf.setCell(originX + 10, originY + 1, '\\', VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
-  // 2. TORSO, LEFT_ARM, RIGHT_ARM (Rows 2, 3, 4)
+  // 2. TORSO, CHASSIS_CORE, LEFT_ARM, RIGHT_ARM (Rows 2, 3, 4)
   const lArmVis = getSlotVisuals('LEFT_ARM');
   const torsoVis = getSlotVisuals('TORSO');
+  const coreVis = getSlotVisuals('CHASSIS_CORE');
   const rArmVis = getSlotVisuals('RIGHT_ARM');
 
   // Row 2: Shoulders, Chest
@@ -75,10 +81,12 @@ export function renderClockworkPaperdoll(
 
   // Row 3: Forearms, Boiler Core
   const lArmR3 = isAmputated('LEFT_ARM') ? '   ' : isProsthetic('LEFT_ARM') ? '[#]' : '(~)';
-  const torsoR3 = isAmputated('TORSO') ? '( x )' : isProsthetic('TORSO') ? '[#⚙#]' : '( ~ )';
+  const isCoreSelected = selectedSlot === 'CHASSIS_CORE';
+  const torsoR3 = isAmputated('TORSO') ? '( x )' : isProsthetic('CHASSIS_CORE') ? '[#⚙#]' : isProsthetic('TORSO') ? '[#╬#]' : '( • )';
+  const activeMidVis = isCoreSelected ? coreVis : torsoVis;
   const rArmR3 = isAmputated('RIGHT_ARM') ? '   ' : isProsthetic('RIGHT_ARM') ? '[#]' : '(~)';
   buf.writeString(originX + 2, originY + 3, lArmR3, lArmVis.fg, lArmVis.bg, lArmVis.shader, lArmVis.action);
-  buf.writeString(originX + 6, originY + 3, torsoR3, torsoVis.fg, torsoVis.bg, torsoVis.shader, torsoVis.action);
+  buf.writeString(originX + 6, originY + 3, torsoR3, activeMidVis.fg, activeMidVis.bg, activeMidVis.shader, isCoreSelected ? coreVis.action : torsoVis.action);
   buf.writeString(originX + 12, originY + 3, rArmR3, rArmVis.fg, rArmVis.bg, rArmVis.shader, rArmVis.action);
 
   // Row 4: Hands, Abdomen
