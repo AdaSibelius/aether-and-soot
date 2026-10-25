@@ -4,8 +4,8 @@
 
 ## Codebase Telemetry & Modularity Health
 
-- **Files Indexed**: 207
-- **Total Lines of Code**: 29859
+- **Files Indexed**: 209
+- **Total Lines of Code**: 30040
 - **Average File Size**: 144 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
 - **Near-Cap Files (>= 240 lines)**: 8 files
@@ -328,6 +328,8 @@ Browser bootstrap, keyboard/mouse input dispatching, and WebAudio synth integrat
 | `src/client/canvas-ui/diegetic-cartography.ts` | 181 | ✅ OK | `renderFactionContaminationMap(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, selectedSectorId: string): void` |
 | `src/client/canvas-ui/industrial-primitives.ts` | 192 | ✅ OK | `drawIndustrialFrame(buf: UiCellBuffer, rect: UiRect, options: IndustrialFrameOptions): void`, `drawBrassToggleTabs(buf: UiCellBuffer, x: number, y: number, tabs: readonly BrassToggleTab[], activeTabId: string): void`, `drawDiegeticGauge(buf: UiCellBuffer, x: number, y: number, width: number, ratio: number, options: DiegeticGaugeOptions): void` |
 | `src/client/canvas-ui/material-palette.ts` | 57 | ✅ OK | `resolveThermodynamicPalette(stressLevel: ThermodynamicStressLevel): ThermodynamicPaletteResult` |
+| `src/client/canvas-ui/mechanical-conduits.ts` | 115 | ✅ OK | `drawAsciiConduit(buf: UiCellBuffer, fromPoint: ConduitPoint, toPoint: ConduitPoint, options: ConduitRouteOptions): ConduitRouteResult` |
+| `src/client/canvas-ui/mechanical-transition.ts` | 66 | ✅ OK | `applyMechanicalCylinderScramble(targetBuffer: UiCellBuffer, elapsedMs: number, durationMs: unknown): boolean` |
 | `src/client/canvas-ui/naturalist-ledger-screen.ts` | 139 | ✅ OK | `renderNaturalistLedgerScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, options: NaturalistLedgerOptions): void` |
 | `src/client/canvas-ui/satchel-screen.ts` | 97 | ✅ OK | `renderSatchelScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, playerId: EntityId, options: SatchelScreenOptions): void` |
 | `src/client/canvas-ui/viewport-controls.ts` | 160 | ✅ OK | `drawScrollableRegion(buf: UiCellWriteTarget, rect: UiRect, lines: readonly string[], scrollOffset: number, options: { readonly fgText?: string; readonly bgText?: string; readonly fgScrollbar?: string; readonly fgTrack?: string; readonly bgTrack?: string; }): ScrollResult`, `drawDiegeticTextInput(buf: UiCellWriteTarget, rect: UiRect, label: string, value: string, isFocused: boolean, tick: number, options: { readonly fgBorder?: string; readonly fgLabel?: string; readonly fgValue?: string; readonly fgCursor?: string; readonly bg?: string; }): void` |
