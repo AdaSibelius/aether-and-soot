@@ -173,19 +173,19 @@ export function renderFactionContaminationMap(
     // Widescreen: Divider & Commodity Exchange Ticker
     const dividerX = rect.x + 39;
     const rightX = rect.x + 41;
-    const rightWidth = rect.width - 43;
+    const rightWidth = Math.min(38, rect.width - 43);
 
     for (let dy = rect.y; dy < rect.y + rect.height; dy++) {
       buf.setCell(dividerX, dy, '│', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     }
 
-    buf.writeString(rightX, rect.y, '═[ COMMODITY EXCHANGE & TREASURY ]═', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, rect.y, '═[ COMMODITY EXCHANGE & TREASURY ]═'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
     const treasury = state.economy?.playerTreasuryPence ?? 240;
-    buf.writeString(rightX, rect.y + 2, `Player Treasury: ${treasury}d (${Math.floor(treasury / 12)}s ${treasury % 12}d)`, VICTORIAN_PALETTE.AMBER_GASLIGHT, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, rect.y + 2, `Player Treasury: ${treasury}d (${Math.floor(treasury / 12)}s ${treasury % 12}d)`.slice(0, rightWidth), VICTORIAN_PALETTE.AMBER_GASLIGHT, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
-    buf.writeString(rightX, rect.y + 4, '─[ LIVE COMMODITY QUOTES ]──────────', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
-    buf.writeString(rightX, rect.y + 5, 'COMMODITY       PRICE   SUPPLY  TREND', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, rect.y + 4, '─[ LIVE COMMODITY QUOTES ]──────────'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, rect.y + 5, 'COMMODITY       PRICE   SUPPLY  TREND'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
     const quotes = Object.values(state.economy?.marketQuotes ?? {});
     const quoteRows = quotes.length > 0 ? quotes : [
@@ -206,18 +206,18 @@ export function renderFactionContaminationMap(
     }
 
     qY++;
-    buf.writeString(rightX, qY, '─[ BROKER COUNTER & PEDESTALS ]─────', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, qY, '─[ BROKER COUNTER & PEDESTALS ]─────'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY++;
-    buf.writeString(rightX, qY, 'Stationed Broker: Spitalfields Guild Clerk', VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, qY, 'Stationed Broker: Spitalfields Guild Clerk'.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY++;
-    buf.writeString(rightX, qY, 'Trade Rate: 100% Par Value (Standard Tariff)', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, qY, 'Trade Rate: 100% Par Value (Tariff)'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY += 2;
 
-    buf.writeString(rightX, qY, '─[ METROPOLITAN STANDING ]──────────', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, qY, '─[ METROPOLITAN STANDING ]──────────'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY++;
     const reps = state.economy?.factionReputation ?? { IRONMONGERS_CARTEL: 10, CLOCKWORK_GUILD: 15, UNDERCROFT_SYNDICATE: 0, CROWN_CONSTABULARY: 5 };
-    buf.writeString(rightX, qY, `Cartel: +${reps.IRONMONGERS_CARTEL ?? 0} | Guild: +${reps.CLOCKWORK_GUILD ?? 0}`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, qY, `Cartel: +${reps.IRONMONGERS_CARTEL ?? 0} | Guild: +${reps.CLOCKWORK_GUILD ?? 0}`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
     qY++;
-    buf.writeString(rightX, qY, `Syndicate: ${reps.UNDERCROFT_SYNDICATE ?? 0} | Crown: +${reps.CROWN_CONSTABULARY ?? 0}`, VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(rightX, qY, `Syndicate: ${reps.UNDERCROFT_SYNDICATE ?? 0} | Crown: +${reps.CROWN_CONSTABULARY ?? 0}`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
   }
 }

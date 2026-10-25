@@ -209,5 +209,6 @@ export function renderNaturalistLedgerScreen(
   }
 
   const footerY = rect.y + rect.height - 2;
-  buf.writeString(rightX + 2, footerY, '* Recorded by Fellow of the Royal Society *', '#7f6b55', rightBg);
+  const footerText = isWidescreen ? '* Royal Society Naturalist Ledger *' : '* Royal Society *';
+  buf.writeString(rightX + 2, footerY, footerText.slice(0, rightWidth - 4), '#7f6b55', rightBg);
 }

@@ -26,6 +26,8 @@
     "hermes:split:mock": "tsx tests/scripts/hermes-split.ts --mock",
     "hermes:critic": "tsx tests/scripts/hermes-critic.ts",
     "hermes:critic:mock": "tsx tests/scripts/hermes-critic.ts --mock",
+    "hermes:vision": "tsx tests/scripts/hermes-vision-critic.ts",
+    "hermes:vision:mock": "tsx tests/scripts/hermes-vision-critic.ts --mock",
     "scaffold:mechanic": "tsx tests/scripts/scaffold-mechanic.ts",
     "scaffold:mechanic:mock": "tsx tests/scripts/scaffold-mechanic.ts --mock",
     "generate:arch-map": "tsx tests/scripts/generate-architecture-map.ts",
