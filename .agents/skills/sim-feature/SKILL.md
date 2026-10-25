@@ -15,11 +15,19 @@ This skill guides the implementation of new simulation features, gameplay comman
 
 Follow this exact sequence for any new gameplay mechanic:
 
-### 1. Schema First (`src/schemas/`)
-Define all types and runtime contracts in Zod before writing logic:
+### 1. Schema First & Automated Scaffolding (`src/schemas/`)
+To prevent near-cap files like `src/schemas/domain-events.schema.ts` (243 lines) or `domain-commands.schema.ts` (234 lines) from breaching the 250-line threshold, scaffold modular schema files automatically:
+```bash
+npm run scaffold:mechanic -- --domain <slug> --command <COMMAND_NAME> --event <EVENT_NAME>
+```
+*Example for Phase 50 Environmental Agency:*
+```bash
+npm run scaffold:mechanic -- --domain environmental --command PRY_OBSTACLE --event OBSTACLE_PRIED
+```
+This generates dedicated sub-schemas (`src/schemas/<domain>-commands.schema.ts` and `src/schemas/<domain>-events.schema.ts`), system stubs, and unit test suites:
 - **Components** (`src/schemas/components.schema.ts`): Add new component fields or define new schemas using primitive branded IDs (`EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema` from `src/schemas/primitives.schema.ts`).
-- **Commands** (`src/schemas/commands.schema.ts`): Add the new command variant to `GameCommandSchema`. Every command must be a discriminated union variant with a unique `type` literal and actor identifier (`actorId` or `attackerId`).
-- **Domain Events** (`src/schemas/domain-events.schema.ts` / `src/schemas/events.schema.ts`): Define the emitted event variant in `SimEventSchema` with `turn: number` and causal parameters.
+- **Commands**: Every command must be a discriminated union variant with a unique `type` literal and actor identifier (`actorId` or `attackerId`).
+- **Domain Events**: Define the emitted event variant in `SimEventSchema` with `turn: number` and causal parameters.
 
 ### 2. Pure Functional System (`src/sim/systems/`)
 Implement domain logic as a pure headless function:

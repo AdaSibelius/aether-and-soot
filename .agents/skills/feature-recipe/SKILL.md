@@ -15,10 +15,15 @@ This skill provides step-by-step procedures for implementing new gameplay mechan
 
 Follow this sequence for any new gameplay command, physical interaction, or system:
 
-### Step 1: Schemas First (`src/schemas/`)
+### Step 1: Schemas First & Automated Scaffolding (`src/schemas/`)
+- **Automated Mechanic Scaffolding**: To avoid manually editing near-cap schema files (`domain-events.schema.ts` at 243 lines), run:
+  ```bash
+  npm run scaffold:mechanic -- --domain <slug> --command <COMMAND_NAME> --event <EVENT_NAME>
+  ```
+  This creates dedicated `src/schemas/<domain>-commands.schema.ts` and `src/schemas/<domain>-events.schema.ts` files, system skeletons, and Vitest suites without bloating central schema files.
 - **Components**: Add new fields or component schemas to `src/schemas/components.schema.ts` (or `src/schemas/world-components.schema.ts`).
 - **Commands**: Add the new command variant to `GameCommandSchema` in `src/schemas/commands.schema.ts`. Use discriminated unions keyed by `type`.
-- **Domain Events**: Add corresponding event variants to `src/schemas/domain-events.schema.ts` and ensure they are aggregated in `src/schemas/events.schema.ts` (`SimEventSchema`).
+- **Domain Events**: Add corresponding event variants to `src/schemas/domain-events.schema.ts` or modular `<domain>-events.schema.ts` and ensure they are aggregated in `src/schemas/events.schema.ts` (`SimEventSchema`).
 - **Primitives**: Reuse branded types (`EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema`) from `src/schemas/primitives.schema.ts`.
 
 ### Step 2: Pure Domain System (`src/sim/systems/`)

@@ -4,19 +4,16 @@
 
 ## Codebase Telemetry & Modularity Health
 
-- **Files Indexed**: 187
-- **Total Lines of Code**: 27447
-- **Average File Size**: 147 lines (Target: <= 250)
+- **Files Indexed**: 191
+- **Total Lines of Code**: 27768
+- **Average File Size**: 145 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
-- **Near-Cap Files (>= 240 lines)**: 10 files
+- **Near-Cap Files (>= 240 lines)**: 7 files
 
 ### Near-Cap File Watchlist (Approaching 300-Line Ceiling)
 
 | File | Lines | Action Required |
 | :--- | :---: | :--- |
-| `tests/scripts/hermes-split.ts` | 286 | Extract sub-module before adding functions |
-| `src/client/ui/EventFormatter.ts` | 250 | Extract sub-module before adding functions |
-| `src/client/ui/AnatomyWindow.tsx` | 248 | Extract sub-module before adding functions |
 | `src/client/main.tsx` | 247 | Extract sub-module before adding functions |
 | `src/client/ui/CharacterCreatorModal.tsx` | 247 | Extract sub-module before adding functions |
 | `src/client/ui/ItemDossierCard.tsx` | 245 | Extract sub-module before adding functions |
@@ -193,7 +190,19 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
 | `src/client/ui/AnatomyDoll.tsx` | 66 | ✅ OK | `AnatomyDoll({ anatomy, carriedProstheticSlots }: AnatomyDollProps): void` |
-| `src/client/ui/AnatomyWindow.tsx` | 248 | ⚠️ WARN | `AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps): void` |
+| `src/client/ui/AnatomyGraftPanel.tsx` | 114 | ✅ OK | `AnatomyGraftPanel({
+  selectedSlot,
+  slotKeyNum,
+  selectedLimb,
+  installedProsthetic,
+  prostheticBp,
+  compatibleInSatchel,
+  gearsCount,
+  canRepair,
+  actorId,
+  onCommand,
+}: AnatomyGraftPanelProps): void` |
+| `src/client/ui/AnatomyWindow.tsx` | 185 | ✅ OK | `AnatomyWindow({ state, actorId, onCommand }: AnatomyWindowProps): void` |
 | `src/client/ui/AtlasDossierView.tsx` | 109 | ✅ OK | `AtlasDossierView({
   state,
   actorId,
@@ -229,7 +238,8 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
 | `src/client/ui/CraftingWindow.tsx` | 243 | ⚠️ WARN | `CraftingWindow({ state, actorId, onCommand }: CraftingWindowProps): void` |
 | `src/client/ui/DialogueModal.tsx` | 214 | ✅ OK | `DialogueModal({ state, actorId, targetNpcId, onCommand, onClose, onOpenModal }: DialogueModalProps): void` |
 | `src/client/ui/EquippedGearPanel.tsx` | 99 | ✅ OK | `EquippedGearPanel({ state, actorId, onCommand }: EquippedGearPanelProps): void` |
-| `src/client/ui/EventFormatter.ts` | 250 | ⚠️ WARN | `formatEventMessage(ev: SimEvent): string`, `aggregateChronicleEvents(events: readonly SimEvent[], maxLines: number): string[]` |
+| `src/client/ui/EventFormatter.ts` | 210 | ✅ OK | `formatEventMessage(ev: SimEvent): string` |
+| `src/client/ui/EventFormatterDomain.ts` | 48 | ✅ OK | `aggregateChronicleEvents(events: readonly SimEvent[], maxLines: number): string[]` |
 | `src/client/ui/HudLayout.tsx` | 223 | ✅ OK | `HudLayout({
   state,
   onCommand,
@@ -325,7 +335,8 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | `tests/scripts/hermes-content-normalizers.ts` | 162 | ✅ OK | `normalizePrefabGrid(raw: any): any`, `normalizeRawItem(item: any, type: ContentType): any`, `validateAndFormatContent(type: ContentType, rawItems: unknown[]): { valid: ValidatedContent[]; errors: string[]; }` |
 | `tests/scripts/hermes-critic.ts` | 240 | ⚠️ WARN | `parseCriticArgs(argv: string[]): CriticConfig`, `runCritic(config: CriticConfig, rootDir: string): Promise<string>` |
 | `tests/scripts/hermes-scout.ts` | 169 | ✅ OK | `parseScoutArgs(argv: string[]): ScoutConfig`, `scanCodebaseFiles(rootDir: string): AstFileMetadata[]`, `generateDeterministicScoutReport(task: string, files: AstFileMetadata[]): string`, `requestLlmScoutReport(config: ScoutConfig, files: AstFileMetadata[]): Promise<string>` |
-| `tests/scripts/hermes-split.ts` | 286 | ⚠️ WARN | `parseSplitArgs(argv: string[]): SplitConfig`, `extractFunctionBlock(content: string, name: string): { block: string; start: number; end: number } \| undefined`, `reconcileTargetImports(sourceImports: string[], code: string, relSourcePath: string, sourceExports: string[]): string[]`, `performFileSplit(sourceContent: string, targetRelPath: string, functionNames: string[], relSourcePath: string): { updatedSource: string; targetContent: string; extractedCount: number }` |
+| `tests/scripts/hermes-split-ast.ts` | 214 | ✅ OK | `extractFunctionBlock(content: string, name: string): ExtractedBlock \| undefined`, `reconcileTargetImports(sourceImports: readonly string[], code: string, relSourcePath: string, sourceExports: readonly string[]): string[]`, `performFileSplit(sourceContent: string, targetRelPath: string, functionNames: readonly string[], relSourcePath: string): { updatedSource: string; targetContent: string; extractedCount: number }` |
+| `tests/scripts/hermes-split.ts` | 154 | ✅ OK | `parseSplitArgs(argv: readonly string[]): SplitConfig`, `listSplitCandidates(sourceContent: string): SplitCandidate[]`, `runSplit(config: SplitConfig, rootDir: string): Promise<{ sourceLinesBefore: number; sourceLinesAfter: number; targetLines: number; extractedCount: number; }>` |
 | `tests/scripts/hermes-testgen-mock.ts` | 157 | ✅ OK | `generateMockTestSuite(targetPath: string, rootDir: string, functions: string[]): string` |
 | `tests/scripts/hermes-testgen-validator.ts` | 70 | ✅ OK | `validateTypedBoundaries(code: string): ValidationResult`, `validateTestSuiteStructure(code: string): ValidationResult`, `validateGeneratedTestSuite(code: string): ValidationResult` |
 | `tests/scripts/hermes-testgen.ts` | 217 | ✅ OK | `parseTestgenArgs(argv: string[]): TestgenConfig`, `extractModuleSignatures(filePath: string): { functions: string[]; imports: string[] }`, `requestHermesTestSuite(config: TestgenConfig, signatures: string[], rootDir: string): Promise<string>`, `requestLlmTestRepair(config: TestgenConfig, currentTestCode: string, tscErrors: string, attempt: number): Promise<string>` |
@@ -341,6 +352,7 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | `tests/scripts/playtester-projection-audit.ts` | 205 | ✅ OK | `auditClientProjection(state: WorldState, playerId: EntityId, options: AuditProjectionOptions): ClientProjectionAudit` |
 | `tests/scripts/playtester-scenarios.ts` | 164 | ✅ OK | `getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjectives`, `applyPlaytestScenario(state: WorldState, scenario: PlaytestScenario): WorldState` |
 | `tests/scripts/playtester-serializer.ts` | 201 | ✅ OK | `serializePlayerContext(state: WorldState, playerId: EntityId, options: ContextSerializationOptions): string` |
+| `tests/scripts/scaffold-mechanic.ts` | 180 | ✅ OK | `parseScaffoldArgs(argv: readonly string[]): ScaffoldConfig`, `toPascalCase(snakeStr: string): string`, `generateScaffoldCode(config: ScaffoldConfig): { commandSchemaRel: string; commandSchemaCode: string; eventSchemaRel: string; eventSchemaCode: string; systemRel: string; systemCode: string; testRel: string; testCode: string; }`, `runScaffold(config: ScaffoldConfig, rootDir: string): Promise<void>` |
 | `tests/scripts/update-state.ts` | 207 | ✅ OK | `parseVerifiedPrescriptions(criticContent: string): BacklogPrescription[]`, `routeVerifiedPrescriptionsToRoadmap(criticPathOrRootDir: string, customRoadmapPath: string, customStatePath: string): { routedCount: number; prescriptions: BacklogPrescription[] }`, `getRecentCommits(count: unknown): string`, `getNextPriority(roadmapPath: string): string` |
 | `tests/scripts/validate-data.ts` | 83 | ✅ OK | *None (internal)* |
 
