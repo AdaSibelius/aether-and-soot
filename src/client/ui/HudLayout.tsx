@@ -11,6 +11,7 @@ export interface HudLayoutProps {
   readonly state: Readonly<WorldState>;
   readonly onCommand: (cmd: GameCommand) => void;
   readonly hoveredTile?: { x: number; y: number } | null;
+  readonly isLookModeActive?: boolean;
   readonly onOpenModal?: (window: ModalWindowId) => void;
   readonly onOpenSystemMenu?: () => void;
   readonly onReEmbark?: () => void;
@@ -20,6 +21,7 @@ export function HudLayout({
   state,
   onCommand,
   hoveredTile = null,
+  isLookModeActive = false,
   onOpenModal,
   onOpenSystemMenu,
   onReEmbark,
@@ -198,6 +200,7 @@ export function HudLayout({
         state={state}
         actorId={playerId}
         tile={hoveredTile}
+        isLookModeActive={isLookModeActive}
         onCommand={onCommand}
         onSelectTab={(tab) => {
           if (!onOpenModal) return;

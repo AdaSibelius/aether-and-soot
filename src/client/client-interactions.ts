@@ -46,6 +46,25 @@ export function findEntityAtLookCursor(
   );
 }
 
+export function findAdjacentHostileActor(state: WorldState, playerId: EntityId): EntityRecord | undefined {
+  const p = state.entities[playerId]?.position;
+  if (!p) return undefined;
+  return Object.values(state.entities).find(
+    (e) => e.id !== playerId && e.actor && e.aiController?.hostile && e.position
+      && e.position.stratum === p.stratum && Math.max(Math.abs(e.position.x - p.x), Math.abs(e.position.y - p.y)) <= 1,
+  );
+}
+
+export function findActorAtStepTarget(state: WorldState, playerId: EntityId, dx: number, dy: number): EntityRecord | undefined {
+  const p = state.entities[playerId]?.position;
+  if (!p) return undefined;
+  const targetX = p.x + dx;
+  const targetY = p.y + dy;
+  return Object.values(state.entities).find(
+    (e) => e.id !== playerId && e.actor && e.position && e.position.stratum === p.stratum && e.position.x === targetX && e.position.y === targetY,
+  );
+}
+
 export function clampLookCursor(
   cursor: { x: number; y: number },
   dx: number,

@@ -1,6 +1,6 @@
 import { GameCommand } from '../schemas/commands.schema.js';
 import { CharacterCreationConfig } from '../schemas/character.schema.js';
-import { EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
+import { BlueprintIdSchema, EntityId, EntityIdSchema, LimbSlotId } from '../schemas/primitives.schema.js';
 import { dispatchCommand } from '../sim/core/engine.js';
 import { createInitialWorld, serializeWorld, WorldState } from '../sim/core/world.js';
 import { generateVictorianDistrict } from '../sim/spatial/generator.js';
@@ -50,6 +50,7 @@ export function startClientSession(
   let lookCursor: { x: number; y: number } | null = null;
   let activeDialogueNpcId: EntityId | null = null;
   let useDiegeticCanvasUi = true;
+  const modalNavState = { selectedIndex: 0 };
 
   const soundscape = getSoundscapeManager();
   const saveAdapter = getDefaultSaveStorageAdapter();
@@ -193,15 +194,33 @@ export function startClientSession(
   };
 
   canvasHost.addEventListener('mousemove', updateTileFromMouse);
-  canvasHost.addEventListener('click', updateTileFromMouse);
+  canvasHost.addEventListener('click', (ev: MouseEvent) => {
+    updateTileFromMouse(ev);
+    if (activeModal && useDiegeticCanvasUi) {
+      const hit = stageRenderer.resolveHitActionAt(ev.clientX, ev.clientY, canvasHost.getBoundingClientRect());
+      if (hit?.startsWith('select_limb:')) {
+        const slot = hit.replace('select_limb:', '') as LimbSlotId;
+        const player = worldState.entities[playerId];
+        const graft = player?.inventory?.containedEntityIds.find((id) => worldState.entities[id]?.prostheticSpec?.targetLimbSlot === slot);
+        if (graft) handleCommand({ type: 'INSTALL_PROSTHETIC', actorId: playerId, slot, prostheticEntityId: graft });
+      } else if (hit?.startsWith('select_item:')) {
+        const itemEntityId = EntityIdSchema.parse(hit.replace('select_item:', ''));
+        handleCommand({ type: 'USE_ITEM', actorId: playerId, itemEntityId });
+      } else if (hit?.startsWith('craft_recipe:')) {
+        const recipeId = BlueprintIdSchema.parse(hit.replace('craft_recipe:', ''));
+        handleCommand({ type: 'CRAFT_RECIPE', actorId: playerId, recipeId });
+      }
+    }
+  });
 
   window.addEventListener('keydown', (ev: KeyboardEvent) => {
     handleGameKeydown(ev, {
       playerId, isSystemMenuOpen, activeModal, isLookModeActive,
+      worldState, modalNavState,
       onToggleSystemMenu: () => { isSystemMenuOpen = !isSystemMenuOpen; syncPresentation(); },
       onCloseModal: () => { activeModal = null; syncPresentation(); },
       onCycleModal: cycleModal,
-      onSetModal: (modal) => { activeModal = modal; syncPresentation(); },
+      onSetModal: (modal) => { activeModal = modal; modalNavState.selectedIndex = 0; syncPresentation(); },
       onToggleLookMode: toggleLookMode, onMoveLookCursor: moveLookCursor,
       onLookAttack: lookAttack, onLookInteract: lookInteract,
       onToggleDoor: toggleAdjacentDoor, onTalk: handleTalk,

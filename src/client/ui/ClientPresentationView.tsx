@@ -107,6 +107,7 @@ export function renderClientPresentationViews(
         state={ctx.worldState}
         onCommand={ctx.onCommand}
         hoveredTile={inspectedTile}
+        isLookModeActive={ctx.isLookModeActive}
         onOpenModal={ctx.onOpenModal}
         onOpenSystemMenu={ctx.onOpenSystemMenu}
         onReEmbark={ctx.onOpenCharacterCreator}

@@ -7,6 +7,7 @@ export interface TileInspectorPanelProps {
   readonly state: Readonly<WorldState>;
   readonly actorId: EntityId;
   readonly tile: { x: number; y: number } | null;
+  readonly isLookModeActive?: boolean;
   readonly onCommand: (cmd: GameCommand) => void;
   readonly onSelectTab?: (tab: 'TELEMETRY' | 'INVENTORY' | 'SURGERY' | 'WORKBENCH' | 'EXCHANGE') => void;
 }
@@ -22,6 +23,7 @@ export function TileInspectorPanel({
   state,
   actorId,
   tile,
+  isLookModeActive = false,
   onCommand,
   onSelectTab,
 }: TileInspectorPanelProps) {
@@ -130,8 +132,8 @@ export function TileInspectorPanel({
                 </button>
               </div>
             )}
-            {/* Tactical context actions if adjacent */}
-            {isAdjacent && e.id !== actorId && e.actor && (
+            {/* Tactical context actions if adjacent (hidden during Look Mode to avoid duplicate targeting buttons) */}
+            {isAdjacent && !isLookModeActive && e.id !== actorId && e.actor && (
               <div style={{ marginTop: '4px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                 {(['TORSO', 'HEAD', 'LEFT_LEG'] as LimbSlotId[]).map((slot) => (
                   <button

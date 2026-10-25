@@ -1,12 +1,17 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
+import { WorldState } from '../../sim/core/world.js';
+import { findActorAtStepTarget, findAdjacentHostileActor } from '../client-interactions.js';
 import { ModalWindowId } from '../ui/CharacterModalShell.js';
+import { handleModalNavigationKey, ModalNavState } from './modal-nav-router.js';
 
 export interface KeyboardRouterParams {
   readonly playerId: EntityId;
   readonly isSystemMenuOpen: boolean;
   readonly activeModal: ModalWindowId | null;
   readonly isLookModeActive: boolean;
+  readonly worldState?: Readonly<WorldState>;
+  readonly modalNavState?: ModalNavState;
   readonly onToggleSystemMenu: () => void;
   readonly onCloseModal: () => void;
   readonly onCycleModal: (direction: 1 | -1) => void;
@@ -16,32 +21,37 @@ export interface KeyboardRouterParams {
   readonly onLookAttack: (slot: LimbSlotId) => void;
   readonly onLookInteract: () => void;
   readonly onToggleDoor?: () => void;
-  readonly onTalk?: () => void;
+  readonly onTalk?: (targetNpcId?: EntityId) => void;
   readonly onOpenCharacterCreator?: () => void;
   readonly currentPosture?: 'STANDING' | 'CROUCHED' | 'BRACED';
   readonly onTogglePosture?: () => void;
   readonly onCommand: (cmd: GameCommand) => void;
 }
 
+const SLOT_MAP: Record<string, LimbSlotId> = {
+  '1': 'HEAD',
+  '2': 'TORSO',
+  '3': 'LEFT_ARM',
+  '4': 'RIGHT_ARM',
+  '5': 'LEFT_LEG',
+  '6': 'RIGHT_LEG',
+};
+
+const MOVE_MAP: Record<string, { dx: number; dy: number }> = {
+  ArrowUp: { dx: 0, dy: -1 },
+  w: { dx: 0, dy: -1 },
+  ArrowDown: { dx: 0, dy: 1 },
+  s: { dx: 0, dy: 1 },
+  ArrowLeft: { dx: -1, dy: 0 },
+  a: { dx: -1, dy: 0 },
+  ArrowRight: { dx: 1, dy: 0 },
+  d: { dx: 1, dy: 0 },
+};
+
 export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParams): void {
-  const {
-    playerId,
-    isSystemMenuOpen,
-    activeModal,
-    isLookModeActive,
-    onToggleSystemMenu,
-    onCloseModal,
-    onCycleModal,
-    onSetModal,
-    onToggleLookMode,
-    onMoveLookCursor,
-    onLookAttack,
-    onLookInteract,
-    onToggleDoor,
-    onTalk,
-    onOpenCharacterCreator,
-    onCommand,
-  } = params;
+  const { playerId, isSystemMenuOpen, activeModal, isLookModeActive, onToggleSystemMenu,
+    onCloseModal, onCycleModal, onSetModal, onToggleLookMode, onMoveLookCursor,
+    onLookAttack, onLookInteract, onToggleDoor, onTalk, onOpenCharacterCreator, onCommand } = params;
 
   if (ev.key === 'Escape') {
     ev.preventDefault();
@@ -57,30 +67,44 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     if (ev.key === 'Tab') {
       ev.preventDefault();
       onCycleModal(ev.shiftKey ? -1 : 1);
-    } else if (ev.key === 'q' || ev.key === 'Q') {
+      return;
+    }
+    if (ev.key === 'q' || ev.key === 'Q') {
       ev.preventDefault();
       onCycleModal(-1);
-    } else if (ev.key === 'e' || ev.key === 'E') {
+      return;
+    }
+    if (ev.key === 'e' || ev.key === 'E') {
       ev.preventDefault();
       onCycleModal(1);
-    } else if (ev.key === 'i' || ev.key === 'I') {
+      return;
+    }
+    const modalKeyMap: Record<string, ModalWindowId> = {
+      i: 'INVENTORY', I: 'INVENTORY',
+      a: 'ANATOMY', A: 'ANATOMY',
+      c: 'WORKBENCH', C: 'WORKBENCH',
+      m: 'EXCHANGE', M: 'EXCHANGE',
+      w: 'ATLAS', W: 'ATLAS',
+      k: 'CODEX', K: 'CODEX',
+    };
+    const targetModal = modalKeyMap[ev.key];
+    if (targetModal) {
       ev.preventDefault();
-      onSetModal(activeModal === 'INVENTORY' ? null : 'INVENTORY');
-    } else if (ev.key === 'a' || ev.key === 'A') {
-      ev.preventDefault();
-      onSetModal(activeModal === 'ANATOMY' ? null : 'ANATOMY');
-    } else if (ev.key === 'c' || ev.key === 'C') {
-      ev.preventDefault();
-      onSetModal(activeModal === 'WORKBENCH' ? null : 'WORKBENCH');
-    } else if (ev.key === 'm' || ev.key === 'M') {
-      ev.preventDefault();
-      onSetModal(activeModal === 'EXCHANGE' ? null : 'EXCHANGE');
-    } else if (ev.key === 'w' || ev.key === 'W') {
-      ev.preventDefault();
-      onSetModal(activeModal === 'ATLAS' ? null : 'ATLAS');
-    } else if (ev.key === 'k' || ev.key === 'K') {
-      ev.preventDefault();
-      onSetModal(activeModal === 'CODEX' ? null : 'CODEX');
+      onSetModal(activeModal === targetModal ? null : targetModal);
+      return;
+    }
+
+    // Modal internal list/item keyboard navigation
+    if (params.worldState && params.modalNavState) {
+      const handled = handleModalNavigationKey(
+        ev,
+        activeModal,
+        params.worldState,
+        playerId,
+        params.modalNavState,
+        onCommand,
+      );
+      if (handled) return;
     }
     return;
   }
@@ -92,35 +116,13 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
       onToggleLookMode();
       return;
     }
-    const lookMoveMap: Record<string, { dx: number; dy: number }> = {
-      ArrowUp: { dx: 0, dy: -1 },
-      w: { dx: 0, dy: -1 },
-      W: { dx: 0, dy: -1 },
-      ArrowDown: { dx: 0, dy: 1 },
-      s: { dx: 0, dy: 1 },
-      S: { dx: 0, dy: 1 },
-      ArrowLeft: { dx: -1, dy: 0 },
-      a: { dx: -1, dy: 0 },
-      A: { dx: -1, dy: 0 },
-      ArrowRight: { dx: 1, dy: 0 },
-      d: { dx: 1, dy: 0 },
-      D: { dx: 1, dy: 0 },
-    };
-    const dir = lookMoveMap[ev.key];
+    const dir = MOVE_MAP[ev.key];
     if (dir) {
       ev.preventDefault();
       onMoveLookCursor(dir.dx, dir.dy);
       return;
     }
-    const slotMap: Record<string, LimbSlotId> = {
-      '1': 'HEAD',
-      '2': 'TORSO',
-      '3': 'LEFT_ARM',
-      '4': 'RIGHT_ARM',
-      '5': 'LEFT_LEG',
-      '6': 'RIGHT_LEG',
-    };
-    const slot = slotMap[ev.key];
+    const slot = SLOT_MAP[ev.key];
     if (slot) {
       ev.preventDefault();
       onLookAttack(slot);
@@ -139,37 +141,40 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     return;
   }
 
+  // Quick-Target Combat Hotkeys outside Look Mode
+  if (params.worldState) {
+    const adjHostile = findAdjacentHostileActor(params.worldState, playerId);
+    if (adjHostile) {
+      const slot = SLOT_MAP[ev.key];
+      if (slot) {
+        ev.preventDefault();
+        onCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: adjHostile.id, targetSlot: slot });
+        return;
+      }
+      if (ev.key === 'f' || ev.key === 'F') {
+        ev.preventDefault();
+        onCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: adjHostile.id, targetSlot: 'TORSO' });
+        return;
+      }
+    }
+  }
+
   // Tactical Hotkeys to Open Modal Windows
-  if (ev.key === 'i' || ev.key === 'I') {
+  const openModalMap: Record<string, ModalWindowId> = {
+    i: 'INVENTORY', I: 'INVENTORY',
+    c: 'WORKBENCH', C: 'WORKBENCH',
+    m: 'EXCHANGE', M: 'EXCHANGE',
+    A: 'ANATOMY',
+    W: 'ATLAS',
+    k: 'CODEX', K: 'CODEX',
+  };
+  const toOpen = openModalMap[ev.key];
+  if (toOpen) {
     ev.preventDefault();
-    onSetModal('INVENTORY');
+    onSetModal(toOpen);
     return;
   }
-  if (ev.key === 'c' || ev.key === 'C') {
-    ev.preventDefault();
-    onSetModal('WORKBENCH');
-    return;
-  }
-  if (ev.key === 'm' || ev.key === 'M') {
-    ev.preventDefault();
-    onSetModal('EXCHANGE');
-    return;
-  }
-  if (ev.key === 'A') {
-    ev.preventDefault();
-    onSetModal('ANATOMY');
-    return;
-  }
-  if (ev.key === 'W') {
-    ev.preventDefault();
-    onSetModal('ATLAS');
-    return;
-  }
-  if (ev.key === 'k' || ev.key === 'K') {
-    ev.preventDefault();
-    onSetModal('CODEX');
-    return;
-  }
+
   if (ev.key === 'l' || ev.key === 'L') {
     ev.preventDefault();
     onToggleLookMode();
@@ -186,21 +191,23 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     return;
   }
 
-  // Standard Roguelike Movement & Actions
-  const keyMap: Record<string, { dx: number; dy: number }> = {
-    ArrowUp: { dx: 0, dy: -1 },
-    w: { dx: 0, dy: -1 },
-    ArrowDown: { dx: 0, dy: 1 },
-    s: { dx: 0, dy: 1 },
-    ArrowLeft: { dx: -1, dy: 0 },
-    a: { dx: -1, dy: 0 },
-    ArrowRight: { dx: 1, dy: 0 },
-    d: { dx: 1, dy: 0 },
-  };
-
-  const move = keyMap[ev.key];
+  // Standard Roguelike Movement, Bump-to-Attack & Actions
+  const move = MOVE_MAP[ev.key];
   if (move) {
     ev.preventDefault();
+    if (params.worldState) {
+      const targetActor = findActorAtStepTarget(params.worldState, playerId, move.dx, move.dy);
+      if (targetActor) {
+        if (targetActor.aiController?.hostile) {
+          onCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: targetActor.id, targetSlot: 'TORSO' });
+          return;
+        }
+        if (onTalk) {
+          onTalk(targetActor.id);
+          return;
+        }
+      }
+    }
     onCommand({ type: 'MOVE_STEP', actorId: playerId, dx: move.dx, dy: move.dy });
     return;
   }
@@ -219,13 +226,9 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
     if (params.onTogglePosture) {
       params.onTogglePosture();
     } else {
-      const next: Record<'STANDING' | 'CROUCHED' | 'BRACED', 'STANDING' | 'CROUCHED' | 'BRACED'> = {
-        STANDING: 'CROUCHED',
-        CROUCHED: 'BRACED',
-        BRACED: 'STANDING',
-      };
       const cur = params.currentPosture ?? 'STANDING';
-      onCommand({ type: 'SET_POSTURE', actorId: playerId, posture: next[cur] });
+      const next = cur === 'STANDING' ? 'CROUCHED' : cur === 'CROUCHED' ? 'BRACED' : 'STANDING';
+      onCommand({ type: 'SET_POSTURE', actorId: playerId, posture: next });
     }
   } else if ((ev.key === 'n' || ev.key === 'N') && onOpenCharacterCreator) {
     ev.preventDefault();
