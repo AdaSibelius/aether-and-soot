@@ -5,7 +5,7 @@ import { emitProceduralBark } from '../data/corpora-catalog.js';
 import { SeededRNG } from '../core/rng.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
-import { withoutEntity } from './inventory-utils.js';
+import { evaluateContractFulfillment } from './dialogue-quest-evaluator.js';
 
 export const CHIRURGEON_FEE_PENCE = 35;
 export const COMPANION_HIRE_FEE_PENCE = 60;
@@ -73,45 +73,9 @@ export function resolveCompleteContract(
   const actor = state.entities[actorId];
   if (!actor?.inventory) return failDialogue(state, actorId, 'COMPLETE_CONTRACT', 'MISSING_INVENTORY');
 
-  let nextEntities = { ...state.entities };
-  let nextContained = [...actor.inventory.containedEntityIds];
-
-  if (contract.kind === 'DELIVER_ITEM') {
-    const itemEntry = nextContained
-      .map((id) => nextEntities[id])
-      .find((e) => e?.item?.blueprintId === contract.targetBlueprintOrEntityId);
-
-    if (!itemEntry?.item) {
-      return failDialogue(state, actorId, 'COMPLETE_CONTRACT', 'ITEM_REQUIREMENT_UNMET');
-    }
-
-    if (itemEntry.item.quantity > 1) {
-      nextEntities[itemEntry.id] = {
-        ...itemEntry,
-        item: { ...itemEntry.item, quantity: itemEntry.item.quantity - 1 },
-      };
-    } else {
-      nextEntities = withoutEntity(nextEntities, itemEntry.id);
-      nextContained = nextContained.filter((id) => id !== itemEntry.id);
-    }
-
-    nextEntities[actorId] = {
-      ...actor,
-      inventory: { ...actor.inventory, containedEntityIds: nextContained },
-    };
-  } else if (contract.kind === 'SLAY_HOSTILE') {
-    const target = nextEntities[contract.targetBlueprintOrEntityId];
-    if (target && target.actor && !target.anatomy?.limbs.TORSO?.amputated) {
-      return failDialogue(state, actorId, 'COMPLETE_CONTRACT', 'TARGET_STILL_ALIVE');
-    }
-  } else if (contract.kind === 'PRESSURIZE_BOILER') {
-    const target = nextEntities[contract.targetBlueprintOrEntityId];
-    const isPressurized = Boolean(
-      target?.pressureVessel?.ruptured || (target?.pressureVessel?.currentPressureKpa ?? 0) >= 260,
-    );
-    if (!isPressurized) {
-      return failDialogue(state, actorId, 'COMPLETE_CONTRACT', 'BOILER_NOT_PRESSURIZED');
-    }
+  const check = evaluateContractFulfillment(state, actorId, actor, contract);
+  if (!check.success || !check.nextEntities) {
+    return failDialogue(state, actorId, 'COMPLETE_CONTRACT', check.failureReason ?? 'REQUIREMENTS_NOT_MET');
   }
 
   const currentRep = state.economy.factionReputation[contract.factionId] ?? 0;
@@ -123,7 +87,7 @@ export function resolveCompleteContract(
 
   const nextState: WorldState = {
     ...state,
-    entities: nextEntities,
+    entities: check.nextEntities,
     contracts: updatedContracts,
     economy: {
       ...state.economy,

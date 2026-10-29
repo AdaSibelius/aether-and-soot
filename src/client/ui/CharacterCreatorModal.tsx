@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
 import { CharacterCreationConfig, ProfessionId, ScenarioId, TraitId } from '../../schemas/character.schema.js';
-import { formatBlueprintTooltip, humanizeIdentifier, resolveBlueprintDisplayName } from '../../sim/data/item-catalog.js';
-import { PROFESSIONS, SCENARIOS, TRAITS } from '../../sim/systems/character-archetypes.js';
+import { PROFESSIONS, SCENARIOS } from '../../sim/systems/character-archetypes.js';
+import { VocationSelectorPanel } from './VocationSelectorPanel.js';
+import { TraitSelectorPanel } from './TraitSelectorPanel.js';
 
 export interface CharacterCreatorModalProps {
   readonly isOpen: boolean;
@@ -74,88 +75,18 @@ export function CharacterCreatorModal({
 
         {/* 3-Column CDDA Layout */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1.1fr', gap: '12px', fontSize: '11px' }}>
-          
           {/* Column 1: Profession */}
-          <div style={{ border: '1px solid #23303d', padding: '10px', background: '#0d1317' }}>
-            <div class="brass-text" style={{ fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid #23303d', paddingBottom: '4px' }}>
-              1. CHOOSE PROFESSION
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {(Object.keys(PROFESSIONS) as ProfessionId[]).map((pid) => {
-                const p = PROFESSIONS[pid];
-                const isSelected = selectedProf === pid;
-                return (
-                  <button
-                    key={pid}
-                    type="button"
-                    onClick={() => setSelectedProf(pid)}
-                    style={{
-                      textAlign: 'left', padding: '6px 8px',
-                      background: isSelected ? 'rgba(212, 175, 55, 0.2)' : '#121920',
-                      border: isSelected ? '1px solid var(--brass-gold)' : '1px solid #1c2630',
-                      color: isSelected ? 'var(--brass-gold)' : '#c5d1d9',
-                    }}
-                  >
-                    <div style={{ fontWeight: 'bold' }}>{p.name}</div>
-                    <div style={{ fontSize: '10px', color: '#8b949e', marginTop: '2px' }}>{p.description}</div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ marginTop: '10px', padding: '6px', background: '#10171e', border: '1px dashed #23303d', fontSize: '10px' }}>
-              <div class="brass-text" style={{ fontWeight: 'bold' }}>Starting Loadout:</div>
-              <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
-                {profDef.startingItems.map((it) => (
-                  <li key={it.blueprintId} title={formatBlueprintTooltip(it.blueprintId)} style={{ cursor: 'help' }}>
-                    {resolveBlueprintDisplayName(it.blueprintId)} (x{it.quantity})
-                  </li>
-                ))}
-                {profDef.preGraftedBlueprintId && (
-                  <li
-                    style={{ color: 'var(--brass-gold)', cursor: 'help' }}
-                    title={formatBlueprintTooltip(profDef.preGraftedBlueprintId)}
-                  >
-                    Pre-Grafted: {resolveBlueprintDisplayName(profDef.preGraftedBlueprintId)} ({humanizeIdentifier(profDef.preGraftedSlot ?? '')})
-                  </li>
-                )}
-                {profDef.bonusPence > 0 && <li>+{profDef.bonusPence} Pence Treasury</li>}
-              </ul>
-            </div>
-          </div>
+          <VocationSelectorPanel
+            selectedProf={selectedProf}
+            profDef={profDef}
+            onSelectProf={setSelectedProf}
+          />
 
           {/* Column 2: Traits */}
-          <div style={{ border: '1px solid #23303d', padding: '10px', background: '#0d1317' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #23303d', paddingBottom: '4px' }}>
-              <span class="brass-text" style={{ fontWeight: 'bold' }}>2. TRAITS &amp; QUIRKS</span>
-              <span style={{ fontSize: '10px', color: selectedTraits.length === 2 ? 'var(--brass-gold)' : '#8b949e' }}>
-                {selectedTraits.length} / 2 Selected
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {(Object.keys(TRAITS) as TraitId[]).map((tid) => {
-                const tr = TRAITS[tid];
-                const isSelected = selectedTraits.includes(tid);
-                return (
-                  <div
-                    key={tid}
-                    onClick={() => toggleTrait(tid)}
-                    style={{
-                      padding: '6px 8px', cursor: 'pointer',
-                      background: isSelected ? 'rgba(46, 204, 113, 0.15)' : '#121920',
-                      border: isSelected ? '1px solid #2ecc71' : '1px solid #1c2630',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                      <span style={{ color: isSelected ? '#2ecc71' : '#c5d1d9' }}>{tr.name}</span>
-                      <span>{isSelected ? '[✓]' : '[ ]'}</span>
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#8b949e', marginTop: '2px' }}>{tr.description}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <TraitSelectorPanel
+            selectedTraits={selectedTraits}
+            onToggleTrait={toggleTrait}
+          />
 
           {/* Column 3: Scenario & Embark */}
           <div style={{ border: '1px solid #23303d', padding: '10px', background: '#0d1317', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -238,7 +169,6 @@ export function CharacterCreatorModal({
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </div>

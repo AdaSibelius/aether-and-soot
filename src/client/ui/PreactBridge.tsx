@@ -65,6 +65,7 @@ export function PreactBridge(props: PreactBridgeProps) {
           onCommand={onCommand}
           onClose={onToggleLookMode}
           onTalk={onTalk}
+          suppressDetailCard={props.useDiegeticCanvasUi}
         />
       </div>
 

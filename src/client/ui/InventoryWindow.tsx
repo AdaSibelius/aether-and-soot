@@ -6,6 +6,7 @@ import { WorldState } from '../../sim/core/world.js';
 import { findEntitiesAtPoint } from '../../sim/spatial/grid.js';
 import { computeCarriedVolumeMl, getCarryProfile } from '../../sim/systems/inventory-utils.js';
 import { EquippedGearPanel } from './EquippedGearPanel.js';
+import { InventoryEncumbranceBar } from './InventoryEncumbranceBar.js';
 import { ItemDossierCard } from './ItemDossierCard.js';
 import { ItemGlyphBadge } from './SatchelPanel.js';
 
@@ -43,9 +44,6 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
     null;
 
   const carriedVolume = inv ? computeCarriedVolumeMl(state, inv) : 0;
-  const massPct = inv ? Math.min(100, Math.round((inv.currentMassGrams / inv.maxMassGrams) * 100)) : 0;
-  const volPct = inv ? Math.min(100, Math.round((carriedVolume / inv.maxVolumeMl) * 100)) : 0;
-  const isOverweight = inv ? inv.currentMassGrams > inv.maxMassGrams : false;
 
   // Map each carried item to a quick hotkey letter [a-z]
   const letterMap: Map<string, EntityRecord> = new Map();
@@ -58,11 +56,9 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
   // Keyboard navigation for [a-z] item selection & [u, d, g, s] direct actions
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input or if meta keys are pressed
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const key = e.key.toLowerCase();
 
-      // Quick select letter [a-z]
       const targetItem = letterMap.get(key);
       if (targetItem) {
         e.preventDefault();
@@ -70,7 +66,6 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
         return;
       }
 
-      // Actions on currently selected item
       if (!selectedItem) return;
 
       if (key === 'u' && selectedItem.item?.useEffect) {
@@ -107,48 +102,11 @@ export function InventoryWindow({ state, actorId, onCommand }: InventoryWindowPr
       {/* Left Column: Categorized List & Encumbrance Meters */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <EquippedGearPanel state={state} actorId={actorId} onCommand={onCommand} />
-        {/* Encumbrance Gauges */}
-        <div class="panel-box">
-          <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>SATCHEL CAPACITY &amp; LOAD</span>
-            <span class="brass-text">Treasury: {state.economy.playerTreasuryPence}d</span>
-          </div>
-          <div style={{ marginBottom: '6px' }}>
-            <div class="stat-row" style={{ fontSize: '11px' }}>
-              <span>Carried Mass:</span>
-              <span class={isOverweight ? 'warn-text' : 'brass-text'}>
-                {inv.currentMassGrams} / {inv.maxMassGrams} g ({massPct}%)
-              </span>
-            </div>
-            <div style={{ background: '#1c150c', height: '5px', border: '1px solid #5a3c1e' }}>
-              <div
-                style={{
-                  background: isOverweight ? '#ec7063' : 'var(--brass-gold)',
-                  width: `${massPct}%`,
-                  height: '100%',
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div class="stat-row" style={{ fontSize: '11px' }}>
-              <span>Carried Volume:</span>
-              <span class="copper-text">
-                {carriedVolume} / {inv.maxVolumeMl} ml ({volPct}%)
-              </span>
-            </div>
-            <div style={{ background: '#1c150c', height: '5px', border: '1px solid #5a3c1e' }}>
-              <div
-                style={{
-                  background: 'var(--oxidized-copper)',
-                  width: `${volPct}%`,
-                  height: '100%',
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        <InventoryEncumbranceBar
+          inv={inv}
+          carriedVolume={carriedVolume}
+          treasuryPence={state.economy.playerTreasuryPence}
+        />
 
         {/* Carried Items with [a-z] Hotkeys */}
         <div class="panel-box" style={{ flex: 1, overflowY: 'auto' }}>

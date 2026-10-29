@@ -1,4 +1,4 @@
-import { EntityRecord, InventoryComponent } from '../../schemas/components.schema.js';
+import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
@@ -7,13 +7,8 @@ import { processCrimeWitnesses } from './squad-witness.system.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
 import { resolveEmitSpark } from './pressure.system.js';
-import {
-  computeCarriedVolumeMl,
-  findMergeableStack,
-  getCarryProfile,
-  MAX_OVERLOAD_RATIO,
-  withoutEntity,
-} from './inventory-utils.js';
+import { getCarryProfile } from './inventory-utils.js';
+import { executeContainerItemTransfer } from './container-transfer.js';
 
 export interface ContainerResolutionResult {
   readonly state: WorldState;
@@ -78,70 +73,12 @@ export function resolveLootContainer(
     return failContainer(state, actorId, 'CONTAINER_EMPTY');
   }
 
-  let nextEntities: Record<string, EntityRecord> = { ...state.entities };
-  let currentContained = [...actor.inventory.containedEntityIds];
-  let currentMass = actor.inventory.currentMassGrams;
-  let remainingContainerIds = [...containerInv.containedEntityIds];
-  const lootedItemIds: EntityId[] = [];
-  let penceGained = 0;
-
-  for (const tid of targetIds) {
-    const itemEntity = nextEntities[tid];
-    if (!itemEntity?.item) continue;
-
-    const itemPence = itemEntity.item.penceValue ?? 0;
-    if (itemPence > 0) {
-      // Auto-credit currency items directly into the treasury
-      penceGained += itemPence * (itemEntity.item.quantity ?? 1);
-      nextEntities = withoutEntity(nextEntities, tid);
-      remainingContainerIds = remainingContainerIds.filter((id) => id !== tid);
-      lootedItemIds.push(tid);
-      continue;
-    }
-
-    const profile = getCarryProfile(itemEntity);
-    if (!profile) continue;
-
-    const workingInv: InventoryComponent = {
-      ...actor.inventory,
-      containedEntityIds: currentContained,
-      currentMassGrams: currentMass,
-    };
-    const workingState: WorldState = { ...state, entities: nextEntities };
-
-    if (computeCarriedVolumeMl(workingState, workingInv) + profile.volumeMl > actor.inventory.maxVolumeMl) {
-      if (lootedItemIds.length === 0 && penceGained === 0) {
-        return failContainer(state, actorId, 'VOLUME_EXCEEDED');
-      }
-      break;
-    }
-
-    if (currentMass + profile.massGrams > actor.inventory.maxMassGrams * MAX_OVERLOAD_RATIO) {
-      if (lootedItemIds.length === 0 && penceGained === 0) {
-        return failContainer(state, actorId, 'MASS_EXCEEDED');
-      }
-      break;
-    }
-
-    remainingContainerIds = remainingContainerIds.filter((id) => id !== tid);
-    const stack = findMergeableStack(workingState, workingInv, itemEntity);
-    if (stack?.item) {
-      nextEntities = withoutEntity(nextEntities, tid);
-      nextEntities[stack.id] = {
-        ...stack,
-        item: { ...stack.item, quantity: stack.item.quantity + itemEntity.item.quantity },
-      };
-      currentMass += profile.massGrams;
-    } else {
-      currentContained.push(tid);
-      currentMass += profile.massGrams;
-    }
-    lootedItemIds.push(tid);
+  const transfer = executeContainerItemTransfer(state, actor, containerInv, targetIds);
+  if (!transfer.success && transfer.failureReason) {
+    return failContainer(state, actorId, transfer.failureReason);
   }
 
-  if (lootedItemIds.length === 0 && penceGained === 0) {
-    return failContainer(state, actorId, 'CONTAINER_EMPTY');
-  }
+  const { nextEntities, currentContained, currentMass, remainingContainerIds, lootedItemIds, penceGained } = transfer;
 
   const updatedActor: EntityRecord = {
     ...actor,
