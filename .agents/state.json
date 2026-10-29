@@ -1,20 +1,20 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-25",
+  "lastUpdated": "2026-10-29",
   "activePhase": 55,
   "immediateNextPriority": "Phase 56: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
   "recentCommits": [
     {
-      "hash": "be46c1a",
-      "message": "feat(client): implement 5-layer PixiJS stage and 4-pass GLSL diegetic shader suite"
+      "hash": "8ae4667",
+      "message": "feat(phase4): activate 5-layer pipeline, spire vertical parallax underlay, and spatial reachability tests"
     },
     {
-      "hash": "9af4f25",
-      "message": "feat(gov): modernize governance state machine, compiler, and tooling harness"
+      "hash": "cb5d4d7",
+      "message": "feat(phase4): tactical console 30-col layout, embarkation rebalance, framed market turf, and fog-of-war atlas"
     },
     {
-      "hash": "829c297",
-      "message": "feat(lore): integrate procedural corpora and naturalist codex engine"
+      "hash": "71d9687",
+      "message": "feat(phase3): formalize 8-stage procgen pipeline, anti-stamping grammars, and utility networks"
     }
   ],
   "phases": [
@@ -691,52 +691,40 @@
   ],
   "hotspots": [
     {
-      "file": "src/client/ui/CharacterCreatorModal.tsx",
+      "file": "src/client/bootstrap-loop.ts",
+      "lines": 271,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/input/keyboard-router.ts",
+      "lines": 262,
+      "threshold": 230,
+      "status": "NEAR_CAP"
+    },
+    {
+      "file": "src/client/input/modal-nav-router.ts",
       "lines": 247,
       "threshold": 230,
       "status": "NEAR_CAP"
     },
     {
-      "file": "src/sim/systems/container.system.ts",
-      "lines": 245,
+      "file": "src/sim/spatial/strata-dungeons.ts",
+      "lines": 242,
       "threshold": 230,
       "status": "NEAR_CAP"
     },
     {
-      "file": "src/client/ui/InventoryWindow.tsx",
-      "lines": 244,
+      "file": "src/schemas/components.schema.ts",
+      "lines": 241,
       "threshold": 230,
       "status": "NEAR_CAP"
     },
     {
-      "file": "src/sim/systems/dialogue-quest.system.ts",
-      "lines": 244,
+      "file": "src/client/renderer/glyph-stage.ts",
+      "lines": 240,
       "threshold": 230,
       "status": "NEAR_CAP"
-    },
-    {
-      "file": "src/client/ui/CraftingWindow.tsx",
-      "lines": 243,
-      "threshold": 230,
-      "status": "NEAR_CAP"
-    },
-    {
-      "file": "src/client/projection/frame-adapter.ts",
-      "lines": 239,
-      "threshold": 230,
-      "status": "SAFE"
-    },
-    {
-      "file": "src/sim/systems/transit.system.ts",
-      "lines": 239,
-      "threshold": 230,
-      "status": "SAFE"
-    },
-    {
-      "file": "src/client/input/keyboard-router.ts",
-      "lines": 238,
-      "threshold": 230,
-      "status": "SAFE"
     },
     {
       "file": "src/schemas/events.schema.ts",
@@ -745,7 +733,7 @@
       "status": "SAFE"
     },
     {
-      "file": "src/sim/spatial/generator.ts",
+      "file": "src/sim/spatial/architectural-typologies.ts",
       "lines": 238,
       "threshold": 230,
       "status": "SAFE"
@@ -757,20 +745,8 @@
       "status": "SAFE"
     },
     {
-      "file": "src/client/canvas-ui/diegetic-cartography.ts",
-      "lines": 236,
-      "threshold": 230,
-      "status": "SAFE"
-    },
-    {
       "file": "src/sim/systems/safehouse.system.ts",
       "lines": 235,
-      "threshold": 230,
-      "status": "SAFE"
-    },
-    {
-      "file": "src/client/canvas-ui/artificer-bench-screen.ts",
-      "lines": 234,
       "threshold": 230,
       "status": "SAFE"
     },
@@ -788,12 +764,6 @@
     },
     {
       "file": "src/schemas/core-events.schema.ts",
-      "lines": 233,
-      "threshold": 230,
-      "status": "SAFE"
-    },
-    {
-      "file": "src/sim/spatial/architectural-typologies.ts",
       "lines": 233,
       "threshold": 230,
       "status": "SAFE"
@@ -817,7 +787,13 @@
       "status": "SAFE"
     },
     {
-      "file": "src/client/bootstrap-loop.ts",
+      "file": "src/schemas/commands.schema.ts",
+      "lines": 230,
+      "threshold": 230,
+      "status": "SAFE"
+    },
+    {
+      "file": "src/sim/spatial/district-pipeline.ts",
       "lines": 230,
       "threshold": 230,
       "status": "SAFE"
@@ -834,11 +810,11 @@
       "id": "P1",
       "priority": "P1",
       "category": "UNREACHABLE_MECHANIC",
-      "title": "Phase 55",
-      "directive": "Focus core systems development on **Phase 55: Causal Supply Chains & Disruption Cascades**: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies.",
+      "title": "Phase 56",
+      "directive": "Focus core systems development on **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. resolving unwiredCommands and telemetry anomalies.",
       "targetFiles": [
-        "src/sim/systems/economy.system.ts",
-        "src/sim/systems/trade.system.ts"
+        "src/sim/systems/squad-witness.system.ts",
+        "src/sim/systems/dialogue-quest.system.ts"
       ],
       "verification": "tests/sim/determinism.test.ts"
     },
