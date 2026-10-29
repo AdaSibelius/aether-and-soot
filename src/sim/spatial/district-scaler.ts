@@ -27,6 +27,7 @@ export function enrichLargeScaleDistrict(
   _rng: SeededRNG,
   criticalLandmarks: readonly Point2D[],
   existingEntities: Record<string, EntityRecord>,
+  options: { readonly dropHints?: readonly Point2D[]; readonly origin?: Point2D } = {},
 ): ScaledDistrictEnrichmentResult {
   let street = streetGrid;
   let undercroft = undercroftGrid;
@@ -39,8 +40,8 @@ export function enrichLargeScaleDistrict(
     return { streetGrid: street, undercroftGrid: undercroft, entities, barriersPlaced, sewerDrops };
   }
 
-  const centerY = Math.floor(height / 2);
-  const centerX = Math.floor(width / 2);
+  const centerY = options.origin?.y ?? Math.floor(height / 2);
+  const centerX = options.origin?.x ?? Math.floor(width / 2);
   const dLower = districtId.toLowerCase();
 
   // 1. Thames Estuary Canal Network (southern & south-eastern quadrant)
@@ -99,7 +100,9 @@ export function enrichLargeScaleDistrict(
   const secondaryDrop: Point2D = { x: Math.min(width - 6, centerX + 16), y: Math.min(height - 5, centerY + 8) };
   const tertiaryDrop: Point2D = { x: Math.max(5, centerX - 16), y: Math.min(height - 5, centerY + 8) };
 
-  const drops = [secondaryDrop, tertiaryDrop];
+  const drops = options.dropHints && options.dropHints.length >= 2
+    ? options.dropHints.slice(0, 2)
+    : [secondaryDrop, tertiaryDrop];
   for (let i = 0; i < drops.length; i++) {
     const pt = drops[i]!;
     // Ensure walkability to drop point

@@ -61,41 +61,53 @@ describe('Phase 48: Multi-Room Building Prefab Engine, Architectural Typology & 
     const street = world.strata.STREET!;
     const entities = world.entities;
 
-    // 1. Victorian Apothecary & Chirurgeon Clinic (Top-Right)
-    expect(landmarks.doors?.apothecary).toEqual({ x: 38, y: 12 });
-    expect(entities['furniture_surgical_table']?.furniture?.kind).toBe('SURGICAL_TABLE');
-    expect(entities['furniture_medicine_locker']?.furniture?.kind).toBe('LOCKER');
-    expect(getInteriorZoneAtPoint(street, 35, 5)).toBe('SURGICAL_BAY');
-    expect(getInteriorZoneAtPoint(street, 41, 5)).toBe('STORAGE');
+    // 1. Victorian Apothecary & Chirurgeon Clinic
+    expect(landmarks.doors?.apothecary).toBeDefined();
+    expect(getTileCell(street, landmarks.doors!.apothecary!.x, landmarks.doors!.apothecary!.y)?.terrainType).toBe('WOODEN_DOOR_CLOSED');
+    const surgTable = entities['furniture_surgical_table'];
+    const medLocker = entities['furniture_medicine_locker'];
+    expect(surgTable?.furniture?.kind).toBe('SURGICAL_TABLE');
+    expect(medLocker?.furniture?.kind).toBe('LOCKER');
+    expect(getInteriorZoneAtPoint(street, surgTable!.position!.x, surgTable!.position!.y)).toBe('SURGICAL_BAY');
+    expect(getInteriorZoneAtPoint(street, medLocker!.position!.x, medLocker!.position!.y)).toBe('STORAGE');
 
-    // 2. Clockwork Pawnshop & Cartel Bank (Top-Left-Mid)
-    expect(landmarks.doors?.pawnshop).toEqual({ x: 12, y: 12 });
-    expect(entities['furniture_safe_vault']?.furniture?.kind).toBe('SAFE_VAULT');
+    // 2. Clockwork Pawnshop & Cartel Bank
+    expect(landmarks.doors?.pawnshop).toBeDefined();
+    expect(getTileCell(street, landmarks.doors!.pawnshop!.x, landmarks.doors!.pawnshop!.y)?.terrainType).toBe('WOODEN_DOOR_CLOSED');
+    const safeVault = entities['furniture_safe_vault'];
+    expect(safeVault?.furniture?.kind).toBe('SAFE_VAULT');
     expect(entities['furniture_gear_crate']?.furniture?.kind).toBe('CRATE');
-    expect(getInteriorZoneAtPoint(street, 13, 5)).toBe('VAULT');
+    expect(getInteriorZoneAtPoint(street, safeVault!.position!.x, safeVault!.position!.y)).toBe('VAULT');
 
-    // 3. Steam Boilerhouse & Slag Furnace (Bottom-Left)
-    expect(landmarks.doors?.boilerhouse).toEqual({ x: 8, y: 24 });
-    expect(entities['furniture_smelting_furnace']?.furniture?.kind).toBe('SMELTING_FURNACE');
+    // 3. Steam Boilerhouse & Slag Furnace
+    expect(landmarks.doors?.boilerhouse).toBeDefined();
+    expect(getTileCell(street, landmarks.doors!.boilerhouse!.x, landmarks.doors!.boilerhouse!.y)?.terrainType).toBe('WOODEN_DOOR_OPEN');
+    const furnace = entities['furniture_smelting_furnace'];
+    expect(furnace?.furniture?.kind).toBe('SMELTING_FURNACE');
     expect(entities['vessel_district_boiler']).toBeDefined();
-    expect(getInteriorZoneAtPoint(street, 10, 26)).toBe('WORKSHOP');
+    expect(getInteriorZoneAtPoint(street, furnace!.position!.x, furnace!.position!.y)).toBe('WORKSHOP');
 
-    // 4. Tenement Rookeries (Bottom-Right)
-    expect(landmarks.doors?.rookeries).toEqual({ x: 38, y: 24 });
+    // 4. Tenement Rookeries
+    expect(landmarks.doors?.rookeries).toBeDefined();
+    expect(getTileCell(street, landmarks.doors!.rookeries!.x, landmarks.doors!.rookeries!.y)?.terrainType).toBe('WOODEN_DOOR_CLOSED');
     expect(entities['furniture_cot_a']?.furniture?.kind).toBe('BED');
-    expect(entities['furniture_bookshelf']?.furniture?.kind).toBe('BOOKSHELF');
-    expect(getInteriorZoneAtPoint(street, 36, 26)).toBe('RECEPTION');
+    const bookshelf = entities['furniture_bookshelf'];
+    expect(bookshelf?.furniture?.kind).toBe('BOOKSHELF');
+    expect(getInteriorZoneAtPoint(street, bookshelf!.position!.x, bookshelf!.position!.y)).toBe('RECEPTION');
 
-    // 5. Pneumatic Monorail Depot (Top-Center)
-    expect(landmarks.doors?.monorailDepot).toEqual({ x: 23, y: 12 });
+    // 5. Pneumatic Monorail Depot
+    expect(landmarks.doors?.monorailDepot).toBeDefined();
+    expect(getTileCell(street, landmarks.doors!.monorailDepot!.x, landmarks.doors!.monorailDepot!.y)?.terrainType).toBe('WOODEN_DOOR_CLOSED');
     expect(entities['furniture_monorail_console']?.furniture?.kind).toBe('MONORAIL_DEPOT_CONSOLE');
-    expect(getInteriorZoneAtPoint(street, 23, 9)).toBe('RECEPTION');
+    expect(findCellsInZone(street, 'RECEPTION').length).toBeGreaterThan(0);
 
-    // 6. Guild Artisan Workshop (Bottom-Center)
-    expect(landmarks.doors?.artisanWorkshop).toEqual({ x: 23, y: 24 });
+    // 6. Guild Artisan Workshop
+    expect(landmarks.doors?.artisanWorkshop).toBeDefined();
+    expect(getTileCell(street, landmarks.doors!.artisanWorkshop!.x, landmarks.doors!.artisanWorkshop!.y)?.terrainType).toBe('WOODEN_DOOR_CLOSED');
     expect(entities['station_artificer_workbench']?.workbench?.stationType).toBe('ARTIFICER_BENCH');
-    expect(entities['furniture_artisan_vault']?.furniture?.kind).toBe('SAFE_VAULT');
-    expect(getInteriorZoneAtPoint(street, 26, 31)).toBe('VAULT');
+    const artisanVault = entities['furniture_artisan_vault'];
+    expect(artisanVault?.furniture?.kind).toBe('SAFE_VAULT');
+    expect(getInteriorZoneAtPoint(street, artisanVault!.position!.x, artisanVault!.position!.y)).toBe('VAULT');
   });
 
   it('seeds outdoor street landmarks and Spire rooftop greenhouse without severing path connectivity', () => {
@@ -161,8 +173,9 @@ describe('Phase 48: Multi-Room Building Prefab Engine, Architectural Typology & 
     expect(restoredSafe?.inventory?.containedEntityIds.length).toBeGreaterThan(0);
 
     // Verify interior zone cell deserialization
-    const originalCell = getTileCell(originalWorld.strata.STREET!, 13, 5);
-    const restoredCell = getTileCell(restored.strata.STREET!, 13, 5);
+    const safePos = restoredSafe!.position!;
+    const originalCell = getTileCell(originalWorld.strata.STREET!, safePos.x, safePos.y);
+    const restoredCell = getTileCell(restored.strata.STREET!, safePos.x, safePos.y);
     expect(restoredCell?.interiorZone).toBe(originalCell?.interiorZone);
     expect(restoredCell?.interiorZone).toBe('VAULT');
   });

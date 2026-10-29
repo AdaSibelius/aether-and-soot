@@ -36,14 +36,9 @@ describe('TSK-P3-01 through TSK-P3-04: 8-Stage Procedural Generation Pipeline & 
       expect(hasWalkablePath(street, center, { x: landmarks.workshopDoor.x, y: landmarks.workshopDoor.y + 1 })).toBe(true);
 
       // Verify all 6 Victorian typology doors are walkable from central plaza
-      if (landmarks.doors?.apothecary) {
-        expect(hasWalkablePath(street, center, { x: landmarks.doors.apothecary.x, y: landmarks.doors.apothecary.y + 1 })).toBe(true);
-      }
-      if (landmarks.doors?.monorailDepot) {
-        expect(hasWalkablePath(street, center, { x: landmarks.doors.monorailDepot.x, y: landmarks.doors.monorailDepot.y + 1 })).toBe(true);
-      }
-      if (landmarks.doors?.artisanWorkshop) {
-        expect(hasWalkablePath(street, center, { x: landmarks.doors.artisanWorkshop.x, y: landmarks.doors.artisanWorkshop.y - 1 })).toBe(true);
+      for (const door of Object.values(landmarks.doors ?? {})) {
+        const streetStep = { x: door.x, y: door.y < center.y ? door.y + 1 : door.y - 1 };
+        expect(hasWalkablePath(street, center, streetStep)).toBe(true);
       }
 
       // Verify Undercroft connectivity to Catacombs stairwell

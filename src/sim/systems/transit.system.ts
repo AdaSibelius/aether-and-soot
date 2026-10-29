@@ -3,6 +3,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { BlueprintId, EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../core/world.js';
 import { generateVictorianDistrict } from '../spatial/generator.js';
+import { findArrivalGate } from '../spatial/compass-gates.js';
 import { spawnDistrictItems } from './item-spawner.js';
 import { spawnDistrictNpcs } from './district-spawner.js';
 import { catchUpDistrictState } from './district-catchup.system.js';
@@ -126,9 +127,7 @@ export function resolveTravelDistrict(
       ...caughtUp.entities,
       ...preservedEntities,
     };
-    const arrivalGate = Object.values(nextEntities).find(
-      (e) => e.districtGate && e.districtGate.targetDistrictId === fromDistrictId && e.position,
-    );
+    const arrivalGate = findArrivalGate(nextEntities, matchingGate.id, fromDistrictId);
     const streetGrid = nextStrata.STREET;
     arrivalPos = arrivalGate?.position ?? {
       x: streetGrid ? Math.floor(streetGrid.width / 2) : 12,
@@ -147,9 +146,7 @@ export function resolveTravelDistrict(
     const withNpcs = spawnDistrictNpcs(withItems.state);
     nextStrata = withNpcs.state.strata;
     nextEntities = withNpcs.state.entities;
-    const arrivalGate = Object.values(nextEntities).find(
-      (e) => e.districtGate && e.districtGate.targetDistrictId === fromDistrictId && e.position,
-    );
+    const arrivalGate = findArrivalGate(nextEntities, matchingGate.id, fromDistrictId);
     arrivalPos = arrivalGate?.position ?? {
       x: genResult.landmarks.streetManhole.x,
       y: genResult.landmarks.streetManhole.y,

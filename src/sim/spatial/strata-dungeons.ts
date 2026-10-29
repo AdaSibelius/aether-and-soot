@@ -3,8 +3,9 @@ import { BlueprintIdSchema, EntityId, EntityIdSchema, Point2D } from '../../sche
 import { SeededRNG } from '../core/rng.js';
 import { createEntityFromBlueprint } from '../data/item-catalog.js';
 import { createDefaultNpcAnatomy } from '../systems/district-spawner.js';
-import { buildSolidStratumGrid, carveCorridor, carveRoom } from './district-layout.js';
 import { StratumGrid } from './grid.js';
+import { carveSpireWeb } from './spire-topology.js';
+import { carveUndercroftSewers } from './undercroft-topology.js';
 
 export interface StrataDungeonResult {
   readonly grid: StratumGrid;
@@ -33,44 +34,12 @@ export function generateUndercroftDungeon(
   width: number,
   height: number,
   entryPos: Point2D,
-  _rng: SeededRNG,
+  rng: SeededRNG,
   existingEntities: Record<string, EntityRecord>,
 ): StrataDungeonResult {
-  let grid = buildSolidStratumGrid('UNDERCROFT', width, height);
   const entities: Record<string, EntityRecord> = { ...existingEntities };
-
-  const rX = (ratio: number) => Math.max(3, Math.min(width - 4, Math.floor(width * ratio)));
-  const rY = (ratio: number) => Math.max(3, Math.min(height - 4, Math.floor(height * ratio)));
-
-  // 6 peripheral chambers + 1 central entry chamber (7 interconnected rooms)
-  const chambers: Point2D[] = [
-    { x: rX(0.22), y: rY(0.22) },
-    { x: rX(0.50), y: rY(0.20) },
-    { x: rX(0.78), y: rY(0.22) },
-    { x: rX(0.22), y: rY(0.78) },
-    { x: rX(0.50), y: rY(0.80) },
-    { x: rX(0.78), y: rY(0.78) },
-  ];
-
-  // Carve entry chamber at ladder position
-  grid = carveRoom(grid, entryPos.x, entryPos.y, 2, 2, 'IRON_GRATE', 0.15);
-
-  // Carve all peripheral chambers
-  for (let i = 0; i < chambers.length; i++) {
-    const ch = chambers[i]!;
-    const dust = 0.15 + (i % 3) * 0.1;
-    grid = carveRoom(grid, ch.x, ch.y, 2, 2, 'IRON_GRATE', dust);
-  }
-
-  // Sluice corridors connecting chambers into an unbroken dungeon loop
-  grid = carveCorridor(grid, chambers[0]!, chambers[1]!, 'IRON_GRATE');
-  grid = carveCorridor(grid, chambers[1]!, chambers[2]!, 'IRON_GRATE');
-  grid = carveCorridor(grid, chambers[3]!, chambers[4]!, 'IRON_GRATE');
-  grid = carveCorridor(grid, chambers[4]!, chambers[5]!, 'IRON_GRATE');
-  grid = carveCorridor(grid, chambers[0]!, chambers[3]!, 'IRON_GRATE');
-  grid = carveCorridor(grid, chambers[2]!, chambers[5]!, 'IRON_GRATE');
-  grid = carveCorridor(grid, chambers[1]!, entryPos, 'IRON_GRATE');
-  grid = carveCorridor(grid, entryPos, chambers[4]!, 'IRON_GRATE');
+  // Seeded cellular/serpentine sewer network with six jittered cistern chambers (see undercroft-topology.ts).
+  const { grid, chambers } = carveUndercroftSewers(width, height, entryPos, rng);
 
   // Spawn Undercroft Syndicate Fixer & Smugglers
   const fixerId = EntityIdSchema.parse('npc_undercroft_syndicate_fixer');
@@ -136,42 +105,12 @@ export function generateSpireCatwalks(
   width: number,
   height: number,
   entryPos: Point2D,
-  _rng: SeededRNG,
+  rng: SeededRNG,
   existingEntities: Record<string, EntityRecord>,
 ): StrataDungeonResult {
-  let grid = buildSolidStratumGrid('SPIRE', width, height);
   const entities: Record<string, EntityRecord> = { ...existingEntities };
-
-  const rX = (ratio: number) => Math.max(3, Math.min(width - 4, Math.floor(width * ratio)));
-  const rY = (ratio: number) => Math.max(3, Math.min(height - 4, Math.floor(height * ratio)));
-
-  // 6 elevated platforms + entry lift platform
-  const platforms: Point2D[] = [
-    { x: rX(0.22), y: rY(0.22) },
-    { x: rX(0.50), y: rY(0.20) },
-    { x: rX(0.78), y: rY(0.22) },
-    { x: rX(0.22), y: rY(0.78) },
-    { x: rX(0.50), y: rY(0.80) },
-    { x: rX(0.78), y: rY(0.78) },
-  ];
-
-  // Carve entry platform around pneumatic lift
-  grid = carveRoom(grid, entryPos.x, entryPos.y, 2, 2, 'BRASS_CATWALK', 0);
-
-  // Carve all tower platforms
-  for (const pl of platforms) {
-    grid = carveRoom(grid, pl.x, pl.y, 2, 2, 'BRASS_CATWALK', 0);
-  }
-
-  // Narrow brass sky-bridges interconnecting all tower platforms
-  grid = carveCorridor(grid, platforms[0]!, platforms[1]!, 'BRASS_CATWALK');
-  grid = carveCorridor(grid, platforms[1]!, platforms[2]!, 'BRASS_CATWALK');
-  grid = carveCorridor(grid, platforms[3]!, platforms[4]!, 'BRASS_CATWALK');
-  grid = carveCorridor(grid, platforms[4]!, platforms[5]!, 'BRASS_CATWALK');
-  grid = carveCorridor(grid, platforms[0]!, platforms[3]!, 'BRASS_CATWALK');
-  grid = carveCorridor(grid, platforms[2]!, platforms[5]!, 'BRASS_CATWALK');
-  grid = carveCorridor(grid, platforms[1]!, entryPos, 'BRASS_CATWALK');
-  grid = carveCorridor(grid, entryPos, platforms[4]!, 'BRASS_CATWALK');
+  // Radial web: lift hub plus 4-6 cantilevered spokes over ABYSS_DROP (see spire-topology.ts).
+  const { grid, platforms } = carveSpireWeb(width, height, entryPos, rng);
 
   // Spawn Spire Clockwork Artificer
   const artificerId = EntityIdSchema.parse('npc_spire_artificer');

@@ -4,25 +4,24 @@
 
 ## Codebase Telemetry & Modularity Health
 
-- **Files Indexed**: 214
-- **Total Lines of Code**: 30785
-- **Average File Size**: 144 lines (Target: <= 250)
+- **Files Indexed**: 274
+- **Total Lines of Code**: 37510
+- **Average File Size**: 137 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
-- **Near-Cap Files (>= 240 lines)**: 9 files
+- **Near-Cap Files (>= 240 lines)**: 8 files
 
 ### Near-Cap File Watchlist (Approaching 300-Line Ceiling)
 
 | File | Lines | Action Required |
 | :--- | :---: | :--- |
-| `src/client/ui/CharacterCreatorModal.tsx` | 247 | Extract sub-module before adding functions |
-| `src/client/ui/ItemDossierCard.tsx` | 245 | Extract sub-module before adding functions |
-| `src/sim/systems/container.system.ts` | 245 | Extract sub-module before adding functions |
-| `src/client/ui/InventoryWindow.tsx` | 244 | Extract sub-module before adding functions |
-| `src/client/ui/LookCursorOverlay.tsx` | 244 | Extract sub-module before adding functions |
-| `src/client/ui/CraftingWindow.tsx` | 243 | Extract sub-module before adding functions |
-| `src/schemas/domain-events.schema.ts` | 243 | Extract sub-module before adding functions |
-| `tests/scripts/hermes-critic.ts` | 240 | Extract sub-module before adding functions |
-| `tests/scripts/playtester-projection-audit.ts` | 240 | Extract sub-module before adding functions |
+| `src/client/bootstrap-loop.ts` | 271 | Extract sub-module before adding functions |
+| `src/client/input/keyboard-router.ts` | 262 | Extract sub-module before adding functions |
+| `src/sim/spatial/district-blocks.ts` | 250 | Extract sub-module before adding functions |
+| `src/client/input/modal-nav-router.ts` | 247 | Extract sub-module before adding functions |
+| `tests/scripts/update-state.ts` | 245 | Extract sub-module before adding functions |
+| `tests/scripts/hermes-critic.ts` | 243 | Extract sub-module before adding functions |
+| `src/schemas/components.schema.ts` | 241 | Extract sub-module before adding functions |
+| `src/client/renderer/glyph-stage.ts` | 240 | Extract sub-module before adding functions |
 
 ## Ring 1: Schemas & Contracts (`src/schemas/`)
 
@@ -32,34 +31,38 @@ Strict Zod contracts for entities, components, commands, events, and declarative
 | :--- | :---: | :---: | :--- |
 | `src/schemas/atlas.schema.ts` | 109 | ✅ OK | `AtlasViewModeSchema`, `AtlasViewMode`, `OverworldBarrierTypeSchema`, `OverworldBarrierType` |
 | `src/schemas/audio-synth.schema.ts` | 101 | ✅ OK | `OscillatorWaveformSchema`, `OscillatorWaveform`, `FilterTypeSchema`, `FilterType` |
-| `src/schemas/blueprint.schema.ts` | 124 | ✅ OK | `BlueprintActiveAbilitySchema`, `ProstheticBlueprintSchema`, `ProstheticBlueprint`, `CommodityBlueprintSchema` |
+| `src/schemas/blueprint.schema.ts` | 174 | ✅ OK | `BlueprintActiveAbilitySchema`, `ProstheticBlueprintSchema`, `ProstheticBlueprint`, `CommodityBlueprintSchema` |
 | `src/schemas/character.schema.ts` | 45 | ✅ OK | `ProfessionIdSchema`, `ProfessionId`, `TraitIdSchema`, `TraitId` |
-| `src/schemas/commands.schema.ts` | 226 | ✅ OK | `MoveStepCommandSchema`, `UsePortalCommandSchema`, `WaitTurnCommandSchema`, `VentSteamCommandSchema` |
-| `src/schemas/components.schema.ts` | 221 | ✅ OK | `PositionComponentSchema`, `PositionComponent`, `PostureSchema`, `Posture` |
+| `src/schemas/combat-events.schema.ts` | 30 | ✅ OK | `CombatAttackResolvedEventSchema`, `ActorDefeatedEventSchema`, `CombatActionFailedEventSchema` |
+| `src/schemas/commands.schema.ts` | 230 | ✅ OK | `MoveStepCommandSchema`, `UsePortalCommandSchema`, `WaitTurnCommandSchema`, `VentSteamCommandSchema` |
+| `src/schemas/components.schema.ts` | 241 | ⚠️ WARN | `PositionComponentSchema`, `PositionComponent`, `PostureSchema`, `Posture` |
 | `src/schemas/contract-events.schema.ts` | 59 | ✅ OK | `ContractAcceptedEventSchema`, `ContractAcceptedEvent`, `ContractCompletedEventSchema`, `ContractCompletedEvent` |
 | `src/schemas/contracts.schema.ts` | 31 | ✅ OK | `ContractKindSchema`, `ContractKind`, `ContractStatusSchema`, `ContractStatus` |
 | `src/schemas/core-events.schema.ts` | 233 | ✅ OK | `EntityMovedEventSchema`, `MovementBlockedEventSchema`, `StratumChangedEventSchema`, `PortalFailedEventSchema` |
 | `src/schemas/domain-commands.schema.ts` | 234 | ✅ OK | `StockPedestalCommandSchema`, `TriggerSupplyShockCommandSchema`, `PickUpItemCommandSchema`, `DropItemCommandSchema` |
-| `src/schemas/domain-events.schema.ts` | 243 | ⚠️ WARN | `ItemPickedUpEventSchema`, `ItemDroppedEventSchema`, `ItemUsedEventSchema`, `InventoryActionFailedEventSchema` |
+| `src/schemas/domain-events.schema.ts` | 217 | ✅ OK | `ItemPickedUpEventSchema`, `ItemDroppedEventSchema`, `ItemUsedEventSchema`, `InventoryActionFailedEventSchema` |
 | `src/schemas/equipment.schema.ts` | 101 | ✅ OK | `EquipmentSlotSchema`, `EquipmentSlot`, `WeaponModSpecSchema`, `WeaponModSpec` |
-| `src/schemas/events.schema.ts` | 235 | ✅ OK | `SimEventSchema`, `SimEvent` |
+| `src/schemas/events.schema.ts` | 238 | ✅ OK | `SimEventSchema`, `SimEvent` |
 | `src/schemas/hazard-events.schema.ts` | 23 | ✅ OK | `HazardTypeSchema`, `HazardType`, `HazardTriggeredEventSchema`, `HazardTriggeredEvent` |
 | `src/schemas/liquid-events.schema.ts` | 60 | ✅ OK | `LiquidSpilledEventSchema`, `LiquidSpilledEvent`, `LiquidIgnitedEventSchema`, `LiquidIgnitedEvent` |
+| `src/schemas/lore-commands.schema.ts` | 33 | ✅ OK | `EmitProceduralBarkCommandSchema`, `EmitProceduralBarkCommand`, `DissectCorpseAnatomyCommandSchema`, `DissectCorpseAnatomyCommand` |
+| `src/schemas/lore-events.schema.ts` | 50 | ✅ OK | `ProceduralBarkEmittedEventSchema`, `ProceduralBarkEmittedEvent`, `TurfTariffEnforcedEventSchema`, `TurfTariffEnforcedEvent` |
 | `src/schemas/metabolism-events.schema.ts` | 42 | ✅ OK | `AlchemicalConsumedEventSchema`, `AlchemicalConsumedEvent`, `ToxicityOverdoseEventSchema`, `ToxicityOverdoseEvent` |
 | `src/schemas/momentum-events.schema.ts` | 45 | ✅ OK | `PostureChangedEventSchema`, `PostureChangedEvent`, `EntityKnockedBackEventSchema`, `EntityKnockedBackEvent` |
 | `src/schemas/primitives.schema.ts` | 177 | ✅ OK | `EntityIdSchema`, `EntityId`, `BlueprintIdSchema`, `BlueprintId` |
+| `src/schemas/project-state.schema.ts` | 63 | ✅ OK | `PhaseStatusSchema`, `PhaseStatus`, `RoadmapPhaseSchema`, `RoadmapPhase` |
 | `src/schemas/safehouse-commands.schema.ts` | 52 | ✅ OK | `StructureTypeSchema`, `StructureType`, `ClaimWorkshopDeedCommandSchema`, `ClaimWorkshopDeedCommand` |
 | `src/schemas/safehouse-events.schema.ts` | 79 | ✅ OK | `CodexCategorySchema`, `CodexCategory`, `WorkshopDeedClaimedEventSchema`, `WorkshopDeedClaimedEvent` |
 | `src/schemas/safehouse-records.schema.ts` | 30 | ✅ OK | `SafehouseDeedRecordSchema`, `SafehouseDeedRecord`, `CodexEntryRecordSchema`, `CodexEntryRecord` |
 | `src/schemas/skirmish-commands.schema.ts` | 33 | ✅ OK | `InitiateTurfSkirmishCommandSchema`, `InitiateTurfSkirmishCommand`, `PrepareSupplyConvoyCommandSchema`, `PrepareSupplyConvoyCommand` |
 | `src/schemas/skirmish-politics-events.schema.ts` | 105 | ✅ OK | `TurfContestedEventSchema`, `TurfContestedEvent`, `TurfControlChangedEventSchema`, `TurfControlChangedEvent` |
 | `src/schemas/skirmish-records.schema.ts` | 54 | ✅ OK | `TurfSectorBoundsSchema`, `TurfSectorBounds`, `TurfSectorRecordSchema`, `TurfSectorRecord` |
-| `src/schemas/transit-commands.schema.ts` | 25 | ✅ OK | `BoardMonorailCommandSchema`, `BoardMonorailCommand`, `LaunchMonorailCommandSchema`, `LaunchMonorailCommand` |
-| `src/schemas/transit-events.schema.ts` | 50 | ✅ OK | `MonorailBoardedEventSchema`, `MonorailBoardedEvent`, `MonorailLaunchedEventSchema`, `MonorailLaunchedEvent` |
+| `src/schemas/transit-commands.schema.ts` | 32 | ✅ OK | `BoardMonorailCommandSchema`, `BoardMonorailCommand`, `LaunchMonorailCommandSchema`, `LaunchMonorailCommand` |
+| `src/schemas/transit-events.schema.ts` | 60 | ✅ OK | `MonorailBoardedEventSchema`, `MonorailBoardedEvent`, `MonorailLaunchedEventSchema`, `MonorailLaunchedEvent` |
 | `src/schemas/weapon-mod-events.schema.ts` | 54 | ✅ OK | `WeaponModInstalledEventSchema`, `WeaponModInstalledEvent`, `WeaponModUninstalledEventSchema`, `WeaponModUninstalledEvent` |
 | `src/schemas/witness-commands.schema.ts` | 25 | ✅ OK | `EmitSquadCalloutCommandSchema`, `EmitSquadCalloutCommand`, `ReportCrimeCommandSchema`, `ReportCrimeCommand` |
 | `src/schemas/witness-events.schema.ts` | 52 | ✅ OK | `WitnessCrimeReportedEventSchema`, `WitnessCrimeReportedEvent`, `SquadCalloutEmittedEventSchema`, `SquadCalloutEmittedEvent` |
-| `src/schemas/world-components.schema.ts` | 125 | ✅ OK | `WitnessMemoryEntrySchema`, `WitnessMemoryEntry`, `DistrictGateComponentSchema`, `DistrictGateComponent` |
+| `src/schemas/world-components.schema.ts` | 187 | ✅ OK | `WitnessMemoryEntrySchema`, `WitnessMemoryEntry`, `DistrictGateComponentSchema`, `DistrictGateComponent` |
 
 ## Ring 2: Simulation Core & Scheduling (`src/sim/core/`)
 
@@ -67,18 +70,18 @@ Pure state container, deterministic PRNG hydration, command router, and turn/mac
 
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
-| `src/sim/core/action-resolver.ts` | 54 | ✅ OK | `getActingActorId(command: GameCommand): EntityId`, `resolveAction(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
+| `src/sim/core/action-resolver.ts` | 55 | ✅ OK | `getActingActorId(command: GameCommand): EntityId`, `resolveAction(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
 | `src/sim/core/command-resolution.ts` | 128 | ✅ OK | `isFailureEvent(event: SimEvent): boolean`, `extractFailureReason(events: readonly SimEvent[], fallback: unknown): string`, `createAppliedResolution(state: WorldState, events: readonly SimEvent[], apSpent: number, advancesTime: unknown, simulationTicks: number): CommandResolution`, `createRejectedResolution(state: WorldState, reason: string, events: readonly SimEvent[]): CommandResolution` |
-| `src/sim/core/command-router.ts` | 218 | ✅ OK | `routeDomainCommand(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
+| `src/sim/core/command-router.ts` | 227 | ✅ OK | `routeDomainCommand(state: WorldState, command: GameCommand, rng: SeededRNG): CommandResolution` |
 | `src/sim/core/engine.ts` | 59 | ✅ OK | `setInvariantAssertionsEnabled(enabled: boolean): void`, `isInvariantAssertionsEnabled(): boolean`, `dispatchCommand(currentState: WorldState, rawCommand: GameCommand, options: DispatchCommandOptions): DispatchTurnResult` |
 | `src/sim/core/invariants.ts` | 184 | ✅ OK | `validateWorldInvariants(state: Readonly<WorldState>): string[]`, `assertWorldInvariants(state: Readonly<WorldState>): void` |
 | `src/sim/core/rng.ts` | 77 | ✅ OK | `RNGStateSchema`, `RNGState` |
 | `src/sim/core/scheduler.ts` | 96 | ✅ OK | `advanceTurnSchedule(state: WorldState, actorId: EntityId, apSpent: number, newEvents: readonly SimEvent[], rng: SeededRNG, ticks: unknown): { state: WorldState; allEvents: SimEvent[] }` |
-| `src/sim/core/simulation-pipeline.ts` | 138 | ✅ OK | `advanceWorldEnvironment(state: WorldState, rng: SeededRNG, ticks: unknown): { state: WorldState; events: SimEvent[] }`, `advanceTemporalState(state: WorldState, actorId: EntityId, apSpent: number, events: readonly SimEvent[], rng: SeededRNG, ticks: unknown): { state: WorldState; events: SimEvent[] }`, `advancePerception(state: WorldState, focusActorId: EntityId): WorldState`, `executeSimulationPhases(resolution: CommandResolution, actingActorId: EntityId, rng: SeededRNG): DispatchTurnResult` |
+| `src/sim/core/simulation-pipeline.ts` | 144 | ✅ OK | `advanceWorldEnvironment(state: WorldState, rng: SeededRNG, ticks: unknown): { state: WorldState; events: SimEvent[] }`, `advanceTemporalState(state: WorldState, actorId: EntityId, apSpent: number, events: readonly SimEvent[], rng: SeededRNG, ticks: unknown): { state: WorldState; events: SimEvent[] }`, `advancePerception(state: WorldState, focusActorId: EntityId): WorldState`, `executeSimulationPhases(resolution: CommandResolution, actingActorId: EntityId, rng: SeededRNG): DispatchTurnResult` |
 | `src/sim/core/spatial-actions.ts` | 124 | ✅ OK | `resolveMoveStepAction(state: WorldState, command: MoveStepCommand): CommandResolution`, `resolveUsePortalAction(state: WorldState, command: UsePortalCommand): CommandResolution`, `resolveWaitTurnAction(state: WorldState, command: WaitTurnCommand, rng: SeededRNG): CommandResolution` |
-| `src/sim/core/world-factory.ts` | 176 | ✅ OK | `createInitialWorld(config: CreateWorldConfig): WorldState` |
+| `src/sim/core/world-factory.ts` | 177 | ✅ OK | `createInitialWorld(config: CreateWorldConfig): WorldState` |
 | `src/sim/core/world-migration.ts` | 114 | ✅ OK | `migrateV0ToV1(raw: Record<string, unknown>): Record<string, unknown>`, `migrateWorldState(raw: unknown): WorldState` |
-| `src/sim/core/world.ts` | 86 | ✅ OK | `getShiftPhase(turnCount: number): ShiftPhase`, `serializeWorld(state: WorldState): string`, `deserializeWorld(json: string): WorldState` |
+| `src/sim/core/world.ts` | 100 | ✅ OK | `getShiftPhase(turnCount: number): ShiftPhase`, `serializeWorld(state: WorldState): string`, `deserializeWorld(json: string): WorldState` |
 
 ## Ring 2: Spatial, FOV & World Generation (`src/sim/spatial/`)
 
@@ -87,20 +90,32 @@ Multi-stratum grid cellular structures, shadowcasting FOV, procedural biomes, an
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
 | `src/sim/spatial/architectural-features.ts` | 182 | ✅ OK | `getArchitecturalTerrainProperties(terrainType: TerrainType): { blocksMovement: boolean; blocksSight: boolean; }`, `placeArchitecturalFeature(grid: StratumGrid, x: number, y: number, terrainType: TerrainType): StratumGrid`, `canPlaceWithoutSevering(grid: StratumGrid, x: number, y: number, terrainType: TerrainType, criticalLandmarks: readonly Point2D[]): boolean`, `seedDistrictArchitecture(grid: StratumGrid, districtId: string, _rng: SeededRNG, criticalLandmarks: readonly Point2D[]): StratumGrid` |
-| `src/sim/spatial/architectural-typologies.ts` | 233 | ✅ OK | `seedContainer(entities: Record<string, EntityRecord>, items: readonly { id: string; blueprintId: string; quantity: number }[]): EntityRecord['inventory']`, `generateArchitecturalTypologies(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, _width: number, height: number): TypologyPlacementResult` |
-| `src/sim/spatial/building-prefabs.ts` | 68 | ✅ OK | `populateDistrictArchetypes(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, width: number, height: number, criticalPoints: readonly Point2D[]): DistrictArchetypesResult` |
-| `src/sim/spatial/catacombs.ts` | 210 | ✅ OK | `getCatacombsTierName(depth: number): string`, `generateCatacombsFloor(seedOrState: number \| [number, number, number, number], width: number, height: number, depthLevel: number): CatacombsFloorResult`, `resolveDescendCatacombs(state: WorldState, actorId: EntityId, stairEntityId: EntityId): { state: WorldState; events: SimEvent[]; apSpent: number }` |
-| `src/sim/spatial/district-layout.ts` | 167 | ✅ OK | `buildSolidStratumGrid(stratum: StratumId, width: number, height: number): StratumGrid`, `carveRoom(grid: StratumGrid, cx: number, cy: number, halfW: number, halfH: number, terrainType: TileCell['terrainType'], coalDustDensity: unknown): StratumGrid`, `carveCorridor(grid: StratumGrid, from: Point2D, to: Point2D, terrainType: TileCell['terrainType']): StratumGrid`, `carveBuildingWithDoor(grid: StratumGrid, x1: number, y1: number, x2: number, y2: number, floorTerrain: TileCell['terrainType'], doorPos: Point2D, doorInitialState: 'CLOSED' \| 'OPEN', coalDustDensity: unknown): StratumGrid` |
-| `src/sim/spatial/district-scaler.ts` | 140 | ✅ OK | `enrichLargeScaleDistrict(streetGrid: StratumGrid, undercroftGrid: StratumGrid, districtId: string, _rng: SeededRNG, criticalLandmarks: readonly Point2D[], existingEntities: Record<string, EntityRecord>): ScaledDistrictEnrichmentResult`, `verifyDistrictWalkability(grid: StratumGrid, center: Point2D, targets: readonly Point2D[]): boolean` |
+| `src/sim/spatial/architectural-typologies.ts` | 238 | ✅ OK | `generateArchitecturalTypologies(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, _width: number, height: number, rng: SeededRNG): TypologyPlacementResult` |
+| `src/sim/spatial/building-prefabs.ts` | 70 | ✅ OK | `populateDistrictArchetypes(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, width: number, height: number, criticalPoints: readonly Point2D[], rng: SeededRNG): DistrictArchetypesResult` |
+| `src/sim/spatial/building-variation.ts` | 97 | ✅ OK | `seedContainer(entities: Record<string, EntityRecord>, items: readonly { id: string; blueprintId: string; quantity: number }[]): EntityRecord['inventory']`, `createVariedBuildingPlan(baseSpec: MultiRoomBuildingSpec, rng: SeededRNG, optionalExtraRoom: RoomZoneDefinition): VariedBuildingPlan`, `applyBuildingAttachments(grid: StratumGrid, plan: VariedBuildingPlan): StratumGrid` |
+| `src/sim/spatial/catacombs-cache.ts` | 40 | ✅ OK | `snapshotFloor(state: WorldState, depth: number, actorId: EntityId): CatacombDepthsMap`, `filterNonCatacombsEntities(entities: Record<string, EntityRecord>): Record<string, EntityRecord>` |
+| `src/sim/spatial/catacombs-generation.ts` | 135 | ✅ OK | `getCatacombsTierName(depth: number): string`, `generateCatacombsFloor(seedOrState: number \| [number, number, number, number], width: number, height: number, depthLevel: number): CatacombsFloorResult` |
+| `src/sim/spatial/catacombs.ts` | 185 | ✅ OK | `resolveDescendCatacombs(state: WorldState, actorId: EntityId, stairEntityId: EntityId): CatacombsTransitResult`, `resolveAscendCatacombs(state: WorldState, actorId: EntityId, stairEntityId: EntityId): CatacombsTransitResult` |
+| `src/sim/spatial/compass-gates.ts` | 113 | ✅ OK | `resolveCompassAdjacency(districtId: string): CompassAdjacency`, `compassGatePositions(width: number, height: number, centerY: number): Record<CompassDir, Point2D>`, `spawnCompassGate(entities: Record<string, EntityRecord>, dir: 'north' \| 'south', pos: Point2D, targetDistrictId: string): void`, `findArrivalGate(entities: Record<string, EntityRecord>, departureGateId: string, fromDistrictId: string): EntityRecord \| undefined` |
+| `src/sim/spatial/district-blocks.ts` | 250 | ⚠️ WARN | `supportsProceduralBlocks(width: number, height: number): boolean`, `mapPoint(p: BuildingPlacement, pt: Point2D): Point2D`, `planMacroLayout(rng: SeededRNG, width: number, height: number, center: Point2D): MacroLayout`, `applyTypologyPlacements(street: StratumGrid, entities: Record<string, EntityRecord>, layout: MacroLayout, rng: SeededRNG, centerY: number): PlacedTypologies` |
+| `src/sim/spatial/district-layout.ts` | 168 | ✅ OK | `buildSolidStratumGrid(stratum: StratumId, width: number, height: number): StratumGrid`, `carveRoom(grid: StratumGrid, cx: number, cy: number, halfW: number, halfH: number, terrainType: TileCell['terrainType'], coalDustDensity: unknown): StratumGrid`, `carveCorridor(grid: StratumGrid, from: Point2D, to: Point2D, terrainType: TileCell['terrainType']): StratumGrid`, `carveBuildingWithDoor(grid: StratumGrid, x1: number, y1: number, x2: number, y2: number, floorTerrain: TileCell['terrainType'], doorPos: Point2D, doorInitialState: 'CLOSED' \| 'OPEN', coalDustDensity: unknown): StratumGrid` |
+| `src/sim/spatial/district-pipeline-context.ts` | 114 | ✅ OK | `createPipelineContext(state: WorldState): PipelineDistrictContext`, `connectivityTargets(ctx: PipelineDistrictContext): Point2D[]` |
+| `src/sim/spatial/district-pipeline-late.ts` | 87 | ✅ OK | `executeStage6MultiStratumDungeons(ctx: PipelineDistrictContext): void`, `executeStage7InteractiveUtilityInfrastructure(ctx: PipelineDistrictContext): void`, `executeStage8EmergenceAtmosphericSeeding(ctx: PipelineDistrictContext): void` |
+| `src/sim/spatial/district-pipeline.ts` | 120 | ✅ OK | `executeStage1TopologyHydrology(ctx: PipelineDistrictContext): void`, `executeStage2RailViaduct(_ctx: PipelineDistrictContext): void`, `executeStage3ThoroughfareSkeletization(ctx: PipelineDistrictContext): void`, `executeStage4PlotZoning(ctx: PipelineDistrictContext): void` |
+| `src/sim/spatial/district-scaler.ts` | 175 | ✅ OK | `enrichLargeScaleDistrict(streetGrid: StratumGrid, undercroftGrid: StratumGrid, districtId: string, _rng: SeededRNG, criticalLandmarks: readonly Point2D[], existingEntities: Record<string, EntityRecord>, options: { readonly dropHints?: readonly Point2D[]; readonly origin?: Point2D }): ScaledDistrictEnrichmentResult`, `verifyDistrictWalkability(grid: StratumGrid, center: Point2D, targets: readonly Point2D[]): boolean` |
+| `src/sim/spatial/district-yards.ts` | 115 | ✅ OK | `fillUnbuiltYards(grid: StratumGrid, footprints: readonly Box[], rng: SeededRNG): StratumGrid`, `ensureDistrictConnectivity(grid: StratumGrid, start: Point2D, targets: readonly Point2D[]): { grid: StratumGrid; punched: number }` |
 | `src/sim/spatial/facade.ts` | 145 | ✅ OK | `createSpatialView(state: WorldState, stratum: StratumId): SpatialView` |
-| `src/sim/spatial/fov.ts` | 142 | ✅ OK | `pointKey(x: number, y: number): string`, `computeVisibleTiles(grid: StratumGrid, originX: number, originY: number, radius: number): ReadonlySet<string>`, `isPointVisible(visibleSet: ReadonlySet<string>, point: Point2D): boolean`, `computeActorFovRadius(actor: OcularActorLike, baseRadius: number, bonusRadius: number): number` |
-| `src/sim/spatial/generator.ts` | 221 | ✅ OK | `generateVictorianDistrict(state: WorldState): GeneratedDistrictResult` |
+| `src/sim/spatial/fov.ts` | 151 | ✅ OK | `pointKey(x: number, y: number): string`, `computeVisibleTiles(grid: StratumGrid, originX: number, originY: number, radius: number): ReadonlySet<string>`, `isPointVisible(visibleSet: ReadonlySet<string>, point: Point2D): boolean`, `computeActorFovRadius(actor: OcularActorLike, baseRadius: number, bonusRadius: number): number` |
+| `src/sim/spatial/generator.ts` | 134 | ✅ OK | `generateVictorianDistrict(state: WorldState): GeneratedDistrictResult`, `inspectLandmarkCodex(state: WorldState, actorId: EntityId, landmarkName: string): { state: WorldState; discovered: boolean; event?: SimEvent }` |
 | `src/sim/spatial/grid.ts` | 131 | ✅ OK | `createStratumGrid(stratum: StratumId, width: number, height: number): StratumGrid`, `isWithinBounds(grid: StratumGrid, x: number, y: number): boolean`, `getTileCell(grid: StratumGrid, x: number, y: number): TileCell \| undefined`, `setTileCell(grid: StratumGrid, x: number, y: number, updater: (prev: TileCell) => Partial<TileCell> \| TileCell): StratumGrid` |
 | `src/sim/spatial/interior-zoning.ts` | 128 | ✅ OK | `setWindowCell(grid: StratumGrid, x: number, y: number): StratumGrid`, `carveMultiRoomBuilding(initialGrid: StratumGrid, spec: MultiRoomBuildingSpec): StratumGrid`, `getInteriorZoneAtPoint(grid: StratumGrid, x: number, y: number): InteriorZoneType`, `findCellsInZone(grid: StratumGrid, targetZone: InteriorZoneType): readonly Point2D[]` |
-| `src/sim/spatial/landmark-micro-locations.ts` | 126 | ✅ OK | `seedOutdoorStreetLandmarks(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, criticalPoints: readonly Point2D[]): { grid: StratumGrid; entities: Record<string, EntityRecord>; positions: Record<string, Point2D> }`, `seedSpireGreenhouse(initialSpireGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, liftPos: Point2D): { grid: StratumGrid; entities: Record<string, EntityRecord>; position: Point2D }` |
+| `src/sim/spatial/landmark-micro-locations.ts` | 127 | ✅ OK | `seedOutdoorStreetLandmarks(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, criticalPoints: readonly Point2D[], sites: readonly Point2D[]): { grid: StratumGrid; entities: Record<string, EntityRecord>; positions: Record<string, Point2D> }`, `seedSpireGreenhouse(initialSpireGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, liftPos: Point2D): { grid: StratumGrid; entities: Record<string, EntityRecord>; position: Point2D }` |
 | `src/sim/spatial/overworld-matrix.ts` | 208 | ✅ OK | `getDistrictDossier(districtId: BlueprintId \| string): DistrictDossier \| undefined`, `getAllDistrictDossiers(): readonly DistrictDossier[]`, `getOverworldBarriersForDistrict(districtId: BlueprintId \| string): readonly OverworldBarrier[]`, `generateMacroTopographyGrid(): MacroTopographyCell[][]` |
 | `src/sim/spatial/portals.ts` | 15 | ✅ OK | `findPortalAtPoint(entities: Readonly<Record<string, EntityRecord>>, point: Point3D): EntityRecord \| undefined` |
-| `src/sim/spatial/strata-dungeons.ts` | 225 | ✅ OK | `generateUndercroftDungeon(width: number, height: number, entryPos: Point2D, _rng: SeededRNG, existingEntities: Record<string, EntityRecord>): StrataDungeonResult`, `generateSpireCatwalks(width: number, height: number, entryPos: Point2D, _rng: SeededRNG, existingEntities: Record<string, EntityRecord>): StrataDungeonResult` |
+| `src/sim/spatial/spire-topology.ts` | 94 | ✅ OK | `carveSpireWeb(width: number, height: number, hub: Point2D, rng: SeededRNG): SpireTopology` |
+| `src/sim/spatial/strata-dungeons.ts` | 181 | ✅ OK | `generateUndercroftDungeon(width: number, height: number, entryPos: Point2D, rng: SeededRNG, existingEntities: Record<string, EntityRecord>): StrataDungeonResult`, `generateSpireCatwalks(width: number, height: number, entryPos: Point2D, rng: SeededRNG, existingEntities: Record<string, EntityRecord>): StrataDungeonResult` |
+| `src/sim/spatial/undercroft-topology.ts` | 126 | ✅ OK | `carveUndercroftSewers(width: number, height: number, entry: Point2D, rng: SeededRNG): UndercroftTopology` |
+| `src/sim/spatial/utility-networks.ts` | 156 | ✅ OK | `createUtilityConduitEntity(id: string, pos: Point2D & { stratum: StratumId }, conduitType: 'HIGH_PRESSURE_STEAM_MAIN' \| 'HYDRAULIC_DRAINAGE' \| 'PNEUMATIC_TRANSIT_TUBE' \| 'COAL_GAS_FEED' \| 'AETHER_CONDUIT', networkId: string, pressureKpa: number, endpoints: string[]): EntityRecord`, `createHydrologyChannelEntity(id: string, pos: Point2D & { stratum: StratumId }, fluidType: 'WATER' \| 'SLUDGE' \| 'ACID' \| 'WHALE_OIL' \| 'SEWAGE', drainsIntoStratum: StratumId): EntityRecord`, `spawnDistrictInfrastructure(entities: Record<string, EntityRecord>, liftPos: Point2D, boilerPos: Point2D, workbenchPos: Point2D, westGatePos: Point2D, eastGatePos: Point2D, westTarget: string, eastTarget: string): void`, `seedDistrictUtilityNetworks(entities: Record<string, EntityRecord>, districtId: string, boilerPos: Point2D, workbenchPos: Point2D, center: Point2D): void` |
 
 ## Ring 2: Pure Domain Systems (`src/sim/systems/`)
 
@@ -110,27 +125,30 @@ Deterministic headless mechanics: anatomy, combat, momentum, metabolism, thermo,
 | :--- | :---: | :---: | :--- |
 | `src/sim/systems/ai.system.ts` | 212 | ✅ OK | `decideNpcIntent(npc: EntityRecord, state: WorldState, spatial: SpatialView, rng: SeededRNG): NpcIntentDecision`, `advanceNpcTurns(state: WorldState, rng: SeededRNG): { readonly state: WorldState; readonly events: SimEvent[] }` |
 | `src/sim/systems/anatomy.system.ts` | 79 | ✅ OK | `resolveDamageLimb(state: WorldState, targetId: EntityId, slot: LimbSlotId, damage: number): SystemAnatomyResult` |
-| `src/sim/systems/ballistics.system.ts` | 193 | ✅ OK | `resolveFireRangedWeapon(state: WorldState, actorId: EntityId, targetId: EntityId, targetSlot: LimbSlotId, rng: SeededRNG): { state: WorldState; events: SimEvent[]; apSpent: number }` |
+| `src/sim/systems/ballistics.system.ts` | 202 | ✅ OK | `resolveFireRangedWeapon(state: WorldState, actorId: EntityId, targetId: EntityId, targetSlot: LimbSlotId, rng: SeededRNG): { state: WorldState; events: SimEvent[]; apSpent: number }` |
 | `src/sim/systems/boiler-stoking.system.ts` | 220 | ✅ OK | `resolveRefillSteam(state: WorldState, actorId: EntityId, pressureAddedKpa: unknown, bypassFuelRequirement: unknown): SystemBoilerResult`, `resolveVentSteam(state: WorldState, actorId: EntityId, target: Point3D, pressureReleasedKpa: number, bypassReserveCheck: unknown): SystemBoilerResult` |
 | `src/sim/systems/character-archetype-defs.ts` | 101 | ✅ OK | `PROFESSIONS`, `TRAITS`, `SCENARIOS`, `ProfessionDefinition` |
 | `src/sim/systems/character-archetypes.ts` | 152 | ✅ OK | `applyCharacterCreation(state: WorldState, config: CharacterCreationConfig): WorldState` |
 | `src/sim/systems/codex.system.ts` | 140 | ✅ OK | `discoverCodexEntry(state: WorldState, actorId: EntityId, entry: { id: string; category: CodexCategory; title: string; description: string; tags?: string[]; }): { state: WorldState; discovered: boolean; event?: SimEvent }`, `resolveConsultCodex(state: WorldState, cmd: ConsultCodexCommand): { state: WorldState; apSpent: number; advancesTime: boolean; events: SimEvent[] }` |
-| `src/sim/systems/combat.system.ts` | 200 | ✅ OK | `computeEffectiveCombatStats(actor: EntityRecord): { readonly meleeDamage: number; readonly accuracyPct: number; readonly bothArmsDisabled: boolean; }`, `resolveAttackActor(state: WorldState, attackerId: EntityId, targetId: EntityId, targetSlot: LimbSlotId, rng: SeededRNG): SystemAnatomyResult` |
-| `src/sim/systems/container.system.ts` | 245 | ⚠️ WARN | `resolveLootContainer(state: WorldState, actorId: EntityId, containerId: EntityId, itemId: EntityId): ContainerResolutionResult` |
+| `src/sim/systems/combat.system.ts` | 209 | ✅ OK | `computeEffectiveCombatStats(actor: EntityRecord): { readonly meleeDamage: number; readonly accuracyPct: number; readonly bothArmsDisabled: boolean; }`, `resolveAttackActor(state: WorldState, attackerId: EntityId, targetId: EntityId, targetSlot: LimbSlotId, rng: SeededRNG): SystemAnatomyResult` |
+| `src/sim/systems/container-transfer.ts` | 130 | ✅ OK | `executeContainerItemTransfer(state: WorldState, actor: EntityRecord, containerInv: InventoryComponent, targetIds: readonly EntityId[]): ContainerTransferResult` |
+| `src/sim/systems/container.system.ts` | 182 | ✅ OK | `resolveLootContainer(state: WorldState, actorId: EntityId, containerId: EntityId, itemId: EntityId): ContainerResolutionResult` |
 | `src/sim/systems/crafting-utils.ts` | 70 | ✅ OK | `findAdjacentWorkbench(state: WorldState, actor: EntityRecord, stationType: 'ARTIFICER_BENCH' \| 'ALCHEMICAL_STILL'): EntityRecord \| undefined`, `allocateCraftedId(entities: Readonly<Record<string, EntityRecord>>, turnCount: number, blueprintId: BlueprintId): EntityId`, `recomputeMassGrams(entities: Readonly<Record<string, EntityRecord>>, containedIds: readonly EntityId[]): number`, `consumeIngredients(entities: Record<string, EntityRecord>, containedIds: EntityId[], ingredients: readonly { blueprintId: BlueprintId; count: number }[]): { entities: Record<string, EntityRecord>; containedIds: EntityId[]; ok: boolean }` |
 | `src/sim/systems/crafting.system.ts` | 127 | ✅ OK | `failCrafting(state: WorldState, actorId: EntityId, action: CraftingFailureEvent['action'], reason: CraftingFailureEvent['reason']): SystemInventoryResult`, `resolveCraftRecipe(state: WorldState, actorId: EntityId, recipeId: BlueprintId): SystemInventoryResult` |
-| `src/sim/systems/dialogue-quest.system.ts` | 233 | ✅ OK | `resolveAcceptContract(state: WorldState, actorId: EntityId, contractId: string): DialogueResolutionResult`, `resolveCompleteContract(state: WorldState, actorId: EntityId, contractId: string): DialogueResolutionResult`, `resolveHireCompanion(state: WorldState, actorId: EntityId, npcId: EntityId): DialogueResolutionResult`, `resolvePayChirurgeonHeal(state: WorldState, actorId: EntityId, chirurgeonId: EntityId): DialogueResolutionResult` |
-| `src/sim/systems/district-catchup.system.ts` | 86 | ✅ OK | `catchUpDistrictState(snapshot: SavedDistrictSnapshot, currentTurn: number): DistrictCatchupResult` |
+| `src/sim/systems/dialogue-quest-evaluator.ts` | 62 | ✅ OK | `evaluateContractFulfillment(state: WorldState, actorId: EntityId, actor: EntityRecord, contract: FactionContract): ContractCompletionCheckResult` |
+| `src/sim/systems/dialogue-quest.system.ts` | 208 | ✅ OK | `resolveAcceptContract(state: WorldState, actorId: EntityId, contractId: string): DialogueResolutionResult`, `resolveCompleteContract(state: WorldState, actorId: EntityId, contractId: string): DialogueResolutionResult`, `resolveHireCompanion(state: WorldState, actorId: EntityId, npcId: EntityId): DialogueResolutionResult`, `resolvePayChirurgeonHeal(state: WorldState, actorId: EntityId, chirurgeonId: EntityId): DialogueResolutionResult` |
+| `src/sim/systems/district-catchup.system.ts` | 87 | ✅ OK | `catchUpDistrictState(snapshot: SavedDistrictSnapshot, currentTurn: number): DistrictCatchupResult` |
 | `src/sim/systems/district-spawner.ts` | 225 | ✅ OK | `createDefaultNpcAnatomy(torsoHp: unknown, limbHp: unknown): AnatomyComponent`, `createProceduralDistrictContracts(): FactionContract[]`, `spawnDistrictNpcs(state: WorldState): { readonly state: WorldState; readonly spawnedNpcIds: readonly EntityId[]; }` |
+| `src/sim/systems/door.system.ts` | 87 | ✅ OK | `resolveToggleDoor(state: WorldState, actorId: EntityId, target: Point3D): DoorResolutionResult` |
 | `src/sim/systems/economy-macro.system.ts` | 94 | ✅ OK | `advanceDistrictEconomyMacroTick(state: WorldState, rng: SeededRNG, turn: number): { economy: DistrictEconomyLedger; events: SimEvent[] }` |
 | `src/sim/systems/economy.system.ts` | 198 | ✅ OK | `createInitialEconomyLedger(): DistrictEconomyLedger`, `computeBoundedPricePence(basePricePence: number, supplyUnits: number, demandUnits: number): number`, `resolveStockPedestal(state: WorldState, commodity: CommodityId, quantity: number, askingPriceMarkupPct: number): { state: WorldState; events: SimEvent[]; apSpent: number }`, `resolveTriggerSupplyShock(state: WorldState, commodity: CommodityId, supplyDelta: number, factionAffected: FactionId, reputationDelta: number): { state: WorldState; events: SimEvent[]; apSpent: number }` |
-| `src/sim/systems/environmental-hazards.system.ts` | 229 | ✅ OK | `resolveWhaleOilCascade(state: WorldState, origin: Point3D): { state: WorldState; events: SimEvent[]; tilesIgnited: number }`, `advanceSootClouds(state: WorldState, stratum: StratumId, wind: { dx: number; dy: number }): { state: WorldState; events: SimEvent[] }`, `advanceAcidDrips(state: WorldState, stratum: StratumId): { state: WorldState; events: SimEvent[] }`, `advanceEnvironmentalHazards(state: WorldState, stratum: StratumId): { state: WorldState; events: SimEvent[] }` |
+| `src/sim/systems/environmental-hazards.system.ts` | 232 | ✅ OK | `resolveWhaleOilCascade(state: WorldState, origin: Point3D): { state: WorldState; events: SimEvent[]; tilesIgnited: number }`, `advanceSootClouds(state: WorldState, stratum: StratumId, wind: { dx: number; dy: number }): { state: WorldState; events: SimEvent[] }`, `advanceAcidDrips(state: WorldState, stratum: StratumId): { state: WorldState; events: SimEvent[] }`, `advanceEnvironmentalHazards(state: WorldState, stratum: StratumId): { state: WorldState; events: SimEvent[] }` |
 | `src/sim/systems/equipment.system.ts` | 173 | ✅ OK | `getEquipmentSpec(itemEntity: EntityRecord): EquipmentSpec \| undefined`, `computeEquippedBonuses(state: Readonly<WorldState>, actor: EntityRecord): EquipmentBonuses`, `resolveEquipItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): { state: WorldState; events: SimEvent[]; apSpent: number }`, `resolveUnequipItem(state: WorldState, actorId: EntityId, slot: EquipmentSlot): { state: WorldState; events: SimEvent[]; apSpent: number }` |
 | `src/sim/systems/furniture.system.ts` | 238 | ✅ OK | `resolveSmashTerrain(state: WorldState, actorId: EntityId, target: Point3D): FurnitureResolutionResult`, `resolveRestAtBed(state: WorldState, actorId: EntityId): FurnitureResolutionResult`, `resolveUseManual(state: WorldState, actorId: EntityId, itemEntityId: EntityId): FurnitureResolutionResult` |
 | `src/sim/systems/gaslight.system.ts` | 68 | ✅ OK | `calculateGaslightField(state: WorldState, stratum: StratumId): Map<string, number>` |
 | `src/sim/systems/inventory-use.system.ts` | 67 | ✅ OK | `resolveUseItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult` |
 | `src/sim/systems/inventory-utils.ts` | 126 | ✅ OK | `getCarryProfile(entity: EntityRecord): CarryProfile \| undefined`, `computeCarriedVolumeMl(state: Readonly<WorldState>, inventory: InventoryComponent): number`, `isInstalledOnActor(actor: EntityRecord, entityId: EntityId): boolean`, `withoutEntity(entities: Readonly<Record<string, EntityRecord>>, entityId: EntityId): Record<string, EntityRecord>` |
-| `src/sim/systems/inventory.system.ts` | 175 | ✅ OK | `resolvePickupItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult`, `resolveDropItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId, quantity: number): SystemInventoryResult` |
+| `src/sim/systems/inventory.system.ts` | 180 | ✅ OK | `resolvePickupItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult`, `resolveDropItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId, quantity: number): SystemInventoryResult` |
 | `src/sim/systems/item-spawner.ts` | 72 | ✅ OK | `spawnDistrictItems(state: WorldState, itemsPerStratum: unknown): SpawnDistrictItemsResult` |
 | `src/sim/systems/liquid-flasks.system.ts` | 199 | ✅ OK | `failLiquid(state: WorldState, actorId: EntityId, action: 'COAT_WEAPON' \| 'THROW_FLASK' \| 'CLEAN_SPILL', reason: string): LiquidResult`, `resolveCoatWeapon(state: WorldState, actorId: EntityId, weaponEntityId: EntityId, liquidContainerId: EntityId): LiquidResult`, `resolveThrowFlask(state: WorldState, actorId: EntityId, target: Point3D, flaskEntityId: EntityId): LiquidResult`, `resolveCleanSpill(state: WorldState, actorId: EntityId, target: Point3D, toolEntityId: EntityId): LiquidResult` |
 | `src/sim/systems/liquids.system.ts` | 100 | ✅ OK | `resolveStepOnLiquids(state: WorldState, actorId: EntityId, origin: Point3D, dest: Point3D, turn: number): { state: WorldState; events: SimEvent[]; apSpent: number }` |
@@ -140,9 +158,10 @@ Deterministic headless mechanics: anatomy, combat, momentum, metabolism, thermo,
 | `src/sim/systems/monorail-transit.ts` | 105 | ✅ OK | `transferMonorailDistrict(state: WorldState, monorailEntityId: EntityId, destinationDistrictId: BlueprintId, passengerIds: readonly EntityId[]): MonorailTransitResult` |
 | `src/sim/systems/monorail.system.ts` | 212 | ✅ OK | `createMonorailCarEntity(carId: string, stationPos: Point3D, destinationDistrictId: BlueprintId, steamPressureKpa: unknown): EntityRecord`, `resolveBoardMonorail(state: WorldState, actorId: EntityId, monorailEntityId: EntityId): MonorailResolutionResult`, `resolveLaunchMonorail(state: WorldState, actorId: EntityId, monorailEntityId: EntityId, destinationDistrictId: BlueprintId): MonorailResolutionResult` |
 | `src/sim/systems/mortality.system.ts` | 136 | ✅ OK | `isActorFatal(actor: EntityRecord): boolean`, `resolveActorDefeatIfFatal(state: WorldState, targetId: EntityId, attackerId: EntityId): SystemMortalityResult` |
-| `src/sim/systems/movement.system.ts` | 203 | ✅ OK | `computeMovementMechanics(state: Readonly<WorldState>, entity: EntityRecord): { apSpent: number; steamSpentKpa: number }`, `resolveMoveStep(state: WorldState, actorId: EntityId, dx: number, dy: number): SystemMovementResult` |
+| `src/sim/systems/movement.system.ts` | 209 | ✅ OK | `computeMovementMechanics(state: Readonly<WorldState>, entity: EntityRecord): { apSpent: number; steamSpentKpa: number }`, `resolveMoveStep(state: WorldState, actorId: EntityId, dx: number, dy: number): SystemMovementResult` |
 | `src/sim/systems/npc-ecology.system.ts` | 193 | ✅ OK | `resolveNpcEcologyAction(state: WorldState, actorId: EntityId): NpcEcologyResult` |
 | `src/sim/systems/physics-traps.system.ts` | 199 | ✅ OK | `resolveBreachTile(state: WorldState, target: Point3D, turn: number, breachSource: 'EXPLOSION' \| 'PILEDRIVER'): { readonly state: WorldState; readonly events: SimEvent[]; readonly breached: boolean }`, `resolveKnockbackAndGravityFall(state: WorldState, actorId: EntityId, dx: number, dy: number, turn: number): PhysicsTrapResult`, `resolveStepOnTraps(state: WorldState, actorId: EntityId, point: Point3D, turn: number): PhysicsTrapResult`, `resolveBreachCommand(state: WorldState, actorId: EntityId, target: Point3D): PhysicsTrapResult` |
+| `src/sim/systems/physiological-penalties.ts` | 80 | ✅ OK | `computePainShockPenalty(actor: EntityRecord, _rng: SeededRNG): PhysiologicalPenaltyResult`, `applyStaminaExertion(actor: EntityRecord, cost: number): EntityRecord` |
 | `src/sim/systems/politics-audit.system.ts` | 173 | ✅ OK | `resolveAuditSafehouseDeed(state: WorldState, cmd: AuditSafehouseDeedCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `processRivalArtificerReaction(state: WorldState, rivalId: EntityId, deedId: string): { state: WorldState; events: SimEvent[] }`, `checkAutonomousInspectors(state: WorldState): { state: WorldState; events: SimEvent[] }` |
 | `src/sim/systems/portal-transit.system.ts` | 69 | ✅ OK | `resolveUsePortal(state: WorldState, actorId: EntityId): SystemMovementResult` |
 | `src/sim/systems/pressure.system.ts` | 162 | ✅ OK | `resolvePressurizeVessel(state: WorldState, vesselEntityId: EntityId, pressureAddedKpa: number): SystemPressureResult` |
@@ -153,19 +172,19 @@ Deterministic headless mechanics: anatomy, combat, momentum, metabolism, thermo,
 | `src/sim/systems/pyrotechnics.system.ts` | 108 | ✅ OK | `resolveEmitSpark(state: WorldState, target: Point3D): SystemPyrotechnicResult` |
 | `src/sim/systems/safehouse.system.ts` | 235 | ✅ OK | `resolveClaimWorkshopDeed(state: WorldState, cmd: ClaimWorkshopDeedCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `resolveBuildStructure(state: WorldState, cmd: BuildStructureCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `resolveStoreItemInStructure(state: WorldState, cmd: StoreItemInStructureCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `resolveRetrieveItemFromStructure(state: WorldState, cmd: RetrieveItemFromStructureCommand): { state: WorldState; apSpent: number; events: SimEvent[] }` |
 | `src/sim/systems/salvage-repair.system.ts` | 149 | ✅ OK | `resolveSalvageItem(state: WorldState, actorId: EntityId, itemEntityId: EntityId): SystemInventoryResult`, `resolveRepairLimb(state: WorldState, actorId: EntityId, slot: LimbSlotId): SystemInventoryResult` |
-| `src/sim/systems/skirmish-turf.system.ts` | 218 | ✅ OK | `getTurfAtPosition(state: WorldState, pos: Point3D): TurfSectorRecord \| undefined`, `registerTurfSector(state: WorldState, turf: TurfSectorRecord): WorldState`, `resolveInitiateTurfSkirmish(state: WorldState, cmd: InitiateTurfSkirmishCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `processActorTurfMovement(state: WorldState, actorId: EntityId, oldPos: Point3D, newPos: Point3D): { state: WorldState; events: SimEvent[] }` |
+| `src/sim/systems/skirmish-turf.system.ts` | 225 | ✅ OK | `getTurfAtPosition(state: WorldState, pos: Point3D): TurfSectorRecord \| undefined`, `registerTurfSector(state: WorldState, turf: TurfSectorRecord): WorldState`, `resolveInitiateTurfSkirmish(state: WorldState, cmd: InitiateTurfSkirmishCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `processActorTurfMovement(state: WorldState, actorId: EntityId, oldPos: Point3D, newPos: Point3D): { state: WorldState; events: SimEvent[] }` |
 | `src/sim/systems/squad-witness.system.ts` | 178 | ✅ OK | `isLocationOccludedBySmog(state: WorldState, pos: { x: number; y: number; stratum: StratumId }): boolean`, `resolveReportCrime(state: WorldState, witnessId: EntityId, perpetratorId: EntityId, crime: 'THEFT' \| 'ASSAULT' \| 'TRESPASS'): SquadWitnessResult`, `processCrimeWitnesses(state: WorldState, perpetratorId: EntityId, victimFactionId: FactionId, crime: 'THEFT' \| 'ASSAULT' \| 'TRESPASS'): SquadWitnessResult`, `resolveEmitSquadCallout(state: WorldState, callerId: EntityId, targetId: EntityId, alertMessage: string): SquadWitnessResult` |
-| `src/sim/systems/stealth-acoustics.system.ts` | 157 | ✅ OK | `computeActorStepNoiseDb(state: Readonly<WorldState>, actorId: EntityId): number`, `emitAcousticPulse(state: WorldState, origin: Point3D, decibels: number, turn: number, sourceActorId: EntityId): SystemAcousticResult`, `canActorSpotTarget(state: Readonly<WorldState>, observerId: EntityId, targetId: EntityId): boolean` |
+| `src/sim/systems/stealth-acoustics.system.ts` | 175 | ✅ OK | `computeActorStepNoiseDb(state: Readonly<WorldState>, actorId: EntityId): number`, `emitAcousticPulse(state: WorldState, origin: Point3D, decibels: number, turn: number, sourceActorId: EntityId): SystemAcousticResult`, `canActorSpotTarget(state: Readonly<WorldState>, observerId: EntityId, targetId: EntityId): boolean` |
 | `src/sim/systems/supply-escort.system.ts` | 185 | ✅ OK | `resolvePrepareSupplyConvoy(state: WorldState, cmd: PrepareSupplyConvoyCommand): { state: WorldState; apSpent: number; events: SimEvent[] }`, `processCraftSupplyConvoyPrep(state: WorldState, actorId: EntityId, recipeId: string, cargoItemId: EntityId, clientFactionId: FactionId): { state: WorldState; events: SimEvent[] }`, `processCompanionEscortAssignment(state: WorldState, _actorId: EntityId, companionId: EntityId): { state: WorldState; events: SimEvent[] }`, `processDropItemDelivery(state: WorldState, actorId: EntityId, itemEntityId: EntityId, dropPos: Point3D): { state: WorldState; events: SimEvent[] }` |
-| `src/sim/systems/surgery.system.ts` | 154 | ✅ OK | `resolveHarvestCorpse(state: WorldState, actorId: EntityId, corpseEntityId: EntityId, toolEntityId: EntityId, slot: LimbSlotId): SystemSurgeryResult` |
+| `src/sim/systems/surgery.system.ts` | 230 | ✅ OK | `resolveHarvestCorpse(state: WorldState, actorId: EntityId, corpseEntityId: EntityId, toolEntityId: EntityId, slot: LimbSlotId): SystemSurgeryResult`, `resolveDissectCorpseAnatomy(state: WorldState, cmd: DissectCorpseAnatomyCommand): SystemSurgeryResult` |
 | `src/sim/systems/surgical-context.ts` | 36 | ✅ OK | `hasSurgicalBonus(state: WorldState, actor: EntityRecord): boolean`, `computeProstheticFovBonus(state: Readonly<WorldState>, actor: EntityRecord): number` |
-| `src/sim/systems/thermo.system.ts` | 178 | ✅ OK | `advanceThermodynamicsTick(state: WorldState): { state: WorldState; events: SimEvent[]; }` |
+| `src/sim/systems/thermo.system.ts` | 191 | ✅ OK | `advanceThermodynamicsTick(state: WorldState): { state: WorldState; events: SimEvent[]; }` |
 | `src/sim/systems/trade-buy.system.ts` | 146 | ✅ OK | `resolveBuyFromMerchant(state: WorldState, actorId: EntityId, merchantId: EntityId, itemEntityId: EntityId, requestedQuantity: number): { state: WorldState; events: SimEvent[]; apSpent: number }` |
 | `src/sim/systems/trade-pedestal.ts` | 119 | ✅ OK | `resolveStockPedestal(state: WorldState, commodity: CommodityId, quantity: number, askingPriceMarkupPct: number, actorId: EntityId, strict: unknown): { state: WorldState; events: SimEvent[]; apSpent: number }` |
-| `src/sim/systems/trade-pricing.ts` | 108 | ✅ OK | `getItemBasePricePence(state: Readonly<WorldState>, entity: EntityRecord): number`, `isAdjacent(a: EntityRecord, b: EntityRecord): boolean`, `createTradeFailure(state: WorldState, actorId: EntityId, action: 'BUY' \| 'SELL' \| 'STOCK_PEDESTAL', reason: Extract<SimEvent, { type: 'TRADE_ACTION_FAILED' }>['reason'], merchantId: EntityId): void`, `computeBuyUnitPrice(state: Readonly<WorldState>, merchant: EntityRecord, entity: EntityRecord): number` |
+| `src/sim/systems/trade-pricing.ts` | 146 | ✅ OK | `getItemBasePricePence(state: Readonly<WorldState>, entity: EntityRecord): number`, `isAdjacent(a: EntityRecord, b: EntityRecord): boolean`, `createTradeFailure(state: WorldState, actorId: EntityId, action: 'BUY' \| 'SELL' \| 'STOCK_PEDESTAL', reason: Extract<SimEvent, { type: 'TRADE_ACTION_FAILED' }>['reason'], merchantId: EntityId): void`, `computeTurfTradeMultiplier(state: Readonly<WorldState>, merchant: EntityRecord, tradeType: 'BUY' \| 'SELL'): number` |
 | `src/sim/systems/trade-sell.system.ts` | 125 | ✅ OK | `resolveSellToMerchant(state: WorldState, actorId: EntityId, merchantId: EntityId, itemEntityId: EntityId, requestedQuantity: number): { state: WorldState; events: SimEvent[]; apSpent: number }` |
 | `src/sim/systems/trade.system.ts` | 10 | ✅ OK | *None (internal)* |
-| `src/sim/systems/transit.system.ts` | 239 | ✅ OK | `resolveToggleDoor(state: WorldState, actorId: EntityId, target: Point3D): TransitResolutionResult`, `resolveTravelDistrict(state: WorldState, actorId: EntityId, targetDistrictId: BlueprintId): TransitResolutionResult` |
+| `src/sim/systems/transit.system.ts` | 180 | ✅ OK | `resolveTravelDistrict(state: WorldState, actorId: EntityId, targetDistrictId: BlueprintId): TransitResolutionResult` |
 | `src/sim/systems/weapon-mods.system.ts` | 227 | ✅ OK | `resolveInstallWeaponMod(state: WorldState, actorId: EntityId, weaponEntityId: EntityId, modEntityId: EntityId): WeaponModResult`, `resolveUninstallWeaponMod(state: WorldState, actorId: EntityId, weaponEntityId: EntityId, modBlueprintId: BlueprintId): WeaponModResult`, `resolveLoadAmmo(state: WorldState, actorId: EntityId, weaponEntityId: EntityId, ammoEntityId: EntityId): WeaponModResult` |
 
 ## Ring 2: Simulation Data & Catalogs (`src/sim/data/`)
@@ -174,6 +193,7 @@ Item catalogs, recipes, blueprints lookup, and entity instantiation factories.
 
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
+| `src/sim/data/corpora-catalog.ts` | 176 | ✅ OK | `loadBarkCorpora(): readonly BarkCorpusBlueprint[]`, `interpolateLoreTokens(template: string, tokens: Record<string, string \| number \| undefined>): string`, `selectDynamicBark(corpusOrId: BarkCorpusBlueprint \| string, contextOrTrigger: BarkContext \| BarkTriggerContext, rng: SeededRNG): BarkEntry \| undefined`, `emitProceduralBark(state: WorldState, actorId: EntityId, trigger: BarkTriggerContext, rng: SeededRNG, _targetId: EntityId): { state: WorldState; events: SimEvent[]; apSpent: number }` |
 | `src/sim/data/item-catalog.ts` | 208 | ✅ OK | `getItemBlueprint(blueprintId: string): ItemBlueprint \| undefined`, `getProstheticBlueprint(blueprintId: string): ProstheticBlueprint \| undefined`, `getCommodityBlueprint(blueprintId: string): CommodityBlueprint \| undefined`, `getRecipeBlueprint(recipeId: string): CraftingRecipeBlueprint \| undefined` |
 
 ## Ring 3: Presentation Shell & Renderer (`src/client/projection/`, `src/client/renderer/`)
@@ -183,15 +203,29 @@ Headless projection frame adapter, PixiJS glyph rendering stage, and CRT post-pr
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
 | `src/client/projection/biome-palette.ts` | 215 | ✅ OK | `resolveDistrictBiome(districtId: string, stratum: StratumId): BiomeId`, `resolveBiomeTerrainVisual(terrainType: TerrainType, isVisible: boolean, isExplored: boolean, biomeId: BiomeId, connectingWallGlyph: string, steamPressureKpa: unknown): VisualGlyphSpec` |
-| `src/client/projection/environmental-visuals.ts` | 88 | ✅ OK | `applySootVisualOverlay(base: VisualGlyphSpec, smokePpm: number, coalDustDensity: number, worldX: number, worldY: number, turnCount: number, isVisible: boolean): VisualGlyphSpec`, `applyLiquidSurfaceVisual(base: VisualGlyphSpec, liquidType: LiquidTypeId, volumeMl: number, isVisible: boolean): VisualGlyphSpec`, `applyGaslightVisual(base: VisualGlyphSpec, isGaslit: boolean): VisualGlyphSpec` |
-| `src/client/projection/frame-adapter.ts` | 222 | ✅ OK | `resolveCatalogDisplayName(kind: string, id: string): string`, `projectWorldToVisualFrame(state: Readonly<WorldState>, focusActorId: unknown, baseFovRadius: unknown, viewportOverride: { width: number; height: number }): VisualGridFrame` |
-| `src/client/projection/wall-connections.ts` | 114 | ✅ OK | `isWallTerrain(terrainType: TerrainType): boolean`, `getExplicitWallGlyph(terrainType: TerrainType): string \| undefined`, `resolveConnectingWallGlyph(grid: StratumGrid, x: number, y: number): string` |
+| `src/client/projection/camera-governor.ts` | 102 | ✅ OK | `calculateCameraViewport(gridWidth: number, gridHeight: number, originX: number, originY: number, defaultWidth: number, defaultHeight: number, viewportOverride: { width: number; height: number }): CameraViewportConfig`, `resolveOutOfBoundsVisual(worldX: number, worldY: number, gridWidth: number, gridHeight: number, _turnCount: unknown): VisualGlyphSpec` |
+| `src/client/projection/catalog-display.ts` | 73 | ✅ OK | `resolveCatalogDisplayName(kind: string, id: string): string` |
+| `src/client/projection/environmental-visuals.ts` | 92 | ✅ OK | `applySootVisualOverlay(base: VisualGlyphSpec, smokePpm: number, coalDustDensity: number, worldX: number, worldY: number, turnCount: number, isVisible: boolean, isExplored: boolean): VisualGlyphSpec`, `applyLiquidSurfaceVisual(base: VisualGlyphSpec, liquidType: LiquidTypeId, volumeMl: number, isVisible: boolean, isExplored: boolean): VisualGlyphSpec`, `applyGaslightVisual(base: VisualGlyphSpec, isGaslit: boolean): VisualGlyphSpec` |
+| `src/client/projection/frame-adapter.ts` | 197 | ✅ OK | `projectWorldToVisualFrame(state: Readonly<WorldState>, focusActorId: unknown, baseFovRadius: unknown, viewportOverride: { width: number; height: number }): VisualGridFrame` |
+| `src/client/projection/wall-connections.ts` | 128 | ✅ OK | `isWallTerrain(terrainType: TerrainType): boolean`, `getExplicitWallGlyph(terrainType: TerrainType): string \| undefined`, `isWallJoinableTerrain(terrainType: TerrainType): boolean`, `resolveConnectingWallGlyph(grid: StratumGrid, x: number, y: number): string` |
 | `src/client/renderer/crt-filter.ts` | 56 | ✅ OK | `createCrtPostFilter(opacity: number, options: SteampunkFilterOptions): Filter`, `updateSteampunkFilterUniforms(filter: Filter, time: number, thermoStress: unknown, smokeMask: [number, number, number, number], distortionScale: unknown, scanlineOpacity: unknown): void` |
-| `src/client/renderer/desktop-window-manager.ts` | 125 | ✅ OK | `computeAspectLockedScale(container: WindowDimensions, baseWidth: number, baseHeight: number, integerScaleOnly: unknown): ViewportScaleMetrics`, `toggleFullscreen(targetElement: HTMLElement): Promise<boolean>` |
-| `src/client/renderer/glyph-atlas.ts` | 99 | ✅ OK | `createGlyphAtlas(cellWidth: number, cellHeight: number, fontFamily: unknown): GlyphAtlas` |
-| `src/client/renderer/glyph-stage.ts` | 211 | ✅ OK | `CELL_WIDTH_PX`, `CELL_HEIGHT_PX`, `WIDESCREEN_GRID_WIDTH`, `WIDESCREEN_GRID_HEIGHT` |
+| `src/client/renderer/desktop-window-manager.ts` | 171 | ✅ OK | `computeAspectLockedScale(container: WindowDimensions, baseWidth: number, baseHeight: number, integerScaleOnly: unknown): ViewportScaleMetrics`, `transformClientToGrid(clientX: number, clientY: number, rect: { left: number; top: number; width: number; height: number }, gridWidth: number, gridHeight: number): { col: number; row: number; inside: boolean }`, `applyViewportScale(elements: { canvasHost: HTMLElement; overlayHost?: HTMLElement; appCanvas?: HTMLCanvasElement \| null }, metrics: ViewportScaleMetrics): void`, `toggleFullscreen(targetElement: HTMLElement): Promise<boolean>` |
+| `src/client/renderer/diegetic-post-filter.ts` | 156 | ✅ OK | `createDiegeticPostFilter(options: Partial<DiegeticShaderUniformValues>): Filter`, `updateDiegeticFilterUniforms(filter: Filter, values: DiegeticShaderUniformValues): void` |
+| `src/client/renderer/floating-combat-text.tsx` | 181 | ✅ OK | `deriveFloatingCombatText(events: readonly SimEvent[], state: Readonly<WorldState>, nowMs: unknown): FloatingTextCallout[]`, `FloatingTextOverlay({
+  items,
+  cameraOrigin,
+  offsetX = 0,
+  offsetY = 0,
+  nowMs = Date.now(),
+}: FloatingTextOverlayProps): void` |
+| `src/client/renderer/glyph-atlas-extended.ts` | 114 | ✅ OK | `createExtendedGlyphAtlas(cellWidth: number, cellHeight: number, fontFamily: unknown): GlyphAtlas` |
+| `src/client/renderer/glyph-atlas.ts` | 102 | ✅ OK | `createGlyphAtlas(cellWidth: number, cellHeight: number, fontFamily: unknown): GlyphAtlas` |
+| `src/client/renderer/glyph-stage-types.ts` | 11 | ✅ OK | `hexToNumber(hex: string): number` |
+| `src/client/renderer/glyph-stage.ts` | 240 | ⚠️ WARN | *None (internal)* |
 | `src/client/renderer/performance-governor.ts` | 115 | ✅ OK | `getPerformanceGovernor(): PerformanceGovernor` |
-| `src/client/renderer/steampunk-shader.ts` | 152 | ✅ OK | `resolveThermodynamicStress(state: Readonly<WorldState>, actorId: EntityId): ThermodynamicStressResult` |
+| `src/client/renderer/shader-uniforms.ts` | 65 | ✅ OK | `createDefaultShaderUniformValues(widthPx: unknown, heightPx: unknown): DiegeticShaderUniformValues`, `interpolateThermoStress(current: number, target: number, dtSeconds: number, decaySpeed: unknown): number`, `packShaderUniforms(values: DiegeticShaderUniformValues): Record<string, { value: unknown; type: string }>` |
+| `src/client/renderer/steampunk-pipeline.ts` | 127 | ✅ OK | `PipelineLayerId`, `PipelineStageLayers` |
+| `src/client/renderer/steampunk-shader.ts` | 150 | ✅ OK | `resolveThermodynamicStress(state: Readonly<WorldState>, actorId: EntityId): ThermodynamicStressResult` |
 
 ## Ring 3: Preact UI Panels (`src/client/ui/`)
 
@@ -229,7 +263,7 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
 | `src/client/ui/AtlasOverworldView.tsx` | 131 | ✅ OK | `AtlasOverworldView({ mode, currentDistrictId }: AtlasOverworldViewProps): void` |
 | `src/client/ui/AtlasWindow.tsx` | 117 | ✅ OK | `AtlasWindow({ state, actorId, onCommand }: AtlasWindowProps): void` |
 | `src/client/ui/CartelLedgerView.tsx` | 212 | ✅ OK | `CartelLedgerView({ economy, actorId, entities, onCommand }: CartelLedgerViewProps): void` |
-| `src/client/ui/CharacterCreatorModal.tsx` | 247 | ⚠️ WARN | `CharacterCreatorModal({
+| `src/client/ui/CharacterCreatorModal.tsx` | 177 | ✅ OK | `CharacterCreatorModal({
   isOpen,
   initialSeed = 0xcafebabe,
   onClose,
@@ -243,25 +277,42 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   onSelectWindow,
   onCommand,
 }: CharacterModalShellProps): void` |
-| `src/client/ui/ClientPresentationView.tsx` | 153 | ✅ OK | `renderClientPresentationViews(hosts: ClientMountHosts, ctx: ClientPresentationContext): void` |
+| `src/client/ui/ClientPresentationView.tsx` | 177 | ✅ OK | `renderClientPresentationViews(hosts: ClientMountHosts, ctx: ClientPresentationContext): void` |
 | `src/client/ui/CodexWindow.tsx` | 161 | ✅ OK | `CodexWindow({ state, actorId, onCommand }: CodexWindowProps): void` |
 | `src/client/ui/CraftingPanel.tsx` | 168 | ✅ OK | `CraftingPanel({ state, actorId, onCommand }: CraftingPanelProps): void` |
-| `src/client/ui/CraftingWindow.tsx` | 243 | ⚠️ WARN | `CraftingWindow({ state, actorId, onCommand }: CraftingWindowProps): void` |
-| `src/client/ui/DialogueModal.tsx` | 214 | ✅ OK | `DialogueModal({ state, actorId, targetNpcId, onCommand, onClose, onOpenModal }: DialogueModalProps): void` |
+| `src/client/ui/CraftingRecipeList.tsx` | 120 | ✅ OK | `CraftingRecipeList({
+  filteredRecipes,
+  selectedIdx,
+  filter,
+  nearbyBench,
+  currentSteam,
+  ingredientCounts,
+  onSelectRecipe,
+  onSetFilter,
+}: CraftingRecipeListProps): void` |
+| `src/client/ui/CraftingWindow.tsx` | 193 | ✅ OK | `CraftingWindow({ state, actorId, onCommand }: CraftingWindowProps): void` |
+| `src/client/ui/DialogueModal.tsx` | 203 | ✅ OK | `DialogueModal({ state, actorId, targetNpcId, onCommand, onClose, onOpenModal }: DialogueModalProps): void` |
 | `src/client/ui/EquippedGearPanel.tsx` | 99 | ✅ OK | `EquippedGearPanel({ state, actorId, onCommand }: EquippedGearPanelProps): void` |
-| `src/client/ui/EventFormatter.ts` | 211 | ✅ OK | `formatEventMessage(ev: SimEvent): string` |
+| `src/client/ui/EventFormatter.ts` | 217 | ✅ OK | `formatEventMessage(ev: SimEvent): string` |
 | `src/client/ui/EventFormatterDomain.ts` | 48 | ✅ OK | `aggregateChronicleEvents(events: readonly SimEvent[], maxLines: number): string[]` |
-| `src/client/ui/HudLayout.tsx` | 223 | ✅ OK | `HudLayout({
+| `src/client/ui/HudLayout.tsx` | 228 | ✅ OK | `HudLayout({
   state,
   onCommand,
   hoveredTile = null,
+  isLookModeActive = false,
   onOpenModal,
   onOpenSystemMenu,
   onReEmbark,
 }: HudLayoutProps): void` |
+| `src/client/ui/InventoryEncumbranceBar.tsx` | 62 | ✅ OK | `InventoryEncumbranceBar({
+  inv,
+  carriedVolume,
+  treasuryPence,
+}: InventoryEncumbranceBarProps): void` |
 | `src/client/ui/InventoryPanel.tsx` | 116 | ✅ OK | `InventoryPanel({ state, actorId, onCommand }: InventoryPanelProps): void` |
-| `src/client/ui/InventoryWindow.tsx` | 244 | ⚠️ WARN | `InventoryWindow({ state, actorId, onCommand }: InventoryWindowProps): void` |
-| `src/client/ui/ItemDossierCard.tsx` | 245 | ⚠️ WARN | `ItemDossierCard({ state, actorId, item, onCommand }: ItemDossierCardProps): void` |
+| `src/client/ui/InventoryWindow.tsx` | 202 | ✅ OK | `InventoryWindow({ state, actorId, onCommand }: InventoryWindowProps): void` |
+| `src/client/ui/ItemDossierCard.tsx` | 175 | ✅ OK | `ItemDossierCard({ state, actorId, item, onCommand }: ItemDossierCardProps): void` |
+| `src/client/ui/ItemDossierStats.tsx` | 80 | ✅ OK | `ItemDossierStats({ item, commodityQuote }: ItemDossierStatsProps): void` |
 | `src/client/ui/LimbSlotCard.tsx` | 73 | ✅ OK | `LimbSlotCard({
   config,
   limb,
@@ -270,9 +321,24 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   onSelect,
   graftReady = false,
 }: LimbSlotCardProps): void` |
-| `src/client/ui/LookCursorOverlay.tsx` | 244 | ⚠️ WARN | `LookCursorOverlay({
-  isActive, cursor, cameraOrigin, state, actorId, onCommand, onClose, onTalk,
+| `src/client/ui/LookCursorLimbSelector.tsx` | 91 | ✅ OK | `LookCursorLimbSelector({
+  actorId,
+  targetActor,
+  isAdjacent,
+  canRangedShoot,
+  dist,
+  wieldedSpec,
+  onCommand,
+  onTalk,
+}: LookCursorLimbSelectorProps): void` |
+| `src/client/ui/LookCursorOverlay.tsx` | 116 | ✅ OK | `LookCursorOverlay({
+  isActive, cursor, cameraOrigin, state, actorId, onCommand, onClose, onTalk, suppressDetailCard = false,
 }: LookCursorOverlayProps): void` |
+| `src/client/ui/LookCursorTileCard.tsx` | 165 | ✅ OK | `LookCursorTileCard({
+  cursor, stratum, actorId, targetActor, isDoor, isGlassWindow, isSmashedWindow,
+  furnitureEntity, vesselEntity, corpseEntity, entitiesOnTile, cell, hasCoalDust,
+  isAdjacent, canRangedShoot, dist, wieldedSpec, pryingTool, surgicalTool, onCommand, onTalk,
+}: LookCursorTileCardProps): void` |
 | `src/client/ui/MarketLedger.tsx` | 171 | ✅ OK | `MarketLedger({ economy, contracts, onCommand, onFilterContracts }: MarketLedgerProps): void` |
 | `src/client/ui/MerchantCounterView.tsx` | 150 | ✅ OK | `MerchantCounterView({
   state,
@@ -285,7 +351,8 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
 }: MerchantCounterViewProps): void` |
 | `src/client/ui/ModalTopBar.tsx` | 82 | ✅ OK | `ModalTopBar({ activeModal, onOpenModal, onOpenSystemMenu }: ModalTopBarProps): void` |
 | `src/client/ui/MorgueModal.tsx` | 140 | ✅ OK | `MorgueModal({ state, onReEmbark }: MorgueModalProps): void` |
-| `src/client/ui/QuickActionBar.tsx` | 182 | ✅ OK | `QuickActionBar({
+| `src/client/ui/PreactBridge.tsx` | 96 | ✅ OK | `PreactBridge(props: PreactBridgeProps): void` |
+| `src/client/ui/QuickActionBar.tsx` | 184 | ✅ OK | `QuickActionBar({
   state,
   actorId,
   isLookModeActive = false,
@@ -294,7 +361,7 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   onCommand,
 }: QuickActionBarProps): void` |
 | `src/client/ui/SatchelPanel.tsx` | 121 | ✅ OK | `ItemGlyphBadge({ entity }: { readonly entity: EntityRecord }): void`, `SatchelPanel({ state, actorId, onCommand }: SatchelPanelProps): void` |
-| `src/client/ui/SystemMenuModal.tsx` | 225 | ✅ OK | `SystemMenuModal({
+| `src/client/ui/SystemMenuModal.tsx` | 231 | ✅ OK | `SystemMenuModal({
   state,
   isOpen,
   onClose,
@@ -303,20 +370,35 @@ Single-responsibility reactive HUD panels, inspectors, satchel drawer, and event
   onOpenCharacterCreator,
   crtScanlinesEnabled = true,
   onToggleCrtScanlines,
+  useDiegeticCanvasUi = true,
+  onToggleUiMode,
 }: SystemMenuModalProps): void` |
-| `src/client/ui/SystemSettingsControls.tsx` | 110 | ✅ OK | `SystemSettingsControls({
+| `src/client/ui/SystemSettingsControls.tsx` | 132 | ✅ OK | `SystemSettingsControls({
   crtScanlinesEnabled = true,
   onToggleCrtScanlines,
   onSettingsChanged,
+  useDiegeticCanvasUi = true,
+  onToggleUiMode,
 }: SystemSettingsControlsProps): void` |
-| `src/client/ui/TileInspectorPanel.tsx` | 202 | ✅ OK | `getEmptyTileDescriptor(terrainType: string): string`, `TileInspectorPanel({
+| `src/client/ui/TickerTapeLog.tsx` | 39 | ✅ OK | `TickerTapeLog({ chronicleLines }: TickerTapeLogProps): void` |
+| `src/client/ui/TileInspectorPanel.tsx` | 204 | ✅ OK | `getEmptyTileDescriptor(terrainType: string): string`, `TileInspectorPanel({
   state,
   actorId,
   tile,
+  isLookModeActive = false,
   onCommand,
   onSelectTab,
 }: TileInspectorPanelProps): void` |
 | `src/client/ui/TradeWindow.tsx` | 136 | ✅ OK | `TradeWindow({ state, actorId, onCommand }: TradeWindowProps): void` |
+| `src/client/ui/TraitSelectorPanel.tsx` | 47 | ✅ OK | `TraitSelectorPanel({
+  selectedTraits,
+  onToggleTrait,
+}: TraitSelectorPanelProps): void` |
+| `src/client/ui/VocationSelectorPanel.tsx` | 66 | ✅ OK | `VocationSelectorPanel({
+  selectedProf,
+  profDef,
+  onSelectProf,
+}: VocationSelectorPanelProps): void` |
 
 ## Ring 3: Client Main & Audio (`src/client/`)
 
@@ -330,22 +412,39 @@ Browser bootstrap, keyboard/mouse input dispatching, and WebAudio synth integrat
 | `src/client/audio/synth-presets-combat.ts` | 116 | ✅ OK | `COMBAT_PRESETS` |
 | `src/client/audio/synth-presets-environment.ts` | 176 | ✅ OK | `ENVIRONMENT_PRESETS`, `STRATUM_AMBIENCE_PROFILES` |
 | `src/client/audio/synth-presets-mechanical.ts` | 127 | ✅ OK | `MECHANICAL_PRESETS` |
-| `src/client/bootstrap-loop.ts` | 210 | ✅ OK | `createFreshWorld(seed: number): WorldState`, `startClientSession(mounts: ClientSessionMounts, stageRenderer: GlyphStageRenderer, initialSeed: unknown): void` |
-| `src/client/canvas-ui/artificer-bench-screen.ts` | 125 | ✅ OK | `renderArtificerBenchScreen(buf: UiCellBuffer, rect: UiRect, _state: Readonly<WorldState>, options: ArtificerBenchOptions): void` |
+| `src/client/bootstrap-loop.ts` | 271 | ⚠️ WARN | `createFreshWorld(seed: number): WorldState`, `startClientSession(mounts: ClientSessionMounts, stageRenderer: GlyphStageRenderer, initialSeed: unknown): void` |
+| `src/client/canvas-ui/analog-gauges.ts` | 139 | ✅ OK | `formatVictorianCurrency(penceTotal: number): string`, `formatVictorianFluidMeasures(bloodPct: number): { pints: number; drams: number; formatted: string }`, `drawBourdonPressureGauge(buf: UiCellBuffer, x: number, y: number, currentKpa: number, maxKpa: unknown): void`, `drawSanguineManometer(buf: UiCellBuffer, x: number, y: number, bloodPct: number, height: unknown): void` |
+| `src/client/canvas-ui/artificer-bench-screen.ts` | 175 | ✅ OK | `renderArtificerBenchScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, options: ArtificerBenchOptions, playerId: EntityId): void` |
+| `src/client/canvas-ui/atlas-dossier-panel.ts` | 98 | ✅ OK | `renderAtlasDossierPanel(buf: UiCellBuffer, rightX: number, rightWidth: number, rectY: number, state: Readonly<WorldState>, playerPos: { x: number; y: number; stratum: StratumId } \| undefined, currentStratum: StratumId): void` |
+| `src/client/canvas-ui/atlas-screen.ts` | 140 | ✅ OK | `renderAtlasScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, playerId: EntityId, options: AtlasScreenOptions): void` |
+| `src/client/canvas-ui/bench-dossier-panel.ts` | 83 | ✅ OK | `countInventoryItem(state: Readonly<WorldState>, playerId: EntityId \| undefined, blueprintId: string): number`, `renderBenchDossierPanel(buf: UiCellBuffer, rect: { x: number; y: number; width: number; height: number }, rightX: number, rightWidth: number, state: Readonly<WorldState>, playerId: EntityId \| undefined, activeRecipe: ArtificerBenchRecipe, playerSteam: number): void` |
+| `src/client/canvas-ui/bezel-composer.ts` | 112 | ✅ OK | `drawMachinedBezel(buf: UiCellBuffer, rect: UiRect, options: BezelOptions): void`, `drawStructuralDivider(buf: UiCellBuffer, x: number, y: number, length: number, orientation: 'HORIZONTAL' \| 'VERTICAL', fg: unknown, bg: unknown): void`, `drawRivetFlange(buf: UiCellBuffer, x: number, y: number, fg: unknown, bg: unknown): void` |
 | `src/client/canvas-ui/cell-buffer.ts` | 158 | ✅ OK | `createUiCellBuffer(width: number, height: number, defaultCell: Partial<UiCell>): UiCellBuffer` |
-| `src/client/canvas-ui/diegetic-anatomy.ts` | 124 | ✅ OK | `renderClockworkPaperdoll(buf: UiCellBuffer, originX: number, originY: number, anatomy: AnatomyComponent \| undefined, options: ClockworkPaperdollOptions): void` |
-| `src/client/canvas-ui/diegetic-cartography.ts` | 181 | ✅ OK | `renderFactionContaminationMap(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, selectedSectorId: string): void` |
+| `src/client/canvas-ui/commodity-ticker-table.ts` | 71 | ✅ OK | `renderCommodityTickerTable(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>): void` |
+| `src/client/canvas-ui/diegetic-anatomy.ts` | 132 | ✅ OK | `renderClockworkPaperdoll(buf: UiCellBuffer, originX: number, originY: number, anatomy: AnatomyComponent \| undefined, options: ClockworkPaperdollOptions): void` |
+| `src/client/canvas-ui/diegetic-cartography.ts` | 203 | ✅ OK | `renderFactionContaminationMap(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, selectedSectorId: string): void` |
+| `src/client/canvas-ui/diegetic-screen-composer.ts` | 195 | ✅ OK | `composeDiegeticUiBuffer(params: DiegeticComposerParams): UiCellBuffer \| undefined`, `handleDiegeticHitAction(hit: string, callbacks: DiegeticHitCallbacks, state: WorldState, playerId: EntityId): boolean` |
+| `src/client/canvas-ui/dossier-paperdoll.ts` | 95 | ✅ OK | `renderDiegeticPaperdoll(buf: UiCellBuffer, originX: number, originY: number, actorOrAnatomy: EntityRecord \| { anatomy?: Partial<AnatomyComponent> \| undefined } \| Partial<AnatomyComponent>): void` |
+| `src/client/canvas-ui/embarkation-screen.ts` | 186 | ✅ OK | `renderEmbarkationScreen(buf: UiCellBuffer, rect: UiRect, screenState: EmbarkationScreenState): void` |
 | `src/client/canvas-ui/industrial-primitives.ts` | 192 | ✅ OK | `drawIndustrialFrame(buf: UiCellBuffer, rect: UiRect, options: IndustrialFrameOptions): void`, `drawBrassToggleTabs(buf: UiCellBuffer, x: number, y: number, tabs: readonly BrassToggleTab[], activeTabId: string): void`, `drawDiegeticGauge(buf: UiCellBuffer, x: number, y: number, width: number, ratio: number, options: DiegeticGaugeOptions): void` |
-| `src/client/canvas-ui/material-palette.ts` | 57 | ✅ OK | `resolveThermodynamicPalette(stressLevel: ThermodynamicStressLevel): ThermodynamicPaletteResult` |
+| `src/client/canvas-ui/material-palette.ts` | 71 | ✅ OK | `resolveThermodynamicPalette(stressLevel: ThermodynamicStressLevel): ThermodynamicPaletteResult` |
 | `src/client/canvas-ui/mechanical-conduits.ts` | 115 | ✅ OK | `drawAsciiConduit(buf: UiCellBuffer, fromPoint: ConduitPoint, toPoint: ConduitPoint, options: ConduitRouteOptions): ConduitRouteResult` |
 | `src/client/canvas-ui/mechanical-transition.ts` | 75 | ✅ OK | `applyMechanicalCylinderScramble(targetBuffer: UiCellBuffer, elapsedMs: number, durationMs: unknown, options: MechanicalTransitionOptions): boolean` |
-| `src/client/canvas-ui/naturalist-ledger-screen.ts` | 139 | ✅ OK | `renderNaturalistLedgerScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, options: NaturalistLedgerOptions): void` |
-| `src/client/canvas-ui/satchel-screen.ts` | 97 | ✅ OK | `renderSatchelScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, playerId: EntityId, options: SatchelScreenOptions): void` |
+| `src/client/canvas-ui/modal-buffer-router.ts` | 136 | ✅ OK | `generateModalUiBuffer(modal: ModalWindowId, state: Readonly<WorldState>, playerId: EntityId, width: unknown, height: unknown, options: ModalRouterOptions): UiCellBuffer` |
+| `src/client/canvas-ui/naturalist-ledger-screen.ts` | 215 | ✅ OK | `renderNaturalistLedgerScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, options: NaturalistLedgerOptions): void` |
+| `src/client/canvas-ui/satchel-dossier-panel.ts` | 78 | ✅ OK | `renderSatchelDossierPanel(buf: UiCellBuffer, rect: UiRect, rightX: number, rightWidth: number, state: Readonly<WorldState>, activeItemId: EntityId \| undefined): void` |
+| `src/client/canvas-ui/satchel-screen.ts` | 121 | ✅ OK | `renderSatchelScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, playerId: EntityId, options: SatchelScreenOptions): void` |
+| `src/client/canvas-ui/system-menu-screen.ts` | 68 | ✅ OK | `renderSystemMenuScreen(buf: UiCellBuffer, view: SystemMenuView, rect: UiRect): void` |
+| `src/client/canvas-ui/tactical-console.ts` | 103 | ✅ OK | `renderTacticalConsole(buf: UiCellBuffer, rect: UiRect, state: WorldState, playerId: EntityId, options: TacticalConsoleOptions): void` |
+| `src/client/canvas-ui/tactical-vernier.ts` | 125 | ✅ OK | `estimateTerrainAcousticDb(terrainType: string): number`, `estimateTerrainHardness(terrainType: string): { rating: string; mohs: number }`, `renderTacticalVernierDossier(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, hoverCoord: { x: number; y: number } \| null, playerActorId: EntityId): void` |
 | `src/client/canvas-ui/viewport-controls.ts` | 160 | ✅ OK | `drawScrollableRegion(buf: UiCellWriteTarget, rect: UiRect, lines: readonly string[], scrollOffset: number, options: { readonly fgText?: string; readonly bgText?: string; readonly fgScrollbar?: string; readonly fgTrack?: string; readonly bgTrack?: string; }): ScrollResult`, `drawDiegeticTextInput(buf: UiCellWriteTarget, rect: UiRect, label: string, value: string, isFocused: boolean, tick: number, options: { readonly fgBorder?: string; readonly fgLabel?: string; readonly fgValue?: string; readonly fgCursor?: string; readonly bg?: string; }): void` |
 | `src/client/client-debug-bridge.ts` | 17 | ✅ OK | `DebugSimBridge` |
-| `src/client/client-interactions.ts` | 72 | ✅ OK | `cycleModalWindow(current: ModalWindowId \| null, direction: 1 \| -1): ModalWindowId`, `findAdjacentDialogueNpc(state: WorldState, playerId: EntityId): EntityId \| undefined`, `findAdjacentDoorTarget(state: WorldState, playerId: EntityId): Point3D \| undefined`, `findEntityAtLookCursor(state: WorldState, stratum: StratumId, cursor: { x: number; y: number }, excludeId: EntityId): EntityRecord \| undefined` |
-| `src/client/input/keyboard-router.ts` | 232 | ✅ OK | `handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParams): void` |
-| `src/client/main.tsx` | 41 | ✅ OK | *None (internal)* |
+| `src/client/client-interactions.ts` | 152 | ✅ OK | `cycleModalWindow(current: ModalWindowId \| null, direction: 1 \| -1): ModalWindowId`, `findAdjacentDialogueNpc(state: WorldState, playerId: EntityId): EntityId \| undefined`, `findAdjacentDoorTarget(state: WorldState, playerId: EntityId): Point3D \| undefined`, `findEntityAtLookCursor(state: WorldState, stratum: StratumId, cursor: { x: number; y: number }, excludeId: EntityId): EntityRecord \| undefined` |
+| `src/client/input/keyboard-router.ts` | 262 | ⚠️ WARN | `handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParams): void` |
+| `src/client/input/modal-nav-router.ts` | 247 | ⚠️ WARN | `resolveModalRouterOptions(modal: ModalWindowId \| null, navState: ModalNavState, state: Readonly<WorldState>, playerId: EntityId): ModalRouterOptions`, `handleModalNavigationKey(ev: ModalKeyEvent, activeModal: ModalWindowId, state: Readonly<WorldState>, playerId: EntityId, navState: ModalNavState, onCommand: (cmd: GameCommand) => void, onNavigate: () => void): boolean` |
+| `src/client/input/mouse-router.ts` | 39 | ✅ OK | `resolveTileFromMouse(ev: { clientX: number; clientY: number }, canvasHost: { getBoundingClientRect: () => DOMRect \| { left: number; top: number; width: number; height: number } }, worldState: WorldState, playerId: EntityId): { x: number; y: number } \| null` |
+| `src/client/input/system-menu-controller.ts` | 134 | ✅ OK | `createSystemMenuController(deps: SystemMenuDeps): SystemMenuController` |
+| `src/client/main.tsx` | 72 | ✅ OK | *None (internal)* |
 | `src/client/persistence/save-adapter.ts` | 133 | ✅ OK | `createSaveStorageAdapter(preferredType: 'LOCAL_STORAGE' \| 'NATIVE_FILESYSTEM' \| 'IN_MEMORY'): SaveStorageAdapter`, `getDefaultSaveStorageAdapter(): SaveStorageAdapter` |
 
 ## Tooling & Headless LLM Pipeline (`tests/scripts/`)
@@ -355,20 +454,24 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
 | `tests/scripts/ast-indexer.ts` | 178 | ✅ OK | `computeFileHash(content: string): string`, `parseSourceFileAst(filePath: string, content: string, rootDir: string): AstFileMetadata`, `loadAstCache(cachePath: string): Record<string, AstFileMetadata>`, `saveAstCache(cachePath: string, cache: Record<string, AstFileMetadata>): void` |
+| `tests/scripts/capture-screenshots.ts` | 163 | ✅ OK | *None (internal)* |
+| `tests/scripts/check-agent-governance.ts` | 196 | ✅ OK | `auditAgentGovernance(workspaceRoot: string): GovernanceReport` |
 | `tests/scripts/check-boundaries.ts` | 73 | ✅ OK | *None (internal)* |
+| `tests/scripts/critic-config.ts` | 25 | ✅ OK | `parseCriticArgs(argv: string[]): CriticConfig` |
 | `tests/scripts/critic-report.ts` | 181 | ✅ OK | `auditCommandCoverage(rootDir: string, histogram: Record<string, number>): CommandCoverage`, `auditModularityHotspots(rootDir: string, threshold: unknown): Array<{ file: string; lines: number }>`, `buildHandoffPrompt(nextPriority: string, topHotspot: string, topUnwired: string): string`, `formatCriticReport(data: { score: number; hotspots: Array<{ file: string; lines: number }>; coverage: CommandCoverage; histogram: Record<string, number>; turnsSurvived: number; nextPriority: string; customSection4?: string \| undefined; customPrescriptions?: string \| undefined; telemetry?: LlmConnectionTelemetry \| undefined; audit?: CriticAudit \| undefined; sanityResult?: CriticSanityResult \| undefined; }): string` |
 | `tests/scripts/critic-sanity.ts` | 214 | ✅ OK | `parseCompletedPhases(repoRoot: string): Set<number>`, `extractReportAnomalies(repoRoot: string, anomalies: TelemetryAnomaly[]): Set<string>`, `verifyCriticSanity(audit: CriticAudit, repoRoot: string): CriticSanityResult` |
 | `tests/scripts/generate-architecture-map.ts` | 142 | ✅ OK | `collectAllArchitectureFiles(rootDir: string): AstFileMetadata[]`, `generateArchitectureMap(rootDir: string): string`, `writeArchitectureMap(rootDir: string, outputPath: string): string` |
 | `tests/scripts/hermes-chronicler.ts` | 196 | ✅ OK | `parseChroniclerArgs(argv: string[]): ChroniclerConfig`, `extractAllSimEventTypes(schemasDir: string): string[]`, `extractHandledCases(formatterContent: string): Set<string>`, `findMissingEvents(allEvents: string[], handled: Set<string>): string[]` |
 | `tests/scripts/hermes-content-generator.ts` | 226 | ✅ OK | `parseGeneratorArgs(argv: string[]): ContentGeneratorConfig`, `generateMockContent(config: ContentGeneratorConfig): unknown[]`, `extractJsonArray(text: string): unknown[]`, `requestHermesContent(config: ContentGeneratorConfig): Promise<unknown[]>` |
 | `tests/scripts/hermes-content-normalizers.ts` | 162 | ✅ OK | `normalizePrefabGrid(raw: any): any`, `normalizeRawItem(item: any, type: ContentType): any`, `validateAndFormatContent(type: ContentType, rawItems: unknown[]): { valid: ValidatedContent[]; errors: string[]; }` |
-| `tests/scripts/hermes-critic.ts` | 240 | ⚠️ WARN | `parseCriticArgs(argv: string[]): CriticConfig`, `runCritic(config: CriticConfig, rootDir: string): Promise<string>` |
+| `tests/scripts/hermes-critic.ts` | 243 | ⚠️ WARN | `resolvePhaseDomainTargetFiles(nextPriority: string, rootDir: string): string[]`, `runCritic(config: CriticConfig, rootDir: string): Promise<string>` |
 | `tests/scripts/hermes-scout.ts` | 169 | ✅ OK | `parseScoutArgs(argv: string[]): ScoutConfig`, `scanCodebaseFiles(rootDir: string): AstFileMetadata[]`, `generateDeterministicScoutReport(task: string, files: AstFileMetadata[]): string`, `requestLlmScoutReport(config: ScoutConfig, files: AstFileMetadata[]): Promise<string>` |
-| `tests/scripts/hermes-split-ast.ts` | 214 | ✅ OK | `extractFunctionBlock(content: string, name: string): ExtractedBlock \| undefined`, `reconcileTargetImports(sourceImports: readonly string[], code: string, relSourcePath: string, sourceExports: readonly string[]): string[]`, `performFileSplit(sourceContent: string, targetRelPath: string, functionNames: readonly string[], relSourcePath: string): { updatedSource: string; targetContent: string; extractedCount: number }` |
+| `tests/scripts/hermes-split-ast.ts` | 216 | ✅ OK | `extractFunctionBlock(content: string, name: string): ExtractedBlock \| undefined`, `reconcileTargetImports(sourceImports: readonly string[], code: string, relSourcePath: string, sourceExports: readonly string[]): string[]`, `performFileSplit(sourceContent: string, targetRelPath: string, functionNames: readonly string[], relSourcePath: string): { updatedSource: string; targetContent: string; extractedCount: number }` |
 | `tests/scripts/hermes-split.ts` | 154 | ✅ OK | `parseSplitArgs(argv: readonly string[]): SplitConfig`, `listSplitCandidates(sourceContent: string): SplitCandidate[]`, `runSplit(config: SplitConfig, rootDir: string): Promise<{ sourceLinesBefore: number; sourceLinesAfter: number; targetLines: number; extractedCount: number; }>` |
 | `tests/scripts/hermes-testgen-mock.ts` | 157 | ✅ OK | `generateMockTestSuite(targetPath: string, rootDir: string, functions: string[]): string` |
 | `tests/scripts/hermes-testgen-validator.ts` | 70 | ✅ OK | `validateTypedBoundaries(code: string): ValidationResult`, `validateTestSuiteStructure(code: string): ValidationResult`, `validateGeneratedTestSuite(code: string): ValidationResult` |
 | `tests/scripts/hermes-testgen.ts` | 217 | ✅ OK | `parseTestgenArgs(argv: string[]): TestgenConfig`, `extractModuleSignatures(filePath: string): { functions: string[]; imports: string[] }`, `requestHermesTestSuite(config: TestgenConfig, signatures: string[], rootDir: string): Promise<string>`, `requestLlmTestRepair(config: TestgenConfig, currentTestCode: string, tscErrors: string, attempt: number): Promise<string>` |
+| `tests/scripts/hermes-vision-critic.ts` | 216 | ✅ OK | `parseVisionCriticArgs(argv: string[]): VisionCriticConfig`, `runDeterministicLayoutAudit(world: WorldState, playerId: unknown): DeterministicModalAudit[]`, `runVisionCritic(config: VisionCriticConfig, rootDir: string): Promise<VisionCriticReport>` |
 | `tests/scripts/llm-playtester.ts` | 238 | ✅ OK | `parseCliArgs(argv: string[]): PlaytestConfig`, `runPlaytestSession(config: PlaytestConfig): Promise<PlaytestMetrics>` |
 | `tests/scripts/local-llm-config.ts` | 211 | ✅ OK | `resolveEndpoint(override: string): string`, `resolveModel(tierOrFallback: ModelTier \| string, override: string): string`, `checkEndpointHealth(endpoint: string, timeoutMs: unknown): Promise<boolean>`, `getConnectionTelemetry(opts: { mock?: boolean; isHealthy?: boolean; endpoint?: string; model?: string; temperature?: number; enforceJsonSchema?: boolean; }): LlmConnectionTelemetry` |
 | `tests/scripts/local-llm-ledger.ts` | 142 | ✅ OK | `recordInferenceMetric(entry: InferenceLedgerInput, ledgerPath: string): InferenceLedgerEntry`, `clearInferenceLedger(ledgerPath: string): void`, `getInferenceLedgerSummary(ledgerPath: string): InferenceLedgerSummary` |
@@ -378,10 +481,11 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | `tests/scripts/playtester-dispatcher.ts` | 151 | ✅ OK | `parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId): GameCommand` |
 | `tests/scripts/playtester-mock.ts` | 114 | ✅ OK | `generateMockAction(state: WorldState, playerId: EntityId, recentPositions: ReadonlyArray<{ x: number; y: number }>, scenario: PlaytestScenario): LlmActionPayload` |
 | `tests/scripts/playtester-policy.ts` | 121 | ✅ OK | `evaluateDecisionPolicy(state: WorldState, playerId: EntityId, opts: DecisionPolicyOptions): DecisionPolicyResult` |
-| `tests/scripts/playtester-projection-audit.ts` | 240 | ⚠️ WARN | `auditUiCellBuffer(buffer: UiCellBuffer, locationName: unknown): ProjectionLeak[]`, `auditClientProjection(state: WorldState, playerId: EntityId, options: AuditProjectionOptions): ClientProjectionAudit` |
-| `tests/scripts/playtester-scenarios.ts` | 173 | ✅ OK | `getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjectives`, `applyPlaytestScenario(state: WorldState, scenario: PlaytestScenario): WorldState` |
+| `tests/scripts/playtester-projection-audit.ts` | 207 | ✅ OK | `auditClientProjection(state: WorldState, playerId: EntityId, options: AuditProjectionOptions): ClientProjectionAudit` |
+| `tests/scripts/playtester-scenarios.ts` | 176 | ✅ OK | `getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjectives`, `applyPlaytestScenario(state: WorldState, scenario: PlaytestScenario): WorldState` |
 | `tests/scripts/playtester-serializer.ts` | 208 | ✅ OK | `serializePlayerContext(state: WorldState, playerId: EntityId, options: ContextSerializationOptions): string` |
+| `tests/scripts/projection-cell-scanner.ts` | 42 | ✅ OK | `auditUiCellBuffer(buffer: UiCellBuffer, locationName: unknown): ProjectionLeak[]` |
 | `tests/scripts/scaffold-mechanic.ts` | 180 | ✅ OK | `parseScaffoldArgs(argv: readonly string[]): ScaffoldConfig`, `toPascalCase(snakeStr: string): string`, `generateScaffoldCode(config: ScaffoldConfig): { commandSchemaRel: string; commandSchemaCode: string; eventSchemaRel: string; eventSchemaCode: string; systemRel: string; systemCode: string; testRel: string; testCode: string; }`, `runScaffold(config: ScaffoldConfig, rootDir: string): Promise<void>` |
-| `tests/scripts/update-state.ts` | 207 | ✅ OK | `parseVerifiedPrescriptions(criticContent: string): BacklogPrescription[]`, `routeVerifiedPrescriptionsToRoadmap(criticPathOrRootDir: string, customRoadmapPath: string, customStatePath: string): { routedCount: number; prescriptions: BacklogPrescription[] }`, `getRecentCommits(count: unknown): string`, `getNextPriority(roadmapPath: string): string` |
-| `tests/scripts/validate-data.ts` | 83 | ✅ OK | *None (internal)* |
+| `tests/scripts/update-state.ts` | 245 | ⚠️ WARN | `parseVerifiedPrescriptions(criticContent: string): BacklogPrescription[]`, `getRecentCommits(count: unknown): Array<{ hash: string; message: string }>`, `compileStateMarkdown(state: ProjectState): string`, `compileRoadmapMarkdown(roadmapContent: string, phases: readonly RoadmapPhase[], prescriptions: ReadonlyArray<BacklogPrescription \| { id: string; category: string; title: string; directive: string; targetFiles: string[] \| string; verification: string }>): string` |
+| `tests/scripts/validate-data.ts` | 94 | ✅ OK | *None (internal)* |
 

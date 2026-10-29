@@ -37,6 +37,7 @@
     "verify": "npm run typecheck && npm run check:boundaries && npm run validate:data && npm run test:sim"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.1.0",
     "pixi.js": "^8.6.6",
     "preact": "^10.25.4",
     "zod": "^3.24.1"

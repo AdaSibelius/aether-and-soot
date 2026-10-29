@@ -15,13 +15,14 @@ export function seedOutdoorStreetLandmarks(
   initialGrid: StratumGrid,
   initialEntities: Record<string, EntityRecord>,
   criticalPoints: readonly Point2D[],
+  sites: readonly Point2D[] = [],
 ): { grid: StratumGrid; entities: Record<string, EntityRecord>; positions: Record<string, Point2D> } {
   let grid = initialGrid;
   const entities = { ...initialEntities };
   const positions: Record<string, Point2D> = {};
 
   // 1. Water Pump Station (sidewalk square)
-  const pumpPos: Point2D = { x: 14, y: 16 };
+  const pumpPos: Point2D = sites[0] ?? { x: 14, y: 16 };
   if (canPlaceWithoutSevering(grid, pumpPos.x, pumpPos.y, 'IRON_GRATE', criticalPoints)) {
     grid = setTileCell(grid, pumpPos.x, pumpPos.y, (c) => ({
       ...c,
@@ -42,7 +43,7 @@ export function seedOutdoorStreetLandmarks(
   }
 
   // 2. Street-Corner Clocktower (thoroughfare monument)
-  const clockPos: Point2D = { x: 31, y: 16 };
+  const clockPos: Point2D = sites[1] ?? { x: 31, y: 16 };
   if (canPlaceWithoutSevering(grid, clockPos.x, clockPos.y, 'SOOT_BRICK_WALL', criticalPoints)) {
     const clockId = EntityIdSchema.parse('landmark_street_clocktower');
     entities[clockId] = {
@@ -57,7 +58,7 @@ export function seedOutdoorStreetLandmarks(
   }
 
   // 3. Sunken Canal Lock (dock sluice winch)
-  const lockPos: Point2D = { x: 31, y: 20 };
+  const lockPos: Point2D = sites[2] ?? { x: 31, y: 20 };
   if (canPlaceWithoutSevering(grid, lockPos.x, lockPos.y, 'CANAL_SLUICE', criticalPoints)) {
     grid = setTileCell(grid, lockPos.x, lockPos.y, (c) => ({
       ...c,

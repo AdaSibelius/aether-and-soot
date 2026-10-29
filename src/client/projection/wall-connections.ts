@@ -65,13 +65,27 @@ export function getExplicitWallGlyph(terrainType: TerrainType): string | undefin
   }
 }
 
+export function isWallJoinableTerrain(terrainType: TerrainType): boolean {
+  if (isWallTerrain(terrainType)) return true;
+  switch (terrainType) {
+    case 'WOODEN_DOOR_CLOSED':
+    case 'WOODEN_DOOR_OPEN':
+    case 'GLASS_WINDOW':
+    case 'SMASHED_WINDOW_FRAME':
+    case 'DISTRICT_GATE':
+      return true;
+    default:
+      return false;
+  }
+}
+
 function hasWallAt(grid: StratumGrid, x: number, y: number): boolean {
   if (x < 0 || x >= grid.width || y < 0 || y >= grid.height) {
     return true; // Map borders connect visually
   }
   const cell = grid.cells[y * grid.width + x];
   if (!cell) return false;
-  return isWallTerrain(cell.terrainType);
+  return isWallJoinableTerrain(cell.terrainType);
 }
 
 /**

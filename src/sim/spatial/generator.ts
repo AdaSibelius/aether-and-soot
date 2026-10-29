@@ -30,6 +30,8 @@ export interface GeneratedDistrictResult {
     readonly marketDoor: Point2D;
     readonly westGate: Point2D;
     readonly eastGate: Point2D;
+    readonly northGate?: Point2D | undefined;
+    readonly southGate?: Point2D | undefined;
     readonly waterPump?: Point2D | undefined;
     readonly clocktower?: Point2D | undefined;
     readonly canalLock?: Point2D | undefined;
@@ -100,6 +102,8 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
       marketDoor: ctx.marketDoor,
       westGate: ctx.westGatePos,
       eastGate: ctx.eastGatePos,
+      northGate: ctx.compass.north ? ctx.northGatePos : undefined,
+      southGate: ctx.compass.south ? ctx.southGatePos : undefined,
       waterPump: ctx.landmarks.waterPump ?? { x: 14, y: 16 },
       clocktower: ctx.landmarks.clocktower ?? { x: 31, y: 16 },
       canalLock: ctx.landmarks.canalLock ?? { x: 31, y: 20 },
