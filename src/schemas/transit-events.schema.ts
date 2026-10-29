@@ -40,6 +40,16 @@ export const CatacombsDepthDescendedEventSchema = z.object({
 });
 export type CatacombsDepthDescendedEvent = z.infer<typeof CatacombsDepthDescendedEventSchema>;
 
+export const CatacombsDepthAscendedEventSchema = z.object({
+  type: z.literal('CATACOMBS_DEPTH_ASCENDED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  fromDepth: z.number().int().positive(),
+  toDepth: z.number().int().nonnegative(),
+  tierName: z.string(),
+});
+export type CatacombsDepthAscendedEvent = z.infer<typeof CatacombsDepthAscendedEventSchema>;
+
 export const TransitActionFailedEventSchema2 = z.object({
   type: z.literal('MONORAIL_ACTION_FAILED'),
   turn: z.number().int().nonnegative(),

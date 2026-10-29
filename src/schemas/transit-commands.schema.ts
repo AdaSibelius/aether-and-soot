@@ -22,3 +22,10 @@ export const DescendCatacombsCommandSchema = z.object({
   stairEntityId: EntityIdSchema,
 });
 export type DescendCatacombsCommand = z.infer<typeof DescendCatacombsCommandSchema>;
+
+export const AscendCatacombsCommandSchema = z.object({
+  type: z.literal('ASCEND_CATACOMBS'),
+  actorId: EntityIdSchema,
+  stairEntityId: EntityIdSchema,
+});
+export type AscendCatacombsCommand = z.infer<typeof AscendCatacombsCommandSchema>;

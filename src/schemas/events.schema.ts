@@ -54,15 +54,15 @@ export { HazardTriggeredEventSchema };
 export type { HazardTriggeredEvent, HazardType };
 import {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema, TransitActionFailedEventSchema2,
+  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, TransitActionFailedEventSchema2,
 } from './transit-events.schema.js';
 export {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema, TransitActionFailedEventSchema2,
+  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, TransitActionFailedEventSchema2,
 };
 export type {
   MonorailBoardedEvent, MonorailLaunchedEvent, MonorailArrivedEvent,
-  CatacombsDepthDescendedEvent, MonorailActionFailedEvent,
+  CatacombsDepthDescendedEvent, CatacombsDepthAscendedEvent, MonorailActionFailedEvent,
 } from './transit-events.schema.js';
 
 import {
@@ -222,7 +222,7 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   WitnessCrimeReportedEventSchema, SquadCalloutEmittedEventSchema,
   SquadmateRalliedEventSchema, GrudgeAcquiredEventSchema,
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema, TransitActionFailedEventSchema2,
+  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, TransitActionFailedEventSchema2,
   WorkshopDeedClaimedEventSchema, StructureBuiltEventSchema,
   StructureStorageUpdatedEventSchema, CodexEntryDiscoveredEventSchema,
   CodexConsultedEventSchema, NpcCodexReactionEventSchema, SafehouseActionFailedEventSchema,

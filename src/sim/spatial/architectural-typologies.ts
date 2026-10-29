@@ -190,6 +190,9 @@ export function generateArchitecturalTypologies(
     windows: [{ x: 19, y: 3 }, { x: 27, y: 3 }],
   });
   grid = carveCorridor(grid, { x: depotDoor.x, y: depotDoor.y + 1 }, { x: depotDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
+  for (let tx = 18; tx <= 22; tx++) {
+    grid = setTileCell(grid, tx, 5, (c) => ({ ...c, terrainType: 'IRON_GRATE', blocksMovement: false, blocksSight: false }));
+  }
 
   const consoleId = EntityIdSchema.parse('furniture_monorail_console');
   entities[consoleId] = {

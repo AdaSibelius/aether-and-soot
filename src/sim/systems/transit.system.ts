@@ -1,12 +1,14 @@
 import { EntityRecord, PositionComponent } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { BlueprintId, EntityId, Point3D } from '../../schemas/primitives.schema.js';
-import { findBlockingEntityAtPoint, setTileCell } from '../spatial/grid.js';
+import { BlueprintId, EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../core/world.js';
 import { generateVictorianDistrict } from '../spatial/generator.js';
 import { spawnDistrictItems } from './item-spawner.js';
 import { spawnDistrictNpcs } from './district-spawner.js';
 import { catchUpDistrictState } from './district-catchup.system.js';
+import { resolveToggleDoor } from './door.system.js';
+
+export { resolveToggleDoor };
 
 export const VALID_DISTRICT_IDS: ReadonlySet<string> = new Set([
   'district_spitalfields_soot_works',
@@ -26,76 +28,13 @@ function failTransit(
   state: WorldState,
   turn: number,
   actorId: EntityId,
-  action: 'TOGGLE_DOOR' | 'TRAVEL_DISTRICT',
-  reason: 'NOT_A_DOOR' | 'OUT_OF_RANGE' | 'BLOCKED_BY_ENTITY' | 'UNKNOWN_DISTRICT' | 'ALREADY_IN_DISTRICT' | 'NO_GATE_AT_POSITION',
+  action: 'TRAVEL_DISTRICT',
+  reason: 'UNKNOWN_DISTRICT' | 'ALREADY_IN_DISTRICT' | 'NO_GATE_AT_POSITION',
 ): TransitResolutionResult {
   return {
     state,
     events: [{ type: 'TRANSIT_ACTION_FAILED', turn, actorId, action, reason }],
     apSpent: 0,
-  };
-}
-
-/**
- * Opens or closes a wooden door at adjacent target point.
- * Closed doors block movement, sight (FOV), and steam diffusion; open doors allow all three.
- */
-export function resolveToggleDoor(
-  state: WorldState,
-  actorId: EntityId,
-  target: Point3D,
-): TransitResolutionResult {
-  const actor = state.entities[actorId];
-  const actorPos = actor?.position;
-  const currentTurn = state.turnCount + 1;
-
-  if (!actorPos || actorPos.stratum !== target.stratum) {
-    return failTransit(state, currentTurn, actorId, 'TOGGLE_DOOR', 'OUT_OF_RANGE');
-  }
-
-  const dist = Math.max(Math.abs(actorPos.x - target.x), Math.abs(actorPos.y - target.y));
-  if (dist > 1) {
-    return failTransit(state, currentTurn, actorId, 'TOGGLE_DOOR', 'OUT_OF_RANGE');
-  }
-
-  const grid = state.strata[target.stratum];
-  if (!grid) {
-    return failTransit(state, currentTurn, actorId, 'TOGGLE_DOOR', 'NOT_A_DOOR');
-  }
-
-  const cell = grid.cells[target.y * grid.width + target.x];
-  if (!cell || (cell.terrainType !== 'WOODEN_DOOR_CLOSED' && cell.terrainType !== 'WOODEN_DOOR_OPEN')) {
-    return failTransit(state, currentTurn, actorId, 'TOGGLE_DOOR', 'NOT_A_DOOR');
-  }
-
-  if (cell.terrainType === 'WOODEN_DOOR_CLOSED') {
-    const updatedGrid = setTileCell(grid, target.x, target.y, (prev) => ({
-      ...prev,
-      terrainType: 'WOODEN_DOOR_OPEN',
-      blocksMovement: false,
-      blocksSight: false,
-    }));
-    return {
-      state: { ...state, strata: { ...state.strata, [target.stratum]: updatedGrid } },
-      events: [{ type: 'DOOR_TOGGLED', turn: currentTurn, actorId, at: target, newState: 'OPEN' }],
-      apSpent: 100,
-    };
-  }
-
-  if (findBlockingEntityAtPoint(state.entities, target)) {
-    return failTransit(state, currentTurn, actorId, 'TOGGLE_DOOR', 'BLOCKED_BY_ENTITY');
-  }
-
-  const updatedGrid = setTileCell(grid, target.x, target.y, (prev) => ({
-    ...prev,
-    terrainType: 'WOODEN_DOOR_CLOSED',
-    blocksMovement: true,
-    blocksSight: true,
-  }));
-  return {
-    state: { ...state, strata: { ...state.strata, [target.stratum]: updatedGrid } },
-    events: [{ type: 'DOOR_TOGGLED', turn: currentTurn, actorId, at: target, newState: 'CLOSED' }],
-    apSpent: 100,
   };
 }
 
@@ -165,9 +104,13 @@ export function resolveTravelDistrict(
         UNDERCROFT: state.strata.UNDERCROFT,
         STREET: state.strata.STREET,
         SPIRE: state.strata.SPIRE,
+        ...(state.strata.CATACOMBS ? { CATACOMBS: state.strata.CATACOMBS } : {}),
       },
       entities: leavingEntities,
       lastSimulatedTurn: state.turnCount,
+      ...(state.catacombDepths && Object.keys(state.catacombDepths).length > 0
+        ? { catacombDepths: state.catacombDepths }
+        : {}),
     },
   };
 
@@ -221,6 +164,7 @@ export function resolveTravelDistrict(
     currentDistrictId: targetDistrictId,
     strata: nextStrata,
     savedDistricts: updatedSavedDistricts,
+    catacombDepths: cachedTarget?.catacombDepths ?? {},
     entities: {
       ...nextEntities,
       [actorId]: {

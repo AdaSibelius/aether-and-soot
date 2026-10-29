@@ -4,6 +4,7 @@ import { BlueprintIdSchema, EntityId, EntityIdSchema, Point2D } from '../../sche
 import { SeededRNG } from '../core/rng.js';
 import { WorldState } from '../core/world.js';
 import { discoverCodexEntry } from '../systems/codex.system.js';
+import { createMonorailCarEntity } from '../systems/monorail.system.js';
 import {
   buildSolidStratumGrid,
   carveBuildingWithDoor,
@@ -189,6 +190,12 @@ export function generateVictorianDistrict(state: WorldState): GeneratedDistrictR
   street = scaled.streetGrid;
   undercroft = scaled.undercroftGrid;
   const finalEntities = scaled.entities;
+
+  if (archetypes.doors?.monorailDepot) {
+    const carId = 'monorail_car_street_depot';
+    const destDistrict = BlueprintIdSchema.parse(westTarget ?? 'district_belgravia_brass_spires');
+    finalEntities[carId] = createMonorailCarEntity(carId, { x: 20, y: 5, stratum: 'STREET' }, destDistrict, 75);
+  }
 
   return {
     state: {

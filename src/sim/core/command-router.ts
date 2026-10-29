@@ -23,7 +23,7 @@ import { resolveInstallWeaponMod, resolveLoadAmmo, resolvePryObstacle, resolveUn
 import { resolveCleanSpill, resolveCoatWeapon, resolveThrowFlask } from '../systems/liquids.system.js';
 import { resolveEmitSquadCallout, resolveReportCrime } from '../systems/squad-witness.system.js';
 import { resolveBoardMonorail, resolveLaunchMonorail } from '../systems/monorail.system.js';
-import { resolveDescendCatacombs } from '../spatial/catacombs.js';
+import { resolveDescendCatacombs, resolveAscendCatacombs } from '../spatial/catacombs.js';
 import {
   resolveBuildStructure,
   resolveClaimWorkshopDeed,
@@ -180,6 +180,8 @@ function executeDomainHandler(
       return resolveLaunchMonorail(state, command.actorId, command.monorailEntityId, command.destinationDistrictId);
     case 'DESCEND_CATACOMBS':
       return resolveDescendCatacombs(state, command.actorId, command.stairEntityId);
+    case 'ASCEND_CATACOMBS':
+      return resolveAscendCatacombs(state, command.actorId, command.stairEntityId);
     case 'CLAIM_WORKSHOP_DEED':
       return resolveClaimWorkshopDeed(state, command);
     case 'BUILD_STRUCTURE':

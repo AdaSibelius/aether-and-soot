@@ -5,7 +5,9 @@ import {
   EntityIdSchema,
   FactionIdSchema,
   LandmarkArchetypeIdSchema,
+  Point2DSchema,
   Point3DSchema,
+  StratumIdSchema,
 } from './primitives.schema.js';
 
 export const WitnessMemoryEntrySchema = z.object({
@@ -122,3 +124,63 @@ export const MonorailCarComponentSchema = z.object({
   occupiedByActorIds: z.array(EntityIdSchema),
 });
 export type MonorailCarComponent = z.infer<typeof MonorailCarComponentSchema>;
+
+/** Causal utility network conduit (steam main, hydraulic drainage, gas feed). */
+export const UtilityConduitComponentSchema = z.object({
+  conduitType: z.enum([
+    'HIGH_PRESSURE_STEAM_MAIN',
+    'HYDRAULIC_DRAINAGE',
+    'PNEUMATIC_TRANSIT_TUBE',
+    'COAL_GAS_FEED',
+    'AETHER_CONDUIT',
+  ]),
+  networkId: z.string(),
+  operatingPressureKpa: z.number().nonnegative().default(0),
+  maxPressureKpa: z.number().positive().default(200),
+  ruptured: z.boolean().default(false),
+  connectedEndpointEntityIds: z.array(EntityIdSchema).default([]),
+});
+export type UtilityConduitComponent = z.infer<typeof UtilityConduitComponentSchema>;
+
+/** Vertical shaft connecting two adjacent strata (lifts, sewer drops, steam risers). */
+export const CrossStratumShaftComponentSchema = z.object({
+  shaftType: z.enum([
+    'PNEUMATIC_LIFT',
+    'SEWER_SIPHON',
+    'STEAM_RISER',
+    'GRAVITY_CHUTE',
+    'MONORAIL_ELEVATOR',
+  ]),
+  upperStratum: StratumIdSchema,
+  lowerStratum: StratumIdSchema,
+  upperCoord: Point2DSchema,
+  lowerCoord: Point2DSchema,
+  operational: z.boolean().default(true),
+  flowRateUnitsPerTick: z.number().nonnegative().default(1),
+});
+export type CrossStratumShaftComponent = z.infer<typeof CrossStratumShaftComponentSchema>;
+
+/** Hydrology canal sluice, gutter drain, or industrial runoff basin. */
+export const HydrologyChannelComponentSchema = z.object({
+  fluidType: z.enum(['WATER', 'SLUDGE', 'ACID', 'WHALE_OIL', 'SEWAGE']).default('WATER'),
+  currentVolumeMl: z.number().nonnegative().default(1000),
+  maxFlowRateMlPerTick: z.number().positive().default(500),
+  sluiceOpen: z.boolean().default(true),
+  drainsIntoStratum: StratumIdSchema.optional(),
+});
+export type HydrologyChannelComponent = z.infer<typeof HydrologyChannelComponentSchema>;
+
+/** Causal city graph macro-node representing district and urban block hierarchy. */
+export const DistrictGraphNodeComponentSchema = z.object({
+  districtId: BlueprintIdSchema,
+  stratum: StratumIdSchema,
+  macroCellIndex: z.number().int().min(0).max(8).default(0),
+  compassPortals: z.object({
+    north: EntityIdSchema.optional(),
+    south: EntityIdSchema.optional(),
+    east: EntityIdSchema.optional(),
+    west: EntityIdSchema.optional(),
+  }).default({}),
+  localHubEntityId: EntityIdSchema.optional(),
+});
+export type DistrictGraphNodeComponent = z.infer<typeof DistrictGraphNodeComponentSchema>;

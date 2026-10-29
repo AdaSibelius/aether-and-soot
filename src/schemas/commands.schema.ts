@@ -10,10 +10,10 @@ import {
   FireRangedWeaponCommandSchema,
 } from './equipment.schema.js';
 import {
-  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema,
+  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema, AscendCatacombsCommandSchema,
 } from './transit-commands.schema.js';
 export type {
-  BoardMonorailCommand, LaunchMonorailCommand, DescendCatacombsCommand,
+  BoardMonorailCommand, LaunchMonorailCommand, DescendCatacombsCommand, AscendCatacombsCommand,
 } from './transit-commands.schema.js';
 
 import {
@@ -47,7 +47,7 @@ export type {
 } from './lore-commands.schema.js';
 
 export {
-  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema,
+  BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema, AscendCatacombsCommandSchema,
   EmitSquadCalloutCommandSchema, ReportCrimeCommandSchema,
   ClaimWorkshopDeedCommandSchema, BuildStructureCommandSchema,
   StoreItemInStructureCommandSchema, RetrieveItemFromStructureCommandSchema, ConsultCodexCommandSchema,
@@ -213,6 +213,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   BoardMonorailCommandSchema,
   LaunchMonorailCommandSchema,
   DescendCatacombsCommandSchema,
+  AscendCatacombsCommandSchema,
   ClaimWorkshopDeedCommandSchema,
   BuildStructureCommandSchema,
   StoreItemInStructureCommandSchema,

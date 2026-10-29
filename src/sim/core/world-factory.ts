@@ -171,5 +171,6 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     audits: {},
     eventLog: [],
     savedDistricts: {},
+    catacombDepths: {},
   };
 }

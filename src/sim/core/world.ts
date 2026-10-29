@@ -10,9 +10,18 @@ import { CodexEntryRecordSchema, SafehouseDeedRecordSchema } from '../../schemas
 import { EscortConvoyRecordSchema, GuildAuditRecordSchema, TurfSectorRecordSchema } from '../../schemas/skirmish-records.schema.js';
 
 export const SavedDistrictSnapshotSchema = z.object({
-  strata: z.object({ UNDERCROFT: StratumGridSchema, STREET: StratumGridSchema, SPIRE: StratumGridSchema }),
+  strata: z.object({
+    UNDERCROFT: StratumGridSchema,
+    STREET: StratumGridSchema,
+    SPIRE: StratumGridSchema,
+    CATACOMBS: StratumGridSchema.optional(),
+  }),
   entities: z.record(z.string(), EntityComponentsSchema),
   lastSimulatedTurn: z.number().int().nonnegative().default(0),
+  catacombDepths: z.record(z.string(), z.object({
+    grid: StratumGridSchema,
+    entities: z.record(z.string(), EntityComponentsSchema),
+  })).optional(),
 });
 export type SavedDistrictSnapshot = z.infer<typeof SavedDistrictSnapshotSchema>;
 export const DistrictStateSnapshotSchema = SavedDistrictSnapshotSchema;
@@ -48,6 +57,10 @@ export const WorldStateSchema = z.object({
   audits: z.record(z.string(), GuildAuditRecordSchema).default({}),
   eventLog: z.array(SimEventSchema),
   savedDistricts: z.record(z.string(), SavedDistrictSnapshotSchema).default({}),
+  catacombDepths: z.record(z.string(), z.object({
+    grid: StratumGridSchema,
+    entities: z.record(z.string(), EntityComponentsSchema),
+  })).default({}),
 });
 export type WorldState = z.infer<typeof WorldStateSchema>;
 

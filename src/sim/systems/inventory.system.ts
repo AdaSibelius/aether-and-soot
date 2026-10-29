@@ -130,7 +130,12 @@ export function resolveDropItem(
     return createInventoryFailureResult(workingState, actorId, 'DROP', 'INVALID_QUANTITY', itemEntityId);
   }
 
-  const at: Point3D = { x: actor.position.x, y: actor.position.y, stratum: actor.position.stratum };
+  const at: Point3D = {
+    x: actor.position.x,
+    y: actor.position.y,
+    stratum: actor.position.stratum,
+    ...(actor.position.depthLevel !== undefined ? { depthLevel: actor.position.depthLevel } : {}),
+  };
   const groundPos: PositionComponent = { ...at, blocksMovement: false, blocksSight: false };
   const droppedMass = item.item ? item.item.massGrams * dropQty : profile.massGrams;
   const entities: Record<string, EntityRecord> = { ...workingState.entities };

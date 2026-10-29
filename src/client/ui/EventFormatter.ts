@@ -180,6 +180,8 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] Monorail ${ev.monorailEntityId} arrived at ${ev.destinationDistrictId} with ${ev.passengers.length} passengers.`;
     case 'CATACOMBS_DEPTH_DESCENDED':
       return `[T${ev.turn}] DELVE! ${ev.actorId} descended to Catacombs Depth ${ev.toDepth} (${ev.tierName}).`;
+    case 'CATACOMBS_DEPTH_ASCENDED':
+      return `[T${ev.turn}] ASCENT! ${ev.actorId} climbed to ${ev.toDepth === 0 ? 'the Undercroft' : `Catacombs Depth ${ev.toDepth} (${ev.tierName})`}.`;
     case 'MONORAIL_ACTION_FAILED':
       return `[T${ev.turn}] Monorail operation failed for ${ev.actorId}: ${ev.reason}.`;
 

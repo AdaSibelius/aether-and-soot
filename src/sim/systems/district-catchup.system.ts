@@ -49,6 +49,7 @@ export function catchUpDistrictState(
     UNDERCROFT: decayStratumAtmosphere(snapshot.strata.UNDERCROFT, decayFactor, dustDecayFactor),
     STREET: decayStratumAtmosphere(snapshot.strata.STREET, decayFactor, dustDecayFactor),
     SPIRE: decayStratumAtmosphere(snapshot.strata.SPIRE, decayFactor, dustDecayFactor),
+    ...(snapshot.strata.CATACOMBS ? { CATACOMBS: decayStratumAtmosphere(snapshot.strata.CATACOMBS, decayFactor, dustDecayFactor) } : {}),
   };
 
   // 2. Snap scheduled NPCs to active shift anchor
