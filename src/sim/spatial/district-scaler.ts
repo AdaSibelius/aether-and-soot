@@ -55,6 +55,20 @@ export function enrichLargeScaleDistrict(
         street = placeArchitecturalFeature(street, x, canalY - 1, 'TIMBER_PIER');
       }
     }
+    const canalId = EntityIdSchema.parse(`hydrology_canal_${districtId}`);
+    entities[canalId] = {
+      id: canalId,
+      name: 'Thames Estuary Canal Sluice Barrier',
+      visual: { glyph: '╫', fgPrimary: '#2874A6', fgSecondary: '#1B4F72', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM'] },
+      position: { x: centerX, y: canalY, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+      hydrologyChannel: {
+        fluidType: 'WATER',
+        currentVolumeMl: 100000,
+        maxFlowRateMlPerTick: 2000,
+        sluiceOpen: true,
+        drainsIntoStratum: 'UNDERCROFT',
+      },
+    };
     barriersPlaced.push('THAMES_CANAL');
   }
 
@@ -107,6 +121,15 @@ export function enrichLargeScaleDistrict(
       visual: { glyph: '>', fgPrimary: '#5DADE2', fgSecondary: '#2E86C1', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM'] },
       position: { x: pt.x, y: pt.y, stratum: 'STREET' as StratumId, blocksMovement: false, blocksSight: false },
       portal: { target: { x: pt.x, y: pt.y, stratum: 'UNDERCROFT' as StratumId }, bidirectional: true, conductsGas: true, apCost: 100, portalLabel: `Descend Sewer Shaft #${i + 1}` },
+      crossStratumShaft: {
+        shaftType: 'SEWER_SIPHON',
+        upperStratum: 'STREET',
+        lowerStratum: 'UNDERCROFT',
+        upperCoord: { x: pt.x, y: pt.y },
+        lowerCoord: { x: pt.x, y: pt.y },
+        operational: true,
+        flowRateUnitsPerTick: 5,
+      },
     };
 
     entities[undercroftPortalId] = {
@@ -115,6 +138,15 @@ export function enrichLargeScaleDistrict(
       visual: { glyph: '<', fgPrimary: '#5DADE2', fgSecondary: '#2E86C1', bgColor: '#0A0D0E', shaderFlags: [] },
       position: { x: pt.x, y: pt.y, stratum: 'UNDERCROFT' as StratumId, blocksMovement: false, blocksSight: false },
       portal: { target: { x: pt.x, y: pt.y, stratum: 'STREET' as StratumId }, bidirectional: true, conductsGas: true, apCost: 100, portalLabel: `Climb Sewer Siphon #${i + 1}` },
+      crossStratumShaft: {
+        shaftType: 'SEWER_SIPHON',
+        upperStratum: 'STREET',
+        lowerStratum: 'UNDERCROFT',
+        upperCoord: { x: pt.x, y: pt.y },
+        lowerCoord: { x: pt.x, y: pt.y },
+        operational: true,
+        flowRateUnitsPerTick: 5,
+      },
     };
 
     sewerDrops.push(pt);

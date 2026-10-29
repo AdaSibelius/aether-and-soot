@@ -1,9 +1,16 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
-import { EntityId, EntityIdSchema, Point2D } from '../../schemas/primitives.schema.js';
-import { createEntityFromBlueprint } from '../data/item-catalog.js';
+import { EntityIdSchema, Point2D } from '../../schemas/primitives.schema.js';
+import { SeededRNG } from '../core/rng.js';
 import { setTileCell, StratumGrid } from './grid.js';
 import { carveCorridor } from './district-layout.js';
 import { carveMultiRoomBuilding } from './interior-zoning.js';
+import {
+  applyBuildingAttachments,
+  createVariedBuildingPlan,
+  seedContainer,
+} from './building-variation.js';
+
+export { seedContainer };
 
 export interface TypologyPlacementResult {
   readonly grid: StratumGrid;
@@ -12,30 +19,13 @@ export interface TypologyPlacementResult {
   readonly keyPositions: Record<string, Point2D>;
 }
 
-export function seedContainer(
-  entities: Record<string, EntityRecord>,
-  items: readonly { id: string; blueprintId: string; quantity: number }[],
-): EntityRecord['inventory'] {
-  const containedEntityIds: EntityId[] = [];
-  let totalMass = 0;
-  for (const it of items) {
-    const eid = EntityIdSchema.parse(it.id);
-    const created = createEntityFromBlueprint(it.blueprintId, eid, it.quantity);
-    if (created) {
-      entities[eid] = created;
-      containedEntityIds.push(eid);
-      totalMass += (created.item?.massGrams ?? 0) * (created.item?.quantity ?? 1);
-    }
-  }
-  return { containedEntityIds, currentMassGrams: totalMass, maxMassGrams: 50000, maxVolumeMl: 50000 };
-}
-
-/** Generates all 6 multi-room architectural typologies for standard Victorian districts. */
+/** Generates all 6 multi-room architectural typologies with anti-stamping variation. */
 export function generateArchitecturalTypologies(
   initialGrid: StratumGrid,
   initialEntities: Record<string, EntityRecord>,
   _width: number,
   height: number,
+  rng?: SeededRNG,
 ): TypologyPlacementResult {
   let grid = initialGrid;
   const entities = { ...initialEntities };
@@ -46,7 +36,7 @@ export function generateArchitecturalTypologies(
   // 1. Victorian Apothecary & Chirurgeon Clinic (Top-Right)
   const apothDoor = { x: 38, y: 12 };
   doors.apothecary = apothDoor;
-  grid = carveMultiRoomBuilding(grid, {
+  const apothPlan = createVariedBuildingPlan({
     x1: 33, y1: 3, x2: 43, y2: 12, mainDoor: apothDoor,
     rooms: [
       { zone: 'RECEPTION', x1: 34, y1: 8, x2: 42, y2: 11, label: 'Waiting Lounge' },
@@ -55,7 +45,9 @@ export function generateArchitecturalTypologies(
     ],
     interiorDoors: [{ x: 36, y: 7 }, { x: 40, y: 7 }],
     windows: [{ x: 35, y: 3 }, { x: 41, y: 3 }],
-  });
+  }, rng, { zone: 'STORAGE', x1: 34, y1: 3, x2: 37, y2: 3, label: 'Dispensary Alcove' });
+  grid = carveMultiRoomBuilding(grid, apothPlan.spec);
+  grid = applyBuildingAttachments(grid, apothPlan);
   grid = carveCorridor(grid, { x: apothDoor.x, y: apothDoor.y + 1 }, { x: apothDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
 
   const surgTableId = EntityIdSchema.parse('furniture_surgical_table');
@@ -80,7 +72,7 @@ export function generateArchitecturalTypologies(
   // 2. Clockwork Pawnshop & Cartel Bank (Top-Left-Mid)
   const pawnDoor = { x: 12, y: 12 };
   doors.pawnshop = pawnDoor;
-  grid = carveMultiRoomBuilding(grid, {
+  const pawnPlan = createVariedBuildingPlan({
     x1: 8, y1: 3, x2: 15, y2: 12, mainDoor: pawnDoor,
     rooms: [
       { zone: 'RECEPTION', x1: 9, y1: 8, x2: 14, y2: 11, label: 'Appraisal Concourse' },
@@ -89,7 +81,9 @@ export function generateArchitecturalTypologies(
     ],
     interiorDoors: [{ x: 10, y: 7 }, { x: 13, y: 7 }],
     windows: [{ x: 10, y: 3 }, { x: 14, y: 3 }],
-  });
+  }, rng);
+  grid = carveMultiRoomBuilding(grid, pawnPlan.spec);
+  grid = applyBuildingAttachments(grid, pawnPlan);
   grid = carveCorridor(grid, { x: pawnDoor.x, y: pawnDoor.y + 1 }, { x: pawnDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
 
   const vaultSafeId = EntityIdSchema.parse('furniture_safe_vault');
@@ -118,7 +112,7 @@ export function generateArchitecturalTypologies(
   // 3. Steam Boilerhouse & Slag Furnace (Bottom-Left)
   const boilerDoor = { x: 8, y: 24 };
   doors.boilerhouse = boilerDoor;
-  grid = carveMultiRoomBuilding(grid, {
+  const boilerPlan = createVariedBuildingPlan({
     x1: 3, y1: 24, x2: 13, y2: 33, mainDoor: boilerDoor,
     rooms: [
       { zone: 'WORKSHOP', x1: 4, y1: 25, x2: 12, y2: 28, label: 'Smelting Hearth' },
@@ -126,7 +120,9 @@ export function generateArchitecturalTypologies(
     ],
     interiorDoors: [{ x: 8, y: 29 }],
     windows: [{ x: 5, y: 33 }, { x: 11, y: 33 }],
-  });
+  }, rng, { zone: 'WORKSHOP', x1: 3, y1: 26, x2: 4, y2: 28, label: 'Slag Trough' });
+  grid = carveMultiRoomBuilding(grid, boilerPlan.spec);
+  grid = applyBuildingAttachments(grid, boilerPlan);
   grid = setTileCell(grid, boilerDoor.x, boilerDoor.y, (c) => ({
     ...c,
     terrainType: 'WOODEN_DOOR_OPEN',
@@ -149,7 +145,7 @@ export function generateArchitecturalTypologies(
   // 4. Tenement Rookeries (Bottom-Right)
   const rookDoor = { x: 38, y: 24 };
   doors.rookeries = rookDoor;
-  grid = carveMultiRoomBuilding(grid, {
+  const rookPlan = createVariedBuildingPlan({
     x1: 33, y1: 24, x2: 43, y2: 33, mainDoor: rookDoor,
     rooms: [
       { zone: 'RECEPTION', x1: 34, y1: 25, x2: 42, y2: 28, label: 'Common Hall' },
@@ -157,7 +153,9 @@ export function generateArchitecturalTypologies(
     ],
     interiorDoors: [{ x: 38, y: 29 }],
     windows: [{ x: 35, y: 33 }, { x: 41, y: 33 }],
-  });
+  }, rng, { zone: 'RECEPTION', x1: 34, y1: 29, x2: 36, y2: 31, label: 'Pauper Alcove' });
+  grid = carveMultiRoomBuilding(grid, rookPlan.spec);
+  grid = applyBuildingAttachments(grid, rookPlan);
   grid = carveCorridor(grid, { x: rookDoor.x, y: rookDoor.y - 1 }, { x: rookDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
 
   const cotId = EntityIdSchema.parse('furniture_cot_a');
@@ -179,7 +177,7 @@ export function generateArchitecturalTypologies(
   // 5. Pneumatic Monorail Depot (Top-Center)
   const depotDoor = { x: 23, y: 12 };
   doors.monorailDepot = depotDoor;
-  grid = carveMultiRoomBuilding(grid, {
+  const depotPlan = createVariedBuildingPlan({
     x1: 17, y1: 3, x2: 29, y2: 12, mainDoor: depotDoor,
     rooms: [
       { zone: 'RECEPTION', x1: 18, y1: 8, x2: 28, y2: 11, label: 'Ticket Concourse' },
@@ -188,7 +186,9 @@ export function generateArchitecturalTypologies(
     ],
     interiorDoors: [{ x: 20, y: 7 }, { x: 26, y: 7 }],
     windows: [{ x: 19, y: 3 }, { x: 27, y: 3 }],
-  });
+  }, rng, { zone: 'STORAGE', x1: 27, y1: 4, x2: 28, y2: 6, label: 'Lockbox Storage' });
+  grid = carveMultiRoomBuilding(grid, depotPlan.spec);
+  grid = applyBuildingAttachments(grid, depotPlan);
   grid = carveCorridor(grid, { x: depotDoor.x, y: depotDoor.y + 1 }, { x: depotDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
   for (let tx = 18; tx <= 22; tx++) {
     grid = setTileCell(grid, tx, 5, (c) => ({ ...c, terrainType: 'IRON_GRATE', blocksMovement: false, blocksSight: false }));
@@ -205,7 +205,7 @@ export function generateArchitecturalTypologies(
   // 6. Guild Artisan Workshop (Bottom-Center)
   const artisanDoor = { x: 23, y: 24 };
   doors.artisanWorkshop = artisanDoor;
-  grid = carveMultiRoomBuilding(grid, {
+  const artisanPlan = createVariedBuildingPlan({
     x1: 17, y1: 24, x2: 29, y2: 33, mainDoor: artisanDoor,
     rooms: [
       { zone: 'RECEPTION', x1: 18, y1: 25, x2: 28, y2: 28, label: 'Artisan Showroom' },
@@ -214,7 +214,9 @@ export function generateArchitecturalTypologies(
     ],
     interiorDoors: [{ x: 21, y: 29 }, { x: 26, y: 29 }],
     windows: [{ x: 19, y: 33 }, { x: 27, y: 33 }],
-  });
+  }, rng, { zone: 'WORKSHOP', x1: 24, y1: 30, x2: 25, y2: 32, label: 'Lapidary Nook' });
+  grid = carveMultiRoomBuilding(grid, artisanPlan.spec);
+  grid = applyBuildingAttachments(grid, artisanPlan);
   grid = carveCorridor(grid, { x: artisanDoor.x, y: artisanDoor.y - 1 }, { x: artisanDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
 
   const benchPos = { x: 20, y: 31 };

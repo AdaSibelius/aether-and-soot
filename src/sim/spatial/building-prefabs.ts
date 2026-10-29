@@ -1,5 +1,6 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { Point2D } from '../../schemas/primitives.schema.js';
+import { SeededRNG } from '../core/rng.js';
 import { generateArchitecturalTypologies } from './architectural-typologies.js';
 import { StratumGrid } from './grid.js';
 import { seedOutdoorStreetLandmarks } from './landmark-micro-locations.js';
@@ -28,14 +29,15 @@ export function populateDistrictArchetypes(
   width: number,
   height: number,
   criticalPoints?: readonly Point2D[],
+  rng?: SeededRNG,
 ): DistrictArchetypesResult {
   // Small legacy districts (e.g. 24x24 in minimal test fixtures) preserve their minimal layout.
   if (width < 36 || height < 28) {
     return { grid: initialGrid, entities: initialEntities };
   }
 
-  // 1. Generate the 6 multi-room architectural typologies
-  const typologies = generateArchitecturalTypologies(initialGrid, initialEntities, width, height);
+  // 1. Generate the 6 multi-room architectural typologies with anti-stamping variation
+  const typologies = generateArchitecturalTypologies(initialGrid, initialEntities, width, height, rng);
 
   // 2. Critical navigation anchors to guarantee 100% path safety
   const critical = criticalPoints ?? [
