@@ -722,19 +722,18 @@ The engineering backlog is structured chronologically across 5 phases (Phase 0 t
 - **Measurable Acceptance Criteria**: All 4 schemas compile under strict TypeScript; Zod validation passes on empty and populated records.
 - **Relative Effort**: Medium.
 
-#### Task TSK-P2-02: Fix Catastrophic CATACOMBS Stratum Save-State Omission (DEF-GEN-05)
+#### Task TSK-P2-02: Fix Catastrophic CATACOMBS Stratum Save-State Omission & Multi-Depth Ascendable Persistence (DEF-GEN-05)
 - **Priority**: P0 (Blocker)
-- **Problem Statement**: `SavedDistrictSnapshotSchema` in `src/sim/core/world.ts:12-16` omits `CATACOMBS`, wiping catacomb map state upon inter-district transit.
+- **Problem Statement**: `SavedDistrictSnapshotSchema` in `src/sim/core/world.ts:12-16` omits `CATACOMBS`, wiping catacomb map state upon inter-district transit, and descending in `catacombs.ts:160-165` overwrites and deletes prior depth levels so players cannot ascend back through cleared floors.
 - **Exact Files/Modules**: `src/sim/core/world.ts`, `src/sim/spatial/catacombs.ts`, `src/sim/systems/transit.system.ts`.
 - **Implementation Steps**:
-  1. Update `SavedDistrictSnapshotSchema.strata` in `world.ts:13` to:
-     `z.object({ UNDERCROFT: StratumGridSchema, STREET: StratumGridSchema, SPIRE: StratumGridSchema, CATACOMBS: StratumGridSchema.optional() })`.
-  2. In `transit.system.ts:163-168`, persist `state.strata.CATACOMBS` into `savedDistricts[fromDistrictId]`.
-  3. In `catacombs.ts:160-165`, retain previous catacomb delve floors in `WorldState.savedDistricts` rather than discarding entities.
+  1. Update `SavedDistrictSnapshotSchema.strata` in `world.ts:13` to include `CATACOMBS: StratumGridSchema.optional()` and add `catacombDepths: z.record(z.string(), z.object({ grid: StratumGridSchema, entities: z.record(EntityIdSchema, EntityRecordSchema) })).optional()` to `WorldStateSchema` and `SavedDistrictSnapshotSchema`.
+  2. In `transit.system.ts:163-168`, persist both `state.strata.CATACOMBS` and `catacombDepths` into `savedDistricts[fromDistrictId]`.
+  3. In `catacombs.ts:160-165`, snapshot the current depth's `StratumGrid` and entities into `catacombDepths[String(currentDepth)]` before generating or restoring the target depth, and spawn bidirectional stone stairwells (`ASCEND_CATACOMBS` / `DESCEND_CATACOMBS`) so players can ascend back through cleared Catacomb depths (and back up to `UNDERCROFT` from depth 1).
 - **Dependencies/Prerequisites**: TSK-P2-01.
-- **Risks/Migration**: Backward compatibility with save files. Handled via optional schema field.
+- **Risks/Migration**: Backward compatibility with save files handled via optional schema fields and `CURRENT_WORLD_VERSION` migration.
 - **Tests Required**: New test `tests/sim/catacombs-persistence.test.ts`.
-- **Measurable Acceptance Criteria**: Descending to Catacombs Depth 2, dropping an item, traveling to Spitalfields, and returning preserves the dropped item in place.
+- **Measurable Acceptance Criteria**: Descending to Catacombs Depth 2, dropping an item on Depth 1 and Depth 2, ascending back to Depth 1 and `UNDERCROFT`, or traveling to Spitalfields and returning preserves all cleared floors and dropped items intact.
 - **Relative Effort**: Medium.
 
 #### Task TSK-P2-03: Activate Orphaned Monorail and Catacomb Portals (DEF-GEN-04)
@@ -965,14 +964,14 @@ The following explicit Adopt / Defer / Reject decisions are rendered for the fou
    - *Conflict*: Sampling underlying strata (`STREET` underlay while walking on `SPIRE`) requires double the texture reads during projection.
    - *Reconciliation*: Gate vertical underlay sampling behind `PerformanceGovernor` (`src/client/renderer/performance-governor.ts`). If frame time exceeds 14.0ms, disable stratum underlay sampling and render standard pitch-black void.
 
-### 9.2 Developer Decisions Required
+### 9.2 Resolved Developer Decisions (Ratified 2026-10-29)
 
-1. **Decision Gate 1: Formally Ratify Canvas UI as Primary Authoritative UI**:
-   - Approve the planned deprecation of redundant Preact DOM full-screen modals in favor of high-density canvas screens, freeing ~3,500 lines of dead client code.
-2. **Decision Gate 2: Approve `CURRENT_WORLD_VERSION = 2` Schema Migration for `CATACOMBS`**:
-   - Authorize adding `CATACOMBS: StratumGridSchema.optional()` to `SavedDistrictSnapshotSchema` in `src/sim/core/world.ts:13` to permanently resolve save-state loss of catacomb dungeon progress.
-3. **Decision Gate 3: Authorize Installation of `@fontsource/ibm-plex-mono`**:
-   - Authorize adding `@fontsource/ibm-plex-mono` to `dependencies` in `package.json` to eliminate OS-dependent font fallback distortions.
+1. **Decision Gate 1 (RATIFIED — DEPRECATE LEGACY PREACT MODALS)**:
+   - Formally ratify the Diegetic Canvas UI (`src/client/canvas-ui/`) as the single authoritative UI engine for tactical exploration and modal screens (`[I]` Satchel, `[A]` Anatomy, `[C]` Workbench, `[M]` Exchange, `[W]` Atlas, `[K]` Codex, Character Embarkation). Deprecate the duplicated full-screen Preact DOM modal windows in `src/client/ui/`, retaining Preact strictly as a lightweight overlay bridge (`PreactBridge.tsx`) for spatial floating combat text, reticle cursor framing, and branching dialogue overlays.
+2. **Decision Gate 2 (RATIFIED — MULTI-DEPTH ASCENDABLE CATACOMBS PERSISTENCE)**:
+   - Persist all visited Catacomb depths (`catacombDepths: Record<string, { grid: StratumGrid; entities: Record<EntityId, EntityRecord> }>`) in both `WorldStateSchema` and `SavedDistrictSnapshotSchema` (`src/sim/core/world.ts:13`), allowing players to ascend and descend freely through cleared Catacomb depths and across district transitions without losing floor state or entities.
+3. **Decision Gate 3 (RATIFIED — ADOPT `@fontsource/ibm-plex-mono`)**:
+   - Adopt `@fontsource/ibm-plex-mono` in `package.json` to guarantee deterministic, pixel-aligned character cell rendering across all operating systems, while rejecting `phosphor-icons` and `pixi-filters` and deferring `Storybook`.
 
 ---
 *Authoritative Consolidated Audit Report compiled and verified against repository source code, AST telemetry, and deterministic screenshot artifacts.*
