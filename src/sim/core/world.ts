@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { EntityComponentsSchema } from '../../schemas/components.schema.js';
 import { SimEventSchema } from '../../schemas/events.schema.js';
-import { BlueprintIdSchema, StratumIdSchema,  } from '../../schemas/primitives.schema.js';
+import { BlueprintId, BlueprintIdSchema, StratumIdSchema } from '../../schemas/primitives.schema.js';
 import { StratumGridSchema } from '../spatial/grid.js';
 import { DistrictEconomyLedgerSchema,  } from '../systems/economy.system.js';
 import { RNGStateSchema } from './rng.js';
@@ -68,6 +68,7 @@ export interface CreateWorldConfig {
   seed: number;
   width?: number;
   height?: number;
+  currentDistrictId?: BlueprintId;
 }
 
 

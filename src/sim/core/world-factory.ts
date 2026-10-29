@@ -153,7 +153,7 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     rngState: rng.getState(),
     turnCount: 0,
     macroTickCount: 0,
-    currentDistrictId: BlueprintIdSchema.parse('district_spitalfields_soot_works'),
+    currentDistrictId: config.currentDistrictId ?? BlueprintIdSchema.parse('district_spitalfields_soot_works'),
     strata,
     entities: {
       [playerId]: playerEntity,

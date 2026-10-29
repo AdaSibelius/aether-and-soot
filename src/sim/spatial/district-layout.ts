@@ -9,10 +9,11 @@ export interface CarvedBuilding {
 
 export function buildSolidStratumGrid(stratum: StratumId, width: number, height: number): StratumGrid {
   const base = createStratumGrid(stratum, width, height);
+  const isSpire = stratum === 'SPIRE';
   const solidCells: TileCell[] = base.cells.map(() => ({
-    terrainType: 'SOOT_BRICK_WALL',
+    terrainType: isSpire ? 'ABYSS_DROP' : 'SOOT_BRICK_WALL',
     blocksMovement: true,
-    blocksSight: true,
+    blocksSight: !isSpire,
     steamPressureKpa: 0,
     coalDustDensity: 0,
     explored: false,

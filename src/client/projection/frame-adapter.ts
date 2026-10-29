@@ -8,82 +8,13 @@ import { resolveConnectingWallGlyph, WALL_BOX_GLYPHS } from './wall-connections.
 import { applyGaslightVisual, applyLiquidSurfaceVisual, applySootVisualOverlay } from './environmental-visuals.js';
 import { calculateGaslightField } from '../../sim/systems/gaslight.system.js';
 import { calculateCameraViewport, resolveOutOfBoundsVisual } from './camera-governor.js';
-import limehouseJson from '../../../data/districts/limehouse_docks.json' with { type: 'json' };
-import sootWorksJson from '../../../data/districts/soot_works.json' with { type: 'json' };
-import whitechapelJson from '../../../data/districts/whitechapel_ward.json' with { type: 'json' };
-import {
-  getItemBlueprint,
-  getProstheticBlueprint,
-  humanizeIdentifier,
-  resolveBlueprintDisplayName,
-} from '../../sim/data/item-catalog.js';
-import { METROPOLIS_DISTRICT_DOSSIERS } from '../../sim/spatial/overworld-matrix.js';
+import { humanizeIdentifier, resolveCatalogDisplayName } from './catalog-display.js';
+
+export { humanizeIdentifier, resolveCatalogDisplayName };
 
 export const DEFAULT_VIEWPORT_WIDTH = 24;
 export const DEFAULT_VIEWPORT_HEIGHT = 20;
 export const DEFAULT_FOV_RADIUS = 10;
-
-const DISTRICT_CATALOG: ReadonlyArray<{ id: string; name: string }> = [
-  ...limehouseJson, ...sootWorksJson, ...whitechapelJson,
-];
-
-const KNOWN_LANDMARKS: Readonly<Record<string, string>> = {
-  landmark_water_pump: 'Victorian Municipal Water Pump',
-  landmark_street_clocktower: 'Great St. Jude Street Clocktower',
-  landmark_canal_lock: 'Limehouse Sunken Canal Lock & Winch',
-  landmark_spire_greenhouse: 'Belgravia Spire Conservatory',
-  foundry_boiler: 'High-Pressure Foundry Boiler',
-  artificer_bench: 'Artificer Pneumatic Bench',
-  monorail_depot: 'Spitalfields Monorail Depot',
-  clocktower: 'St. Jude Street Clocktower',
-  submerged_sluice: 'Fleet Ditch Sunken Sluice',
-  syndicate_still: 'Black-Market Aether Still',
-  catacomb_stairs: 'Chalk Crypt Descent',
-  spire_greenhouse: 'Aetheric Aeroponic Greenhouse',
-  cartel_bank: 'Clockwork Cartel Bullion Vault',
-  spire_lift: 'Pneumatic Grand Elevator',
-};
-
-/**
- * Resolves raw entity IDs, district blueprint IDs, landmarks, prosthetics, and item keys into player-facing display names.
- * Falls back to Title-Case humanization if no blueprint matches.
- */
-export function resolveCatalogDisplayName(kind: string, id: string): string {
-  if (!id) return '';
-  const k = kind.toLowerCase();
-
-  if (k === 'district') {
-    const dossier = METROPOLIS_DISTRICT_DOSSIERS[id];
-    if (dossier?.name) return dossier.name;
-    const fromJson = DISTRICT_CATALOG.find((d) => d.id === id);
-    if (fromJson?.name) return fromJson.name;
-  }
-
-  if (k === 'landmark') {
-    if (KNOWN_LANDMARKS[id]) return KNOWN_LANDMARKS[id]!;
-    for (const dossier of Object.values(METROPOLIS_DISTRICT_DOSSIERS)) {
-      const match = dossier.landmarks?.find((l) => l.id === id);
-      if (match?.name) return match.name;
-    }
-  }
-
-  if (k === 'prosthetic') {
-    const p = getProstheticBlueprint(id);
-    if (p?.name) return p.name;
-  }
-
-  if (k === 'item' || k === 'material' || k === 'consumable' || k === 'commodity' || k === 'recipe') {
-    const item = getItemBlueprint(id);
-    if (item?.name) return item.name;
-  }
-
-  const bpName = resolveBlueprintDisplayName(id);
-  if (bpName && bpName !== id) return bpName;
-
-  return humanizeIdentifier(id);
-}
-
-export { humanizeIdentifier };
 
 export interface RenderCellFrame {
   readonly x: number;
@@ -95,6 +26,7 @@ export interface RenderCellFrame {
   readonly explored: boolean;
   readonly steamPressureKpa: number;
   readonly coalDustDensity: number;
+  readonly isUnderlay?: boolean;
 }
 
 export interface VisualGridFrame {
@@ -178,10 +110,30 @@ export function projectWorldToVisualFrame(
       const isVisible = visibleSet.has(pointKey(worldX, worldY));
       const isExplored = isVisible || (tile?.explored ?? false);
 
+      let isUnderlay = false;
       const connectingWallGlyph = tile ? resolveConnectingWallGlyph(grid, worldX, worldY) : WALL_BOX_GLYPHS.DEFAULT;
       let cellVisual = tile
         ? resolveBiomeTerrainVisual(tile.terrainType, isVisible, isExplored, districtBiome, connectingWallGlyph, tile.steamPressureKpa ?? 0)
         : resolveBiomeTerrainVisual('COBBLESTONE_FLOOR', isVisible, false, districtBiome, WALL_BOX_GLYPHS.DEFAULT, 0);
+
+      // DEF-11: Spire vertical depth parallax over Street abyss drops
+      if (activeStratum === 'SPIRE' && tile?.terrainType === 'ABYSS_DROP' && state.strata.STREET) {
+        const streetGrid = state.strata.STREET;
+        if (worldX < streetGrid.width && worldY < streetGrid.height) {
+          const streetTile = streetGrid.cells[worldY * streetGrid.width + worldX];
+          if (streetTile) {
+            const streetVisual = resolveBiomeTerrainVisual(streetTile.terrainType, false, true, districtBiome, WALL_BOX_GLYPHS.DEFAULT, 0);
+            isUnderlay = true;
+            cellVisual = {
+              glyph: streetVisual.glyph !== ' ' ? streetVisual.glyph : '·',
+              fgPrimary: '#1a2634', // desaturated soot-navy tint
+              fgSecondary: '#101820',
+              bgColor: '#080d14',
+              shaderFlags: [],
+            };
+          }
+        }
+      }
 
       if (tile) {
         cellVisual = applyLiquidSurfaceVisual(cellVisual, tile.liquidType, tile.liquidVolumeMl, isVisible, isExplored);
@@ -193,6 +145,7 @@ export function projectWorldToVisualFrame(
       cells.push({
         x: vx, y: vy, worldX, worldY, visual: cellVisual, visible: isVisible, explored: isExplored,
         steamPressureKpa: tile?.steamPressureKpa ?? 0, coalDustDensity: tile?.coalDustDensity ?? 0,
+        isUnderlay,
       });
     }
   }
@@ -216,9 +169,14 @@ export function projectWorldToVisualFrame(
       const currentCell = cells[idx];
       if (currentCell) {
         const isGaslit = (gaslightField.get(pointKey(pos.x, pos.y)) ?? 0) > 0.15;
+        const gaslitVisual = applyGaslightVisual(entity.visual, isGaslit);
         cells[idx] = {
           ...currentCell,
-          visual: applyGaslightVisual(entity.visual, isGaslit),
+          visual: {
+            ...gaslitVisual,
+            // Preserve the tile's underlying background color so entity glyphs do not stamp opaque black boxes
+            bgColor: currentCell.visual.bgColor,
+          },
         };
       }
     }

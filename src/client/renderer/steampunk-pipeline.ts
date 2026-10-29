@@ -15,9 +15,11 @@ export type PipelineLayerId =
 
 export interface PipelineStageLayers {
   readonly worldTacticalContainer: Container;
+  readonly tacticalWorldContainer: Container;
   readonly gaslightLightingContainer: Container;
   readonly diegeticFrameContainer: Container;
   readonly canvasUiBufferContainer: Container;
+  readonly canvasUiContainer: Container;
   readonly opticalOverlayContainer: Container;
 }
 
@@ -51,9 +53,11 @@ export class SteampunkRenderPipeline {
 
     this.layers = {
       worldTacticalContainer: worldTactical,
+      tacticalWorldContainer: worldTactical,
       gaslightLightingContainer: gaslightLighting,
       diegeticFrameContainer: diegeticFrame,
       canvasUiBufferContainer: canvasUiBuffer,
+      canvasUiContainer: canvasUiBuffer,
       opticalOverlayContainer: opticalOverlay,
     };
 

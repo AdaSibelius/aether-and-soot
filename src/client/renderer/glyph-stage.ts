@@ -6,22 +6,35 @@ import { GlyphAtlas } from './glyph-atlas.js';
 import { getPerformanceGovernor, PerformanceGovernor } from './performance-governor.js';
 import { SteampunkRenderPipeline } from './steampunk-pipeline.js';
 
-export const CELL_WIDTH_PX = 12;
-export const CELL_HEIGHT_PX = 20;
-export const WIDESCREEN_GRID_WIDTH = 88;
-export const WIDESCREEN_GRID_HEIGHT = 36;
-export const DESKTOP_GRID_WIDTH = 120;
-export const DESKTOP_GRID_HEIGHT = 40;
+import {
+  CELL_HEIGHT_PX,
+  CELL_WIDTH_PX,
+  DESKTOP_GRID_HEIGHT,
+  DESKTOP_GRID_WIDTH,
+  hexToNumber,
+  WIDESCREEN_GRID_HEIGHT,
+  WIDESCREEN_GRID_WIDTH,
+} from './glyph-stage-types.js';
 
-function hexToNumber(hex: string): number {
-  return parseInt(hex.replace('#', ''), 16);
-}
+export {
+  CELL_HEIGHT_PX,
+  CELL_WIDTH_PX,
+  DESKTOP_GRID_HEIGHT,
+  DESKTOP_GRID_WIDTH,
+  WIDESCREEN_GRID_HEIGHT,
+  WIDESCREEN_GRID_WIDTH,
+};
 
 export class GlyphStageRenderer {
   private readonly app: Application;
   private readonly pipeline: SteampunkRenderPipeline;
   private readonly bgGraphics: Graphics;
+  private readonly lightingGraphics: Graphics;
+  private readonly frameGraphics: Graphics;
+  private readonly uiBgGraphics: Graphics;
+  private readonly overlayGraphics: Graphics;
   private readonly glyphSprites: Sprite[] = [];
+  private readonly uiGlyphSprites: Sprite[] = [];
   private readonly atlas: GlyphAtlas;
   private readonly gridWidth: number;
   private readonly gridHeight: number;
@@ -43,25 +56,25 @@ export class GlyphStageRenderer {
 
     this.pipeline = new SteampunkRenderPipeline(gridWidth * CELL_WIDTH_PX, gridHeight * CELL_HEIGHT_PX);
     this.bgGraphics = new Graphics();
-    this.pipeline.layers.worldTacticalContainer.addChild(this.bgGraphics);
+    this.lightingGraphics = new Graphics();
+    this.frameGraphics = new Graphics();
+    this.uiBgGraphics = new Graphics();
+    this.overlayGraphics = new Graphics();
+
+    const { worldTacticalContainer, gaslightLightingContainer, diegeticFrameContainer, canvasUiBufferContainer, opticalOverlayContainer } = this.pipeline.layers;
+    worldTacticalContainer.addChild(this.bgGraphics);
+    gaslightLightingContainer.addChild(this.lightingGraphics);
+    diegeticFrameContainer.addChild(this.frameGraphics);
+    canvasUiBufferContainer.addChild(this.uiBgGraphics);
+    opticalOverlayContainer.addChild(this.overlayGraphics);
+
     this.app.stage.addChild(this.pipeline.rootStage);
   }
 
-  public getGovernor(): PerformanceGovernor {
-    return this.governor;
-  }
-
-  public getPipeline(): SteampunkRenderPipeline {
-    return this.pipeline;
-  }
-
-  public getCanvas(): HTMLCanvasElement {
-    return this.app.canvas;
-  }
-
-  public setCrtScanlinesEnabled(enabled: boolean): void {
-    this.pipeline.setFilterEnabled(enabled);
-  }
+  public getGovernor(): PerformanceGovernor { return this.governor; }
+  public getPipeline(): SteampunkRenderPipeline { return this.pipeline; }
+  public getCanvas(): HTMLCanvasElement { return this.app.canvas; }
+  public setCrtScanlinesEnabled(enabled: boolean): void { this.pipeline.setFilterEnabled(enabled); }
 
   public static async create(
     hostElement: HTMLElement,
@@ -102,8 +115,12 @@ export class GlyphStageRenderer {
     this.pipeline.updateUniforms(thermoStress, deltaMs / 1000, distortion, advanceTime);
 
     this.bgGraphics.clear();
+    this.lightingGraphics.clear();
+    this.frameGraphics.clear();
+    this.uiBgGraphics.clear();
+    this.overlayGraphics.clear();
 
-    // 1. Render World Tactical Grid
+    // 1. Render World Tactical Grid & Atmospheric Steam/Lighting
     const maxWorldCells = Math.min(frame.cells.length, this.glyphSprites.length);
     for (let i = 0; i < maxWorldCells; i++) {
       const cell = frame.cells[i];
@@ -113,16 +130,14 @@ export class GlyphStageRenderer {
       const px = cell.x * CELL_WIDTH_PX;
       const py = cell.y * CELL_HEIGHT_PX;
 
+      const alpha = cell.isUnderlay ? 0.22 : cell.visible ? 1.0 : cell.explored ? 0.65 : 1.0;
       this.bgGraphics.rect(px, py, CELL_WIDTH_PX, CELL_HEIGHT_PX).fill({
         color: hexToNumber(cell.visual.bgColor),
-        alpha: cell.visible ? 1.0 : cell.explored ? 0.65 : 1.0,
+        alpha,
       });
 
       if (cell.steamPressureKpa > 0 && cell.visible) {
-        this.bgGraphics.rect(px + 2, py + 2, CELL_WIDTH_PX - 4, CELL_HEIGHT_PX - 4).fill({
-          color: 0xd4af37,
-          alpha: 0.18,
-        });
+        this.lightingGraphics.rect(px + 2, py + 2, CELL_WIDTH_PX - 4, CELL_HEIGHT_PX - 4).fill({ color: 0xd4af37, alpha: 0.18 });
       }
 
       const useSecondary =
@@ -133,7 +148,7 @@ export class GlyphStageRenderer {
       sprite.position.set(px, py);
       sprite.texture = this.atlas.getTexture(cell.visual.glyph);
       sprite.tint = hexToNumber(fgHex);
-      sprite.alpha = cell.visible ? 1.0 : cell.explored ? 0.42 : cell.visual.glyph !== ' ' ? 0.85 : 0.0;
+      sprite.alpha = cell.isUnderlay ? 0.22 : cell.visible ? 1.0 : cell.explored ? 0.42 : cell.visual.glyph !== ' ' ? 0.85 : 0.0;
     }
 
     // 2. Composite Diegetic UiCellBuffer Layer over World Grid
@@ -141,17 +156,20 @@ export class GlyphStageRenderer {
       for (let uy = 0; uy < Math.min(uiBuffer.height, this.gridHeight); uy++) {
         for (let ux = 0; ux < Math.min(uiBuffer.width, this.gridWidth); ux++) {
           const uiCell = uiBuffer.getCell(ux, uy);
-          if (!uiCell || uiCell.bg === 'transparent') continue;
-
           const idx = uy * this.gridWidth + ux;
-          const sprite = this.glyphSprites[idx];
-          if (!sprite) continue;
+          const uiSprite = this.uiGlyphSprites[idx];
+
+          if (!uiCell || uiCell.bg === 'transparent') {
+            if (uiSprite) uiSprite.alpha = 0.0;
+            continue;
+          }
+          if (!uiSprite) continue;
 
           const px = ux * CELL_WIDTH_PX;
           const py = uy * CELL_HEIGHT_PX;
 
-          // Background fill for UI cell
-          this.bgGraphics.rect(px, py, CELL_WIDTH_PX, CELL_HEIGHT_PX).fill({
+          // Background fill for UI cell on canvasUiBufferContainer
+          this.uiBgGraphics.rect(px, py, CELL_WIDTH_PX, CELL_HEIGHT_PX).fill({
             color: hexToNumber(uiCell.bg),
             alpha: 1.0,
           });
@@ -165,11 +183,16 @@ export class GlyphStageRenderer {
             jy = jitterPhase === 0 ? 1 : jitterPhase === 2 ? -1 : 0;
           }
 
-          sprite.position.set(px + jx, py + jy);
-          sprite.texture = this.atlas.getTexture(uiCell.glyph);
-          sprite.tint = hexToNumber(uiCell.fg);
-          sprite.alpha = 1.0;
+          uiSprite.position.set(px + jx, py + jy);
+          uiSprite.texture = this.atlas.getTexture(uiCell.glyph);
+          uiSprite.tint = hexToNumber(uiCell.fg);
+          uiSprite.alpha = 1.0;
         }
+      }
+    } else {
+      for (let i = 0; i < this.uiGlyphSprites.length; i++) {
+        const s = this.uiGlyphSprites[i];
+        if (s) s.alpha = 0.0;
       }
     }
   }
@@ -181,22 +204,14 @@ export class GlyphStageRenderer {
   ): string | undefined {
     if (!this.activeUiBuffer) return undefined;
     const rect = canvasBoundingRect;
-    let col: number;
-    let row: number;
-    if (rect && rect.width > 0 && rect.height > 0) {
-      const relX = clientX - rect.left;
-      const relY = clientY - rect.top;
-      if (relX < 0 || relX >= rect.width || relY < 0 || relY >= rect.height) {
-        return undefined;
-      }
-      col = Math.floor((relX / rect.width) * this.gridWidth);
-      row = Math.floor((relY / rect.height) * this.gridHeight);
-    } else {
-      const left = rect ? rect.left : 0;
-      const top = rect ? rect.top : 0;
-      col = Math.floor((clientX - left) / CELL_WIDTH_PX);
-      row = Math.floor((clientY - top) / CELL_HEIGHT_PX);
+    const hasDim = Boolean(rect && rect.width > 0 && rect.height > 0);
+    const relX = clientX - (rect?.left ?? 0);
+    const relY = clientY - (rect?.top ?? 0);
+    if (hasDim && (relX < 0 || relX >= rect!.width || relY < 0 || relY >= rect!.height)) {
+      return undefined;
     }
+    const col = Math.floor(hasDim ? (relX / rect!.width) * this.gridWidth : relX / CELL_WIDTH_PX);
+    const row = Math.floor(hasDim ? (relY / rect!.height) * this.gridHeight : relY / CELL_HEIGHT_PX);
     return this.activeUiBuffer.resolveHitActionAt(col, row);
   }
 
@@ -210,6 +225,14 @@ export class GlyphStageRenderer {
         sprite.tint = 0xd4af37;
         this.pipeline.layers.worldTacticalContainer.addChild(sprite);
         this.glyphSprites.push(sprite);
+
+        const uiSprite = new Sprite(this.atlas.getTexture(' '));
+        uiSprite.position.set(x * CELL_WIDTH_PX, y * CELL_HEIGHT_PX);
+        uiSprite.width = CELL_WIDTH_PX;
+        uiSprite.height = CELL_HEIGHT_PX;
+        uiSprite.alpha = 0.0;
+        this.pipeline.layers.canvasUiBufferContainer.addChild(uiSprite);
+        this.uiGlyphSprites.push(uiSprite);
       }
     }
   }
