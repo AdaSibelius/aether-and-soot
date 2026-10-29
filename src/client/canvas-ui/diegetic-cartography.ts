@@ -1,7 +1,9 @@
-import { CommodityId, FactionId } from '../../schemas/primitives.schema.js';
+import { FactionId } from '../../schemas/primitives.schema.js';
 import { TurfSectorRecord } from '../../schemas/skirmish-records.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { UiCellBuffer } from './cell-buffer.js';
+import { renderCommodityTickerTable } from './commodity-ticker-table.js';
+import { drawIndustrialFrame } from './industrial-primitives.js';
 import { VICTORIAN_PALETTE } from './material-palette.js';
 import { UiRect } from './viewport-controls.js';
 
@@ -97,19 +99,31 @@ export function renderFactionContaminationMap(
     ? Object.values(state.turf)
     : DEFAULT_METROPOLIS_SECTORS;
 
-  const isWidescreen = rect.width >= 70;
-  const mapWidth = isWidescreen ? 36 : Math.min(rect.width - 24, 28);
-  const legendX = rect.x + mapWidth + 1;
+  const shouldWrapFrame = rect.width >= 60 || rect.x > 0;
+  if (shouldWrapFrame) {
+    drawIndustrialFrame(buf, rect, {
+      tier: 'PRIMARY_IRON',
+      title: '═[ COMMODITY EXCHANGE & TREASURY ]═',
+    });
+  }
+
+  const innerRect = shouldWrapFrame
+    ? { x: rect.x + 2, y: rect.y + 2, width: rect.width - 4, height: rect.height - 4 }
+    : rect;
+
+  const isWidescreen = innerRect.width >= 66;
+  const mapWidth = isWidescreen ? 36 : Math.min(innerRect.width - 24, 28);
+  const legendX = innerRect.x + mapWidth + 1;
   const colW = Math.floor(mapWidth / 2);
-  const rowH = Math.floor(rect.height / 2);
+  const rowH = Math.floor(innerRect.height / 2);
 
   // 1. Draw 2x2 sector matrix in map area
   for (let idx = 0; idx < Math.min(4, sectors.length); idx++) {
     const sector = sectors[idx]!;
     const gridCol = idx % 2;
     const gridRow = Math.floor(idx / 2);
-    const blockX = rect.x + gridCol * colW;
-    const blockY = rect.y + gridRow * rowH;
+    const blockX = innerRect.x + gridCol * colW;
+    const blockY = innerRect.y + gridRow * rowH;
     const isSelected = selectedSectorId === sector.turfId;
 
     const factionId = sector.controllingFactionId ?? 'IRONMONGERS_CARTEL';
@@ -146,7 +160,7 @@ export function renderFactionContaminationMap(
 
   // 2. Right Column (Compact Legend vs Widescreen Commodity Exchange)
   if (!isWidescreen) {
-    buf.writeString(legendX, rect.y, '═[ FACTION CONTAMINATION ]═', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    buf.writeString(legendX, innerRect.y, '═[ FACTION CONTAMINATION ]═', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
     const factionTally: Record<FactionId, number> = {
       IRONMONGERS_CARTEL: 0,
@@ -161,7 +175,7 @@ export function renderFactionContaminationMap(
     }
 
     const factionKeys: readonly FactionId[] = ['IRONMONGERS_CARTEL', 'UNDERCROFT_SYNDICATE', 'CLOCKWORK_GUILD', 'CROWN_CONSTABULARY'];
-    let legendY = rect.y + 2;
+    let legendY = innerRect.y + 2;
     for (const fid of factionKeys) {
       const vis = FACTION_VISUALS[fid];
       const count = factionTally[fid];
@@ -171,65 +185,18 @@ export function renderFactionContaminationMap(
     }
   } else {
     // Widescreen: Divider & Commodity Exchange Ticker
-    const dividerX = rect.x + 39;
-    const rightX = rect.x + 41;
-    const rightWidth = Math.min(38, rect.width - 43);
+    const dividerX = innerRect.x + 39;
+    const rightX = innerRect.x + 41;
+    const rightWidth = Math.min(38, innerRect.width - 43);
 
-    for (let dy = rect.y; dy < rect.y + rect.height; dy++) {
+    for (let dy = innerRect.y; dy < innerRect.y + innerRect.height; dy++) {
       buf.setCell(dividerX, dy, '│', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     }
 
-    buf.writeString(rightX, rect.y, '═[ COMMODITY EXCHANGE & TREASURY ]═'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
-
-    const treasury = state.economy?.playerTreasuryPence ?? 240;
-    buf.writeString(rightX, rect.y + 2, `Player Treasury: ${treasury}d (${Math.floor(treasury / 12)}s ${treasury % 12}d)`.slice(0, rightWidth), VICTORIAN_PALETTE.AMBER_GASLIGHT, VICTORIAN_PALETTE.SOOT_IRON_BG);
-
-    buf.writeString(rightX, rect.y + 4, '─[ LIVE COMMODITY QUOTES ]──────────'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
-    buf.writeString(rightX, rect.y + 5, 'COMMODITY       PRICE   SUPPLY  TREND'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
-
-    const quotes = Object.values(state.economy?.marketQuotes ?? {});
-    const quoteRows = quotes.length > 0 ? quotes : [
-      { commodity: 'ANTHRACITE_COAL' as CommodityId, basePricePence: 24, currentPricePence: 26, supplyUnits: 120, demandUnits: 85 },
-      { commodity: 'PHOSPHOR_BRONZE' as CommodityId, basePricePence: 110, currentPricePence: 108, supplyUnits: 40, demandUnits: 60 },
-    ];
-
-    const COMMODITY_SHORT_NAMES: Record<string, string> = {
-      ANTHRACITE_COAL: 'Anthracite',
-      PHOSPHOR_BRONZE: 'Phosphor Brz',
-      AETHER_SALT: 'Aether Salt',
-      VULCANIZED_RUBBER: 'Rubber Resin',
-      BRASS_GEAR_STOCK: 'Brass Gears',
-      AETHER_VIAL: 'Aether Vial',
-      CLOCKWORK_MAINSPRING: 'Clockwork Spr',
-    };
-
-    let qY = rect.y + 6;
-    for (const q of quoteRows.slice(0, 4)) {
-      const diff = q.currentPricePence - q.basePricePence;
-      const trend = diff > 0 ? `▲+${diff}d` : diff < 0 ? `▼${diff}d` : '▬ 0d';
-      const trendFg = diff > 0 ? VICTORIAN_PALETTE.INCANDESCENT_RED : diff < 0 ? VICTORIAN_PALETTE.AETHER_BLUE : VICTORIAN_PALETTE.SEPIA_INK;
-      const comKey = q.commodity as string;
-      const rawName = COMMODITY_SHORT_NAMES[comKey] ?? comKey.replace(/_/g, ' ');
-      const nameStr = rawName.slice(0, 13).padEnd(13, ' ');
-      const priceStr = `${q.currentPricePence}d`.padStart(5, ' ');
-      const supStr = `${q.supplyUnits}u`.padStart(7, ' ');
-      buf.writeString(rightX, qY, `${nameStr} ${priceStr} ${supStr}  ${trend}`.slice(0, rightWidth), trendFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
-      qY++;
-    }
-
-    qY++;
-    buf.writeString(rightX, qY, '─[ BROKER COUNTER & PEDESTALS ]─────'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
-    qY++;
-    buf.writeString(rightX, qY, 'Broker: Spitalfields Guild Clerk'.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
-    qY++;
-    buf.writeString(rightX, qY, 'Trade Rate: 100% Par Value (Tariff)'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
-    qY += 2;
-
-    buf.writeString(rightX, qY, '─[ METROPOLITAN STANDING ]──────────'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
-    qY++;
-    const reps = state.economy?.factionReputation ?? { IRONMONGERS_CARTEL: 10, CLOCKWORK_GUILD: 15, UNDERCROFT_SYNDICATE: 0, CROWN_CONSTABULARY: 5 };
-    buf.writeString(rightX, qY, `Cartel: +${reps.IRONMONGERS_CARTEL ?? 0} | Guild: +${reps.CLOCKWORK_GUILD ?? 0}`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
-    qY++;
-    buf.writeString(rightX, qY, `Syndicate: ${reps.UNDERCROFT_SYNDICATE ?? 0} | Crown: +${reps.CROWN_CONSTABULARY ?? 0}`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    renderCommodityTickerTable(
+      buf,
+      { x: rightX, y: innerRect.y, width: rightWidth, height: innerRect.height },
+      state,
+    );
   }
 }

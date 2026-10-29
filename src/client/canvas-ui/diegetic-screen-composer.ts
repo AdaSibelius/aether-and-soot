@@ -84,7 +84,7 @@ export function composeDiegeticUiBuffer(params: DiegeticComposerParams): UiCellB
   });
   renderTacticalConsole(
     buf,
-    { x: 60, y: 0, width: 28, height: params.height },
+    { x: 58, y: 0, width: 30, height: params.height },
     params.worldState,
     params.playerId,
     {

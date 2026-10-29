@@ -1,5 +1,6 @@
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
+import { getTileCell } from '../../sim/spatial/grid.js';
 import { resolveThermodynamicStress } from '../renderer/shader-uniforms.js';
 import { drawBourdonPressureGauge, drawSanguineManometer, drawSplitFlapOdometer, formatVictorianCurrency } from './analog-gauges.js';
 import { drawMachinedBezel, drawStructuralDivider } from './bezel-composer.js';
@@ -65,22 +66,28 @@ export function renderTacticalConsole(
     renderDiegeticPaperdoll(buf, x + 2, y + 14, anatomy);
   }
 
-  // Compact status bar on Row 21 above divider
-  const posture = (player.actor?.posture ?? 'STANDING').slice(0, 4);
+  // Physical status flags with full legible English words on Row 21..22
+  const posture = player.actor?.posture ?? 'STANDING';
+  const thermo = resolveThermodynamicStress(state, playerId).stressLevel;
+  const playerPos = player.position;
+  const stratum = playerPos?.stratum ?? 'STREET';
+  const grid = state.strata[stratum];
+  const pCell = playerPos && grid ? getTileCell(grid, playerPos.x, playerPos.y) : undefined;
+  const smokePpm = pCell?.smokePpm ?? 0;
+  const gasStatus = smokePpm > 100 ? 'TOXIC' : smokePpm > 40 ? 'SMOKY' : 'CALM';
   const stamina = anatomy?.stamina ?? 100;
-  const thermo = resolveThermodynamicStress(state, playerId);
-  const thermoShort = thermo.stressLevel.slice(0, 4);
-  const statusLine = `PST:${posture} STM:${stamina}% THM:${thermoShort}`.slice(0, width - 4);
-  buf.writeString(x + 2, y + 21, statusLine, VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
-  // Divider below anatomy
-  drawStructuralDivider(buf, x, y + 22, width, 'HORIZONTAL');
+  buf.writeString(x + 2, y + 21, `PST: ${posture}  THM: ${thermo}`.slice(0, width - 4), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 2, y + 22, `GAS: ${gasStatus}  STM: ${stamina}%`.slice(0, width - 4), VICTORIAN_PALETTE.VERDIGRIS_PATINA, VICTORIAN_PALETTE.SOOT_IRON_BG);
 
-  // 5. Caves of Qud-grade Optical Vernier Dossier (Row 23..33)
+  // Divider below anatomy & status
+  drawStructuralDivider(buf, x, y + 23, width, 'HORIZONTAL');
+
+  // 5. Caves of Qud-grade Optical Vernier Dossier (Row 24..34)
   const inspected = (options.hoveredTile ?? player.position) ?? null;
   renderTacticalVernierDossier(
     buf,
-    { x: x + 1, y: y + 23, width: width - 2, height: 11 },
+    { x: x + 1, y: y + 24, width: width - 2, height: 10 },
     state,
     inspected,
     playerId,

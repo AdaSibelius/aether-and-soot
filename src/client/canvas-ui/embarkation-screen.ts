@@ -54,16 +54,18 @@ export function renderEmbarkationScreen(
   });
 
   const { config } = screenState;
-  const colWidth = Math.floor((width - 6) / 3);
+  const col1Width = width >= 86 ? 34 : Math.min(34, Math.max(26, width - 52));
+  const col2Width = width >= 86 ? 26 : Math.min(26, Math.max(22, Math.floor((width - col1Width - 4) * 0.52)));
+  const col3Width = Math.max(20, width - col1Width - col2Width - 4);
   const leftX = x + 2;
-  const midX = leftX + colWidth + 1;
-  const rightX = midX + colWidth + 1;
+  const midX = leftX + col1Width + 1;
+  const rightX = midX + col2Width + 1;
   const contentY = y + 2;
 
   // Vertical dividers between columns
   for (let r = contentY; r < y + height - 3; r++) {
-    buf.setCell(leftX + colWidth, r, '│', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
-    buf.setCell(midX + colWidth, r, '│', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+    buf.setCell(leftX + col1Width, r, '│', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+    buf.setCell(midX + col2Width, r, '│', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
   }
 
   // --- COLUMN 1: OCCUPATIONAL GUILD / PROFESSION ---
@@ -76,17 +78,17 @@ export function renderEmbarkationScreen(
     const fg = isSelected ? VICTORIAN_PALETTE.POLISHED_BRASS ?? '#e6c875' : VICTORIAN_PALETTE.SEPIA_INK;
     const hit = `select_prof:${profId}`;
 
-    buf.writeString(leftX, curY, `${prefix}${prof.name.slice(0, colWidth - 6)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
+    buf.writeString(leftX, curY, `${prefix}${prof.name}`.slice(0, col1Width), fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
     curY++;
 
     if (isSelected) {
-      const descLines = prof.description.match(/.{1,21}(\s|$)/g) ?? [prof.description];
+      const descLines = prof.description.match(/.{1,28}(\s|$)/g) ?? [prof.description];
       for (const d of descLines.slice(0, 2)) {
-        buf.writeString(leftX + 4, curY, d.trim().slice(0, colWidth - 5), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
+        buf.writeString(leftX + 4, curY, d.trim().slice(0, col1Width - 5), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
         curY++;
       }
       if (prof.preGraftedBlueprintId) {
-        buf.writeString(leftX + 4, curY, `Graft: ${prof.preGraftedSlot}`.slice(0, colWidth - 5), VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+        buf.writeString(leftX + 4, curY, `Graft: ${prof.preGraftedSlot}`.slice(0, col1Width - 5), VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.OXIDIZED_IRON);
         curY++;
       }
       curY++;
@@ -105,13 +107,13 @@ export function renderEmbarkationScreen(
     const fg = isChecked ? VICTORIAN_PALETTE.AETHER_BLUE : VICTORIAN_PALETTE.SEPIA_INK;
     const hit = `toggle_trait:${traitId}`;
 
-    buf.writeString(midX, curY, `${prefix}${trait.name.slice(0, colWidth - 6)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
+    buf.writeString(midX, curY, `${prefix}${trait.name}`.slice(0, col2Width), fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
     curY++;
 
     if (isChecked) {
       const descLines = trait.description.match(/.{1,21}(\s|$)/g) ?? [trait.description];
       for (const d of descLines.slice(0, 2)) {
-        buf.writeString(midX + 4, curY, d.trim().slice(0, colWidth - 5), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
+        buf.writeString(midX + 4, curY, d.trim().slice(0, col2Width - 5), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
         curY++;
       }
     }
@@ -128,8 +130,36 @@ export function renderEmbarkationScreen(
     const fg = isSelected ? VICTORIAN_PALETTE.TARNISHED_BRASS : VICTORIAN_PALETTE.SEPIA_INK;
     const hit = `select_scen:${scenId}`;
 
-    buf.writeString(rightX, curY, `${prefix}${scen.name.slice(0, colWidth - 6)}`, fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
+    buf.writeString(rightX, curY, `${prefix}${scen.name}`.slice(0, col3Width), fg, VICTORIAN_PALETTE.OXIDIZED_IRON, undefined, hit);
     curY += 2;
+  }
+
+  // Equipment Ledger & Cartel Preview for selected profession
+  const selectedProf = PROFESSIONS[config.professionId];
+  if (selectedProf && curY + 6 < y + height - 8) {
+    buf.writeString(rightX, curY, '─[ GUILD EQUIPMENT ]────', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+    curY++;
+    for (const item of selectedProf.startingItems.slice(0, 2)) {
+      const rawName = item.blueprintId.replace(/^(item_|mat_|commodity_)/, '').replace(/_/g, ' ');
+      buf.writeString(rightX + 1, curY, `• ${item.quantity}x ${rawName}`.slice(0, col3Width - 2), VICTORIAN_PALETTE.RIVET_STEEL, VICTORIAN_PALETTE.OXIDIZED_IRON);
+      curY++;
+    }
+    if (selectedProf.bonusPence > 0) {
+      buf.writeString(rightX + 1, curY, `• Treasury: +${selectedProf.bonusPence}d`.slice(0, col3Width - 2), VICTORIAN_PALETTE.POLISHED_BRASS, VICTORIAN_PALETTE.OXIDIZED_IRON);
+      curY++;
+    }
+    curY++;
+
+    if (curY + 3 < y + height - 8) {
+      buf.writeString(rightX, curY, '─[ FACTION STANDING ]───', VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+      curY++;
+      const repEntries = Object.entries(selectedProf.reputation ?? {});
+      for (const [fac, score] of repEntries.slice(0, 2)) {
+        const facName = fac.replace(/_/g, ' ');
+        buf.writeString(rightX + 1, curY, `• ${facName}: +${score}`.slice(0, col3Width - 2), VICTORIAN_PALETTE.AETHER_BLUE, VICTORIAN_PALETTE.OXIDIZED_IRON);
+        curY++;
+      }
+    }
   }
 
   // Large Diegetic Red Wax Seal Embark Stamp Button

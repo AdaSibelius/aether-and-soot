@@ -178,14 +178,17 @@ describe('Phase 55: High-Density Victorian Mechanical Console UI', () => {
       expect(titleRow).toContain('EMBARKATION LEDGER');
 
       let foundWaxSeal = false;
-      for (let r = 20; r < 34; r++) {
+      let foundFullTitle = false;
+      let foundEquipment = false;
+      for (let r = 2; r < 34; r++) {
         const row = buf.extractRowString(r);
-        if (row.includes('AFFIX WAX SEAL')) {
-          foundWaxSeal = true;
-          break;
-        }
+        if (row.includes('AFFIX WAX SEAL')) foundWaxSeal = true;
+        if (row.includes('Foundry Master Artificer')) foundFullTitle = true;
+        if (row.includes('GUILD EQUIPMENT')) foundEquipment = true;
       }
       expect(foundWaxSeal).toBe(true);
+      expect(foundFullTitle).toBe(true);
+      expect(foundEquipment).toBe(true);
     });
 
     it('composes full-screen embarkation screen when creator is open', () => {

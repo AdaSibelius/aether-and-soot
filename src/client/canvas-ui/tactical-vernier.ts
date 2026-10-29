@@ -90,14 +90,14 @@ export function renderTacticalVernierDossier(
   const isGaslit = (gaslightField.get(pointKey(hoverCoord.x, hoverCoord.y)) ?? 0) > 0.15;
 
   // 1. Coordinates and Terrain Identity
-  const maxLen = Math.max(10, width - 4);
+  const maxLen = Math.max(10, width - 3);
   const coordStr = `COORD:(${hoverCoord.x},${hoverCoord.y}) [${stratum}]`.slice(0, maxLen);
   buf.writeString(innerX, currY++, coordStr, VICTORIAN_PALETTE.POLISHED_BRASS);
 
   const tType = cell?.terrainType ?? 'EMPTY_ABYSS';
   const hardness = estimateTerrainHardness(tType);
-  buf.writeString(innerX, currY++, `SURF: ${tType.replace(/_/g, ' ')}`.slice(0, maxLen), '#ecf0f1');
-  buf.writeString(innerX, currY++, `HARD: ${hardness.mohs} Mohs [${hardness.rating.slice(0, 6)}]`.slice(0, maxLen), VICTORIAN_PALETTE.RIVET_STEEL);
+  buf.writeString(innerX, currY++, `TERR: ${tType.replace(/_/g, ' ')}`.slice(0, maxLen), '#ecf0f1');
+  buf.writeString(innerX, currY++, `MOHS: ${hardness.mohs} Mohs [${hardness.rating.slice(0, 6)}]`.slice(0, maxLen), VICTORIAN_PALETTE.RIVET_STEEL);
 
   // 2. Atmospheric & Forensic Sensor Data
   const smokePpm = cell?.smokePpm ?? 0;

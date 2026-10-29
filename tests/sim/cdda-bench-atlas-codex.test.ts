@@ -113,6 +113,19 @@ describe('Phase UI-4: CDDA Bench, World Atlas Minimap, Market Exchange & Natural
       }
     }
     expect(foundAtmospheric).toBe(true);
+
+    // Unexplored minimap cells outside initial FOV render strictly as empty void ' ' without fog spoilers
+    let foundUnexploredVoid = false;
+    for (let y = 5; y < 28; y++) {
+      for (let x = 4; x < 40; x++) {
+        if (buf.getCell(x, y)?.glyph === ' ') {
+          foundUnexploredVoid = true;
+          break;
+        }
+      }
+      if (foundUnexploredVoid) break;
+    }
+    expect(foundUnexploredVoid).toBe(true);
   });
 
   it('renders Borough Turf sectors and live Commodity Exchange ticker in EXCHANGE modal', () => {
