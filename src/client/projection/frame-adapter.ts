@@ -184,8 +184,8 @@ export function projectWorldToVisualFrame(
         : resolveBiomeTerrainVisual('COBBLESTONE_FLOOR', isVisible, false, districtBiome, WALL_BOX_GLYPHS.DEFAULT, 0);
 
       if (tile) {
-        cellVisual = applyLiquidSurfaceVisual(cellVisual, tile.liquidType, tile.liquidVolumeMl, isVisible);
-        cellVisual = applySootVisualOverlay(cellVisual, tile.smokePpm ?? 0, tile.coalDustDensity ?? 0, worldX, worldY, state.turnCount, isVisible);
+        cellVisual = applyLiquidSurfaceVisual(cellVisual, tile.liquidType, tile.liquidVolumeMl, isVisible, isExplored);
+        cellVisual = applySootVisualOverlay(cellVisual, tile.smokePpm ?? 0, tile.coalDustDensity ?? 0, worldX, worldY, state.turnCount, isVisible, isExplored);
       }
       const isGaslit = (gaslightField.get(pointKey(worldX, worldY)) ?? 0) > 0.15;
       cellVisual = applyGaslightVisual(cellVisual, isGaslit);

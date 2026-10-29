@@ -201,15 +201,22 @@ describe('Phase 50: Interactive World Features, Tactical Hazards & Mechanical Ag
     expect(acidCell?.liquidVolumeMl).toBeGreaterThan(0);
 
     const baseSpec = { glyph: '.', fgPrimary: '#CCCCCC', fgSecondary: '#888888', bgColor: '#000000', shaderFlags: [] };
-    const sootVisual1 = applySootVisualOverlay(baseSpec, 100, 0, 1, 1, 0, true);
-    const sootVisual2 = applySootVisualOverlay(baseSpec, 100, 0, 1, 1, 1, true);
+    const sootVisual1 = applySootVisualOverlay(baseSpec, 100, 0, 1, 1, 0, true, true);
+    const sootVisual2 = applySootVisualOverlay(baseSpec, 100, 0, 1, 1, 1, true, true);
     expect(['%', '&', '*']).toContain(sootVisual1.glyph);
     expect(sootVisual1.shaderFlags).toContain('SOOT_OCCLUSION');
     expect(sootVisual1.glyph).not.toBe(sootVisual2.glyph);
 
-    const oilVisual = applyLiquidSurfaceVisual(baseSpec, 'WHALE_OIL', 200, true);
+    // Unexplored tiles must return baseSpec unmodified (Phase 0: TSK-P0-01)
+    const unexploredSoot = applySootVisualOverlay(baseSpec, 100, 0, 1, 1, 0, false, false);
+    expect(unexploredSoot).toBe(baseSpec);
+
+    const oilVisual = applyLiquidSurfaceVisual(baseSpec, 'WHALE_OIL', 200, true, true);
     expect(oilVisual.glyph).toBe('~');
     expect(oilVisual.shaderFlags).toContain('SPARK_GLINT');
+
+    const unexploredLiquid = applyLiquidSurfaceVisual(baseSpec, 'WHALE_OIL', 200, false, false);
+    expect(unexploredLiquid).toBe(baseSpec);
   });
 
   it('projects volumetric gaslight illumination and verifies round-trip serialization', () => {

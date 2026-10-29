@@ -116,9 +116,22 @@ describe('Phase 47: Procedural Architectural Biomes, Topography & Extended CP437
     expect(slagVisual.glyph).toBe('▲');
     expect(slagVisual.shaderFlags).toContain('SOOT_OCCLUSION');
 
-    // Timber pier uses ═ glyph
+    // Timber pier uses ╤ glyph (disambiguated from connecting wall horizontal in Phase 0)
     const pierVisual = resolveBiomeTerrainVisual('TIMBER_PIER', true, true, 'LIMEHOUSE_DOCKS', '#');
-    expect(pierVisual.glyph).toBe('═');
+    expect(pierVisual.glyph).toBe('╤');
+
+    // Disambiguated Phase 0 glyphs
+    const gateVisual = resolveBiomeTerrainVisual('DISTRICT_GATE', true, true, 'BLACKFRIARS_ROOKERIES', '#');
+    expect(gateVisual.glyph).toBe('╬');
+
+    const colonnadeVisual = resolveBiomeTerrainVisual('GOTHIC_COLONNADE', true, true, 'GILDED_SPIRE_ASSEMBLY', '#');
+    expect(colonnadeVisual.glyph).toBe('Ω');
+
+    const sluiceVisual = resolveBiomeTerrainVisual('CANAL_SLUICE', true, true, 'LIMEHOUSE_DOCKS', '#');
+    expect(sluiceVisual.glyph).toBe('╫');
+
+    const grateVisual = resolveBiomeTerrainVisual('IRON_GRATE', true, true, 'BLACKFRIARS_ROOKERIES', '#');
+    expect(grateVisual.glyph).toBe('≡');
   });
 
   it('guarantees 100% serialization round-trip across all new architectural terrain types in WorldState', () => {

@@ -130,7 +130,7 @@ export function resolveBiomeTerrainVisual(
       if (isVisible) shaderFlags = ['GASLIGHT_RADIANCE'];
       break;
     case 'TIMBER_PIER':
-      glyph = '═';
+      glyph = '╤';
       fgPrimary = isVisible ? '#BA8B02' : '#5A4301';
       fgSecondary = isVisible ? '#8C6702' : '#382A01';
       bgColor = p.floorBg;
@@ -143,7 +143,7 @@ export function resolveBiomeTerrainVisual(
       if (isVisible) shaderFlags = ['SOOT_OCCLUSION'];
       break;
     case 'CANAL_SLUICE':
-      glyph = '≈';
+      glyph = '╫';
       fgPrimary = isVisible ? '#5DADE2' : '#1B4F72';
       fgSecondary = isVisible ? '#2874A6' : '#112F45';
       bgColor = p.floorBg;
@@ -168,7 +168,7 @@ export function resolveBiomeTerrainVisual(
       fgSecondary = '#D35400';
       break;
     case 'DISTRICT_GATE':
-      glyph = 'Ω';
+      glyph = '╬';
       fgPrimary = isVisible ? '#F4D03F' : '#7D6608';
       fgSecondary = '#F39C12';
       bgColor = '#1A1105';
@@ -196,7 +196,7 @@ export function resolveBiomeTerrainVisual(
       fgSecondary = '#9A7D0A';
       break;
     case 'IRON_GRATE':
-      glyph = '≈';
+      glyph = '≡';
       fgPrimary = isVisible ? '#7F8C8D' : '#34495E';
       fgSecondary = '#566573';
       break;

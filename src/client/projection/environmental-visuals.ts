@@ -13,7 +13,9 @@ export function applySootVisualOverlay(
   worldY: number,
   turnCount: number,
   isVisible: boolean,
+  isExplored: boolean = true,
 ): VisualGlyphSpec {
+  if (!isExplored) return base;
   if (smokePpm < 50 && coalDustDensity < 0.2) return base;
 
   const glyphIndex = Math.abs(worldX + worldY + turnCount) % SOOT_OCCLUSION_GLYPHS.length;
@@ -42,7 +44,9 @@ export function applyLiquidSurfaceVisual(
   liquidType?: LiquidTypeId,
   volumeMl?: number,
   isVisible: boolean = true,
+  isExplored: boolean = true,
 ): VisualGlyphSpec {
+  if (!isExplored) return base;
   if (!liquidType || liquidType === 'NONE' || (volumeMl ?? 0) <= 0) return base;
 
   if (liquidType === 'WHALE_OIL') {

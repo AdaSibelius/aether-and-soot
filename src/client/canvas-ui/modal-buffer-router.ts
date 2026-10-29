@@ -122,10 +122,10 @@ export function generateModalUiBuffer(
     }
   }
 
-  // Footer navigation hint
+  // Footer navigation hint (placed at height - 2 so bottom border frame at height - 1 is preserved)
   buf.writeString(
     mainRect.x + 2,
-    mainRect.y + mainRect.height - 1,
+    mainRect.y + mainRect.height - 2,
     '[Tab/Q/E] Switch Window  │  [Esc] Return to Streets',
     VICTORIAN_PALETTE.MUTED_PIPE,
     VICTORIAN_PALETTE.SOOT_IRON_BG,
