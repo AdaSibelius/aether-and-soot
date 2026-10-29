@@ -24,10 +24,12 @@ export function resolveTileFromMouse(
   );
   if (!inside) return null;
 
-  if (sx >= 0 && sx < WIDESCREEN_GRID_WIDTH && sy >= 0 && sy < WIDESCREEN_GRID_HEIGHT) {
+  const tacticalWidth = WIDESCREEN_GRID_WIDTH - 30;
+  if (sx >= 0 && sx < tacticalWidth && sy >= 0 && sy < WIDESCREEN_GRID_HEIGHT) {
     const frame = projectWorldToVisualFrame(worldState, playerId, undefined, {
       width: WIDESCREEN_GRID_WIDTH,
       height: WIDESCREEN_GRID_HEIGHT,
+      tacticalWidth,
     });
     return {
       x: frame.cameraOrigin.x + sx,

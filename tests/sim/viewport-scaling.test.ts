@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { drawMachinedBezel } from '../../src/client/canvas-ui/bezel-composer.js';
 import { createUiCellBuffer } from '../../src/client/canvas-ui/cell-buffer.js';
 import { resolveTileFromMouse } from '../../src/client/input/mouse-router.js';
+import { projectWorldToVisualFrame } from '../../src/client/projection/frame-adapter.js';
 import {
    computeAspectLockedScale,
   transformClientToGrid,
@@ -98,6 +100,33 @@ describe('Dynamic Viewport Scaling & Mouse Coordinate Transforms', () => {
       expect(col).toBe(63);
       expect(row).toBe(35);
       expect(buf.resolveHitActionAt(col, row)).toBe('open_inventory');
+    });
+
+    it('centers 48x36 district inside the 58-column tactical viewport (0..57) and keeps rightside console (58..87) opaque', () => {
+      const state = generateVictorianDistrict(createInitialWorld({ seed: 101, width: 48, height: 36 })).state;
+      const playerId = EntityIdSchema.parse('actor_player');
+
+      const frame = projectWorldToVisualFrame(state, playerId, undefined, {
+        width: WIDESCREEN_GRID_WIDTH,
+        height: WIDESCREEN_GRID_HEIGHT,
+        tacticalWidth: WIDESCREEN_GRID_WIDTH - 30,
+      });
+
+      // (58 - 48) / 2 = 5 => district occupies columns 5..52, never colliding with console columns 58..87
+      expect(frame.cameraOrigin.x).toBe(-5);
+      expect(frame.cells[5]?.worldX).toBe(0);
+      expect(frame.cells[52]?.worldX).toBe(47);
+
+      // Console bezel fills interior with opaque background (never transparent)
+      const buf = createUiCellBuffer(88, 36, { glyph: ' ', fg: '#000000', bg: 'transparent' });
+      drawMachinedBezel(buf, { x: 58, y: 0, width: 30, height: 36 });
+      expect(buf.getCell(65, 18)?.bg).not.toBe('transparent');
+
+      // Hovering over the rightside console (col >= 58) returns null instead of out-of-bounds world coordinates
+      const host = {
+        getBoundingClientRect: () => ({ left: 0, top: 0, width: baseWidth, height: baseHeight }),
+      } as unknown as HTMLElement;
+      expect(resolveTileFromMouse({ clientX: 60 * 12 + 4, clientY: 18 * 20 + 4 } as MouseEvent, host, state, playerId)).toBeNull();
     });
   });
 });

@@ -147,7 +147,7 @@ export function startClientSession(mounts: ClientSessionMounts, stageRenderer: G
     const nowMs = Date.now();
     floatingCallouts = floatingCallouts.filter((c) => nowMs - c.createdAtMs <= c.durationMs);
 
-    const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, { width: WIDESCREEN_GRID_WIDTH, height: WIDESCREEN_GRID_HEIGHT });
+    const visualFrame = projectWorldToVisualFrame(worldState, playerId, undefined, { width: WIDESCREEN_GRID_WIDTH, height: WIDESCREEN_GRID_HEIGHT, tacticalWidth: useDiegeticCanvasUi ? WIDESCREEN_GRID_WIDTH - 30 : WIDESCREEN_GRID_WIDTH });
     const inspectedTile = resolveInspectedTileCoord(isLookModeActive, lookCursor, mouseHoverCoord);
     const thermo = resolveThermodynamicStress(worldState, playerId);
     const modalOptions = resolveModalRouterOptions(activeModal, modalNavState, worldState, playerId);

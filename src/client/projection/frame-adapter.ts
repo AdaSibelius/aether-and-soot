@@ -56,7 +56,7 @@ export function projectWorldToVisualFrame(
   state: Readonly<WorldState>,
   focusActorId = 'actor_player',
   baseFovRadius = DEFAULT_FOV_RADIUS,
-  viewportOverride?: { width: number; height: number },
+  viewportOverride?: { width: number; height: number; tacticalWidth?: number },
 ): VisualGridFrame {
   const focusActor = state.entities[focusActorId];
   const activeStratum: StratumId = focusActor?.position?.stratum ?? 'STREET';

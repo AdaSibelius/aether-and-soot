@@ -71,8 +71,10 @@ export function applyViewportScale(
   metrics: ViewportScaleMetrics,
 ): void {
   const { canvasHost, overlayHost, appCanvas } = elements;
-  canvasHost.style.width = `${metrics.scaledWidth}px`;
-  canvasHost.style.height = `${metrics.scaledHeight}px`;
+  const fillW = typeof window !== 'undefined' && window.innerWidth > 0 ? window.innerWidth : metrics.scaledWidth;
+  const fillH = typeof window !== 'undefined' && window.innerHeight > 0 ? window.innerHeight : metrics.scaledHeight;
+  canvasHost.style.width = `${fillW}px`;
+  canvasHost.style.height = `${fillH}px`;
 
   if (appCanvas) {
     appCanvas.style.width = '100%';
@@ -80,9 +82,11 @@ export function applyViewportScale(
   }
 
   if (overlayHost) {
-    overlayHost.style.width = `${WIDESCREEN_GRID_WIDTH * CELL_WIDTH_PX}px`;
-    overlayHost.style.height = `${WIDESCREEN_GRID_HEIGHT * CELL_HEIGHT_PX}px`;
-    overlayHost.style.transform = `scale(${metrics.scaleFactor})`;
+    const baseW = WIDESCREEN_GRID_WIDTH * CELL_WIDTH_PX;
+    const baseH = WIDESCREEN_GRID_HEIGHT * CELL_HEIGHT_PX;
+    overlayHost.style.width = `${baseW}px`;
+    overlayHost.style.height = `${baseH}px`;
+    overlayHost.style.transform = `scale(${fillW / baseW}, ${fillH / baseH})`;
     overlayHost.style.transformOrigin = 'top left';
   }
 }

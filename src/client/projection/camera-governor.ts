@@ -17,19 +17,20 @@ export function calculateCameraViewport(
   originY: number,
   defaultWidth: number,
   defaultHeight: number,
-  viewportOverride?: { width: number; height: number },
+  viewportOverride?: { width: number; height: number; tacticalWidth?: number },
 ): CameraViewportConfig {
   const reqW = viewportOverride?.width ?? defaultWidth;
   const reqH = viewportOverride?.height ?? defaultHeight;
-  const isCenteredWidescreen = Boolean(viewportOverride && viewportOverride.width > gridWidth);
-  const viewportWidth = isCenteredWidescreen ? reqW : Math.min(reqW, gridWidth);
+  const effectiveW = viewportOverride?.tacticalWidth ?? reqW;
+  const isCenteredWidescreen = Boolean(viewportOverride && effectiveW > gridWidth);
+  const viewportWidth = viewportOverride ? reqW : Math.min(reqW, gridWidth);
   const viewportHeight = isCenteredWidescreen ? reqH : Math.min(reqH, gridHeight);
-  const offsetX = isCenteredWidescreen ? Math.floor((reqW - gridWidth) / 2) : 0;
+  const offsetX = isCenteredWidescreen ? Math.floor((effectiveW - gridWidth) / 2) : 0;
   const offsetY = isCenteredWidescreen ? Math.floor((reqH - gridHeight) / 2) : 0;
 
   const cameraX = isCenteredWidescreen
     ? 0
-    : Math.max(0, Math.min(gridWidth - viewportWidth, originX - Math.floor(viewportWidth / 2)));
+    : Math.max(0, Math.min(gridWidth - effectiveW, originX - Math.floor(effectiveW / 2)));
   const cameraY = isCenteredWidescreen
     ? 0
     : Math.max(0, Math.min(gridHeight - viewportHeight, originY - Math.floor(viewportHeight / 2)));

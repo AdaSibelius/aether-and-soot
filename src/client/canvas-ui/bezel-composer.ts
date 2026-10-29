@@ -26,6 +26,13 @@ export function drawMachinedBezel(
   const bg = options.bgColor ?? VICTORIAN_PALETTE.SOOT_IRON_BG;
   const rivet = options.rivetStyle === 'INDUSTRIAL_GEARS' ? '⚙' : options.rivetStyle === 'STEEL_STUDS' ? 'Ø' : '☼';
 
+  // 0. Opaque recessed housing fill so underlying world glyphs never bleed through bezel panels
+  for (let row = 1; row < height - 1; row++) {
+    for (let col = 1; col < width - 1; col++) {
+      buf.setCell(x + col, y + row, ' ', fg, bg);
+    }
+  }
+
   // 1. Horizontal borders
   for (let col = 1; col < width - 1; col++) {
     buf.setCell(x + col, y, '═', fg, bg);
