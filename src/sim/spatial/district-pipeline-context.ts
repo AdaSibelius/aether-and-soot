@@ -33,6 +33,7 @@ export interface PipelineDistrictContext {
   spire: StratumGrid;
   entities: Record<string, EntityRecord>;
   doors: Record<string, Point2D>;
+  keyPositions: Record<string, Point2D>;
   landmarks: Record<string, Point2D | undefined>;
   barriersPlaced: string[];
   sewerDrops: Point2D[];
@@ -94,6 +95,7 @@ export function createPipelineContext(state: WorldState): PipelineDistrictContex
     spire: buildSolidStratumGrid('SPIRE', width, height),
     entities: { ...state.entities },
     doors: {},
+    keyPositions: {},
     landmarks: {},
     barriersPlaced: [],
     sewerDrops: [],

@@ -36,9 +36,19 @@ export function executeStage1TopologyHydrology(ctx: PipelineDistrictContext): vo
   }
 }
 
-/** Stage 2: Rail & Viaduct Arteries */
-export function executeStage2RailViaduct(_ctx: PipelineDistrictContext): void {
-  // Reserved for viaduct and pneumatic monorail corridors
+/** Stage 2: Rail & Viaduct Arteries (AUD-06: viaduct rail track corridor aligned with monorail depot) */
+export function executeStage2RailViaduct(ctx: PipelineDistrictContext): void {
+  const railY = ctx.monorailCarPos.y;
+  if (railY > 1 && railY < ctx.height - 2) {
+    for (let x = 2; x < ctx.width - 2; x++) {
+      ctx.street = setTileCell(ctx.street, x, railY, (c) => ({
+        ...c,
+        terrainType: 'IRON_GRATE',
+        blocksMovement: false,
+        blocksSight: false,
+      }));
+    }
+  }
 }
 
 function carveGateCell(ctx: PipelineDistrictContext, pos: Point2D): void {
@@ -98,6 +108,7 @@ export function executeStage5ArchitecturalTypologies(ctx: PipelineDistrictContex
     ctx.street = seedDistrictArchitecture(archetypes.grid, ctx.currDistrict, ctx.rng, critical);
     ctx.entities = archetypes.entities;
     ctx.doors = archetypes.doors ?? {};
+    ctx.keyPositions = archetypes.keyPositions ?? {};
     ctx.landmarks = archetypes.landmarks ?? {};
     return;
   }
@@ -105,6 +116,7 @@ export function executeStage5ArchitecturalTypologies(ctx: PipelineDistrictContex
   const placed = applyTypologyPlacements(ctx.street, ctx.entities, ctx.layout, ctx.rng, ctx.center.y);
   ctx.entities = placed.entities;
   ctx.doors = { ...placed.doors };
+  ctx.keyPositions = { ...placed.keyPositions };
   // Establish connectivity before feature seeding so `canPlaceWithoutSevering` guards are meaningful.
   const repaired = ensureDistrictConnectivity(placed.grid, ctx.center, connectivityTargets(ctx));
   const landmarkRes = seedOutdoorStreetLandmarks(repaired.grid, ctx.entities, critical, ctx.layout.landmarkSites);

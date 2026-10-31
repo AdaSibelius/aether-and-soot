@@ -1,20 +1,20 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-29",
+  "lastUpdated": "2026-10-31",
   "activePhase": 55,
   "immediateNextPriority": "Phase 56: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
   "recentCommits": [
     {
-      "hash": "8ae4667",
-      "message": "feat(phase4): activate 5-layer pipeline, spire vertical parallax underlay, and spatial reachability tests"
+      "hash": "9be9f52",
+      "message": "fix(ui): center tactical viewport in columns 0..57, fill console bezel background, and scale window to full display"
     },
     {
-      "hash": "cb5d4d7",
-      "message": "feat(phase4): tactical console 30-col layout, embarkation rebalance, framed market turf, and fog-of-war atlas"
+      "hash": "3bba341",
+      "message": "fix(build): install @fontsource/ibm-plex-mono and remove duplicate bare CSS @import in index.html"
     },
     {
-      "hash": "71d9687",
-      "message": "feat(phase3): formalize 8-stage procgen pipeline, anti-stamping grammars, and utility networks"
+      "hash": "c74fcff",
+      "message": "feat(procgen): implement true seeded macro-layout, 2D compass gates, distinct strata topologies, and quantitative diversity tests"
     }
   ],
   "phases": [
@@ -709,12 +709,6 @@
       "status": "NEAR_CAP"
     },
     {
-      "file": "src/sim/spatial/strata-dungeons.ts",
-      "lines": 242,
-      "threshold": 230,
-      "status": "NEAR_CAP"
-    },
-    {
       "file": "src/schemas/components.schema.ts",
       "lines": 241,
       "threshold": 230,
@@ -733,14 +727,14 @@
       "status": "SAFE"
     },
     {
-      "file": "src/sim/spatial/architectural-typologies.ts",
+      "file": "src/sim/systems/furniture.system.ts",
       "lines": 238,
       "threshold": 230,
       "status": "SAFE"
     },
     {
-      "file": "src/sim/systems/furniture.system.ts",
-      "lines": 238,
+      "file": "src/sim/systems/district-spawner.ts",
+      "lines": 237,
       "threshold": 230,
       "status": "SAFE"
     },
@@ -793,12 +787,6 @@
       "status": "SAFE"
     },
     {
-      "file": "src/sim/spatial/district-pipeline.ts",
-      "lines": 230,
-      "threshold": 230,
-      "status": "SAFE"
-    },
-    {
       "file": "src/sim/systems/surgery.system.ts",
       "lines": 230,
       "threshold": 230,
@@ -811,10 +799,12 @@
       "priority": "P1",
       "category": "UNREACHABLE_MECHANIC",
       "title": "Phase 56",
-      "directive": "Focus core systems development on **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. resolving unwiredCommands and telemetry anomalies.",
+      "directive": "Implement a bounded circular buffer storing the last 50 significant historical events in WorldState.chronicle. Ensure NPCs within line-of-sight or acoustic range log witnessed incidents into the witnessedEvents collection. Diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks.",
       "targetFiles": [
-        "src/sim/systems/squad-witness.system.ts",
-        "src/sim/systems/dialogue-quest.system.ts"
+        "src/sim/core/engine.ts",
+        "src/client/bootstrap-loop.ts",
+        "src/client/input/keyboard-router.ts",
+        "src/client/input/modal-nav-router.ts"
       ],
       "verification": "tests/sim/determinism.test.ts"
     },

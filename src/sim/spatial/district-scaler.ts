@@ -3,7 +3,13 @@ import { EntityIdSchema, Point2D, StratumId } from '../../schemas/primitives.sch
 import { SeededRNG } from '../core/rng.js';
 import { canPlaceWithoutSevering, placeArchitecturalFeature } from './architectural-features.js';
 import { carveCorridor, hasWalkablePath } from './district-layout.js';
-import { isWithinBounds, setTileCell, StratumGrid } from './grid.js';
+import { getTileCell, isWithinBounds, setTileCell, StratumGrid } from './grid.js';
+
+function isOutdoorCell(grid: StratumGrid, x: number, y: number): boolean {
+  const cell = getTileCell(grid, x, y);
+  if (!cell || (cell.interiorZone ?? 'NONE') !== 'NONE') return false;
+  return cell.terrainType !== 'WOODEN_DOOR_CLOSED' && cell.terrainType !== 'WOODEN_DOOR_OPEN' && cell.terrainType !== 'GLASS_WINDOW';
+}
 
 export interface ScaledDistrictEnrichmentResult {
   readonly streetGrid: StratumGrid;
@@ -48,12 +54,11 @@ export function enrichLargeScaleDistrict(
   if (dLower.includes('limehouse') || dLower.includes('soot') || dLower.includes('spitalfields')) {
     const canalY = height - 6;
     for (let x = centerX - 10; x <= width - 6; x++) {
-      if (isWithinBounds(street, x, canalY) && !criticalLandmarks.some((p) => p.x === x && p.y === canalY)) {
+      if (isWithinBounds(street, x, canalY) && isOutdoorCell(street, x, canalY) && !criticalLandmarks.some((p) => p.x === x && p.y === canalY)) {
         street = placeArchitecturalFeature(street, x, canalY, 'CANAL_SLUICE');
-      }
-      // Adjacent timber wharf pier
-      if (isWithinBounds(street, x, canalY - 1)) {
-        street = placeArchitecturalFeature(street, x, canalY - 1, 'TIMBER_PIER');
+        if (isWithinBounds(street, x, canalY - 1) && isOutdoorCell(street, x, canalY - 1)) {
+          street = placeArchitecturalFeature(street, x, canalY - 1, 'TIMBER_PIER');
+        }
       }
     }
     const canalId = EntityIdSchema.parse(`hydrology_canal_${districtId}`);
@@ -77,7 +82,7 @@ export function enrichLargeScaleDistrict(
   if (dLower.includes('spitalfields') || dLower.includes('belgravia') || dLower.includes('spire')) {
     const viaductY = 6;
     for (let x = 8; x <= width - 8; x += 4) {
-      if (isWithinBounds(street, x, viaductY) && canPlaceWithoutSevering(street, x, viaductY, 'GOTHIC_COLONNADE', criticalLandmarks)) {
+      if (isWithinBounds(street, x, viaductY) && isOutdoorCell(street, x, viaductY) && canPlaceWithoutSevering(street, x, viaductY, 'GOTHIC_COLONNADE', criticalLandmarks)) {
         street = placeArchitecturalFeature(street, x, viaductY, 'GOTHIC_COLONNADE');
       }
     }
@@ -89,7 +94,7 @@ export function enrichLargeScaleDistrict(
     const wallX = centerX - 8;
     for (let y = 5; y <= height - 8; y++) {
       if (y === centerY || y === centerY - 1) continue; // Leave central toll passage open
-      if (isWithinBounds(street, wallX, y) && canPlaceWithoutSevering(street, wallX, y, 'WROUGHT_IRON_FENCE', criticalLandmarks)) {
+      if (isWithinBounds(street, wallX, y) && isOutdoorCell(street, wallX, y) && canPlaceWithoutSevering(street, wallX, y, 'WROUGHT_IRON_FENCE', criticalLandmarks)) {
         street = placeArchitecturalFeature(street, wallX, y, 'WROUGHT_IRON_FENCE');
       }
     }

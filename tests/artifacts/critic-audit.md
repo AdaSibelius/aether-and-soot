@@ -1,8 +1,8 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
-**Generated:** 2026-10-29 | **Benchmark Engine:** Hermes Critic v1.0
-- **Execution Mode**: MOCK_FALLBACK (playtester-mock.ts)
-- **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
+**Generated:** 2026-10-31 | **Benchmark Engine:** Hermes Critic v1.0
+- **Execution Mode**: LIVE_INFERENCE (live local model: lfm2.5:24b @ http://localhost:11434/v1/chat/completions)
+- **LLM Telemetry**: Mode: LIVE_INFERENCE | Temperature: 0.1 | Enforce JSON Schema: true
 
 ## 1. Whole-Game Emergence & Readiness Score (0/100)
 - **Score Breakdown**:
@@ -18,12 +18,11 @@
 - `src/client/bootstrap-loop.ts`: **271 lines** (threshold: 230)
 - `src/client/input/keyboard-router.ts`: **262 lines** (threshold: 230)
 - `src/client/input/modal-nav-router.ts`: **247 lines** (threshold: 230)
-- `src/sim/spatial/strata-dungeons.ts`: **242 lines** (threshold: 230)
 - `src/schemas/components.schema.ts`: **241 lines** (threshold: 230)
 - `src/client/renderer/glyph-stage.ts`: **240 lines** (threshold: 230)
 - `src/schemas/events.schema.ts`: **238 lines** (threshold: 230)
-- `src/sim/spatial/architectural-typologies.ts`: **238 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
+- `src/sim/systems/district-spawner.ts`: **237 lines** (threshold: 230)
 - `src/sim/systems/safehouse.system.ts`: **235 lines** (threshold: 230)
 - `src/schemas/domain-commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/client/audio/procedural-synth.ts`: **233 lines** (threshold: 230)
@@ -32,17 +31,16 @@
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **231 lines** (threshold: 230)
 - `src/schemas/commands.schema.ts`: **230 lines** (threshold: 230)
-- `src/sim/spatial/district-pipeline.ts`: **230 lines** (threshold: 230)
 - `src/sim/systems/surgery.system.ts`: **230 lines** (threshold: 230)
 
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
-- `ATTACK_ACTOR` (7 dispatches)
-- `BUY_FROM_MERCHANT` (4 dispatches)
-- `MOVE_STEP` (10 dispatches)
-- `USE_ITEM` (1 dispatches)
-- `USE_PORTAL` (37 dispatches)
-- `VENT_STEAM` (1 dispatches)
+- `ATTACK_ACTOR` (6 dispatches)
+- `BUY_FROM_MERCHANT` (3 dispatches)
+- `MOVE_STEP` (25 dispatches)
+- `TOGGLE_DOOR` (14 dispatches)
+- `USE_ITEM` (3 dispatches)
+- `VENT_STEAM` (9 dispatches)
 - **Dormant Commands (Wired in Serializer, 0 Dispatches)**:
 - `ACCEPT_CONTRACT`
 - `ACTIVATE_PROSTHETIC`
@@ -82,7 +80,7 @@
 - `SELL_TO_MERCHANT`
 - `STOCK_PEDESTAL`
 - `STORE_ITEM_IN_STRUCTURE`
-- `TOGGLE_DOOR`
+- `USE_PORTAL`
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `ASCEND_CATACOMBS`
@@ -109,9 +107,7 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. resolving unwiredCommands and telemetry anomalies. (Target: `src/sim/systems/squad-witness.system.ts`, `src/sim/systems/dialogue-quest.system.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ASCEND_CATACOMBS, REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/bootstrap-loop.ts to resolve modularityHotspot anomaly. (Target: `src/client/bootstrap-loop.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement a bounded circular buffer storing the last 50 significant historical events in WorldState.chronicle. Ensure NPCs within line-of-sight or acoustic range log witnessed incidents into the witnessedEvents collection. Diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. (Target: `src/sim/core/engine.ts`, `src/client/bootstrap-loop.ts`, `src/client/input/keyboard-router.ts`, `src/client/input/modal-nav-router.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 

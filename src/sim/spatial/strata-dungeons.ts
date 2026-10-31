@@ -81,7 +81,7 @@ export function generateUndercroftDungeon(
     ]),
   };
 
-  // Stone Stairwell Down to Catacombs (Depth 1)
+  // Stone Stairwell Down to Catacombs (Depth 1) (AUD-04: align target coordinate with Depth 1 stairsUp)
   const catacombStairsId = EntityIdSchema.parse('stairs_undercroft_to_catacombs');
   const catStairsPos = chambers[4]!;
   entities[catacombStairsId] = {
@@ -90,7 +90,7 @@ export function generateUndercroftDungeon(
     visual: { glyph: '>', fgPrimary: '#E74C3C', fgSecondary: '#922B21', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: catStairsPos.x, y: catStairsPos.y, stratum: 'UNDERCROFT', blocksMovement: false, blocksSight: false },
     portal: {
-      target: { x: 4, y: 4, stratum: 'CATACOMBS', depthLevel: 1 },
+      target: { x: 5, y: 5, stratum: 'CATACOMBS', depthLevel: 1 },
       bidirectional: true,
       conductsGas: true,
       apCost: 100,

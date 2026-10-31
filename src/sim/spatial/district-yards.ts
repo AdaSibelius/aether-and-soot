@@ -34,6 +34,8 @@ function applyTerrain(cell: TileCell, terrain: TerrainType): TileCell {
 /**
  * Stage 4/5 plot fill: every pristine solid tile outside a building footprint becomes part of a seeded Voronoi
  * patchwork of yards (cobbled courts, rubble, slag, fencing, gaslamps, pipework) so unbuilt plots differ per seed.
+ * AUD-02: Restricts GASLAMP_POST, WROUGHT_IRON_FENCE, and BRASS_STEAM_PIPE to point/linear placements rather than
+ * solid blobs, and ensures all walkable yard cells connect to the main street network.
  */
 export function fillUnbuiltYards(grid: StratumGrid, footprints: readonly Box[], rng: SeededRNG): StratumGrid {
   const { width, height } = grid;
@@ -59,19 +61,67 @@ export function fillUnbuiltYards(grid: StratumGrid, footprints: readonly Box[], 
           best = s;
         }
       }
-      cells[idx] = applyTerrain(cell, best.terrain);
+      let chosen = best.terrain;
+      if (chosen === 'GASLAMP_POST') {
+        chosen = x === best.x && y === best.y ? 'GASLAMP_POST' : 'COBBLESTONE_FLOOR';
+      } else if (chosen === 'WROUGHT_IRON_FENCE') {
+        chosen = y === best.y && x === best.x ? 'WROUGHT_IRON_FENCE' : 'COBBLESTONE_FLOOR';
+      } else if (chosen === 'BRASS_STEAM_PIPE') {
+        chosen = x === best.x && y === best.y ? 'BRASS_STEAM_PIPE' : 'COBBLESTONE_FLOOR';
+      }
+      cells[idx] = applyTerrain(cell, chosen);
     }
   }
+
+  // Seal isolated walkable yard pockets that cannot reach the central plaza so 0 unreachable floor pockets exist
+  const centerX = Math.floor(width / 2);
+  const centerY = height >= 36 ? 18 : Math.floor(height / 2);
+  const reachable = new Set<number>();
+  const startIdx = centerY * width + centerX;
+  if (cells[startIdx] && !cells[startIdx]!.blocksMovement) {
+    const queue: number[] = [startIdx];
+    reachable.add(startIdx);
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      const cx = curr % width;
+      const cy = Math.floor(curr / width);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        if (nx <= 0 || ny <= 0 || nx >= width - 1 || ny >= height - 1) continue;
+        const nIdx = ny * width + nx;
+        if (reachable.has(nIdx)) continue;
+        const nCell = cells[nIdx];
+        if (nCell && !nCell.blocksMovement) {
+          reachable.add(nIdx);
+          queue.push(nIdx);
+        }
+      }
+    }
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const idx = y * width + x;
+        const cell = cells[idx];
+        if (!cell || cell.blocksMovement || (cell.interiorZone ?? 'NONE') !== 'NONE') continue;
+        if (footprints.some((b) => x >= b.x1 && x <= b.x2 && y >= b.y1 && y <= b.y2)) continue;
+        if (!reachable.has(idx)) {
+          cells[idx] = applyTerrain(cell, 'SOOT_BRICK_WALL');
+        }
+      }
+    }
+  }
+
   return { ...grid, cells };
 }
 
-/** Cuts an L-shaped passage from `from` toward `to`, converting only blocking tiles (doors open, water bridged). */
+/** Cuts an L-shaped passage from `from` toward `to`, converting only blocking tiles outside VAULT zones (AUD-06). */
 function punchPath(grid: StratumGrid, from: Point2D, to: Point2D): StratumGrid {
   const cells = grid.cells.slice();
   const open = (x: number, y: number): void => {
     const idx = y * grid.width + x;
     const cell = cells[idx];
     if (!cell || !cell.blocksMovement) return;
+    if (cell.interiorZone === 'VAULT') return;
     if (cell.terrainType === 'WOODEN_DOOR_CLOSED') {
       cells[idx] = { ...cell, terrainType: 'WOODEN_DOOR_OPEN', blocksMovement: false, blocksSight: false };
     } else if (cell.terrainType === 'CANAL_SLUICE') {

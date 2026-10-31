@@ -91,13 +91,20 @@ export function generateCatacombsFloor(
     },
   };
 
-  // Descent stairs
+  // Descent stairs (AUD-04: attach valid portal component to next catacombs depth)
   const downId = EntityIdSchema.parse(`stairs_catacombs_down_d${depthLevel}`);
   entities[downId] = {
     id: downId,
     name: `Stairs Down to Depth ${depthLevel + 1}`,
     visual: { glyph: '>', fgPrimary: '#E74C3C', fgSecondary: '#922B21', bgColor: '#0A0D0E', shaderFlags: [] },
     position: { x: stairsDown.x, y: stairsDown.y, stratum: 'CATACOMBS', depthLevel, blocksMovement: false, blocksSight: false },
+    portal: {
+      target: { x: stairsDown.x, y: stairsDown.y, stratum: 'CATACOMBS', depthLevel: depthLevel + 1 },
+      bidirectional: true,
+      conductsGas: true,
+      apCost: 100,
+      portalLabel: `Descend to Depth ${depthLevel + 1}`,
+    },
   };
 
   // Intermediate hazards & relics

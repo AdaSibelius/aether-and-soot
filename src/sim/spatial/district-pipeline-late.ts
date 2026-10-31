@@ -1,4 +1,4 @@
-import { BlueprintIdSchema } from '../../schemas/primitives.schema.js';
+import { BlueprintIdSchema, EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { createMonorailCarEntity } from '../systems/monorail.system.js';
 import { seedSpireGreenhouse } from './building-prefabs.js';
 import { spawnCompassGate } from './compass-gates.js';
@@ -59,6 +59,17 @@ export function executeStage7InteractiveUtilityInfrastructure(ctx: PipelineDistr
   if (ctx.doors.monorailDepot) {
     const carId = 'monorail_car_street_depot';
     ctx.entities[carId] = createMonorailCarEntity(carId, { ...ctx.monorailCarPos, stratum: 'STREET' }, BlueprintIdSchema.parse(westTarget), 75);
+  }
+
+  if (ctx.keyPositions.artisanBench) {
+    const masterBenchId = EntityIdSchema.parse('station_guild_artisan_bench');
+    ctx.entities[masterBenchId] = {
+      id: masterBenchId,
+      name: 'Guild Master Artificer Workbench',
+      visual: { glyph: 'T', fgPrimary: '#D4AF37', fgSecondary: '#CD7F32', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
+      position: { x: ctx.keyPositions.artisanBench.x, y: ctx.keyPositions.artisanBench.y, stratum: 'STREET', blocksMovement: false, blocksSight: false },
+      workbench: { stationType: 'ARTIFICER_BENCH', bonusEfficiencyPct: 25 },
+    };
   }
 
   seedDistrictUtilityNetworks(ctx.entities, ctx.currDistrict, ctx.boilerPos, ctx.artificerWorkbench, ctx.center);

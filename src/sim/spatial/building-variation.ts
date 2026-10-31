@@ -44,22 +44,37 @@ export function createVariedBuildingPlan(
   }
 
   const rooms: RoomZoneDefinition[] = [...baseSpec.rooms];
+  let interiorDoors: Point2D[] = [...baseSpec.interiorDoors];
 
-  // 1. Randomized internal room partition variation
+  // 1. Optional additional annex/alcove room (scaling room count up to 4-5)
+  if (optionalExtraRoom && rng.nextFloat() > 0.3) {
+    rooms.push(optionalExtraRoom);
+  }
+
+  // 2. Randomized internal room partition variation (shifts all rooms & interiorDoors on wallY in lockstep — AUD-01)
   const partitionJitter = rng.nextInt(-1, 1);
   if (partitionJitter !== 0 && rooms.length >= 2) {
     const r0 = rooms[0]!;
     const r1 = rooms[1]!;
-    // If rooms share horizontal boundary, shift it
-    if (r0.y2 === r1.y1 - 1 && r0.y2 + partitionJitter > r0.y1 + 1 && r1.y1 + partitionJitter < r1.y2 - 1) {
-      rooms[0] = { ...r0, y2: r0.y2 + partitionJitter };
-      rooms[1] = { ...r1, y1: r1.y1 + partitionJitter };
+    const wallYMin = Math.min(r0.y2, r1.y2) + 1;
+    const wallYMax = Math.max(r0.y1, r1.y1) - 1;
+    if (wallYMin === wallYMax) {
+      const wallY = wallYMin;
+      const canShift = rooms.every((r) => {
+        if (r.y2 === wallY - 1) return r.y2 + partitionJitter > r.y1 + 1;
+        if (r.y1 === wallY + 1) return r.y1 + partitionJitter < r.y2 - 1;
+        return true;
+      });
+      if (canShift) {
+        for (let i = 0; i < rooms.length; i++) {
+          const r = rooms[i]!;
+          if (r.y2 === wallY - 1) rooms[i] = { ...r, y2: r.y2 + partitionJitter };
+          else if (r.y1 === wallY + 1) rooms[i] = { ...r, y1: r.y1 + partitionJitter };
+        }
+        const shiftedWallY = wallY + partitionJitter;
+        interiorDoors = interiorDoors.map((d) => (d.y === wallY ? { x: d.x, y: shiftedWallY } : d));
+      }
     }
-  }
-
-  // 2. Optional additional annex/alcove room (scaling room count up to 4-5)
-  if (optionalExtraRoom && rng.nextFloat() > 0.3) {
-    rooms.push(optionalExtraRoom);
   }
 
   // 3. Compute exterior attachment positions (chimney and steam pipe)
@@ -75,6 +90,7 @@ export function createVariedBuildingPlan(
     spec: {
       ...baseSpec,
       rooms,
+      interiorDoors,
     },
     chimneyPos,
     exteriorPipePos,

@@ -11,22 +11,32 @@ import { UiRect } from './viewport-controls.js';
 export function estimateTerrainAcousticDb(terrainType: string): number {
   switch (terrainType) {
     case 'IRON_GRATE':
+    case 'BRASS_CATWALK':
+    case 'BRASS_STEAM_PIPE':
+    case 'WROUGHT_IRON_FENCE':
+    case 'CANAL_SLUICE':
     case 'CAST_IRON_GRATE':
     case 'SEWER_SLUICE_GATE':
       return 82; // Resonant metallic reverberation
     case 'COBBLESTONE_FLOOR':
+    case 'SOOT_BRICK_WALL':
+    case 'GOTHIC_COLONNADE':
+    case 'DISTRICT_GATE':
     case 'BRITISH_STONE_PAVER':
     case 'FLAGSTONE_STREET':
       return 68; // Hard stone clatter
+    case 'RUBBLE_PILE':
+    case 'SLAG_MOUND':
+    case 'SMASHED_WINDOW_FRAME':
     case 'SLAG_RUBBLE':
+    case 'FACTORY_FLOOR_DEBRIS':
       return 75;
     case 'WOODEN_DOOR_CLOSED':
     case 'WOODEN_DOOR_OPEN':
+    case 'TIMBER_PIER':
     case 'ROTTED_WOOD_FLOOR':
     case 'TIMBER_SCAFFOLD':
       return 52; // Muffled timber creak
-    case 'FACTORY_FLOOR_DEBRIS':
-      return 74; // Scrap metal crunch
     default:
       return 60;
   }
@@ -34,17 +44,39 @@ export function estimateTerrainAcousticDb(terrainType: string): number {
 
 export function estimateTerrainHardness(terrainType: string): { rating: string; mohs: number } {
   switch (terrainType) {
-    case 'REINFORCED_FACTORY_WALL':
     case 'IRON_GRATE':
+    case 'BRASS_CATWALK':
+    case 'BRASS_STEAM_PIPE':
+    case 'WROUGHT_IRON_FENCE':
+    case 'GASLAMP_POST':
+    case 'CANAL_SLUICE':
+    case 'REINFORCED_FACTORY_WALL':
     case 'CAST_IRON_GRATE':
       return { rating: 'STRUCTURAL_IRON', mohs: 6.5 };
+    case 'SOOT_BRICK_WALL':
+    case 'GOTHIC_COLONNADE':
+    case 'WALL_CROSS':
+    case 'WALL_VERTICAL':
+    case 'WALL_HORIZONTAL':
+    case 'WALL_CORNER_NW':
+    case 'WALL_CORNER_NE':
+    case 'WALL_CORNER_SW':
+    case 'WALL_CORNER_SE':
+    case 'WALL_TEE_NORTH':
+    case 'WALL_TEE_SOUTH':
+    case 'WALL_TEE_EAST':
+    case 'WALL_TEE_WEST':
     case 'BRICK_FOUNDATION_WALL':
     case 'BRICK_FOUNDRY_WALL':
       return { rating: 'VITRIFIED_BRICK', mohs: 7.0 };
     case 'COBBLESTONE_FLOOR':
+    case 'SLAG_MOUND':
+    case 'RUBBLE_PILE':
+    case 'DISTRICT_GATE':
     case 'BRITISH_STONE_PAVER':
       return { rating: 'VITRIFIED_STONE', mohs: 5.5 };
     case 'GLASS_WINDOW':
+    case 'SMASHED_WINDOW_FRAME':
       return { rating: 'BRITTLE_SILICA', mohs: 4.0 };
     default:
       return { rating: 'COMMERCIAL_TIMBER', mohs: 3.0 };

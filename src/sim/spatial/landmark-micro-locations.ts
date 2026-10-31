@@ -1,6 +1,7 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { EntityIdSchema, Point2D } from '../../schemas/primitives.schema.js';
 import { canPlaceWithoutSevering } from './architectural-features.js';
+import { carveCorridor } from './district-layout.js';
 import { setTileCell, StratumGrid } from './grid.js';
 
 export interface LandmarkMicroLocationsResult {
@@ -111,6 +112,9 @@ export function seedSpireGreenhouse(
       }));
     }
   }
+
+  // AUD-05: Carve a BRASS_CATWALK sky-bridge from the conservatory south door to the Spire lift hub
+  grid = carveCorridor(grid, { x: ghX + 2, y: Math.min(grid.height - 2, ghY + 5) }, liftPos, 'BRASS_CATWALK');
 
   const greenhouseId = EntityIdSchema.parse('landmark_spire_greenhouse');
   entities[greenhouseId] = {

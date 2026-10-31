@@ -10,10 +10,17 @@ function findWalkableSpawnPoint(
   grid: StratumGrid | undefined,
   defaultX: number,
   defaultY: number,
+  entities?: Readonly<Record<string, EntityRecord>>,
 ): { x: number; y: number } {
   if (!grid) return { x: defaultX, y: defaultY };
+  const isOccupied = (x: number, y: number): boolean => {
+    if (!entities) return false;
+    return Object.values(entities).some(
+      (e) => e.position && e.position.stratum === grid.stratum && e.position.x === x && e.position.y === y && e.position.blocksMovement,
+    );
+  };
   const initial = getTileCell(grid, defaultX, defaultY);
-  if (initial && !initial.blocksMovement) return { x: defaultX, y: defaultY };
+  if (initial && !initial.blocksMovement && !isOccupied(defaultX, defaultY)) return { x: defaultX, y: defaultY };
 
   for (let r = 1; r <= 8; r++) {
     for (let dy = -r; dy <= r; dy++) {
@@ -22,7 +29,7 @@ function findWalkableSpawnPoint(
         const ny = defaultY + dy;
         if (isWithinBounds(grid, nx, ny)) {
           const cell = getTileCell(grid, nx, ny);
-          if (cell && !cell.blocksMovement) {
+          if (cell && !cell.blocksMovement && !isOccupied(nx, ny)) {
             return { x: nx, y: ny };
           }
         }
@@ -75,40 +82,19 @@ function buildNpcInventory(
 export function createProceduralDistrictContracts(): FactionContract[] {
   return [
     {
-      id: 'contract_deliver_gears',
-      issuerNpcId: EntityIdSchema.parse('npc_guild_merchant'),
-      factionId: 'CLOCKWORK_GUILD',
-      title: 'Requisition: Brass Clockwork Gears',
-      description: 'Deliver 1 set of machined brass gears to the Clockwork Guild quartermaster.',
-      kind: 'DELIVER_ITEM',
-      targetBlueprintOrEntityId: 'mat_brass_gears',
-      rewardPence: 45,
-      rewardReputation: 15,
-      status: 'AVAILABLE',
+      id: 'contract_deliver_gears', issuerNpcId: EntityIdSchema.parse('npc_guild_merchant'), factionId: 'CLOCKWORK_GUILD',
+      title: 'Requisition: Brass Clockwork Gears', description: 'Deliver 1 set of machined brass gears to the Clockwork Guild quartermaster.',
+      kind: 'DELIVER_ITEM', targetBlueprintOrEntityId: 'mat_brass_gears', rewardPence: 45, rewardReputation: 15, status: 'AVAILABLE',
     },
     {
-      id: 'contract_slay_scavenger',
-      issuerNpcId: EntityIdSchema.parse('npc_clockwork_warden'),
-      factionId: 'CROWN_CONSTABULARY',
-      title: 'Bounty: Neutralize Sump Scavenger',
-      description: 'Track down and eliminate the hostile sump scavenger lurking in the district.',
-      kind: 'SLAY_HOSTILE',
-      targetBlueprintOrEntityId: 'npc_sump_scavenger',
-      rewardPence: 60,
-      rewardReputation: 20,
-      status: 'AVAILABLE',
+      id: 'contract_slay_scavenger', issuerNpcId: EntityIdSchema.parse('npc_clockwork_warden'), factionId: 'CROWN_CONSTABULARY',
+      title: 'Bounty: Neutralize Sump Scavenger', description: 'Track down and eliminate the hostile sump scavenger lurking in the district.',
+      kind: 'SLAY_HOSTILE', targetBlueprintOrEntityId: 'npc_sump_scavenger', rewardPence: 60, rewardReputation: 20, status: 'AVAILABLE',
     },
     {
-      id: 'contract_sabotage_boiler',
-      issuerNpcId: EntityIdSchema.parse('npc_syndicate_fixer'),
-      factionId: 'UNDERCROFT_SYNDICATE',
-      title: 'Sabotage: Overpressurize Foundry Boiler',
-      description: 'Overpressurize the Ironmongers foundry boiler beyond safety thresholds to disrupt production.',
-      kind: 'PRESSURIZE_BOILER',
-      targetBlueprintOrEntityId: 'vessel_district_boiler',
-      rewardPence: 80,
-      rewardReputation: 25,
-      status: 'AVAILABLE',
+      id: 'contract_sabotage_boiler', issuerNpcId: EntityIdSchema.parse('npc_syndicate_fixer'), factionId: 'UNDERCROFT_SYNDICATE',
+      title: 'Sabotage: Overpressurize Foundry Boiler', description: 'Overpressurize the Ironmongers foundry boiler beyond safety thresholds to disrupt production.',
+      kind: 'PRESSURIZE_BOILER', targetBlueprintOrEntityId: 'vessel_district_boiler', rewardPence: 80, rewardReputation: 25, status: 'AVAILABLE',
     },
   ];
 }
@@ -129,12 +115,38 @@ export function spawnDistrictNpcs(state: WorldState): {
   const undercroftGrid = state.strata.UNDERCROFT;
   const isLarge = streetGrid && streetGrid.width >= 36 && streetGrid.height >= 28;
 
-  const wardenPos = findWalkableSpawnPoint(streetGrid, 10, 11);
-  const scavengerPos = findWalkableSpawnPoint(undercroftGrid, 11, 11);
-  const stokerPos = findWalkableSpawnPoint(streetGrid, 14, 13);
-  const merchantPos = findWalkableSpawnPoint(streetGrid, 19, 19);
-  const chirurgeonPos = findWalkableSpawnPoint(streetGrid, isLarge ? 34 : 16, isLarge ? 6 : 16);
-  const fixerPos = findWalkableSpawnPoint(streetGrid, isLarge ? 34 : 18, isLarge ? 26 : 17);
+  // AUD-03: Anchor NPCs to their permuted building typology fixtures so they always spawn inside their thematic zones
+  const surgTablePos = entities['furniture_surgical_table']?.position;
+  const safeVaultPos = entities['furniture_safe_vault']?.position;
+  const cotPos = entities['furniture_cot_a']?.position;
+  const boilerPos = entities['vessel_district_boiler']?.position;
+
+  const wardenPos = findWalkableSpawnPoint(streetGrid, 10, 11, entities);
+  const scavengerPos = findWalkableSpawnPoint(undercroftGrid, 11, 11, entities);
+  const stokerPos = findWalkableSpawnPoint(
+    streetGrid,
+    boilerPos ? boilerPos.x + 1 : 14,
+    boilerPos ? boilerPos.y : 13,
+    entities,
+  );
+  const merchantPos = findWalkableSpawnPoint(
+    streetGrid,
+    safeVaultPos ? safeVaultPos.x : 19,
+    safeVaultPos ? safeVaultPos.y + 3 : 19,
+    entities,
+  );
+  const chirurgeonPos = findWalkableSpawnPoint(
+    streetGrid,
+    surgTablePos ? surgTablePos.x + 1 : isLarge ? 34 : 16,
+    surgTablePos ? surgTablePos.y : isLarge ? 6 : 16,
+    entities,
+  );
+  const fixerPos = findWalkableSpawnPoint(
+    streetGrid,
+    cotPos ? cotPos.x + 1 : isLarge ? 34 : 18,
+    cotPos ? cotPos.y : isLarge ? 26 : 17,
+    entities,
+  );
 
   const wardenInv = buildNpcInventory(entities, [{ id: 'loot_warden_gears', blueprintId: 'mat_brass_gears', quantity: 2 }]);
   const scavengerInv = buildNpcInventory(entities, [{ id: 'loot_scavenger_salt', blueprintId: 'mat_aether_salt', quantity: 2 }]);

@@ -1,6 +1,6 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-29T23:23:52.988Z
+- **Timestamp**: 2026-10-31T01:05:50.358Z
 - **Execution Mode**: Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 - **Scenario**: **SABOTAGE**
@@ -24,7 +24,7 @@
 | :--- | :--- | :--- |
 | **Turns Survived** | 50 / 50 | Longevity under autonomous navigation |
 | **Acoustic Decibels Emitted** | 120 dB | Footsteps, door actions, and steam releases |
-| **Guard Sound Investigations** | 5 | NPCs transitioning to INVESTIGATING |
+| **Guard Sound Investigations** | 2 | NPCs transitioning to INVESTIGATING |
 | **Guard Combat Engagements** | 0 | NPCs acquiring visual lock in COMBAT |
 | **Steam Clouds Deployed** | 0 | Vented steam to obscure LOS |
 | **Clockwork Traps Triggered** | 0 | Hidden tripwires / spring jaws stepped on |
