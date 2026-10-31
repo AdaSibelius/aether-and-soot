@@ -5,7 +5,7 @@
 ## Codebase Telemetry & Modularity Health
 
 - **Files Indexed**: 277
-- **Total Lines of Code**: 37999
+- **Total Lines of Code**: 38001
 - **Average File Size**: 137 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
 - **Near-Cap Files (>= 240 lines)**: 7 files
@@ -459,7 +459,7 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | `tests/scripts/capture-screenshots.ts` | 163 | ✅ OK | *None (internal)* |
 | `tests/scripts/check-agent-governance.ts` | 196 | ✅ OK | `auditAgentGovernance(workspaceRoot: string): GovernanceReport` |
 | `tests/scripts/check-boundaries.ts` | 73 | ✅ OK | *None (internal)* |
-| `tests/scripts/critic-config.ts` | 25 | ✅ OK | `parseCriticArgs(argv: string[]): CriticConfig` |
+| `tests/scripts/critic-config.ts` | 27 | ✅ OK | `parseCriticArgs(argv: string[]): CriticConfig` |
 | `tests/scripts/critic-report.ts` | 181 | ✅ OK | `auditCommandCoverage(rootDir: string, histogram: Record<string, number>): CommandCoverage`, `auditModularityHotspots(rootDir: string, threshold: unknown): Array<{ file: string; lines: number }>`, `buildHandoffPrompt(nextPriority: string, topHotspot: string, topUnwired: string): string`, `formatCriticReport(data: { score: number; hotspots: Array<{ file: string; lines: number }>; coverage: CommandCoverage; histogram: Record<string, number>; turnsSurvived: number; nextPriority: string; customSection4?: string \| undefined; customPrescriptions?: string \| undefined; telemetry?: LlmConnectionTelemetry \| undefined; audit?: CriticAudit \| undefined; sanityResult?: CriticSanityResult \| undefined; }): string` |
 | `tests/scripts/critic-sanity.ts` | 214 | ✅ OK | `parseCompletedPhases(repoRoot: string): Set<number>`, `extractReportAnomalies(repoRoot: string, anomalies: TelemetryAnomaly[]): Set<string>`, `verifyCriticSanity(audit: CriticAudit, repoRoot: string): CriticSanityResult` |
 | `tests/scripts/generate-architecture-map.ts` | 142 | ✅ OK | `collectAllArchitectureFiles(rootDir: string): AstFileMetadata[]`, `generateArchitectureMap(rootDir: string): string`, `writeArchitectureMap(rootDir: string, outputPath: string): string` |

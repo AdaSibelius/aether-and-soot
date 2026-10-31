@@ -1,8 +1,8 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
 **Generated:** 2026-10-31 | **Benchmark Engine:** Hermes Critic v1.0
-- **Execution Mode**: LIVE_INFERENCE (live local model: lfm2.5:24b @ http://localhost:11434/v1/chat/completions)
-- **LLM Telemetry**: Mode: LIVE_INFERENCE | Temperature: 0.1 | Enforce JSON Schema: true
+- **Execution Mode**: MOCK_FALLBACK (playtester-mock.ts)
+- **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 
 ## 1. Whole-Game Emergence & Readiness Score (0/100)
 - **Score Breakdown**:
@@ -36,11 +36,11 @@
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
 - `ATTACK_ACTOR` (6 dispatches)
-- `BUY_FROM_MERCHANT` (12 dispatches)
-- `MOVE_STEP` (15 dispatches)
-- `TOGGLE_DOOR` (15 dispatches)
-- `USE_ITEM` (3 dispatches)
-- `VENT_STEAM` (9 dispatches)
+- `BUY_FROM_MERCHANT` (4 dispatches)
+- `MOVE_STEP` (10 dispatches)
+- `USE_ITEM` (1 dispatches)
+- `USE_PORTAL` (38 dispatches)
+- `VENT_STEAM` (1 dispatches)
 - **Dormant Commands (Wired in Serializer, 0 Dispatches)**:
 - `ACCEPT_CONTRACT`
 - `ACTIVATE_PROSTHETIC`
@@ -84,7 +84,7 @@
 - `SET_POSTURE`
 - `STOCK_PEDESTAL`
 - `STORE_ITEM_IN_STRUCTURE`
-- `USE_PORTAL`
+- `TOGGLE_DOOR`
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `ASCEND_CATACOMBS`
@@ -107,7 +107,9 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement a bounded circular buffer of the last 50 significant historical events in WorldState.chronicle; log witnessed incidents into witnessedEvents for NPCs in line-of-sight or acoustic range; diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. (Target: `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. resolving unwiredCommands and telemetry anomalies. (Target: `src/sim/systems/squad-witness.system.ts`, `src/sim/systems/dialogue-quest.system.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ASCEND_CATACOMBS, SMASH_TERRAIN, THROW_FLASK, TRAVEL_DISTRICT) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/bootstrap-loop.ts to resolve modularityHotspot anomaly. (Target: `src/client/bootstrap-loop.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 
