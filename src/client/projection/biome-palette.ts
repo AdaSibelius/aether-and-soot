@@ -157,48 +157,62 @@ export function resolveBiomeTerrainVisual(
       if (isVisible) shaderFlags = [biomeId === 'GILDED_SPIRE_ASSEMBLY' ? 'GASLIGHT_RADIANCE' : 'SOOT_OCCLUSION'];
       break;
     case 'WOODEN_DOOR_CLOSED':
-      glyph = '+';
-      fgPrimary = isVisible ? '#E67E22' : '#7E5109';
-      fgSecondary = '#BA4A00';
-      bgColor = '#1C130C';
+      glyph = '+'; fgPrimary = isVisible ? '#E67E22' : '#7E5109'; fgSecondary = '#BA4A00'; bgColor = '#1C130C';
       break;
     case 'WOODEN_DOOR_OPEN':
-      glyph = '/';
-      fgPrimary = isVisible ? '#F39C12' : '#7D6608';
-      fgSecondary = '#D35400';
+      glyph = '/'; fgPrimary = isVisible ? '#F39C12' : '#7D6608'; fgSecondary = '#D35400';
       break;
     case 'DISTRICT_GATE':
-      glyph = '╬';
-      fgPrimary = isVisible ? '#F4D03F' : '#7D6608';
-      fgSecondary = '#F39C12';
-      bgColor = '#1A1105';
+      glyph = '╬'; fgPrimary = isVisible ? '#F4D03F' : '#7D6608'; fgSecondary = '#F39C12'; bgColor = '#1A1105';
       if (isVisible) shaderFlags = ['SPARK_GLINT'];
       break;
     case 'GLASS_WINDOW':
-      glyph = '⊞';
-      fgPrimary = isVisible ? '#A9CCE3' : '#5D6D7E';
-      fgSecondary = '#5499C7';
+      glyph = '⊞'; fgPrimary = isVisible ? '#A9CCE3' : '#5D6D7E'; fgSecondary = '#5499C7';
       if (isVisible) shaderFlags = ['SPARK_GLINT'];
       break;
     case 'SMASHED_WINDOW_FRAME':
-      glyph = '%';
-      fgPrimary = isVisible ? '#BDC3C7' : '#566573';
-      fgSecondary = '#7F8C8D';
+      glyph = '%'; fgPrimary = isVisible ? '#BDC3C7' : '#566573'; fgSecondary = '#7F8C8D';
       break;
     case 'RUBBLE_PILE':
-      glyph = ',';
-      fgPrimary = isVisible ? '#7F8C8D' : '#34495E';
-      fgSecondary = '#566573';
+      glyph = ','; fgPrimary = isVisible ? '#7F8C8D' : '#34495E'; fgSecondary = '#566573';
       break;
     case 'BRASS_CATWALK':
-      glyph = '=';
-      fgPrimary = isVisible ? '#D4AC0D' : '#5D4C06';
-      fgSecondary = '#9A7D0A';
+      glyph = '='; fgPrimary = isVisible ? '#D4AC0D' : '#5D4C06'; fgSecondary = '#9A7D0A';
       break;
     case 'IRON_GRATE':
-      glyph = '≡';
-      fgPrimary = isVisible ? '#7F8C8D' : '#34495E';
-      fgSecondary = '#566573';
+      glyph = '≡'; fgPrimary = isVisible ? '#7F8C8D' : '#34495E'; fgSecondary = '#566573';
+      break;
+    case 'COUNTER_BARRIER':
+      glyph = '╦';
+      fgPrimary = isVisible ? '#D4AF37' : '#7D6608';
+      fgSecondary = isVisible ? '#B7950B' : '#4D3E04';
+      bgColor = p.wallBg;
+      if (isVisible) shaderFlags = ['COUNTER_GLINT'];
+      break;
+    case 'CONVEYOR_TRACK':
+      glyph = '▤';
+      fgPrimary = isVisible ? '#AAB7B8' : '#566573';
+      fgSecondary = isVisible ? '#7F8C8D' : '#2C3E50';
+      bgColor = p.floorBg;
+      break;
+    case 'SLAG_PIT':
+      glyph = '▒';
+      fgPrimary = isVisible ? '#FF5722' : '#78281F';
+      fgSecondary = isVisible ? '#F39C12' : '#6E2C00';
+      bgColor = '#2C0B05';
+      if (isVisible) shaderFlags = ['HEAT_SHIMMER'];
+      break;
+    case 'RAIL_TRACK':
+      glyph = '═';
+      fgPrimary = isVisible ? '#85929E' : '#34495E';
+      fgSecondary = isVisible ? '#566573' : '#1C2833';
+      bgColor = p.floorBg;
+      break;
+    case 'BOARDING_PLATFORM':
+      glyph = '▬';
+      fgPrimary = isVisible ? '#D4AC0D' : '#5D4C06';
+      fgSecondary = isVisible ? '#9A7D0A' : '#382A01';
+      bgColor = p.floorBg;
       break;
     case 'ABYSS_DROP':
       glyph = ' ';

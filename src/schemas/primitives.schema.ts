@@ -35,6 +35,8 @@ export const ShaderFlagSchema = z.enum([
   'SPARK_GLINT',
   'SOOT_OCCLUSION',
   'GASLIGHT_RADIANCE',
+  'VOLUMETRIC_PLUME',
+  'COUNTER_GLINT',
 ]);
 export type ShaderFlag = z.infer<typeof ShaderFlagSchema>;
 
@@ -89,6 +91,11 @@ export const TerrainTypeSchema = z.enum([
   'WALL_TEE_SOUTH',
   'WALL_TEE_EAST',
   'WALL_TEE_WEST',
+  'COUNTER_BARRIER',
+  'CONVEYOR_TRACK',
+  'SLAG_PIT',
+  'RAIL_TRACK',
+  'BOARDING_PLATFORM',
 ]);
 export type TerrainType = z.infer<typeof TerrainTypeSchema>;
 
@@ -144,6 +151,11 @@ export const InteriorZoneTypeSchema = z.enum([
   'VAULT',
   'SURGICAL_BAY',
   'STORAGE',
+  'LOADING_DOCK',
+  'ASSEMBLY_LINE',
+  'PLATFORM',
+  'TICKET_BOOTH',
+  'BACKROOM',
 ]);
 export type InteriorZoneType = z.infer<typeof InteriorZoneTypeSchema>;
 

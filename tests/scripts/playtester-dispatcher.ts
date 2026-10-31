@@ -80,6 +80,10 @@ export function parseLlmResponseToCommand(
             case 'SALVAGE_ITEM': return { type: 'SALVAGE_ITEM', actorId: playerId, itemEntityId: EntityIdSchema.parse(p.itemId) };
             case 'GRAFT_PROSTHETIC':
             case 'INSTALL_PROSTHETIC': return { type: 'INSTALL_PROSTHETIC', actorId: playerId, prostheticEntityId: EntityIdSchema.parse(p.prostheticId), slot: p.slot as LimbSlotId };
+            case 'REMOVE_PROSTHETIC': return { type: 'REMOVE_PROSTHETIC', actorId: playerId, slot: p.slot as LimbSlotId };
+            case 'REST_AT_BED': return { type: 'REST_AT_BED', actorId: playerId };
+            case 'SET_POSTURE': return { type: 'SET_POSTURE', actorId: playerId, posture: p.posture };
+            case 'REPORT_CRIME': return { type: 'REPORT_CRIME', witnessId: playerId, perpetratorId: EntityIdSchema.parse(p.perpetratorId), crime: p.crime ?? 'THEFT' };
             case 'FIELD_REPAIR_LIMB':
             case 'REPAIR_LIMB': return { type: 'REPAIR_LIMB', actorId: playerId, slot: p.slot as LimbSlotId, ...(p.toolId ? { toolEntityId: EntityIdSchema.parse(p.toolId) } : {}) };
             case 'STOKE_BOILER': return { type: 'REFILL_STEAM', actorId: playerId, pressureAddedKpa: p.pressureKpa, bypassFuelRequirement: false };

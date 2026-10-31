@@ -17,6 +17,9 @@ export function estimateTerrainAcousticDb(terrainType: string): number {
     case 'CANAL_SLUICE':
     case 'CAST_IRON_GRATE':
     case 'SEWER_SLUICE_GATE':
+    case 'RAIL_TRACK':
+    case 'CONVEYOR_TRACK':
+    case 'COUNTER_BARRIER':
       return 82; // Resonant metallic reverberation
     case 'COBBLESTONE_FLOOR':
     case 'SOOT_BRICK_WALL':
@@ -24,9 +27,11 @@ export function estimateTerrainAcousticDb(terrainType: string): number {
     case 'DISTRICT_GATE':
     case 'BRITISH_STONE_PAVER':
     case 'FLAGSTONE_STREET':
+    case 'BOARDING_PLATFORM':
       return 68; // Hard stone clatter
     case 'RUBBLE_PILE':
     case 'SLAG_MOUND':
+    case 'SLAG_PIT':
     case 'SMASHED_WINDOW_FRAME':
     case 'SLAG_RUBBLE':
     case 'FACTORY_FLOOR_DEBRIS':
@@ -52,6 +57,9 @@ export function estimateTerrainHardness(terrainType: string): { rating: string; 
     case 'CANAL_SLUICE':
     case 'REINFORCED_FACTORY_WALL':
     case 'CAST_IRON_GRATE':
+    case 'COUNTER_BARRIER':
+    case 'CONVEYOR_TRACK':
+    case 'RAIL_TRACK':
       return { rating: 'STRUCTURAL_IRON', mohs: 6.5 };
     case 'SOOT_BRICK_WALL':
     case 'GOTHIC_COLONNADE':
@@ -71,6 +79,8 @@ export function estimateTerrainHardness(terrainType: string): { rating: string; 
       return { rating: 'VITRIFIED_BRICK', mohs: 7.0 };
     case 'COBBLESTONE_FLOOR':
     case 'SLAG_MOUND':
+    case 'SLAG_PIT':
+    case 'BOARDING_PLATFORM':
     case 'RUBBLE_PILE':
     case 'DISTRICT_GATE':
     case 'BRITISH_STONE_PAVER':

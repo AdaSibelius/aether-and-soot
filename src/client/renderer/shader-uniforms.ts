@@ -7,6 +7,7 @@ export interface DiegeticShaderUniformValues {
   distortionScale: number;
   resolution: [number, number];
   bloomThresholds: [number, number]; // [amberMin, cyanMin]
+  smokeMask?: [number, number, number, number];
 }
 
 export const DEFAULT_LENS_CURVATURE = 0.03;
@@ -26,6 +27,7 @@ export function createDefaultShaderUniformValues(
     distortionScale: 1.0,
     resolution: [widthPx, heightPx],
     bloomThresholds: [0.65, 0.70],
+    smokeMask: [0, 0, 0, 0],
   };
 }
 
@@ -57,6 +59,7 @@ export function packShaderUniforms(values: DiegeticShaderUniformValues): Record<
     uChromaticAberration: { value: values.chromaticAberration, type: 'f32' },
     uDistortionScale: { value: values.distortionScale, type: 'f32' },
     uBloomThresholds: { value: new Float32Array(values.bloomThresholds), type: 'vec2<f32>' },
+    uSmokeMask: { value: new Float32Array(values.smokeMask ?? [0, 0, 0, 0]), type: 'vec4<f32>' },
   };
 }
 

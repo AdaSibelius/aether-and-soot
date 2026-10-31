@@ -23,6 +23,8 @@ export function getArchitecturalTerrainProperties(terrainType: TerrainType): {
     case 'WROUGHT_IRON_FENCE':
     case 'BRASS_STEAM_PIPE':
     case 'CANAL_SLUICE':
+    case 'COUNTER_BARRIER':
+    case 'SLAG_PIT':
       return { blocksMovement: true, blocksSight: false };
     case 'SLAG_MOUND':
     case 'GOTHIC_COLONNADE':
@@ -45,6 +47,9 @@ export function getArchitecturalTerrainProperties(terrainType: TerrainType): {
     case 'RUBBLE_PILE':
     case 'DISTRICT_GATE':
     case 'WOODEN_DOOR_OPEN':
+    case 'CONVEYOR_TRACK':
+    case 'RAIL_TRACK':
+    case 'BOARDING_PLATFORM':
       return { blocksMovement: false, blocksSight: false };
     case 'GLASS_WINDOW':
       return { blocksMovement: true, blocksSight: false };

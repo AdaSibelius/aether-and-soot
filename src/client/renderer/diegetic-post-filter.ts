@@ -46,6 +46,7 @@ export const DIEGETIC_FRAGMENT_SHADER = `
   uniform float uChromaticAberration;
   uniform float uDistortionScale;
   uniform vec2 uBloomThresholds;
+  uniform vec4 uSmokeMask;
 
   // Pass 1: Spherical glass lens curvature (k = 0.08)
   vec2 applyLensCurvature(vec2 uv, float k) {
@@ -93,6 +94,15 @@ export const DIEGETIC_FRAGMENT_SHADER = `
       }
       if (bloom.r > uBloomThresholds.x && bloom.g > 0.40) {
           col += bloom * vec3(1.15, 0.85, 0.30) * 0.16;
+      }
+
+      // Pass 3b: Localized volumetric smoke plume within masked UV bounds
+      if (uSmokeMask.z > uSmokeMask.x &&
+          baseUV.x >= uSmokeMask.x && baseUV.x <= uSmokeMask.z &&
+          baseUV.y >= uSmokeMask.y && baseUV.y <= uSmokeMask.w) {
+          float smokeNoise = sin(baseUV.x * 24.0 + uTime * 1.6) * cos((baseUV.y - uTime * 0.9) * 18.0);
+          float plume = smoothstep(0.15, 0.85, smokeNoise * 0.5 + 0.5) * 0.16;
+          col = mix(col, vec3(0.22, 0.18, 0.15), plume);
       }
 
       // Pass 2: Aperture grille shadow mask (luminance-only so glyphs never tint per pixel column)
@@ -152,4 +162,5 @@ export function updateDiegeticFilterUniforms(
   uniforms.uChromaticAberration = values.chromaticAberration;
   uniforms.uDistortionScale = values.distortionScale;
   uniforms.uBloomThresholds = values.bloomThresholds;
+  if (values.smokeMask) uniforms.uSmokeMask = values.smokeMask;
 }

@@ -1,6 +1,6 @@
 # Aether & Soot — Headless Autonomous Playtest Report
 
-- **Timestamp**: 2026-10-31T01:05:50.358Z
+- **Timestamp**: 2026-10-31T21:55:31.412Z
 - **Execution Mode**: Deterministic Mock Agent (playtester-mock.ts) [MOCK_FALLBACK]
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 - **Scenario**: **SABOTAGE**
@@ -23,7 +23,7 @@
 | Metric | Recorded Value | Evaluation Notes |
 | :--- | :--- | :--- |
 | **Turns Survived** | 50 / 50 | Longevity under autonomous navigation |
-| **Acoustic Decibels Emitted** | 120 dB | Footsteps, door actions, and steam releases |
+| **Acoustic Decibels Emitted** | 155 dB | Footsteps, door actions, and steam releases |
 | **Guard Sound Investigations** | 2 | NPCs transitioning to INVESTIGATING |
 | **Guard Combat Engagements** | 0 | NPCs acquiring visual lock in COMBAT |
 | **Steam Clouds Deployed** | 0 | Vented steam to obscure LOS |
@@ -45,8 +45,8 @@
 | Category | Count | Share | Command Identifiers |
 | :--- | :--- | :--- | :--- |
 | **Active Commands** (>0 Dispatches) | 3 | 5% | `BUY_FROM_MERCHANT`, `PRESSURIZE_VESSEL`, `SELL_TO_MERCHANT` |
-| **Dormant Commands** (Serializer-Wired, 0 Dispatches) | 43 | - | `ACCEPT_CONTRACT`, `ACTIVATE_PROSTHETIC`, `APPLY_MOMENTUM_VECTOR`, `ATTACK_ACTOR`, `AUDIT_SAFEHOUSE_DEED`, `BOARD_MONORAIL`, `BREACH_TILE`, `BUILD_STRUCTURE`, `CLAIM_WORKSHOP_DEED`, `CLEAN_SPILL` |
-| **Unwired Commands** (Missing from Context) | 10 | - | `ASCEND_CATACOMBS`, `REMOVE_PROSTHETIC`, `REPORT_CRIME`, `REST_AT_BED`, `SET_POSTURE`, `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`, `TRIGGER_SUPPLY_SHOCK`, `UNINSTALL_WEAPON_MOD` |
+| **Dormant Commands** (Serializer-Wired, 0 Dispatches) | 47 | - | `ACCEPT_CONTRACT`, `ACTIVATE_PROSTHETIC`, `APPLY_MOMENTUM_VECTOR`, `ATTACK_ACTOR`, `AUDIT_SAFEHOUSE_DEED`, `BOARD_MONORAIL`, `BREACH_TILE`, `BUILD_STRUCTURE`, `CLAIM_WORKSHOP_DEED`, `CLEAN_SPILL` |
+| **Unwired Commands** (Missing from Context) | 6 | - | `ASCEND_CATACOMBS`, `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`, `TRIGGER_SUPPLY_SHOCK`, `UNINSTALL_WEAPON_MOD` |
 
 ## Client UI Projection & Chronicle Leak Audit
 

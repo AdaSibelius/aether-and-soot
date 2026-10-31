@@ -5,8 +5,8 @@
 ## Codebase Telemetry & Modularity Health
 
 - **Files Indexed**: 277
-- **Total Lines of Code**: 37798
-- **Average File Size**: 136 lines (Target: <= 250)
+- **Total Lines of Code**: 37999
+- **Average File Size**: 137 lines (Target: <= 250)
 - **Modularity Gate Status**: CLEAN (0 files >= 300 lines)
 - **Near-Cap Files (>= 240 lines)**: 7 files
 
@@ -48,7 +48,7 @@ Strict Zod contracts for entities, components, commands, events, and declarative
 | `src/schemas/lore-events.schema.ts` | 50 | ✅ OK | `ProceduralBarkEmittedEventSchema`, `ProceduralBarkEmittedEvent`, `TurfTariffEnforcedEventSchema`, `TurfTariffEnforcedEvent` |
 | `src/schemas/metabolism-events.schema.ts` | 42 | ✅ OK | `AlchemicalConsumedEventSchema`, `AlchemicalConsumedEvent`, `ToxicityOverdoseEventSchema`, `ToxicityOverdoseEvent` |
 | `src/schemas/momentum-events.schema.ts` | 45 | ✅ OK | `PostureChangedEventSchema`, `PostureChangedEvent`, `EntityKnockedBackEventSchema`, `EntityKnockedBackEvent` |
-| `src/schemas/primitives.schema.ts` | 177 | ✅ OK | `EntityIdSchema`, `EntityId`, `BlueprintIdSchema`, `BlueprintId` |
+| `src/schemas/primitives.schema.ts` | 189 | ✅ OK | `EntityIdSchema`, `EntityId`, `BlueprintIdSchema`, `BlueprintId` |
 | `src/schemas/project-state.schema.ts` | 63 | ✅ OK | `PhaseStatusSchema`, `PhaseStatus`, `RoadmapPhaseSchema`, `RoadmapPhase` |
 | `src/schemas/safehouse-commands.schema.ts` | 52 | ✅ OK | `StructureTypeSchema`, `StructureType`, `ClaimWorkshopDeedCommandSchema`, `ClaimWorkshopDeedCommand` |
 | `src/schemas/safehouse-events.schema.ts` | 79 | ✅ OK | `CodexCategorySchema`, `CodexCategory`, `WorkshopDeedClaimedEventSchema`, `WorkshopDeedClaimedEvent` |
@@ -61,7 +61,7 @@ Strict Zod contracts for entities, components, commands, events, and declarative
 | `src/schemas/weapon-mod-events.schema.ts` | 54 | ✅ OK | `WeaponModInstalledEventSchema`, `WeaponModInstalledEvent`, `WeaponModUninstalledEventSchema`, `WeaponModUninstalledEvent` |
 | `src/schemas/witness-commands.schema.ts` | 25 | ✅ OK | `EmitSquadCalloutCommandSchema`, `EmitSquadCalloutCommand`, `ReportCrimeCommandSchema`, `ReportCrimeCommand` |
 | `src/schemas/witness-events.schema.ts` | 52 | ✅ OK | `WitnessCrimeReportedEventSchema`, `WitnessCrimeReportedEvent`, `SquadCalloutEmittedEventSchema`, `SquadCalloutEmittedEvent` |
-| `src/schemas/world-components.schema.ts` | 187 | ✅ OK | `WitnessMemoryEntrySchema`, `WitnessMemoryEntry`, `DistrictGateComponentSchema`, `DistrictGateComponent` |
+| `src/schemas/world-components.schema.ts` | 188 | ✅ OK | `WitnessMemoryEntrySchema`, `WitnessMemoryEntry`, `DistrictGateComponentSchema`, `DistrictGateComponent` |
 
 ## Ring 2: Simulation Core & Scheduling (`src/sim/core/`)
 
@@ -88,7 +88,7 @@ Multi-stratum grid cellular structures, shadowcasting FOV, procedural biomes, an
 
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
-| `src/sim/spatial/architectural-features.ts` | 182 | ✅ OK | `getArchitecturalTerrainProperties(terrainType: TerrainType): { blocksMovement: boolean; blocksSight: boolean; }`, `placeArchitecturalFeature(grid: StratumGrid, x: number, y: number, terrainType: TerrainType): StratumGrid`, `canPlaceWithoutSevering(grid: StratumGrid, x: number, y: number, terrainType: TerrainType, criticalLandmarks: readonly Point2D[]): boolean`, `seedDistrictArchitecture(grid: StratumGrid, districtId: string, _rng: SeededRNG, criticalLandmarks: readonly Point2D[]): StratumGrid` |
+| `src/sim/spatial/architectural-features.ts` | 187 | ✅ OK | `getArchitecturalTerrainProperties(terrainType: TerrainType): { blocksMovement: boolean; blocksSight: boolean; }`, `placeArchitecturalFeature(grid: StratumGrid, x: number, y: number, terrainType: TerrainType): StratumGrid`, `canPlaceWithoutSevering(grid: StratumGrid, x: number, y: number, terrainType: TerrainType, criticalLandmarks: readonly Point2D[]): boolean`, `seedDistrictArchitecture(grid: StratumGrid, districtId: string, _rng: SeededRNG, criticalLandmarks: readonly Point2D[]): StratumGrid` |
 | `src/sim/spatial/architectural-typologies.ts` | 46 | ✅ OK | `generateArchitecturalTypologies(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, _width: number, height: number, rng: SeededRNG): TypologyPlacementResult` |
 | `src/sim/spatial/block-geometry.ts` | 121 | ✅ OK | `supportsProceduralBlocks(width: number, height: number): boolean`, `mapPoint(p: BuildingPlacement, pt: Point2D): Point2D`, `inBox(b: Box, x: number, y: number): boolean`, `intersects(a: Box, b: Box, margin: unknown): boolean` |
 | `src/sim/spatial/building-prefabs.ts` | 70 | ✅ OK | `populateDistrictArchetypes(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, width: number, height: number, criticalPoints: readonly Point2D[], rng: SeededRNG): DistrictArchetypesResult` |
@@ -114,8 +114,8 @@ Multi-stratum grid cellular structures, shadowcasting FOV, procedural biomes, an
 | `src/sim/spatial/portals.ts` | 15 | ✅ OK | `findPortalAtPoint(entities: Readonly<Record<string, EntityRecord>>, point: Point3D): EntityRecord \| undefined` |
 | `src/sim/spatial/spire-topology.ts` | 94 | ✅ OK | `carveSpireWeb(width: number, height: number, hub: Point2D, rng: SeededRNG): SpireTopology` |
 | `src/sim/spatial/strata-dungeons.ts` | 181 | ✅ OK | `generateUndercroftDungeon(width: number, height: number, entryPos: Point2D, rng: SeededRNG, existingEntities: Record<string, EntityRecord>): StrataDungeonResult`, `generateSpireCatwalks(width: number, height: number, entryPos: Point2D, rng: SeededRNG, existingEntities: Record<string, EntityRecord>): StrataDungeonResult` |
-| `src/sim/spatial/typologies-civic.ts` | 150 | ✅ OK | `generateCivicTypologies(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, centerY: number, rng: SeededRNG): CivicTypologyResult` |
-| `src/sim/spatial/typologies-industrial.ts` | 132 | ✅ OK | `generateIndustrialTypologies(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, centerY: number, rng: SeededRNG): IndustrialTypologyResult` |
+| `src/sim/spatial/typologies-civic.ts` | 204 | ✅ OK | `generateCivicTypologies(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, centerY: number, rng: SeededRNG): CivicTypologyResult` |
+| `src/sim/spatial/typologies-industrial.ts` | 199 | ✅ OK | `generateIndustrialTypologies(initialGrid: StratumGrid, initialEntities: Record<string, EntityRecord>, centerY: number, rng: SeededRNG): IndustrialTypologyResult` |
 | `src/sim/spatial/undercroft-topology.ts` | 126 | ✅ OK | `carveUndercroftSewers(width: number, height: number, entry: Point2D, rng: SeededRNG): UndercroftTopology` |
 | `src/sim/spatial/utility-networks.ts` | 156 | ✅ OK | `createUtilityConduitEntity(id: string, pos: Point2D & { stratum: StratumId }, conduitType: 'HIGH_PRESSURE_STEAM_MAIN' \| 'HYDRAULIC_DRAINAGE' \| 'PNEUMATIC_TRANSIT_TUBE' \| 'COAL_GAS_FEED' \| 'AETHER_CONDUIT', networkId: string, pressureKpa: number, endpoints: string[]): EntityRecord`, `createHydrologyChannelEntity(id: string, pos: Point2D & { stratum: StratumId }, fluidType: 'WATER' \| 'SLUDGE' \| 'ACID' \| 'WHALE_OIL' \| 'SEWAGE', drainsIntoStratum: StratumId): EntityRecord`, `spawnDistrictInfrastructure(entities: Record<string, EntityRecord>, liftPos: Point2D, boilerPos: Point2D, workbenchPos: Point2D, westGatePos: Point2D, eastGatePos: Point2D, westTarget: string, eastTarget: string): void`, `seedDistrictUtilityNetworks(entities: Record<string, EntityRecord>, districtId: string, boilerPos: Point2D, workbenchPos: Point2D, center: Point2D): void` |
 
@@ -204,15 +204,15 @@ Headless projection frame adapter, PixiJS glyph rendering stage, and CRT post-pr
 
 | File | Lines | Status | Primary Exports & Signatures |
 | :--- | :---: | :---: | :--- |
-| `src/client/projection/biome-palette.ts` | 215 | ✅ OK | `resolveDistrictBiome(districtId: string, stratum: StratumId): BiomeId`, `resolveBiomeTerrainVisual(terrainType: TerrainType, isVisible: boolean, isExplored: boolean, biomeId: BiomeId, connectingWallGlyph: string, steamPressureKpa: unknown): VisualGlyphSpec` |
+| `src/client/projection/biome-palette.ts` | 229 | ✅ OK | `resolveDistrictBiome(districtId: string, stratum: StratumId): BiomeId`, `resolveBiomeTerrainVisual(terrainType: TerrainType, isVisible: boolean, isExplored: boolean, biomeId: BiomeId, connectingWallGlyph: string, steamPressureKpa: unknown): VisualGlyphSpec` |
 | `src/client/projection/camera-governor.ts` | 103 | ✅ OK | `calculateCameraViewport(gridWidth: number, gridHeight: number, originX: number, originY: number, defaultWidth: number, defaultHeight: number, viewportOverride: { width: number; height: number; tacticalWidth?: number }): CameraViewportConfig`, `resolveOutOfBoundsVisual(worldX: number, worldY: number, gridWidth: number, gridHeight: number, _turnCount: unknown): VisualGlyphSpec` |
 | `src/client/projection/catalog-display.ts` | 73 | ✅ OK | `resolveCatalogDisplayName(kind: string, id: string): string` |
 | `src/client/projection/environmental-visuals.ts` | 92 | ✅ OK | `applySootVisualOverlay(base: VisualGlyphSpec, smokePpm: number, coalDustDensity: number, worldX: number, worldY: number, turnCount: number, isVisible: boolean, isExplored: boolean): VisualGlyphSpec`, `applyLiquidSurfaceVisual(base: VisualGlyphSpec, liquidType: LiquidTypeId, volumeMl: number, isVisible: boolean, isExplored: boolean): VisualGlyphSpec`, `applyGaslightVisual(base: VisualGlyphSpec, isGaslit: boolean): VisualGlyphSpec` |
 | `src/client/projection/frame-adapter.ts` | 197 | ✅ OK | `projectWorldToVisualFrame(state: Readonly<WorldState>, focusActorId: unknown, baseFovRadius: unknown, viewportOverride: { width: number; height: number; tacticalWidth?: number }): VisualGridFrame` |
-| `src/client/projection/wall-connections.ts` | 128 | ✅ OK | `isWallTerrain(terrainType: TerrainType): boolean`, `getExplicitWallGlyph(terrainType: TerrainType): string \| undefined`, `isWallJoinableTerrain(terrainType: TerrainType): boolean`, `resolveConnectingWallGlyph(grid: StratumGrid, x: number, y: number): string` |
+| `src/client/projection/wall-connections.ts` | 137 | ✅ OK | `isWallTerrain(terrainType: TerrainType): boolean`, `getExplicitWallGlyph(terrainType: TerrainType): string \| undefined`, `isWallJoinableTerrain(terrainType: TerrainType): boolean`, `resolveConnectingWallGlyph(grid: StratumGrid, x: number, y: number): string` |
 | `src/client/renderer/crt-filter.ts` | 56 | ✅ OK | `createCrtPostFilter(opacity: number, options: SteampunkFilterOptions): Filter`, `updateSteampunkFilterUniforms(filter: Filter, time: number, thermoStress: unknown, smokeMask: [number, number, number, number], distortionScale: unknown, scanlineOpacity: unknown): void` |
 | `src/client/renderer/desktop-window-manager.ts` | 175 | ✅ OK | `computeAspectLockedScale(container: WindowDimensions, baseWidth: number, baseHeight: number, integerScaleOnly: unknown): ViewportScaleMetrics`, `transformClientToGrid(clientX: number, clientY: number, rect: { left: number; top: number; width: number; height: number }, gridWidth: number, gridHeight: number): { col: number; row: number; inside: boolean }`, `applyViewportScale(elements: { canvasHost: HTMLElement; overlayHost?: HTMLElement; appCanvas?: HTMLCanvasElement \| null }, metrics: ViewportScaleMetrics): void`, `toggleFullscreen(targetElement: HTMLElement): Promise<boolean>` |
-| `src/client/renderer/diegetic-post-filter.ts` | 156 | ✅ OK | `createDiegeticPostFilter(options: Partial<DiegeticShaderUniformValues>): Filter`, `updateDiegeticFilterUniforms(filter: Filter, values: DiegeticShaderUniformValues): void` |
+| `src/client/renderer/diegetic-post-filter.ts` | 167 | ✅ OK | `createDiegeticPostFilter(options: Partial<DiegeticShaderUniformValues>): Filter`, `updateDiegeticFilterUniforms(filter: Filter, values: DiegeticShaderUniformValues): void` |
 | `src/client/renderer/floating-combat-text.tsx` | 181 | ✅ OK | `deriveFloatingCombatText(events: readonly SimEvent[], state: Readonly<WorldState>, nowMs: unknown): FloatingTextCallout[]`, `FloatingTextOverlay({
   items,
   cameraOrigin,
@@ -225,7 +225,7 @@ Headless projection frame adapter, PixiJS glyph rendering stage, and CRT post-pr
 | `src/client/renderer/glyph-stage-types.ts` | 11 | ✅ OK | `hexToNumber(hex: string): number` |
 | `src/client/renderer/glyph-stage.ts` | 240 | ⚠️ WARN | *None (internal)* |
 | `src/client/renderer/performance-governor.ts` | 115 | ✅ OK | `getPerformanceGovernor(): PerformanceGovernor` |
-| `src/client/renderer/shader-uniforms.ts` | 65 | ✅ OK | `createDefaultShaderUniformValues(widthPx: unknown, heightPx: unknown): DiegeticShaderUniformValues`, `interpolateThermoStress(current: number, target: number, dtSeconds: number, decaySpeed: unknown): number`, `packShaderUniforms(values: DiegeticShaderUniformValues): Record<string, { value: unknown; type: string }>` |
+| `src/client/renderer/shader-uniforms.ts` | 68 | ✅ OK | `createDefaultShaderUniformValues(widthPx: unknown, heightPx: unknown): DiegeticShaderUniformValues`, `interpolateThermoStress(current: number, target: number, dtSeconds: number, decaySpeed: unknown): number`, `packShaderUniforms(values: DiegeticShaderUniformValues): Record<string, { value: unknown; type: string }>` |
 | `src/client/renderer/steampunk-pipeline.ts` | 127 | ✅ OK | `PipelineLayerId`, `PipelineStageLayers` |
 | `src/client/renderer/steampunk-shader.ts` | 150 | ✅ OK | `resolveThermodynamicStress(state: Readonly<WorldState>, actorId: EntityId): ThermodynamicStressResult` |
 
@@ -438,7 +438,7 @@ Browser bootstrap, keyboard/mouse input dispatching, and WebAudio synth integrat
 | `src/client/canvas-ui/satchel-screen.ts` | 121 | ✅ OK | `renderSatchelScreen(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, playerId: EntityId, options: SatchelScreenOptions): void` |
 | `src/client/canvas-ui/system-menu-screen.ts` | 68 | ✅ OK | `renderSystemMenuScreen(buf: UiCellBuffer, view: SystemMenuView, rect: UiRect): void` |
 | `src/client/canvas-ui/tactical-console.ts` | 103 | ✅ OK | `renderTacticalConsole(buf: UiCellBuffer, rect: UiRect, state: WorldState, playerId: EntityId, options: TacticalConsoleOptions): void` |
-| `src/client/canvas-ui/tactical-vernier.ts` | 157 | ✅ OK | `estimateTerrainAcousticDb(terrainType: string): number`, `estimateTerrainHardness(terrainType: string): { rating: string; mohs: number }`, `renderTacticalVernierDossier(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, hoverCoord: { x: number; y: number } \| null, playerActorId: EntityId): void` |
+| `src/client/canvas-ui/tactical-vernier.ts` | 167 | ✅ OK | `estimateTerrainAcousticDb(terrainType: string): number`, `estimateTerrainHardness(terrainType: string): { rating: string; mohs: number }`, `renderTacticalVernierDossier(buf: UiCellBuffer, rect: UiRect, state: Readonly<WorldState>, hoverCoord: { x: number; y: number } \| null, playerActorId: EntityId): void` |
 | `src/client/canvas-ui/viewport-controls.ts` | 160 | ✅ OK | `drawScrollableRegion(buf: UiCellWriteTarget, rect: UiRect, lines: readonly string[], scrollOffset: number, options: { readonly fgText?: string; readonly bgText?: string; readonly fgScrollbar?: string; readonly fgTrack?: string; readonly bgTrack?: string; }): ScrollResult`, `drawDiegeticTextInput(buf: UiCellWriteTarget, rect: UiRect, label: string, value: string, isFocused: boolean, tick: number, options: { readonly fgBorder?: string; readonly fgLabel?: string; readonly fgValue?: string; readonly fgCursor?: string; readonly bg?: string; }): void` |
 | `src/client/client-debug-bridge.ts` | 17 | ✅ OK | `DebugSimBridge` |
 | `src/client/client-interactions.ts` | 152 | ✅ OK | `cycleModalWindow(current: ModalWindowId \| null, direction: 1 \| -1): ModalWindowId`, `findAdjacentDialogueNpc(state: WorldState, playerId: EntityId): EntityId \| undefined`, `findAdjacentDoorTarget(state: WorldState, playerId: EntityId): Point3D \| undefined`, `findEntityAtLookCursor(state: WorldState, stratum: StratumId, cursor: { x: number; y: number }, excludeId: EntityId): EntityRecord \| undefined` |
@@ -478,14 +478,14 @@ Local model orchestration, AST indexing, self-healing testgen, critic, and playt
 | `tests/scripts/local-llm-config.ts` | 211 | ✅ OK | `resolveEndpoint(override: string): string`, `resolveModel(tierOrFallback: ModelTier \| string, override: string): string`, `checkEndpointHealth(endpoint: string, timeoutMs: unknown): Promise<boolean>`, `getConnectionTelemetry(opts: { mock?: boolean; isHealthy?: boolean; endpoint?: string; model?: string; temperature?: number; enforceJsonSchema?: boolean; }): LlmConnectionTelemetry` |
 | `tests/scripts/local-llm-ledger.ts` | 142 | ✅ OK | `recordInferenceMetric(entry: InferenceLedgerInput, ledgerPath: string): InferenceLedgerEntry`, `clearInferenceLedger(ledgerPath: string): void`, `getInferenceLedgerSummary(ledgerPath: string): InferenceLedgerSummary` |
 | `tests/scripts/playtest-report.ts` | 142 | ✅ OK | `writeReport(config: PlaytestReportConfig, metrics: PlaytestMetrics): void` |
-| `tests/scripts/playtester-actions.ts` | 61 | ✅ OK | `LIMB_ENUM`, `STRUCTURE_ENUM`, `LlmActionPayloadSchema`, `LlmActionPayload` |
+| `tests/scripts/playtester-actions.ts` | 65 | ✅ OK | `LIMB_ENUM`, `STRUCTURE_ENUM`, `LlmActionPayloadSchema`, `LlmActionPayload` |
 | `tests/scripts/playtester-common.ts` | 31 | ✅ OK | `normalizeDirection(raw: string): string \| undefined` |
-| `tests/scripts/playtester-dispatcher.ts` | 151 | ✅ OK | `parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId): GameCommand` |
+| `tests/scripts/playtester-dispatcher.ts` | 155 | ✅ OK | `parseLlmResponseToCommand(raw: string, state: WorldState, playerId: EntityId): GameCommand` |
 | `tests/scripts/playtester-mock.ts` | 114 | ✅ OK | `generateMockAction(state: WorldState, playerId: EntityId, recentPositions: ReadonlyArray<{ x: number; y: number }>, scenario: PlaytestScenario): LlmActionPayload` |
 | `tests/scripts/playtester-policy.ts` | 121 | ✅ OK | `evaluateDecisionPolicy(state: WorldState, playerId: EntityId, opts: DecisionPolicyOptions): DecisionPolicyResult` |
 | `tests/scripts/playtester-projection-audit.ts` | 207 | ✅ OK | `auditClientProjection(state: WorldState, playerId: EntityId, options: AuditProjectionOptions): ClientProjectionAudit` |
 | `tests/scripts/playtester-scenarios.ts` | 176 | ✅ OK | `getScenarioObjectives(scenario: PlaytestScenario): ScenarioObjectives`, `applyPlaytestScenario(state: WorldState, scenario: PlaytestScenario): WorldState` |
-| `tests/scripts/playtester-serializer.ts` | 208 | ✅ OK | `serializePlayerContext(state: WorldState, playerId: EntityId, options: ContextSerializationOptions): string` |
+| `tests/scripts/playtester-serializer.ts` | 215 | ✅ OK | `serializePlayerContext(state: WorldState, playerId: EntityId, options: ContextSerializationOptions): string` |
 | `tests/scripts/projection-cell-scanner.ts` | 42 | ✅ OK | `auditUiCellBuffer(buffer: UiCellBuffer, locationName: unknown): ProjectionLeak[]` |
 | `tests/scripts/scaffold-mechanic.ts` | 180 | ✅ OK | `parseScaffoldArgs(argv: readonly string[]): ScaffoldConfig`, `toPascalCase(snakeStr: string): string`, `generateScaffoldCode(config: ScaffoldConfig): { commandSchemaRel: string; commandSchemaCode: string; eventSchemaRel: string; eventSchemaCode: string; systemRel: string; systemCode: string; testRel: string; testCode: string; }`, `runScaffold(config: ScaffoldConfig, rootDir: string): Promise<void>` |
 | `tests/scripts/update-state.ts` | 245 | ⚠️ WARN | `parseVerifiedPrescriptions(criticContent: string): BacklogPrescription[]`, `getRecentCommits(count: unknown): Array<{ hash: string; message: string }>`, `compileStateMarkdown(state: ProjectState): string`, `compileRoadmapMarkdown(roadmapContent: string, phases: readonly RoadmapPhase[], prescriptions: ReadonlyArray<BacklogPrescription \| { id: string; category: string; title: string; directive: string; targetFiles: string[] \| string; verification: string }>): string` |

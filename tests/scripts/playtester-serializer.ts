@@ -51,6 +51,7 @@ const TERRAIN_GLYPH: Partial<Record<string, string>> = {
   WROUGHT_IRON_FENCE: ' ▓ ', BRASS_STEAM_PIPE: ' ┼ ', GASLAMP_POST: ' ☼ ', TIMBER_PIER: ' ═ ',
   SLAG_MOUND: ' ▲ ', CANAL_SLUICE: ' ≈ ', GOTHIC_COLONNADE: ' Ω ',
   WALL_CROSS: ' ╬ ', WALL_VERTICAL: ' ║ ', WALL_HORIZONTAL: ' ═ ',
+  COUNTER_BARRIER: ' ╦ ', CONVEYOR_TRACK: ' ▤ ', SLAG_PIT: ' ▒ ', RAIL_TRACK: ' ═ ', BOARDING_PLATFORM: ' ▬ ',
 };
 
 export function serializePlayerContext(
@@ -125,6 +126,8 @@ export function serializePlayerContext(
       if (ent.aiController?.role === 'MERCHANT' && ent.inventory?.containedEntityIds[0]) contextualCommands.push(`{"action": "BUY", "merchantId": "${ent.id}", "itemId": "${ent.inventory.containedEntityIds[0]}"}`);
       if (ent.aiController?.role === 'CHIRURGEON') contextualCommands.push(`{"action": "PAY_CHIRURGEON_HEAL", "chirurgeonId": "${ent.id}"}`);
       if (ent.furniture && ['LOCKER', 'CRATE', 'BOOKSHELF'].includes(ent.furniture.kind) && (ent.inventory?.containedEntityIds.length ?? 0) > 0) contextualCommands.push(`{"action": "LOOT_CONTAINER", "containerId": "${ent.id}"}`);
+      if (ent.furniture?.kind === 'BED') contextualCommands.push('{"action": "REST_AT_BED"}');
+      if (ent.aiController?.role === 'GUARD' || ent.aiController?.factionId === 'CROWN_CONSTABULARY') contextualCommands.push(`{"action": "REPORT_CRIME", "perpetratorId": "${ent.id}"}`);
       const isCorpse = ent.name.toLowerCase().includes('corpse') || ((ent.anatomy?.bloodVolumePct ?? 100) <= 0);
       if (isCorpse && player.inventory) {
         const tool = player.inventory.containedEntityIds.find((id) => (state.entities[id]?.item?.blueprintId ?? '').includes('scalpel') || (state.entities[id]?.name ?? '').toLowerCase().includes('knife'));
@@ -139,12 +142,16 @@ export function serializePlayerContext(
 
   if (player.anatomy) {
     for (const [s, limb] of Object.entries(player.anatomy.limbs)) {
+      if (limb.installedProstheticEntityId) contextualCommands.push(`{"action": "REMOVE_PROSTHETIC", "slot": "${s}"}`);
       const p = limb.installedProstheticEntityId ? state.entities[limb.installedProstheticEntityId] : undefined;
       if (p?.prostheticSpec?.activeAbility && (p.prostheticSpec.activeAbility.cooldownRemaining ?? 0) === 0 && ['HEAD', 'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG'].includes(s)) {
         contextualCommands.push(`{"action": "ACTIVATE_PROSTHETIC", "slot": "${s}"}`);
       }
     }
   }
+
+  const currentPosture = player.actor?.posture ?? 'STANDING';
+  contextualCommands.push(`{"action": "SET_POSTURE", "posture": "${currentPosture === 'STANDING' ? 'CROUCHED' : 'STANDING'}"}`);
 
   const consumable = player.inventory?.containedEntityIds.find((id) => state.entities[id]?.item?.useEffect);
   if (consumable) contextualCommands.push(`{"action": "USE_ITEM", "itemId": "${consumable}"}`);

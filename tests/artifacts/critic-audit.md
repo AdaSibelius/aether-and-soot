@@ -36,9 +36,9 @@
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
 - `ATTACK_ACTOR` (6 dispatches)
-- `BUY_FROM_MERCHANT` (3 dispatches)
-- `MOVE_STEP` (25 dispatches)
-- `TOGGLE_DOOR` (14 dispatches)
+- `BUY_FROM_MERCHANT` (12 dispatches)
+- `MOVE_STEP` (15 dispatches)
+- `TOGGLE_DOOR` (15 dispatches)
 - `USE_ITEM` (3 dispatches)
 - `VENT_STEAM` (9 dispatches)
 - **Dormant Commands (Wired in Serializer, 0 Dispatches)**:
@@ -74,20 +74,20 @@
 - `PRESSURIZE_VESSEL`
 - `PRY_OBSTACLE`
 - `REFILL_STEAM`
+- `REMOVE_PROSTHETIC`
 - `REPAIR_LIMB`
+- `REPORT_CRIME`
+- `REST_AT_BED`
 - `RETRIEVE_ITEM_FROM_STRUCTURE`
 - `SALVAGE_ITEM`
 - `SELL_TO_MERCHANT`
+- `SET_POSTURE`
 - `STOCK_PEDESTAL`
 - `STORE_ITEM_IN_STRUCTURE`
 - `USE_PORTAL`
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `ASCEND_CATACOMBS`
-- `REMOVE_PROSTHETIC`
-- `REPORT_CRIME`
-- `REST_AT_BED`
-- `SET_POSTURE`
 - `SMASH_TERRAIN`
 - `THROW_FLASK`
 - `TRAVEL_DISTRICT`
@@ -107,7 +107,7 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement a bounded circular buffer storing the last 50 significant historical events in WorldState.chronicle. Ensure NPCs within line-of-sight or acoustic range log witnessed incidents into the witnessedEvents collection. Diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. (Target: `src/sim/core/engine.ts`, `src/client/bootstrap-loop.ts`, `src/client/input/keyboard-router.ts`, `src/client/input/modal-nav-router.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement a bounded circular buffer of the last 50 significant historical events in WorldState.chronicle; log witnessed incidents into witnessedEvents for NPCs in line-of-sight or acoustic range; diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. (Target: `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 
@@ -115,7 +115,7 @@
 Implement **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
 2. Pre-split any src/ hotspot >= 245 lines (`src/client/bootstrap-loop.ts` (271 lines)) via `npm run hermes:split`.
-3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `ASCEND_CATACOMBS`, `REMOVE_PROSTHETIC`, `REPORT_CRIME`, `REST_AT_BED`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
+3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `ASCEND_CATACOMBS`, `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
 4. Delegate blueprints (`generate:content`), event logs (`hermes:chronicler`), and test scaffolding (`hermes:testgen`) to local models.
 5. Run `npm run verify`, `npm run hermes:critic`, and `npm run sync:state`, then output the next copy-pasteable prompt.
 ```

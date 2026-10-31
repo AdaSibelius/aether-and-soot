@@ -41,7 +41,7 @@ export function generateIndustrialTypologies(
     x1: 3, y1: 24, x2: 13, y2: 33, mainDoor: boilerDoor,
     rooms: [
       { zone: 'WORKSHOP', x1: 4, y1: 25, x2: 12, y2: 28, label: 'Smelting Hearth' },
-      { zone: 'STORAGE', x1: 4, y1: 30, x2: 12, y2: 32, label: 'Fuel Stacks' },
+      { zone: 'ASSEMBLY_LINE', x1: 4, y1: 30, x2: 12, y2: 32, label: 'Fuel Stacks & Line' },
     ],
     interiorDoors: [{ x: 8, y: 29 }],
     windows: [{ x: 5, y: 33 }, { x: 11, y: 33 }],
@@ -57,13 +57,35 @@ export function generateIndustrialTypologies(
   }));
   grid = carveCorridor(grid, { x: boilerDoor.x, y: boilerDoor.y - 1 }, { x: boilerDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
 
+  // Kinetic plumbing pathways, slag pit trench, conveyor line, and 3x3 thermodynamic stress halo
+  for (let px = 5; px <= 7; px++) {
+    grid = setTileCell(grid, px, 25, (c) => ({ ...c, terrainType: 'BRASS_STEAM_PIPE', blocksMovement: true, blocksSight: false, interiorZone: 'WORKSHOP' }));
+  }
+  for (let sy = 27; sy <= 28; sy++) {
+    grid = setTileCell(grid, 5, sy, (c) => ({ ...c, terrainType: 'SLAG_PIT', blocksMovement: true, blocksSight: false, interiorZone: 'WORKSHOP' }));
+  }
+  for (let cy = 26; cy <= 28; cy++) {
+    grid = setTileCell(grid, 11, cy, (c) => ({ ...c, terrainType: 'CONVEYOR_TRACK', blocksMovement: false, blocksSight: false, interiorZone: 'ASSEMBLY_LINE' }));
+  }
+
   const boilerPos = { x: 6, y: 26 };
   keyPositions.boiler = boilerPos;
   keyPositions.stoker = { x: 8, y: 26 };
+
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      grid = setTileCell(grid, boilerPos.x + dx, boilerPos.y + dy, (c) => ({
+        ...c,
+        steamPressureKpa: Math.max(c.steamPressureKpa, 35),
+        smokePpm: Math.max(c.smokePpm ?? 0, 120),
+      }));
+    }
+  }
+
   const furnaceId = EntityIdSchema.parse('furniture_smelting_furnace');
   entities[furnaceId] = {
     id: furnaceId, name: 'Reverberatory Smelting Furnace',
-    visual: { glyph: 'Ω', fgPrimary: '#E67E22', fgSecondary: '#D35400', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM'] },
+    visual: { glyph: 'Ω', fgPrimary: '#E67E22', fgSecondary: '#D35400', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM', 'VOLUMETRIC_PLUME'] },
     position: { x: 10, y: 26, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     furniture: { kind: 'SMELTING_FURNACE', label: 'Reverberatory Smelting Furnace' },
   };
@@ -74,18 +96,25 @@ export function generateIndustrialTypologies(
   const depotPlan = createVariedBuildingPlan({
     x1: 17, y1: 3, x2: 29, y2: 12, mainDoor: depotDoor,
     rooms: [
-      { zone: 'RECEPTION', x1: 18, y1: 8, x2: 28, y2: 11, label: 'Ticket Concourse' },
-      { zone: 'WORKSHOP', x1: 18, y1: 4, x2: 22, y2: 7, label: 'Actuator Service Bay' },
-      { zone: 'STORAGE', x1: 24, y1: 4, x2: 28, y2: 7, label: 'Pneumatic Parts Depot' },
+      { zone: 'TICKET_BOOTH', x1: 18, y1: 8, x2: 21, y2: 11, label: 'Ticket Booth' },
+      { zone: 'RECEPTION', x1: 22, y1: 8, x2: 28, y2: 11, label: 'Ticket Concourse' },
+      { zone: 'PLATFORM', x1: 18, y1: 4, x2: 28, y2: 7, label: 'Boarding Platforms' },
     ],
-    interiorDoors: [{ x: 20, y: 7 }, { x: 26, y: 7 }],
+    interiorDoors: [{ x: 23, y: 7 }, { x: 21, y: 11 }],
     windows: [{ x: 19, y: 3 }, { x: 27, y: 3 }],
   }, rng, { zone: 'STORAGE', x1: 27, y1: 4, x2: 28, y2: 6, label: 'Lockbox Storage' });
   grid = carveMultiRoomBuilding(grid, depotPlan.spec);
   grid = applyBuildingAttachments(grid, depotPlan);
   grid = carveCorridor(grid, { x: depotDoor.x, y: depotDoor.y + 1 }, { x: depotDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
-  for (let tx = 18; tx <= 22; tx++) {
-    grid = setTileCell(grid, tx, 5, (c) => ({ ...c, terrainType: 'IRON_GRATE', blocksMovement: false, blocksSight: false }));
+
+  // Parallel rail track lines, boarding platform concourse, and ticket counter barrier
+  for (let tx = 18; tx <= 28; tx++) {
+    grid = setTileCell(grid, tx, 4, (c) => ({ ...c, terrainType: 'RAIL_TRACK', blocksMovement: false, blocksSight: false, interiorZone: 'PLATFORM' }));
+    grid = setTileCell(grid, tx, 5, (c) => ({ ...c, terrainType: 'RAIL_TRACK', blocksMovement: false, blocksSight: false, interiorZone: 'PLATFORM' }));
+    grid = setTileCell(grid, tx, 6, (c) => ({ ...c, terrainType: 'BOARDING_PLATFORM', blocksMovement: false, blocksSight: false, interiorZone: 'PLATFORM' }));
+  }
+  for (let ty = 8; ty <= 10; ty++) {
+    grid = setTileCell(grid, 21, ty, (c) => ({ ...c, terrainType: 'COUNTER_BARRIER', blocksMovement: true, blocksSight: false, interiorZone: 'TICKET_BOOTH' }));
   }
 
   const consoleId = EntityIdSchema.parse('furniture_monorail_console');
@@ -94,6 +123,22 @@ export function generateIndustrialTypologies(
     visual: { glyph: '≡', fgPrimary: '#2ECC71', fgSecondary: '#27AE60', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
     position: { x: 23, y: 9, stratum: 'STREET', blocksMovement: true, blocksSight: false },
     furniture: { kind: 'MONORAIL_DEPOT_CONSOLE', label: 'Pneumatic Dispatch Console' },
+  };
+
+  // Dual PressureVessel aether-fuel depot
+  const fuelVessel1Id = EntityIdSchema.parse('vessel_depot_aether_fuel_1');
+  entities[fuelVessel1Id] = {
+    id: fuelVessel1Id, name: 'Pneumatic Aether-Fuel Reserve Alpha',
+    visual: { glyph: 'B', fgPrimary: '#5DADE2', fgSecondary: '#2E86C1', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM', 'VOLUMETRIC_PLUME'] },
+    position: { x: 27, y: 5, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    pressureVessel: { currentPressureKpa: 120, maxPressureKpa: 250, ruptured: false },
+  };
+  const fuelVessel2Id = EntityIdSchema.parse('vessel_depot_aether_fuel_2');
+  entities[fuelVessel2Id] = {
+    id: fuelVessel2Id, name: 'Pneumatic Aether-Fuel Reserve Beta',
+    visual: { glyph: 'B', fgPrimary: '#5DADE2', fgSecondary: '#2E86C1', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM', 'VOLUMETRIC_PLUME'] },
+    position: { x: 28, y: 5, stratum: 'STREET', blocksMovement: true, blocksSight: false },
+    pressureVessel: { currentPressureKpa: 120, maxPressureKpa: 250, ruptured: false },
   };
 
   // 3. Guild Artisan Workshop (Bottom-Center)
@@ -113,8 +158,30 @@ export function generateIndustrialTypologies(
   grid = applyBuildingAttachments(grid, artisanPlan);
   grid = carveCorridor(grid, { x: artisanDoor.x, y: artisanDoor.y - 1 }, { x: artisanDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
 
+  // Kinetic plumbing pathways, slag pit trench, conveyor line, and 3x3 thermodynamic stress halo
+  for (let py = 26; py <= 27; py++) {
+    grid = setTileCell(grid, 22, py, (c) => ({ ...c, terrainType: 'BRASS_STEAM_PIPE', blocksMovement: true, blocksSight: false, interiorZone: 'WORKSHOP' }));
+  }
+  for (let sy = 26; sy <= 27; sy++) {
+    grid = setTileCell(grid, 24, sy, (c) => ({ ...c, terrainType: 'SLAG_PIT', blocksMovement: true, blocksSight: false, interiorZone: 'WORKSHOP' }));
+  }
+  for (let cx = 25; cx <= 28; cx++) {
+    grid = setTileCell(grid, cx, 27, (c) => ({ ...c, terrainType: 'CONVEYOR_TRACK', blocksMovement: false, blocksSight: false, interiorZone: 'ASSEMBLY_LINE' }));
+  }
+
   const benchPos = { x: 20, y: 31 };
   keyPositions.artisanBench = benchPos;
+
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      grid = setTileCell(grid, benchPos.x + dx, benchPos.y + dy, (c) => ({
+        ...c,
+        steamPressureKpa: Math.max(c.steamPressureKpa, 35),
+        smokePpm: Math.max(c.smokePpm ?? 0, 120),
+      }));
+    }
+  }
+
   const artisanVaultId = EntityIdSchema.parse('furniture_artisan_vault');
   entities[artisanVaultId] = {
     id: artisanVaultId, name: 'Guild Ingot Strongbox',

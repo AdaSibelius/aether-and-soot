@@ -3,6 +3,7 @@ import { resolveEndpoint, resolveModel } from './local-llm-config.js';
 export interface CriticConfig {
   readonly skipPlaytest: boolean;
   readonly model: string;
+  readonly playtestModel?: string | undefined;
   readonly endpoint: string;
   readonly mock: boolean;
   readonly output: string;
@@ -18,6 +19,7 @@ export function parseCriticArgs(argv: string[]): CriticConfig {
     skipPlaytest: args.includes('--skip-playtest'),
     mock: args.includes('--mock'),
     model: getArg('--model') ?? resolveModel('tier1'),
+    playtestModel: getArg('--playtest-model'),
     endpoint: getArg('--endpoint') ?? resolveEndpoint(),
     output: getArg('--output') ?? 'tests/artifacts/critic-audit.md',
   };

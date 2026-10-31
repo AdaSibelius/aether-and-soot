@@ -90,6 +90,7 @@ describe('Phase 54: Diegetic Presentation Shell & GLSL Shader Suite', () => {
       expect(DIEGETIC_FRAGMENT_SHADER).toContain('uThermoStress');
       expect(DIEGETIC_FRAGMENT_SHADER).toContain('uChromaticAberration');
       expect(DIEGETIC_FRAGMENT_SHADER).toContain('heatHaze');
+      expect(DIEGETIC_FRAGMENT_SHADER).toContain('uSmokeMask');
     });
 
     it('creates default uniform values and verifies physical optics constants', () => {
@@ -110,6 +111,7 @@ describe('Phase 54: Diegetic Presentation Shell & GLSL Shader Suite', () => {
       expect(packed['uThermoStress']?.type).toBe('f32');
       expect(packed['uChromaticAberration']?.type).toBe('f32');
       expect(packed['uBloomThresholds']?.type).toBe('vec2<f32>');
+      expect(packed['uSmokeMask']?.type).toBe('vec4<f32>');
     });
 
     it('interpolates thermodynamic stress predictably without runaway divergence', () => {

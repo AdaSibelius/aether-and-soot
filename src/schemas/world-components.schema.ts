@@ -75,6 +75,7 @@ export const FurnitureComponentSchema = z.object({
     'BOTANICAL_PLANTER',
     'MONORAIL_DEPOT_CONSOLE',
     'APOTHECARY_COUNTER',
+    'PEDESTAL',
   ]),
   label: z.string().min(1),
   durabilityHp: z.number().int().positive().optional(),

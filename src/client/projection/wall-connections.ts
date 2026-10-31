@@ -14,6 +14,7 @@ export const WALL_BOX_GLYPHS = {
   TEE_EAST: '╠',
   TEE_WEST: '╣',
   DEFAULT: '#',
+  SOLID_INTERIOR: '▓',
 } as const;
 
 export function isWallTerrain(terrainType: TerrainType): boolean {
@@ -73,6 +74,7 @@ export function isWallJoinableTerrain(terrainType: TerrainType): boolean {
     case 'GLASS_WINDOW':
     case 'SMASHED_WINDOW_FRAME':
     case 'DISTRICT_GATE':
+    case 'COUNTER_BARRIER':
       return true;
     default:
       return false;
@@ -104,8 +106,15 @@ export function resolveConnectingWallGlyph(grid: StratumGrid, x: number, y: numb
   const e = hasWallAt(grid, x + 1, y);
   const w = hasWallAt(grid, x - 1, y);
 
-  // 4-way intersection
-  if (n && s && e && w) return WALL_BOX_GLYPHS.CROSS;
+  // 4-way intersection (render filled masonry ▓ for 8-neighbor enclosed walls to eliminate ╬ clutter)
+  if (n && s && e && w) {
+    const nw = hasWallAt(grid, x - 1, y - 1);
+    const ne = hasWallAt(grid, x + 1, y - 1);
+    const sw = hasWallAt(grid, x - 1, y + 1);
+    const se = hasWallAt(grid, x + 1, y + 1);
+    if (nw && ne && sw && se) return WALL_BOX_GLYPHS.SOLID_INTERIOR;
+    return WALL_BOX_GLYPHS.CROSS;
+  }
 
   // 3-way junctions (Tees)
   if (n && s && e && !w) return WALL_BOX_GLYPHS.TEE_EAST;

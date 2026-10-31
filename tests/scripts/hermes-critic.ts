@@ -73,7 +73,7 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
         maxTurns: 15,
         seed: 42,
         endpoint: config.endpoint,
-        model: resolveModel('tier3'),
+        model: config.playtestModel ?? resolveModel('tier3'),
         reportPath: path.join(rootDir, 'tests/artifacts/playtest-report.md'),
         scenario,
       });
