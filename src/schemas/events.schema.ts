@@ -24,6 +24,7 @@ import {
   SupplyShockTriggeredEventSchema, ThermalScaldEventSchema, VesselRupturedEventSchema,
   ProstheticActivatedEventSchema, GovernorOverloadedEventSchema,
   CyberneticHarvestedEventSchema, HarvestActionFailedEventSchema,
+  CompanionTransitPreservedEventSchema,
 } from './core-events.schema.js';
 import {
   EquipmentActionFailedEventSchema, ItemEquippedEventSchema,
@@ -123,10 +124,12 @@ export {
   ProceduralBarkEmittedEventSchema, TurfTariffEnforcedEventSchema,
   SmogChokingPulseEventSchema, CorpseDesecrationWitnessedEventSchema,
 } from './lore-events.schema.js';
+export { CompanionTransitPreservedEventSchema } from './core-events.schema.js';
 export type {
   ProceduralBarkEmittedEvent, TurfTariffEnforcedEvent,
   SmogChokingPulseEvent, CorpseDesecrationWitnessedEvent,
 } from './lore-events.schema.js';
+export type { CompanionTransitPreservedEvent } from './core-events.schema.js';
 
 export const SimEventSchema = z.discriminatedUnion('type', [
   EntityMovedEventSchema,
@@ -157,6 +160,7 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   DoorToggledEventSchema,
   DistrictTraveledEventSchema,
   TransitActionFailedEventSchema,
+  CompanionTransitPreservedEventSchema,
   ItemCraftedEventSchema,
   ItemSalvagedEventSchema,
   LimbRepairedEventSchema,

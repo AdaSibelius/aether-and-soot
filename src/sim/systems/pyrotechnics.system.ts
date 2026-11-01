@@ -75,6 +75,7 @@ export function resolveEmitSpark(state: WorldState, target: Point3D): SystemPyro
       updatedGrid = setTileCell(updatedGrid, pt.x, pt.y, (c) => ({
         ...c,
         coalDustDensity: 0,
+        terrainType: c.blocksMovement ? c.terrainType : 'SCORCHED_STONE',
         steamPressureKpa: c.steamPressureKpa + 55,
       }));
     }

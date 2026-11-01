@@ -5,9 +5,9 @@ import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
 import { getTileCell, isWithinBounds, setTileCell } from '../spatial/grid.js';
 import { resolveDamageLimb } from './anatomy.system.js';
-import { resolveActorDefeatIfFatal } from './mortality.system.js';
 import { resolveEmitSpark } from './pressure.system.js';
 import { emitAcousticPulse } from './stealth-acoustics.system.js';
+import { resolveAbyssGravityFall } from './physics-abyss-fall.js';
 
 export interface PhysicsTrapResult {
   readonly state: WorldState;
@@ -64,51 +64,8 @@ export function resolveKnockbackAndGravityFall(
 
   // Multi-strata gravity fall from SPIRE abyss chasm to STREET
   if (currentStratum === 'SPIRE' && destCell?.terrainType === 'ABYSS_DROP') {
-    let workingState = state;
-    const fallEvents: SimEvent[] = [];
-
-    // Check for pneumatic leg shock absorption
-    let legDmg = 20;
-    let steamSpent = 0;
-    const hasPneumaticLeg = Object.values(actor.anatomy?.limbs ?? {}).some((l) => {
-      if (!l.installedProstheticEntityId) return false;
-      const p = workingState.entities[l.installedProstheticEntityId];
-      return p?.prostheticSpec?.blueprintId.includes('pneumatic');
-    });
-
-    if (hasPneumaticLeg && (actor.anatomy?.steamReserveKpa ?? 0) >= 15) {
-      legDmg = 10;
-      steamSpent = 15;
-    }
-
-    const updatedActor: EntityRecord = {
-      ...actor,
-      position: { ...actor.position, stratum: 'STREET', x: nx, y: ny },
-      anatomy: actor.anatomy
-        ? { ...actor.anatomy, steamReserveKpa: Math.max(0, actor.anatomy.steamReserveKpa - steamSpent) }
-        : undefined,
-    };
-    workingState = { ...workingState, entities: { ...workingState.entities, [actorId]: updatedActor } };
-
-    const lDmg = resolveDamageLimb(workingState, actorId, 'LEFT_LEG', legDmg);
-    workingState = lDmg.state;
-    fallEvents.push(...lDmg.events);
-
-    const rDmg = resolveDamageLimb(workingState, actorId, 'RIGHT_LEG', legDmg);
-    workingState = rDmg.state;
-    fallEvents.push(...rDmg.events);
-
-    const defeat = resolveActorDefeatIfFatal(workingState, actorId);
-    workingState = defeat.state;
-    fallEvents.push(...defeat.events);
-
-    fallEvents.unshift({
-      type: 'ACTOR_FELL_STRATUM', turn, actorId,
-      fromStratum: 'SPIRE', toStratum: 'STREET', impactDamage: legDmg * 2,
-    });
-
-    const impactNoise = emitAcousticPulse(workingState, { x: nx, y: ny, stratum: 'STREET' }, 75, turn, actorId);
-    return { state: impactNoise.state, events: [...fallEvents, ...impactNoise.events], apSpent: 0 };
+    const fallRes = resolveAbyssGravityFall(state, actor, nx, ny, turn);
+    return { state: fallRes.state, events: fallRes.events, apSpent: 0 };
   }
 
   // Normal displacement if walkable

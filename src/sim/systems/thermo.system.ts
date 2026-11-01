@@ -1,11 +1,12 @@
 import { SimEvent } from '../../schemas/events.schema.js';
 import { StratumId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../core/world.js';
-import { getTileCell, isWithinBounds, setTileCell, StratumGrid, TileCell } from '../spatial/grid.js';
+import { getTileCell, isWithinBounds, StratumGrid, TileCell } from '../spatial/grid.js';
 import { resolveDamageLimb } from './anatomy.system.js';
 import { discoverCodexEntry } from './codex.system.js';
 import { computeEquippedBonuses } from './equipment.system.js';
 import { resolveActorDefeatIfFatal } from './mortality.system.js';
+import { transferPortalAtmospherics } from './thermo-portals.js';
 
 export const SCALD_PRESSURE_THRESHOLD_KPA = 25;
 const STEAM_DIFFUSION_SHARE = 0.4;
@@ -101,45 +102,7 @@ export function advanceThermodynamicsTick(state: WorldState): {
     }
   }
 
-  // Transfer 30% of steam upward through gas-conducting portals (e.g. Undercroft -> Street)
-  const stratumElevation: Record<StratumId, number> = {
-    CATACOMBS: -1,
-    UNDERCROFT: 0,
-    STREET: 1,
-    SPIRE: 2,
-  };
-
-  for (const entity of Object.values(state.entities)) {
-    const pos = entity.position;
-    const portal = entity.portal;
-    if (!pos || !portal || !portal.conductsGas) continue;
-
-    const fromElev = stratumElevation[pos.stratum];
-    const toElev = stratumElevation[portal.target.stratum];
-    if (toElev <= fromElev) continue;
-
-    const sourceGrid = nextStrata[pos.stratum];
-    const targetGrid = nextStrata[portal.target.stratum];
-    if (!sourceGrid || !targetGrid) continue;
-
-    const sourceCell = getTileCell(sourceGrid, pos.x, pos.y);
-    if (!sourceCell || sourceCell.steamPressureKpa <= 1) continue;
-
-    const transferred = Math.round(sourceCell.steamPressureKpa * 0.3 * 100) / 100;
-    nextStrata[pos.stratum] = setTileCell(sourceGrid, pos.x, pos.y, (c) => ({
-      ...c,
-      steamPressureKpa: Math.max(0, c.steamPressureKpa - transferred),
-    }));
-    nextStrata[portal.target.stratum] = setTileCell(
-      targetGrid,
-      portal.target.x,
-      portal.target.y,
-      (c) => ({
-        ...c,
-        steamPressureKpa: c.steamPressureKpa + transferred,
-      }),
-    );
-  }
+  transferPortalAtmospherics(nextStrata, state.entities);
 
   let workingState: WorldState = {
     ...state,

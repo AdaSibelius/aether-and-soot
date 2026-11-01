@@ -214,6 +214,13 @@ export function resolveBiomeTerrainVisual(
       fgSecondary = isVisible ? '#9A7D0A' : '#382A01';
       bgColor = p.floorBg;
       break;
+    case 'SCORCHED_STONE':
+      glyph = ',';
+      fgPrimary = isVisible ? '#5D6D7E' : '#2C3E50';
+      fgSecondary = isVisible ? '#2C3E50' : '#1C2833';
+      bgColor = isVisible ? '#17202A' : '#0A0D0E';
+      if (isVisible) shaderFlags = ['SOOT_OCCLUSION'];
+      break;
     case 'ABYSS_DROP':
       glyph = ' ';
       bgColor = '#000000';

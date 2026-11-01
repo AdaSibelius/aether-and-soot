@@ -50,6 +50,7 @@ export function getArchitecturalTerrainProperties(terrainType: TerrainType): {
     case 'CONVEYOR_TRACK':
     case 'RAIL_TRACK':
     case 'BOARDING_PLATFORM':
+    case 'SCORCHED_STONE':
       return { blocksMovement: false, blocksSight: false };
     case 'GLASS_WINDOW':
       return { blocksMovement: true, blocksSight: false };

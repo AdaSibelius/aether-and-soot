@@ -49,6 +49,7 @@ export function resolveWhaleOilCascade(
       ...c,
       liquidType: 'NONE',
       liquidVolumeMl: 0,
+      terrainType: c.blocksMovement ? c.terrainType : 'SCORCHED_STONE',
       steamPressureKpa: c.steamPressureKpa + 45,
       smokePpm: (c.smokePpm ?? 0) + 120,
     }));

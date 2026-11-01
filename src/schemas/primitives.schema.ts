@@ -96,6 +96,7 @@ export const TerrainTypeSchema = z.enum([
   'SLAG_PIT',
   'RAIL_TRACK',
   'BOARDING_PLATFORM',
+  'SCORCHED_STONE',
 ]);
 export type TerrainType = z.infer<typeof TerrainTypeSchema>;
 

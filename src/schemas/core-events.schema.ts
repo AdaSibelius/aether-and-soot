@@ -230,3 +230,14 @@ export const MacroTickCompletedEventSchema = z.object({
   turn: z.number().int().nonnegative(),
   macroTickIndex: z.number().int().positive(),
 });
+
+export const CompanionTransitPreservedEventSchema = z.object({
+  type: z.literal('COMPANION_TRANSIT_PRESERVED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  companionEntityId: EntityIdSchema,
+  fromDistrictId: BlueprintIdSchema,
+  toDistrictId: BlueprintIdSchema,
+  arrivalPosition: Point3DSchema,
+});
+export type CompanionTransitPreservedEvent = z.infer<typeof CompanionTransitPreservedEventSchema>;

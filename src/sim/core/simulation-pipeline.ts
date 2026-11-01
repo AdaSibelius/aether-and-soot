@@ -1,5 +1,5 @@
 import { SimEvent } from '../../schemas/events.schema.js';
-import { EntityId } from '../../schemas/primitives.schema.js';
+import { EntityId, StratumId } from '../../schemas/primitives.schema.js';
 import { computeVisibleTiles } from '../spatial/fov.js';
 import { markExploredTiles } from '../spatial/grid.js';
 import { advanceNpcTurns } from '../systems/ai.system.js';
@@ -39,10 +39,11 @@ export function advanceWorldEnvironment(
     workingState = thermoTick.state;
     events.push(...thermoTick.events);
 
-    const activeStratum = workingState.entities['actor_player' as EntityId]?.position?.stratum ?? 'STREET';
-    const hazardTick = advanceEnvironmentalHazards(workingState, activeStratum);
-    workingState = hazardTick.state;
-    events.push(...hazardTick.events);
+    for (const stratum of Object.keys(workingState.strata) as StratumId[]) {
+      const hazardTick = advanceEnvironmentalHazards(workingState, stratum);
+      workingState = hazardTick.state;
+      events.push(...hazardTick.events);
+    }
   }
 
   return { state: workingState, events };

@@ -8,6 +8,7 @@ import { spawnDistrictItems } from './item-spawner.js';
 import { spawnDistrictNpcs } from './district-spawner.js';
 import { catchUpDistrictState } from './district-catchup.system.js';
 import { resolveToggleDoor } from './door.system.js';
+import { collectPartyPreservedEntities, placePreservedCompanions } from './transit-companions.js';
 
 export { resolveToggleDoor };
 
@@ -74,18 +75,8 @@ export function resolveTravelDistrict(
 
   const fromDistrictId = state.currentDistrictId;
 
-  // Preserve player, carried inventory items, and installed prosthetics
-  const preservedEntities: Record<string, EntityRecord> = { [actorId]: actor };
-  for (const invId of actor.inventory?.containedEntityIds ?? []) {
-    const item = state.entities[invId];
-    if (item) preservedEntities[invId] = item;
-  }
-  for (const limb of Object.values(actor.anatomy?.limbs ?? {})) {
-    if (limb.installedProstheticEntityId) {
-      const p = state.entities[limb.installedProstheticEntityId];
-      if (p) preservedEntities[limb.installedProstheticEntityId] = p;
-    }
-  }
+  // Preserve player, carried inventory items, installed prosthetics, and party companions
+  const { preservedEntities, companions } = collectPartyPreservedEntities(state, actorId);
 
   if (!state.strata.UNDERCROFT || !state.strata.STREET || !state.strata.SPIRE) {
     return failTransit(state, currentTurn, actorId, 'TRAVEL_DISTRICT', 'NO_GATE_AT_POSITION');
@@ -156,6 +147,18 @@ export function resolveTravelDistrict(
     };
   }
 
+  const companionPlacement = placePreservedCompanions(
+    companions,
+    arrivalPos,
+    nextStrata[arrivalPos.stratum],
+    nextEntities,
+    currentTurn,
+    actorId,
+    fromDistrictId,
+    targetDistrictId,
+  );
+  nextEntities = companionPlacement.updatedEntities;
+
   const nextState: WorldState = {
     ...state,
     currentDistrictId: targetDistrictId,
@@ -173,7 +176,10 @@ export function resolveTravelDistrict(
 
   return {
     state: nextState,
-    events: [{ type: 'DISTRICT_TRAVELED', turn: currentTurn, actorId, fromDistrictId, toDistrictId: targetDistrictId }],
+    events: [
+      { type: 'DISTRICT_TRAVELED', turn: currentTurn, actorId, fromDistrictId, toDistrictId: targetDistrictId },
+      ...companionPlacement.events,
+    ],
     apSpent: matchingGate.districtGate.apCost,
   };
 }

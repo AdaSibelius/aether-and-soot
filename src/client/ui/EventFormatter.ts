@@ -58,6 +58,8 @@ export function formatEventMessage(ev: SimEvent): string {
       return `[T${ev.turn}] ${ev.newState === 'OPEN' ? 'Opened' : 'Closed'} door at (${ev.at.x}, ${ev.at.y}).`;
     case 'DISTRICT_TRAVELED':
       return `[T${ev.turn}] Traveled to ${ev.toDistrictId}!`;
+    case 'COMPANION_TRANSIT_PRESERVED':
+      return `[T${ev.turn}] Companion ${ev.companionEntityId} arrived safely in ${ev.toDistrictId}.`;
     case 'TRANSIT_ACTION_FAILED':
       return `[T${ev.turn}] Transit (${ev.action}) failed: ${ev.reason}`;
     case 'ITEM_CRAFTED':

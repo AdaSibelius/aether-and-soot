@@ -56,6 +56,7 @@ export const PortalComponentSchema = z.object({
   target: Point3DSchema,
   bidirectional: z.boolean().default(true),
   conductsGas: z.boolean().default(true),
+  conductsLiquid: z.boolean().default(false).optional(),
   apCost: z.number().int().positive().default(100),
   portalLabel: z.string().min(1),
 });
