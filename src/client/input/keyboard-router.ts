@@ -1,9 +1,9 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityId, LimbSlotId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
-import { findActorAtStepTarget, findAdjacentHostileActor } from '../client-interactions.js';
 import { ModalWindowId } from '../ui/CharacterModalShell.js';
 import { handleModalNavigationKey, ModalNavState } from './modal-nav-router.js';
+import { handleAdjacentCombatKey, handleLookCombatKey, handleStepOrBumpAttack } from './keyboard-combat-router.js';
 
 export interface KeyboardRouterParams {
   readonly playerId: EntityId;
@@ -35,13 +35,13 @@ export interface KeyboardRouterParams {
   readonly onCommand: (cmd: GameCommand) => void;
 }
 
-const SLOT_MAP: Record<string, LimbSlotId> = {
-  '1': 'HEAD',
-  '2': 'TORSO',
-  '3': 'LEFT_ARM',
-  '4': 'RIGHT_ARM',
-  '5': 'LEFT_LEG',
-  '6': 'RIGHT_LEG',
+const MODAL_KEY_MAP: Record<string, ModalWindowId> = {
+  i: 'INVENTORY', I: 'INVENTORY',
+  c: 'WORKBENCH', C: 'WORKBENCH',
+  m: 'EXCHANGE', M: 'EXCHANGE',
+  A: 'ANATOMY',
+  W: 'ATLAS',
+  k: 'CODEX', K: 'CODEX',
 };
 
 const MOVE_MAP: Record<string, { dx: number; dy: number }> = {
@@ -116,15 +116,7 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
       if (handled) return;
     }
 
-    const modalKeyMap: Record<string, ModalWindowId> = {
-      i: 'INVENTORY', I: 'INVENTORY',
-      A: 'ANATOMY',
-      c: 'WORKBENCH', C: 'WORKBENCH',
-      m: 'EXCHANGE', M: 'EXCHANGE',
-      W: 'ATLAS',
-      k: 'CODEX', K: 'CODEX',
-    };
-    const targetModal = modalKeyMap[ev.key];
+    const targetModal = MODAL_KEY_MAP[ev.key];
     if (targetModal) {
       ev.preventDefault();
       onSetModal(activeModal === targetModal ? null : targetModal);
@@ -146,17 +138,7 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
       onMoveLookCursor(dir.dx, dir.dy);
       return;
     }
-    const slot = SLOT_MAP[ev.key];
-    if (slot) {
-      ev.preventDefault();
-      onLookAttack(slot);
-      return;
-    }
-    if (ev.key === 'f' || ev.key === 'F') {
-      ev.preventDefault();
-      onLookAttack('TORSO');
-      return;
-    }
+    if (handleLookCombatKey(ev, onLookAttack)) return;
     if (ev.key === 'Enter' || ev.key === 'o' || ev.key === 'O') {
       ev.preventDefault();
       onLookInteract();
@@ -166,33 +148,12 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
   }
 
   // Quick-Target Combat Hotkeys outside Look Mode
-  if (params.worldState) {
-    const adjHostile = findAdjacentHostileActor(params.worldState, playerId);
-    if (adjHostile) {
-      const slot = SLOT_MAP[ev.key];
-      if (slot) {
-        ev.preventDefault();
-        onCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: adjHostile.id, targetSlot: slot });
-        return;
-      }
-      if (ev.key === 'f' || ev.key === 'F') {
-        ev.preventDefault();
-        onCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: adjHostile.id, targetSlot: 'TORSO' });
-        return;
-      }
-    }
+  if (params.worldState && handleAdjacentCombatKey(ev, params.worldState, playerId, onCommand)) {
+    return;
   }
 
   // Tactical Hotkeys to Open Modal Windows
-  const openModalMap: Record<string, ModalWindowId> = {
-    i: 'INVENTORY', I: 'INVENTORY',
-    c: 'WORKBENCH', C: 'WORKBENCH',
-    m: 'EXCHANGE', M: 'EXCHANGE',
-    A: 'ANATOMY',
-    W: 'ATLAS',
-    k: 'CODEX', K: 'CODEX',
-  };
-  const toOpen = openModalMap[ev.key];
+  const toOpen = MODAL_KEY_MAP[ev.key];
   if (toOpen) {
     ev.preventDefault();
     onSetModal(toOpen);
@@ -219,20 +180,7 @@ export function handleGameKeydown(ev: KeyboardEvent, params: KeyboardRouterParam
   const move = MOVE_MAP[ev.key];
   if (move) {
     ev.preventDefault();
-    if (params.worldState) {
-      const targetActor = findActorAtStepTarget(params.worldState, playerId, move.dx, move.dy);
-      if (targetActor) {
-        if (targetActor.aiController?.hostile) {
-          onCommand({ type: 'ATTACK_ACTOR', attackerId: playerId, targetId: targetActor.id, targetSlot: 'TORSO' });
-          return;
-        }
-        if (onTalk) {
-          onTalk(targetActor.id);
-          return;
-        }
-      }
-    }
-    onCommand({ type: 'MOVE_STEP', actorId: playerId, dx: move.dx, dy: move.dy });
+    handleStepOrBumpAttack(move.dx, move.dy, params.worldState, playerId, onCommand, onTalk);
     return;
   }
 

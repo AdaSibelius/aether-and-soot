@@ -54,11 +54,11 @@ export { HazardTriggeredEventSchema };
 export type { HazardTriggeredEvent, HazardType };
 import {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, TransitActionFailedEventSchema2,
+  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, MonorailActionFailedEventSchema,
 } from './transit-events.schema.js';
 export {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, TransitActionFailedEventSchema2,
+  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, MonorailActionFailedEventSchema,
 };
 export type {
   MonorailBoardedEvent, MonorailLaunchedEvent, MonorailArrivedEvent,
@@ -128,47 +128,6 @@ export type {
   SmogChokingPulseEvent, CorpseDesecrationWitnessedEvent,
 } from './lore-events.schema.js';
 
-export {
-  ActorDefeatedEventSchema, ActorRestedEventSchema, CombatActionFailedEventSchema,
-  CombatAttackResolvedEventSchema, ContainerLootedEventSchema, CraftingFailedEventSchema, DistrictTraveledEventSchema,
-  DoorToggledEventSchema, FurnitureActionFailedEventSchema, InventoryActionFailedEventSchema,
-  ItemCraftedEventSchema, ItemDroppedEventSchema, ItemPickedUpEventSchema,
-  ItemSalvagedEventSchema, ItemUsedEventSchema, LimbRepairedEventSchema,
-  MerchantTradeCompletedEventSchema, RecipeUnlockedEventSchema, TerrainSmashedEventSchema,
-  TradeActionFailedEventSchema, TransitActionFailedEventSchema, SoundEmittedEventSchema,
-  WallBreachedEventSchema, ActorFellStratumEventSchema, TrapTriggeredEventSchema,
-  ChirurgeonHealCompletedEventSchema, CompanionRecruitedEventSchema,
-  ContractAcceptedEventSchema, ContractCompletedEventSchema,
-  DialogueActionFailedEventSchema,
-  ActorWaitedEventSchema, CoalDustIgnitedEventSchema, EntityMovedEventSchema,
-  LimbAmputatedEventSchema, LimbDamagedEventSchema, MacroTickCompletedEventSchema,
-  MovementBlockedEventSchema, PedestalStockedEventSchema, PortalFailedEventSchema,
-  ProstheticActionFailedEventSchema, ProstheticInstalledEventSchema,
-  ProstheticRemovedEventSchema, SteamRefilledEventSchema, SteamRefillFailedEventSchema, SteamVentedEventSchema, SteamVentFailedEventSchema,
-  StorefrontSaleCompletedEventSchema, StratumChangedEventSchema,
-  SupplyShockTriggeredEventSchema, ThermalScaldEventSchema, VesselRupturedEventSchema,
-  EquipmentActionFailedEventSchema, ItemEquippedEventSchema,
-  ItemUnequippedEventSchema, RangedAttackResolvedEventSchema,
-  ProstheticActivatedEventSchema, GovernorOverloadedEventSchema,
-  CyberneticHarvestedEventSchema, HarvestActionFailedEventSchema,
-  AlchemicalConsumedEventSchema, ToxicityOverdoseEventSchema,
-  WithdrawalOnsetEventSchema, StaminaDepletedEventSchema,
-  PostureChangedEventSchema,
-  EntityKnockedBackEventSchema,
-  MomentumCollisionImpactEventSchema,
-  WeaponModInstalledEventSchema,
-  WeaponModUninstalledEventSchema,
-  AmmoLoadedEventSchema,
-  ObstaclePriedEventSchema,
-  WeaponModActionFailedEventSchema,
-  LiquidSpilledEventSchema,
-  LiquidIgnitedEventSchema,
-  ItemCoatedEventSchema,
-  AcidCorrosionTickEventSchema,
-  SurfaceSlippedEventSchema,
-  LiquidActionFailedEventSchema,
-};
-
 export const SimEventSchema = z.discriminatedUnion('type', [
   EntityMovedEventSchema,
   MovementBlockedEventSchema,
@@ -222,7 +181,7 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   WitnessCrimeReportedEventSchema, SquadCalloutEmittedEventSchema,
   SquadmateRalliedEventSchema, GrudgeAcquiredEventSchema,
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
-  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, TransitActionFailedEventSchema2,
+  CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, MonorailActionFailedEventSchema,
   WorkshopDeedClaimedEventSchema, StructureBuiltEventSchema,
   StructureStorageUpdatedEventSchema, CodexEntryDiscoveredEventSchema,
   CodexConsultedEventSchema, NpcCodexReactionEventSchema, SafehouseActionFailedEventSchema,

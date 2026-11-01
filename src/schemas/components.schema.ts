@@ -14,37 +14,21 @@ import {
 } from './primitives.schema.js';
 import { EquipmentSlotSchema, EquipmentSpecSchema } from './equipment.schema.js';
 import {
-  AiControllerComponent,
   AiControllerComponentSchema,
-  CombatStatsComponent,
   CombatStatsComponentSchema,
-  CrossStratumShaftComponent,
   CrossStratumShaftComponentSchema,
-  DistrictGateComponent,
   DistrictGateComponentSchema,
-  DistrictGraphNodeComponent,
   DistrictGraphNodeComponentSchema,
-  FurnitureComponent,
   FurnitureComponentSchema,
-  HydrologyChannelComponent,
   HydrologyChannelComponentSchema,
-  LandmarkComponent,
   LandmarkComponentSchema,
-  MonorailCarComponent,
   MonorailCarComponentSchema,
-  NpcScheduleComponent,
   NpcScheduleComponentSchema,
-  ThermalComponent,
   ThermalComponentSchema,
-  TradePedestalComponent,
   TradePedestalComponentSchema,
-  TrapComponent,
   TrapComponentSchema,
-  UtilityConduitComponent,
   UtilityConduitComponentSchema,
-  WitnessMemoryEntry,
   WitnessMemoryEntrySchema,
-  WorkbenchComponent,
   WorkbenchComponentSchema,
 } from './world-components.schema.js';
 
@@ -167,43 +151,6 @@ export const ItemComponentSchema = z.object({
 export type ItemComponent = z.infer<typeof ItemComponentSchema>;
 
 import { ProfessionIdSchema, TraitIdSchema } from './character.schema.js';
-
-export {
-  AiControllerComponentSchema,
-  CombatStatsComponentSchema,
-  CrossStratumShaftComponentSchema,
-  DistrictGateComponentSchema,
-  DistrictGraphNodeComponentSchema,
-  FurnitureComponentSchema,
-  HydrologyChannelComponentSchema,
-  LandmarkComponentSchema,
-  MonorailCarComponentSchema,
-  NpcScheduleComponentSchema,
-  ThermalComponentSchema,
-  TradePedestalComponentSchema,
-  TrapComponentSchema,
-  UtilityConduitComponentSchema,
-  WitnessMemoryEntrySchema,
-  WorkbenchComponentSchema,
-};
-export type {
-  AiControllerComponent,
-  CombatStatsComponent,
-  CrossStratumShaftComponent,
-  DistrictGateComponent,
-  DistrictGraphNodeComponent,
-  FurnitureComponent,
-  HydrologyChannelComponent,
-  LandmarkComponent,
-  MonorailCarComponent,
-  NpcScheduleComponent,
-  ThermalComponent,
-  TradePedestalComponent,
-  TrapComponent,
-  UtilityConduitComponent,
-  WitnessMemoryEntry,
-  WorkbenchComponent,
-};
 
 export const EntityComponentsSchema = z.object({
   id: EntityIdSchema,

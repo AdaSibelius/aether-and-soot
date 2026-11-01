@@ -50,10 +50,10 @@ export const CatacombsDepthAscendedEventSchema = z.object({
 });
 export type CatacombsDepthAscendedEvent = z.infer<typeof CatacombsDepthAscendedEventSchema>;
 
-export const TransitActionFailedEventSchema2 = z.object({
+export const MonorailActionFailedEventSchema = z.object({
   type: z.literal('MONORAIL_ACTION_FAILED'),
   turn: z.number().int().nonnegative(),
   actorId: EntityIdSchema,
   reason: z.string(),
 });
-export type MonorailActionFailedEvent = z.infer<typeof TransitActionFailedEventSchema2>;
+export type MonorailActionFailedEvent = z.infer<typeof MonorailActionFailedEventSchema>;
