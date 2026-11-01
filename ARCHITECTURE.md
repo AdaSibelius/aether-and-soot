@@ -17,6 +17,10 @@ flowchart LR
 
     subgraph Ring2["Ring 2: Headless Simulation Core\n(src/sim/)"]
         Engine["dispatchCommand()\nsrc/sim/core/engine.ts"]
+        Resolver["resolveAction()\nsrc/sim/core/action-resolver.ts"]
+        Router["routeDomainCommand()\nsrc/sim/core/command-router.ts"]
+        Pipeline["executeSimulationPhases()\nsrc/sim/core/simulation-pipeline.ts"]
+        Invariants["assertWorldInvariants()\nsrc/sim/core/invariants.ts"]
         Systems["Pure Domain Systems\nsrc/sim/systems/*.system.ts"]
         World["WorldState Store\nsrc/sim/core/world.ts"]
     end
@@ -31,8 +35,12 @@ flowchart LR
     Schemas --> Ring2
     Schemas --> Ring3
     Preact -- "Dispatches GameCommand" --> Engine
-    Engine --> Systems
-    Systems --> World
+    Engine --> Resolver
+    Resolver --> Router
+    Router --> Systems
+    Engine --> Pipeline
+    Pipeline --> World
+    Pipeline --> Invariants
     World -. "Readonly<WorldState>" .-> Adapter
     Adapter --> Pixi
     World -. "Readonly<WorldState>" .-> Preact
@@ -61,12 +69,14 @@ All game state lives in a single flat, JSON-serializable object validated by `Wo
 
 ### Exact Execution Order of a Turn (`dispatchCommand` in `src/sim/core/engine.ts`)
 When a command is dispatched via `dispatchCommand(currentState, rawCommand)`:
-1. **Runtime Validation**: `GameCommandSchema.parse(rawCommand)` validates the command payload.
-2. **PRNG Hydration**: `new SeededRNG(currentState.rngState)` restores the deterministic PRNG.
-3. **Domain System Execution**: The `switch (command.type)` block invokes the corresponding pure function in `src/sim/systems/*.system.ts`, returning `{ state, events, apSpent }`.
-4. **Environmental Thermodynamics Tick**: `advanceThermodynamicsTick(nextState)` (`src/sim/systems/thermo.system.ts`) runs double-buffered cellular automata for steam and coal dust across all 3 strata, transfers rising steam upward through portals (`conductsGas: true`), and applies `THERMAL_SCALD` limb damage to actors in high-pressure steam (`>= 25 kPa`).
-5. **Energy & Macro-Tick Scheduling**: `advanceTurnSchedule(...)` (`src/sim/core/scheduler.ts`) deducts `apSpent` from `actor.energy`, adds `actor.speed`, increments `turnCount`, and—if `turnCount % 100 === 0`—invokes `advanceDistrictEconomyMacroTick(...)` (`src/sim/systems/economy.system.ts`) and appends `MACRO_TICK_COMPLETED`.
-6. **Client Projection (Browser Only)**: `src/client/main.tsx` passes the new `WorldState` to `projectWorldToVisualFrame(worldState)` (`src/client/projection/frame-adapter.ts`), which computes 8-octant shadowcasting FOV (`computeVisibleTiles` in `src/sim/spatial/fov.ts` + prosthetic FOV bonuses) and updates both `GlyphStageRenderer` and Preact `<HudLayout />`.
+1. **Runtime Validation & Hydration**: `GameCommandSchema.parse(rawCommand)` validates the command payload, and `new SeededRNG(currentState.rngState)` restores the deterministic PRNG.
+2. **Action Resolution (`resolveAction` in `src/sim/core/action-resolver.ts`)**: Checks actor mortality via `isActorFatal()`. Routes spatial actions (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`) via `src/sim/core/spatial-actions.ts` and all domain commands via `routeDomainCommand()` in `src/sim/core/command-router.ts` to pure systems in `src/sim/systems/*.system.ts`, returning a `CommandResolution` (`applied` or `rejected`).
+3. **Three-Phase Simulation Pipeline (`executeSimulationPhases` in `src/sim/core/simulation-pipeline.ts`)**:
+   - *Phase 1: Environment & NPC AI (`advanceWorldEnvironment`)*: Runs autonomous NPC AI turns (`advanceNpcTurns`), double-buffered cellular automata for steam and coal dust (`advanceThermodynamicsTick`), and active hazards (`advanceEnvironmentalHazards`).
+   - *Phase 2: Temporal & Scheduling (`advanceTemporalState`)*: Decrements prosthetic cooldowns (`decrementProstheticCooldowns`), deducts `apSpent` from initiative energy, recovers speed energy, increments `turnCount`, and triggers periodic macro-ticks (`advanceTurnSchedule` in `scheduler.ts` calling `advanceDistrictEconomyMacroTick` every 100 turns).
+   - *Phase 3: Perception & Exploration (`advancePerception`)*: Computes player sensory field-of-view (`computeVisibleTiles` in `src/sim/spatial/fov.ts` + prosthetic bonuses) and updates explored stratum tiles (`markExploredTiles`).
+4. **Relational Invariant Verification (`assertWorldInvariants` in `src/sim/core/invariants.ts`)**: In development and test runs, asserts relational ECS consistency (entity coordinates, limb HP bounds, non-negative resources, schema integrity).
+5. **Client Projection (Browser Only)**: `src/client/main.tsx` passes the new `WorldState` to `projectWorldToVisualFrame(worldState)` (`src/client/projection/frame-adapter.ts`), which computes 8-octant shadowcasting FOV and updates `GlyphStageRenderer` and Canvas UI / Preact overlays.
 
 ---
 
@@ -82,11 +92,13 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/schemas/primitives.schema.ts` | `EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema` (`UNDERCROFT` \| `STREET` \| `SPIRE`), `FactionIdSchema`, `CommodityIdSchema`, `ItemCategorySchema`, `ItemUseEffectSchema`, `HexColorSchema`, `ShaderFlagSchema`, `Point2DSchema`, `Point3DSchema`, `VisualGlyphSpecSchema`, `LimbSlotIdSchema`, `SocketTypeSchema` |
 | `src/schemas/blueprint.schema.ts` | Declarative JSON schemas: `ProstheticBlueprintSchema`, `CommodityBlueprintSchema`, `GasFluidBlueprintSchema`, `DistrictBlueprintSchema`, `ItemBlueprintSchema`, `CraftingRecipeBlueprintSchema` |
 | `src/schemas/components.schema.ts` | ECS components on `EntityRecord`: `position`, `actor`, `portal`, `anatomy` (`limbs`, `bloodVolumePct`, `steamReserveKpa`), `inventory`, `prostheticSpec`, `pressureVessel`, `item`, `districtGate`, `workbench`, `aiController`, `combatStats` |
-| `src/schemas/commands.schema.ts` | `GameCommandSchema` discriminated union (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`, `VENT_STEAM`, `DAMAGE_LIMB`, `INSTALL_PROSTHETIC`, `REMOVE_PROSTHETIC`, `REFILL_STEAM`, `PRESSURIZE_VESSEL`, `EMIT_SPARK`, `STOCK_PEDESTAL`, `TRIGGER_SUPPLY_SHOCK`, `PICK_UP_ITEM`, `DROP_ITEM`, `USE_ITEM`, `TOGGLE_DOOR`, `TRAVEL_DISTRICT`, `CRAFT_RECIPE`, `SALVAGE_ITEM`, `REPAIR_LIMB`, `ATTACK_ACTOR`, `BUY_FROM_MERCHANT`, `SELL_TO_MERCHANT`) |
+| `src/schemas/commands.schema.ts` | `GameCommandSchema` discriminated union (62 command variants across spatial, domain, combat, safehouse, transit, witness, and lore schemas) |
 | `src/schemas/domain-events.schema.ts` | Extracted domain event schemas for inventory, district transit, crafting, salvage, limb repair, combat, and merchant trading |
-| `src/schemas/events.schema.ts` | `SimEventSchema` discriminated union (all 34 event types emitted by systems and formatted in `HudLayout.tsx`) |
+| `src/schemas/events.schema.ts` | `SimEventSchema` discriminated union (108 event variants emitted by systems and formatted in `EventFormatter.ts` / `HudLayout.tsx`) |
 
 ### B. Headless Simulation Core (`src/sim/`)
+The headless simulation core comprises **12 core engine/infrastructure files** in `src/sim/core/` (`engine.ts`, `action-resolver.ts`, `command-router.ts`, `simulation-pipeline.ts`, `invariants.ts`, `scheduler.ts`, `rng.ts`, `world.ts`, `world-factory.ts`, `world-migration.ts`, `spatial-actions.ts`, `command-resolution.ts`), **63 pure domain systems** in `src/sim/systems/`, **6 procgen/spatial files** in `src/sim/spatial/`, and **1 catalog loader** in `src/sim/data/`.
+
 | File | Current Lines | Exports & Responsibility |
 | :--- | :--- | :--- |
 | `src/sim/core/rng.ts` | 76 | `SeededRNG` (`nextUint32`, `nextFloat`, `nextInt`, `getState`), `RNGStateSchema` |
@@ -123,6 +135,8 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/sim/systems/economy.system.ts` | 197 | `createInitialEconomyLedger`, `computeBoundedPricePence`, `resolveTriggerSupplyShock`, `advanceDistrictEconomyMacroTick` |
 
 ### C. Presentation & UI Shell (`src/client/`)
+The presentation shell comprises **62 files across 7 subdirectories** (`audio/`, `canvas-ui/`, `input/`, `persistence/`, `projection/`, `renderer/`, `ui/`), housing the PixiJS canvas console UI with analog Bourdon gauges and vernier scanner (`src/client/canvas-ui/`), WebAudio procedural soundscape synth (`src/client/audio/`), keyboard and modal navigation routers (`src/client/input/`), save-state persistence (`src/client/persistence/`), and Preact HUD layouts (`src/client/ui/`).
+
 | File | Exports & Responsibility |
 | :--- | :--- |
 | `src/client/projection/frame-adapter.ts` | `projectWorldToVisualFrame(state, focusActorId, baseFovRadius)` -> `VisualGridFrame` |
@@ -151,8 +165,8 @@ Follow this exact 6-step sequence whenever adding a new command or system:
 2. **Pure System Function (`src/sim/systems/`)**:
    - Check the line count of the target `.system.ts` file (`wc -l`). **If it is over 220 lines, create a new `<domain>.system.ts` file** instead of bloating the existing file past the 300-line hard limit.
    - Implement a pure function `(state: WorldState, ...) => { state: WorldState, events: SimEvent[], apSpent: number }`.
-3. **Wire into `dispatchCommand` (`src/sim/core/engine.ts`)**:
-   - Add a `case` for the new `command.type` in `src/sim/core/engine.ts`.
+3. **Wire Command Routing (`src/sim/core/command-router.ts` & `src/sim/core/action-resolver.ts`)**:
+   - `dispatchCommand()` in `src/sim/core/engine.ts` delegates execution through `resolveAction()` (`src/sim/core/action-resolver.ts`). Spatial actions (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`) are routed to `src/sim/core/spatial-actions.ts`, while all other domain commands are dispatched through `routeDomainCommand()` in `src/sim/core/command-router.ts`. Add a `case` for the new `command.type` in `src/sim/core/command-router.ts` (or `action-resolver.ts` for spatial actions).
 4. **Update Event Formatter (`src/client/ui/EventFormatter.ts`)**:
    - Add a `case` for the new `SimEvent['type']` in `formatEventMessage()` (or run `npm run hermes:chronicler`) so exhaustive TypeScript checks pass.
 5. **Write Deterministic Unit Test (`tests/sim/`)**:

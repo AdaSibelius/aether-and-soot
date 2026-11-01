@@ -799,9 +799,9 @@
       "priority": "P1",
       "category": "UNREACHABLE_MECHANIC",
       "title": "Phase 56",
-      "directive": "Implement a bounded circular buffer of the last 50 significant historical events in WorldState.chronicle; log witnessed incidents into witnessedEvents for NPCs in line-of-sight or acoustic range; diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks.",
+      "directive": "Implement macro-commodity supply chains and scarcity cascades (Anthracite Coal, Carbolic Tincture, Preserved Rations) with downstream clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.",
       "targetFiles": [
-        "src/sim/core/engine.ts"
+        "src/sim/systems/economy.system.ts"
       ],
       "verification": "tests/sim/determinism.test.ts"
     },

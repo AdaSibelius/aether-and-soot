@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { LlmConnectionTelemetry } from './local-llm-config.js';
-import { CriticAudit, CriticSanityResult } from './critic-sanity.js';
+import type { LlmConnectionTelemetry } from './local-llm-config.js';
+import type { CriticAudit, CriticSanityResult } from './critic-sanity.js';
 
 export interface CommandCoverage {
   active: string[];
@@ -17,11 +17,17 @@ export function auditCommandCoverage(rootDir: string, histogram: Record<string, 
     path.join(rootDir, 'src/schemas/skirmish-commands.schema.ts'),
     path.join(rootDir, 'src/schemas/transit-commands.schema.ts'),
     path.join(rootDir, 'src/schemas/witness-commands.schema.ts'),
+    path.join(rootDir, 'src/schemas/lore-commands.schema.ts'),
+    path.join(rootDir, 'src/schemas/equipment.schema.ts'),
   ];
   const allCmds = new Set<string>();
   for (const f of cmdFiles) {
     if (fs.existsSync(f)) {
-      for (const m of fs.readFileSync(f, 'utf-8').matchAll(/type:\s*z\.literal\(['"]([A-Z0-9_]+)['"]\)/g)) {
+      const content = fs.readFileSync(f, 'utf-8');
+      const regex = f.endsWith('equipment.schema.ts')
+        ? /export const \w+CommandSchema\s*=\s*z\.object\(\{[\s\S]*?type:\s*z\.literal\(['"]([A-Z0-9_]+)['"]\)/g
+        : /type:\s*z\.literal\(['"]([A-Z0-9_]+)['"]\)/g;
+      for (const m of content.matchAll(regex)) {
         if (m[1]) allCmds.add(m[1]);
       }
     }
@@ -177,4 +183,11 @@ ${prescriptionsBlock}
 
 ${buildHandoffPrompt(data.nextPriority, topHotspot, topUnwired)}
 `;
+}
+
+if (process.argv[1] && (process.argv[1].endsWith('critic-report.ts') || process.argv[1].endsWith('critic-report.js'))) {
+  const rootDir = process.cwd();
+  const coverage = auditCommandCoverage(rootDir, {});
+  const total = coverage.active.length + coverage.dormant.length + coverage.unwired.length;
+  console.log(`[critic-report] Audited commands: ${total} total (${coverage.active.length} active, ${coverage.dormant.length} dormant, ${coverage.unwired.length} unwired)`);
 }

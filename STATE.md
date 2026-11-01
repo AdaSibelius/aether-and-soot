@@ -11,7 +11,7 @@
 - Phase 56: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement a bounded circular buffer of the last 50 significant historical events in WorldState.chronicle; log witnessed incidents into witnessedEvents for NPCs in line-of-sight or acoustic range; diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. (Target: `src/sim/core/engine.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement macro-commodity supply chains and scarcity cascades (Anthracite Coal, Carbolic Tincture, Preserved Rations) with downstream clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. (Target: `src/sim/systems/economy.system.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like tests/scripts/hermes-critic.ts and playtester-projection-audit.ts to enforce 250-line target. (Target: `tests/scripts/hermes-critic.ts`, `tests/scripts/playtester-projection-audit.ts` | Verification: `tests/sim/determinism.test.ts`)
 
@@ -30,6 +30,6 @@ Implement **Phase 56**: Causal Supply Chains & Disruption Cascades: Aggregate ma
 
 | Priority | Category | Title | Directive | Target Files | Verification |
 | --- | --- | --- | --- | --- | --- |
-| P1 | UNREACHABLE_MECHANIC | Phase 56 | Implement a bounded circular buffer of the last 50 significant historical events in WorldState.chronicle; log witnessed incidents into witnessedEvents for NPCs in line-of-sight or acoustic range; diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. | `src/sim/core/engine.ts` | `tests/sim/determinism.test.ts` |
+| P1 | UNREACHABLE_MECHANIC | Phase 56 | Implement macro-commodity supply chains and scarcity cascades (Anthracite Coal, Carbolic Tincture, Preserved Rations) with downstream clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. | `src/sim/systems/economy.system.ts` | `tests/sim/determinism.test.ts` |
 | P2 | SIM_BALANCE | Expand Playtest Serializer Command Surface | Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. | `tests/scripts/playtester-serializer.ts` | `tests/sim/determinism.test.ts` |
 | P3 | MODULE_SPLIT | Modularity Guard & File Splitting | Monitor and pre-split near-cap modules like tests/scripts/hermes-critic.ts and playtester-projection-audit.ts to enforce 250-line target. | `tests/scripts/hermes-critic.ts`, `tests/scripts/playtester-projection-audit.ts` | `tests/sim/determinism.test.ts` |

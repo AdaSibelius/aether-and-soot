@@ -107,14 +107,14 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. resolving unwiredCommands and telemetry anomalies. (Target: `src/sim/systems/squad-witness.system.ts`, `src/sim/systems/dialogue-quest.system.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement macro-commodity supply chains and scarcity cascades (Anthracite Coal, Carbolic Tincture, Preserved Rations) with downstream clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. (Target: `src/sim/systems/economy.system.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ASCEND_CATACOMBS, SMASH_TERRAIN, THROW_FLASK, TRAVEL_DISTRICT) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
 - **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/bootstrap-loop.ts to resolve modularityHotspot anomaly. (Target: `src/client/bootstrap-loop.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
-Implement **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. adhering to AGENTS.md and ARCHITECTURE.md:
+Implement **Phase 56**: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
 2. Pre-split any src/ hotspot >= 245 lines (`src/client/bootstrap-loop.ts` (271 lines)) via `npm run hermes:split`.
 3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `ASCEND_CATACOMBS`, `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.

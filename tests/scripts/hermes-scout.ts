@@ -58,7 +58,8 @@ export function generateDeterministicScoutReport(task: string, files: AstFileMet
 
   const reusable = [
     'src/sim/spatial/grid.ts (isWithinBounds, getTileCell, setTileCell, findEntitiesAtPoint)',
-    'src/sim/core/engine.ts (dispatchCommand, SeededRNG)',
+    'src/sim/core/rng.ts (SeededRNG)',
+    'src/sim/core/engine.ts (dispatchCommand)',
   ];
   if (lower.includes('sight') || lower.includes('stealth') || lower.includes('fov')) {
     reusable.push('src/sim/spatial/fov.ts (computeVisibleTiles, isPointVisible)');

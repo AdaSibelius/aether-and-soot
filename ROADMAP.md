@@ -69,6 +69,7 @@ Inspired by the visual density and procedural depth of *Cataclysm: Dark Days Ahe
 | **Tier G Prep**: Phase 51 Architectural Scoping | `npm run check:boundaries && npm run typecheck` | `ROADMAP.md`, `STATE.md` | `PREPPED` (exit 0) |
 | **Phase 53**: State Machine Modernization & Governance Tooling | `npm run test:sim -- -t "Phase 53"` | `.agents/state.json`, `src/schemas/project-state.schema.ts` | `VERIFIED` (exit 0) |
 | **Phase 54**: Diegetic Presentation Shell & GLSL Shader Suite | `npm run test:sim -- -t "Phase 54"` | `src/client/renderer/steampunk-pipeline.ts`, `diegetic-post-filter.ts` | `VERIFIED` (exit 0) |
+| **Phase 55**: High-Density Victorian Mechanical Console UI | `npm run test:sim -- -t "Phase 55"` | `src/client/canvas-ui/analog-gauges.ts`, `tactical-vernier.ts` | `VERIFIED` (exit 0) |
 
 ### Tier G: The Living City — Causal Geography, Authored Landmarks & Narrative Continuity (Phases 51–57)
 
@@ -96,9 +97,10 @@ Synthesizing the systemic audit recommendations into a coherent, causal simulati
   - Implemented 4-pass GLSL shader suite (spherical lens curvature `k=0.08`, Edison aperture shadow mask, dual-threshold amber/cyan bloom, and thermodynamic heat haze / chromatic aberration).
   - Expanded `glyph-atlas-extended.ts` to full 256-glyph CP437 with sub-pixel alignment and Victorian technical symbols (`⚙`, `☼`, `╬`, `⌖`, `◈`, `░▒▓█`).
   - Extracted `camera-governor.ts` from `frame-adapter.ts` to smoothly center viewports and render engraved copperplate architectural cross-sections along world borders.
-- [x] **Phase 55: Causal Supply Chains & Disruption Cascades** *(Completed)*: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.
-- [ ] **Phase 56: Bounded World Chronicle, Witness Memory & Rumor Network**: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks.
-- [ ] **Phase 57: Investigation Journal & Forensic Environmental Clues**: Detective UI (`[J]` Casebook & Investigation Ledger), forensic tile examination on breached/sabotaged machinery, and clue categorization (`OBSERVED`, `LEARNED`, `HEARD`). Assembling matching clues resolves inquiries to unlock unique faction contracts, safehouse passcodes, or diplomatic leverage.
+- [x] **Phase 55: High-Density Victorian Mechanical Console UI** *(Completed)*: Primary PixiJS Canvas UI buffer embedding Bourdon pressure gauge, sanguine manometer, split-flap odometer, optical vernier tile scanner, and embarkation registry ledger.
+- [ ] **Phase 56: Causal Supply Chains & Disruption Cascades** *(PLANNED)*: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.
+- [ ] **Phase 57: Bounded World Chronicle, Witness Memory & Rumor Network** *(PLANNED)*: Bounded circular buffer of the last 50 significant historical events in `WorldState.chronicle`. NPCs in line-of-sight or acoustic range log witnessed incidents into `witnessedEvents`, diffusing rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks.
+- [ ] **Phase 58: Investigation Journal & Forensic Environmental Clues** *(PLANNED)*: Detective UI (`[J]` Casebook & Investigation Ledger), forensic tile examination on breached/sabotaged machinery, and clue categorization (`OBSERVED`, `LEARNED`, `HEARD`). Assembling matching clues resolves inquiries to unlock unique faction contracts, safehouse passcodes, or diplomatic leverage.
 
 ### Tier F: Emergent Systemic Backlog (Critic Suggestions)
 
@@ -154,6 +156,6 @@ This serves as the permanent holding area for validated, out-of-scope systemic i
 
 | Priority | Category | Title | Directive | Target Files | Verification |
 | --- | --- | --- | --- | --- | --- |
-| P1 | UNREACHABLE_MECHANIC | Phase 56 | Implement a bounded circular buffer of the last 50 significant historical events in WorldState.chronicle; log witnessed incidents into witnessedEvents for NPCs in line-of-sight or acoustic range; diffuse rumors across shift changes with faction-slanted blame attribution in dynamic dialogue barks. | `src/sim/core/engine.ts` | `tests/sim/determinism.test.ts` |
+| P1 | UNREACHABLE_MECHANIC | Phase 56 | Macro-commodity supply chains and scarcity cascades (Anthracite Coal, Carbolic Tincture, Preserved Rations) with downstream stockouts and strikes. | `src/sim/systems/economy.system.ts` | `tests/sim/determinism.test.ts` |
 | P2 | SIM_BALANCE | Expand Playtest Serializer Command Surface | Wire unwired commands (REMOVE_PROSTHETIC, REPORT_CRIME, REST_AT_BED, SET_POSTURE) to reduce unwiredCommands count. | `tests/scripts/playtester-serializer.ts` | `tests/sim/determinism.test.ts` |
 | P3 | MODULE_SPLIT | Modularity Guard & File Splitting | Monitor and pre-split near-cap modules like tests/scripts/hermes-critic.ts and playtester-projection-audit.ts to enforce 250-line target. | `tests/scripts/hermes-critic.ts, tests/scripts/playtester-projection-audit.ts` | `tests/sim/determinism.test.ts` |

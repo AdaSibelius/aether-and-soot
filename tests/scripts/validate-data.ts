@@ -34,7 +34,8 @@ function runDataValidation(): void {
     'data/hazards/gases_and_fluids.json',
     z.array(GasFluidBlueprintSchema).min(1),
   );
-  const districtFiles = ['soot_works.json', 'whitechapel_ward.json', 'limehouse_docks.json'];
+  const districtDir = path.join(ROOT_DIR, 'data/districts');
+  const districtFiles = fs.readdirSync(districtDir).filter((f) => f.endsWith('.json'));
   const districts = districtFiles.flatMap((f) =>
     validateJsonFile(`data/districts/${f}`, z.array(DistrictBlueprintSchema).min(1)),
   );
