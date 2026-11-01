@@ -6,6 +6,21 @@ export type EntityId = z.infer<typeof EntityIdSchema>;
 export const BlueprintIdSchema = z.string().min(1).brand<'BlueprintId'>();
 export type BlueprintId = z.infer<typeof BlueprintIdSchema>;
 
+export const ChunkKeySchema = z.string().min(1).brand<'ChunkKey'>();
+export type ChunkKey = z.infer<typeof ChunkKeySchema>;
+
+export const ConduitEdgeIdSchema = z.string().min(1).brand<'ConduitEdgeId'>();
+export type ConduitEdgeId = z.infer<typeof ConduitEdgeIdSchema>;
+
+export const CausalConduitTypeSchema = z.enum([
+  'STEAM_ARTERIAL',
+  'HYDRAULIC_SLUICE',
+  'PNEUMATIC_FREIGHT',
+  'AETHER_TELEGRAPH',
+  'SEWER_OUTFALL',
+]);
+export type CausalConduitType = z.infer<typeof CausalConduitTypeSchema>;
+
 export const StratumIdSchema = z.enum(['UNDERCROFT', 'STREET', 'SPIRE', 'CATACOMBS']);
 export type StratumId = z.infer<typeof StratumIdSchema>;
 
