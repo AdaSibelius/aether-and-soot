@@ -213,6 +213,8 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'HYDROLOGY_DRAINED': return `[T${ev.turn}] Hydrology sluice drained ${ev.volumeDrainedMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y}).`;
     case 'HYDROLOGY_FLOODING': return `[T${ev.turn}] FLOOD WARNING! Closed sluice flooded ${ev.volumeOverflowMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y})!`;
 
+case 'CHUNK_WINDOW_SHIFTED':
+      return `[T${ev.turn}] The cityscape shifts, aether currents rearrange the very fabric of the metropolis.`;
 case 'CAUSAL_CONDUIT_MODULATED':
       return `[T${ev.turn}] The aether's currents surged, manipulated by unseen forces`;
 case 'DISTRICT_CAUSAL_CASCADE_TRIGGERED':

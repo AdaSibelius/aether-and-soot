@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BlueprintIdSchema, ConduitEdgeIdSchema, EntityIdSchema } from './primitives.schema.js';
+import { ChunkCoordinateSchema } from './chunk-streaming.schema.js';
 
 export const MonorailBoardedEventSchema = z.object({
   type: z.literal('MONORAIL_BOARDED'),
@@ -79,4 +80,14 @@ export const DistrictCausalCascadeTriggeredEventSchema = z.object({
 export type DistrictCausalCascadeTriggeredEvent = z.infer<
   typeof DistrictCausalCascadeTriggeredEventSchema
 >;
+
+export const ChunkWindowShiftedEventSchema = z.object({
+  type: z.literal('CHUNK_WINDOW_SHIFTED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  fromCenter: ChunkCoordinateSchema.optional(),
+  toCenter: ChunkCoordinateSchema,
+  activeChunkCount: z.number().int().nonnegative(),
+});
+export type ChunkWindowShiftedEvent = z.infer<typeof ChunkWindowShiftedEventSchema>;
 

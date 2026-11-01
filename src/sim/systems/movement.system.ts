@@ -2,8 +2,11 @@ import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId, LimbSlotId, Point3D } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
+import { SeededRNG } from '../core/rng.js';
 import { WorldState } from '../core/world.js';
 import { findBlockingEntityAtPoint, getTileCell, isWithinBounds } from '../spatial/grid.js';
+import { worldPointToChunkCoord } from '../spatial/chunk-coords.js';
+import { syncActorChunkWindow } from '../spatial/chunk-streamer.js';
 import { computeActorStepNoiseDb, emitAcousticPulse } from './stealth-acoustics.system.js';
 import { resolveToggleDoor } from './transit.system.js';
 import { resolveStepOnTraps } from './physics-traps.system.js';
@@ -201,6 +204,17 @@ export function resolveMoveStep(
   const liquidRes = resolveStepOnLiquids(nextState, actorId, origin, targetPoint, state.turnCount + 1);
   nextState = liquidRes.state;
   moveEvents.push(...liquidRes.events);
+
+  if (actor.actor?.isPlayer) {
+    const fromCoord = worldPointToChunkCoord(nextState.currentDistrictId, origin);
+    const toCoord = worldPointToChunkCoord(nextState.currentDistrictId, targetPoint);
+    if (fromCoord.cx !== toCoord.cx || fromCoord.cy !== toCoord.cy || fromCoord.stratum !== toCoord.stratum) {
+      const rng = new SeededRNG(nextState.seed + nextState.turnCount);
+      const streamRes = syncActorChunkWindow(nextState, actorId, rng);
+      nextState = streamRes.state;
+      moveEvents.push(...streamRes.events);
+    }
+  }
 
   return { state: nextState, apSpent, events: moveEvents };
 }

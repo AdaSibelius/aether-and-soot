@@ -57,16 +57,19 @@ import {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
   CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, MonorailActionFailedEventSchema,
   CausalConduitModulatedEventSchema, DistrictCausalCascadeTriggeredEventSchema,
+  ChunkWindowShiftedEventSchema,
 } from './transit-events.schema.js';
 export {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
   CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, MonorailActionFailedEventSchema,
   CausalConduitModulatedEventSchema, DistrictCausalCascadeTriggeredEventSchema,
+  ChunkWindowShiftedEventSchema,
 };
 export type {
   MonorailBoardedEvent, MonorailLaunchedEvent, MonorailArrivedEvent,
   CatacombsDepthDescendedEvent, CatacombsDepthAscendedEvent, MonorailActionFailedEvent,
   CausalConduitModulatedEvent, DistrictCausalCascadeTriggeredEvent,
+  ChunkWindowShiftedEvent,
 } from './transit-events.schema.js';
 
 import {
@@ -215,5 +218,6 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   ConduitRupturedEventSchema, ShaftTransportEventSchema,
   HydrologySluiceEventSchema, HydrologyFloodingEventSchema,
   CausalConduitModulatedEventSchema, DistrictCausalCascadeTriggeredEventSchema,
+  ChunkWindowShiftedEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;
