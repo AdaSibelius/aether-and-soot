@@ -7,13 +7,28 @@
     <link rel="stylesheet" href="/node_modules/@fontsource/ibm-plex-mono/index.css" />
     <style>
       :root {
-        --bg-soot: #101615;
-        --panel-bg: #202A28;
-        --panel-border: #355B54;
-        --panel-border-bright: #C1A15B;
-        --brass-gold: #C1A15B;
+        /* Ratified 6-Token Oxidized Iron Palette */
+        --iron-deep-rust: #7A2E22;
+        --iron-charcoal: #1B1F22;
+        --iron-tarnished-brass: #C5A059;
+        --iron-verdigris: #3D7E73;
+        --iron-sulfur-amber: #E5A93C;
+        --iron-soot-black: #0B0C0E;
+
+        /* 4-Tier Z-Depth Stratification Hierarchy */
+        --z0-tactical-void: #0B0C0E;
+        --z1-recess-well: #1B1F22;
+        --z2-machined-chassis: #202A28;
+        --z3-emissive-readout: #E5A93C;
+
+        /* Semantic Mappings */
+        --bg-soot: var(--z0-tactical-void);
+        --panel-bg: var(--z1-recess-well);
+        --panel-border: var(--iron-deep-rust);
+        --panel-border-bright: var(--iron-tarnished-brass);
+        --brass-gold: var(--iron-tarnished-brass);
         --oxidized-copper: #cd7f32;
-        --tesla-cyan: #355B54;
+        --tesla-cyan: var(--iron-verdigris);
         --parchment: #D9CCAA;
         --muted-slate: #7a868a;
         --ok-green: #52be80;
@@ -25,7 +40,7 @@
       body {
         margin: 0;
         padding: 0;
-        background-color: var(--bg-soot);
+        background-color: var(--z0-tactical-void);
         color: var(--parchment);
         font-family: 'IBM Plex Mono', 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
         display: flex;
@@ -62,14 +77,19 @@
         display: none !important;
       }
       #canvas-stage {
-        border: 2px solid #221c15;
+        border: 3px double var(--iron-tarnished-brass);
+        outline: 2px solid var(--iron-deep-rust);
+        outline-offset: 1px;
         position: relative;
         display: flex;
         justify-content: center;
         align-items: center;
         margin: auto;
         overflow: hidden;
-        box-shadow: 0 0 32px rgba(212, 175, 55, 0.18), inset 0 0 16px rgba(0, 0, 0, 0.95);
+        background: var(--z0-tactical-void);
+        box-shadow:
+          0 0 32px rgba(197, 160, 89, 0.20),
+          inset 0 0 24px rgba(11, 12, 14, 0.95);
       }
       #canvas-stage canvas {
         width: 100% !important;
@@ -84,22 +104,49 @@
         gap: 10px;
       }
       .panel-box {
-        background: var(--panel-bg);
-        border: 1px solid var(--panel-border);
+        position: relative;
+        background: var(--z1-recess-well);
+        border: 3px double var(--iron-tarnished-brass);
+        outline: 1px solid var(--iron-deep-rust);
         padding: 8px 10px;
         font-size: 11px;
-        box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+        box-shadow:
+          inset 0 0 12px rgba(0, 0, 0, 0.85),
+          0 2px 6px rgba(0, 0, 0, 0.6);
+      }
+      .panel-box::before {
+        content: '☼';
+        position: absolute;
+        top: -6px;
+        left: -3px;
+        font-size: 8px;
+        line-height: 1;
+        color: var(--iron-tarnished-brass);
+        text-shadow: 0 0 2px #000;
+        pointer-events: none;
+      }
+      .panel-box::after {
+        content: '☼';
+        position: absolute;
+        top: -6px;
+        right: -3px;
+        font-size: 8px;
+        line-height: 1;
+        color: var(--iron-tarnished-brass);
+        text-shadow: 0 0 2px #000;
+        pointer-events: none;
       }
       .panel-header {
-        color: var(--brass-gold);
+        color: var(--iron-tarnished-brass);
         font-weight: bold;
         letter-spacing: 0.08em;
-        border-bottom: 1px solid var(--panel-border);
+        border-bottom: 2px solid var(--iron-deep-rust);
         padding-bottom: 4px;
         margin-bottom: 6px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
       }
       .stat-row,
       .limb-item {
@@ -108,13 +155,19 @@
         padding: 2px 0;
       }
       .brass-text {
-        color: var(--brass-gold);
+        color: var(--iron-tarnished-brass);
       }
       .copper-text {
         color: var(--oxidized-copper);
       }
       .tesla-text {
-        color: var(--tesla-cyan);
+        color: var(--iron-verdigris);
+      }
+      .amber-text {
+        color: var(--iron-sulfur-amber);
+      }
+      .rust-text {
+        color: var(--iron-deep-rust);
       }
       .ok-text {
         color: var(--ok-green);
@@ -128,29 +181,33 @@
         gap: 6px;
       }
       button {
-        background: #11181c;
-        color: var(--brass-gold);
-        border: 1px solid var(--panel-border);
+        background: var(--iron-charcoal);
+        color: var(--iron-tarnished-brass);
+        border: 1px solid var(--iron-deep-rust);
+        border-left: 3px solid var(--iron-tarnished-brass);
         padding: 4px 8px;
         font-family: inherit;
         font-size: 11px;
         cursor: pointer;
         text-align: left;
-        transition: border-color 0.15s, background 0.15s;
+        transition: border-color 0.15s, background 0.15s, color 0.15s;
       }
       button:hover {
-        background: #1a252c;
-        border-color: var(--brass-gold);
+        background: #232a2f;
+        border-color: var(--iron-sulfur-amber);
+        border-left-color: var(--iron-sulfur-amber);
+        color: var(--iron-sulfur-amber);
       }
       .log-box {
         flex: 1;
         min-height: 140px;
+        background: var(--z1-recess-well);
       }
       .log-entry {
         font-size: 11px;
         line-height: 1.4;
         padding: 2px 0;
-        border-bottom: 1px dashed #172126;
+        border-bottom: 1px dashed var(--iron-deep-rust);
       }
       .muted {
         color: var(--muted-slate);

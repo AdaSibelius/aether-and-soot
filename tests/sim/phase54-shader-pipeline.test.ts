@@ -132,6 +132,22 @@ describe('Phase 54: Diegetic Presentation Shell & GLSL Shader Suite', () => {
       }
       expect(current).toBe(0);
     });
+
+    it('verifies tactical split uniform exists and isolates UI console from distortion', () => {
+      expect(DIEGETIC_FRAGMENT_SHADER).toContain('uTacticalSplit');
+      const uniforms = createDefaultShaderUniformValues();
+      expect(uniforms.tacticalSplit).toBeCloseTo(58.0 / 88.0, 4);
+
+      const packed = packShaderUniforms(uniforms);
+      expect(packed['uTacticalSplit']?.type).toBe('f32');
+      expect(packed['uTacticalSplit']?.value).toBeCloseTo(58.0 / 88.0, 4);
+
+      const pipeline = new SteampunkRenderPipeline(1056, 720, false);
+      expect(pipeline.getTacticalSplit()).toBeCloseTo(58.0 / 88.0, 4);
+      pipeline.setTacticalSplit(0.0);
+      expect(pipeline.getTacticalSplit()).toBe(0.0);
+      pipeline.setTacticalSplit(58.0 / 88.0);
+    });
   });
 
   describe('Camera Governor & Copperplate Border Cross-Sections', () => {

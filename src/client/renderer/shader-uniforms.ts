@@ -8,15 +8,18 @@ export interface DiegeticShaderUniformValues {
   resolution: [number, number];
   bloomThresholds: [number, number]; // [amberMin, cyanMin]
   smokeMask?: [number, number, number, number];
+  tacticalSplit?: number; // Normalized UV X boundary separating tactical map from UI console (default: 58/88)
 }
 
 export const DEFAULT_LENS_CURVATURE = 0.03;
 export const DEFAULT_SCANLINE_INTENSITY = 0.08;
 export const DEFAULT_CHROMATIC_ABERRATION = 0.0008;
+export const DEFAULT_TACTICAL_SPLIT = 58.0 / 88.0; // Column 58 of 88 columns = 0.6590909
 
 export function createDefaultShaderUniformValues(
   widthPx = 1056,
   heightPx = 720,
+  tacticalSplit = DEFAULT_TACTICAL_SPLIT,
 ): DiegeticShaderUniformValues {
   return {
     time: 0,
@@ -28,6 +31,7 @@ export function createDefaultShaderUniformValues(
     resolution: [widthPx, heightPx],
     bloomThresholds: [0.65, 0.70],
     smokeMask: [0, 0, 0, 0],
+    tacticalSplit,
   };
 }
 
@@ -60,6 +64,7 @@ export function packShaderUniforms(values: DiegeticShaderUniformValues): Record<
     uDistortionScale: { value: values.distortionScale, type: 'f32' },
     uBloomThresholds: { value: new Float32Array(values.bloomThresholds), type: 'vec2<f32>' },
     uSmokeMask: { value: new Float32Array(values.smokeMask ?? [0, 0, 0, 0]), type: 'vec4<f32>' },
+    uTacticalSplit: { value: values.tacticalSplit ?? DEFAULT_TACTICAL_SPLIT, type: 'f32' },
   };
 }
 

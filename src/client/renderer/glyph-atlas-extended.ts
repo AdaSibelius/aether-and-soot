@@ -46,7 +46,7 @@ function createMockExtendedGlyphAtlas(cellWidth: number, cellHeight: number): Gl
 export function createExtendedGlyphAtlas(
   cellWidth: number,
   cellHeight: number,
-  fontFamily = '"JetBrains Mono", "Fira Code", "IBM Plex Mono", "Courier New", monospace',
+  fontFamily = '"IBM Plex Mono", "JetBrains Mono", "Fira Code", "Courier New", monospace',
 ): GlyphAtlas {
   if (typeof document === 'undefined') {
     return createMockExtendedGlyphAtlas(cellWidth, cellHeight);

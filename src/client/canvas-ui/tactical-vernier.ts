@@ -8,89 +8,55 @@ import { UiCellBuffer } from './cell-buffer.js';
 import { VICTORIAN_PALETTE } from './material-palette.js';
 import { UiRect } from './viewport-controls.js';
 
+const METALLIC_TERRAINS = new Set([
+  'IRON_GRATE', 'BRASS_CATWALK', 'BRASS_STEAM_PIPE', 'WROUGHT_IRON_FENCE',
+  'CANAL_SLUICE', 'CAST_IRON_GRATE', 'SEWER_SLUICE_GATE', 'RAIL_TRACK',
+  'CONVEYOR_TRACK', 'COUNTER_BARRIER',
+]);
+const STONE_TERRAINS = new Set([
+  'COBBLESTONE_FLOOR', 'SOOT_BRICK_WALL', 'GOTHIC_COLONNADE', 'DISTRICT_GATE',
+  'BRITISH_STONE_PAVER', 'FLAGSTONE_STREET', 'BOARDING_PLATFORM',
+]);
+const RUBBLE_TERRAINS = new Set([
+  'RUBBLE_PILE', 'SLAG_MOUND', 'SLAG_PIT', 'SMASHED_WINDOW_FRAME',
+  'SLAG_RUBBLE', 'FACTORY_FLOOR_DEBRIS',
+]);
+const TIMBER_TERRAINS = new Set([
+  'WOODEN_DOOR_CLOSED', 'WOODEN_DOOR_OPEN', 'TIMBER_PIER',
+  'ROTTED_WOOD_FLOOR', 'TIMBER_SCAFFOLD',
+]);
+
 export function estimateTerrainAcousticDb(terrainType: string): number {
-  switch (terrainType) {
-    case 'IRON_GRATE':
-    case 'BRASS_CATWALK':
-    case 'BRASS_STEAM_PIPE':
-    case 'WROUGHT_IRON_FENCE':
-    case 'CANAL_SLUICE':
-    case 'CAST_IRON_GRATE':
-    case 'SEWER_SLUICE_GATE':
-    case 'RAIL_TRACK':
-    case 'CONVEYOR_TRACK':
-    case 'COUNTER_BARRIER':
-      return 82; // Resonant metallic reverberation
-    case 'COBBLESTONE_FLOOR':
-    case 'SOOT_BRICK_WALL':
-    case 'GOTHIC_COLONNADE':
-    case 'DISTRICT_GATE':
-    case 'BRITISH_STONE_PAVER':
-    case 'FLAGSTONE_STREET':
-    case 'BOARDING_PLATFORM':
-      return 68; // Hard stone clatter
-    case 'RUBBLE_PILE':
-    case 'SLAG_MOUND':
-    case 'SLAG_PIT':
-    case 'SMASHED_WINDOW_FRAME':
-    case 'SLAG_RUBBLE':
-    case 'FACTORY_FLOOR_DEBRIS':
-      return 75;
-    case 'WOODEN_DOOR_CLOSED':
-    case 'WOODEN_DOOR_OPEN':
-    case 'TIMBER_PIER':
-    case 'ROTTED_WOOD_FLOOR':
-    case 'TIMBER_SCAFFOLD':
-      return 52; // Muffled timber creak
-    default:
-      return 60;
-  }
+  if (METALLIC_TERRAINS.has(terrainType)) return 82;
+  if (STONE_TERRAINS.has(terrainType)) return 68;
+  if (RUBBLE_TERRAINS.has(terrainType)) return 75;
+  if (TIMBER_TERRAINS.has(terrainType)) return 52;
+  return 60;
 }
 
+const STRUCTURAL_IRON = new Set([
+  'IRON_GRATE', 'BRASS_CATWALK', 'BRASS_STEAM_PIPE', 'WROUGHT_IRON_FENCE',
+  'GASLAMP_POST', 'CANAL_SLUICE', 'REINFORCED_FACTORY_WALL', 'CAST_IRON_GRATE',
+  'COUNTER_BARRIER', 'CONVEYOR_TRACK', 'RAIL_TRACK',
+]);
+const VITRIFIED_BRICK = new Set([
+  'SOOT_BRICK_WALL', 'GOTHIC_COLONNADE', 'WALL_CROSS', 'WALL_VERTICAL',
+  'WALL_HORIZONTAL', 'WALL_CORNER_NW', 'WALL_CORNER_NE', 'WALL_CORNER_SW',
+  'WALL_CORNER_SE', 'WALL_TEE_NORTH', 'WALL_TEE_SOUTH', 'WALL_TEE_EAST',
+  'WALL_TEE_WEST', 'BRICK_FOUNDATION_WALL', 'BRICK_FOUNDRY_WALL',
+]);
+const VITRIFIED_STONE = new Set([
+  'COBBLESTONE_FLOOR', 'SLAG_MOUND', 'SLAG_PIT', 'BOARDING_PLATFORM',
+  'RUBBLE_PILE', 'DISTRICT_GATE', 'BRITISH_STONE_PAVER',
+]);
+const BRITTLE_SILICA = new Set(['GLASS_WINDOW', 'SMASHED_WINDOW_FRAME']);
+
 export function estimateTerrainHardness(terrainType: string): { rating: string; mohs: number } {
-  switch (terrainType) {
-    case 'IRON_GRATE':
-    case 'BRASS_CATWALK':
-    case 'BRASS_STEAM_PIPE':
-    case 'WROUGHT_IRON_FENCE':
-    case 'GASLAMP_POST':
-    case 'CANAL_SLUICE':
-    case 'REINFORCED_FACTORY_WALL':
-    case 'CAST_IRON_GRATE':
-    case 'COUNTER_BARRIER':
-    case 'CONVEYOR_TRACK':
-    case 'RAIL_TRACK':
-      return { rating: 'STRUCTURAL_IRON', mohs: 6.5 };
-    case 'SOOT_BRICK_WALL':
-    case 'GOTHIC_COLONNADE':
-    case 'WALL_CROSS':
-    case 'WALL_VERTICAL':
-    case 'WALL_HORIZONTAL':
-    case 'WALL_CORNER_NW':
-    case 'WALL_CORNER_NE':
-    case 'WALL_CORNER_SW':
-    case 'WALL_CORNER_SE':
-    case 'WALL_TEE_NORTH':
-    case 'WALL_TEE_SOUTH':
-    case 'WALL_TEE_EAST':
-    case 'WALL_TEE_WEST':
-    case 'BRICK_FOUNDATION_WALL':
-    case 'BRICK_FOUNDRY_WALL':
-      return { rating: 'VITRIFIED_BRICK', mohs: 7.0 };
-    case 'COBBLESTONE_FLOOR':
-    case 'SLAG_MOUND':
-    case 'SLAG_PIT':
-    case 'BOARDING_PLATFORM':
-    case 'RUBBLE_PILE':
-    case 'DISTRICT_GATE':
-    case 'BRITISH_STONE_PAVER':
-      return { rating: 'VITRIFIED_STONE', mohs: 5.5 };
-    case 'GLASS_WINDOW':
-    case 'SMASHED_WINDOW_FRAME':
-      return { rating: 'BRITTLE_SILICA', mohs: 4.0 };
-    default:
-      return { rating: 'COMMERCIAL_TIMBER', mohs: 3.0 };
-  }
+  if (STRUCTURAL_IRON.has(terrainType)) return { rating: 'STRUCTURAL_IRON', mohs: 6.5 };
+  if (VITRIFIED_BRICK.has(terrainType)) return { rating: 'VITRIFIED_BRICK', mohs: 7.0 };
+  if (VITRIFIED_STONE.has(terrainType)) return { rating: 'VITRIFIED_STONE', mohs: 5.5 };
+  if (BRITTLE_SILICA.has(terrainType)) return { rating: 'BRITTLE_SILICA', mohs: 4.0 };
+  return { rating: 'COMMERCIAL_TIMBER', mohs: 3.0 };
 }
 
 /**
@@ -162,5 +128,69 @@ export function renderTacticalVernierDossier(
       const color = ent.actor ? (ent.aiController?.hostile ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.POLISHED_BRASS) : '#bdc3c7';
       buf.writeString(innerX, currY++, `${glyph} ${name}`, color);
     }
+  }
+}
+
+/**
+ * Renders a compact 4-row tactical optical vernier for the sidebar console:
+ * Row 0: Coordinates & Stratum
+ * Row 1: Terrain name & Mohs hardness
+ * Row 2: Soot PPM, Acoustic echo dB, Gaslight status
+ * Row 3: Occupying entity summary or Standby prompt
+ */
+export function renderCompactVernier(
+  buf: UiCellBuffer,
+  x: number,
+  y: number,
+  width: number,
+  state: Readonly<WorldState>,
+  hoverCoord: { x: number; y: number } | null,
+  playerId?: EntityId,
+): void {
+  const maxLen = Math.max(10, width);
+  if (!hoverCoord) {
+    buf.writeString(x, y, 'VERNIER: STANDBY', VICTORIAN_PALETTE.VERDIGRIS_PATINA);
+    buf.writeString(x, y + 1, 'Aim reticle or cursor [L]', VICTORIAN_PALETTE.SEPIA_INK);
+    buf.writeString(x, y + 2, 'Caves of Qud Scanner Mk.IV', VICTORIAN_PALETTE.MUTED_PIPE);
+    return;
+  }
+
+  const pid = playerId ?? ('actor_player' as EntityId);
+  const player = state.entities[pid];
+  const stratum = player?.position?.stratum ?? 'STREET';
+  const grid = state.strata[stratum];
+  if (!grid) return;
+
+  const cell = getTileCell(grid, hoverCoord.x, hoverCoord.y);
+  const entities = findEntitiesAtPoint(state.entities, { x: hoverCoord.x, y: hoverCoord.y, stratum });
+  const gaslightField = calculateGaslightField(state, stratum);
+  const isGaslit = (gaslightField.get(pointKey(hoverCoord.x, hoverCoord.y)) ?? 0) > 0.15;
+
+  // Row 0: Coordinates & Stratum
+  const coordStr = `COORD:(${hoverCoord.x},${hoverCoord.y}) [${stratum}]`.slice(0, maxLen);
+  buf.writeString(x, y, coordStr, VICTORIAN_PALETTE.POLISHED_BRASS);
+
+  // Row 1: Terrain Identity & Hardness
+  const tType = cell?.terrainType ?? 'EMPTY';
+  const hardness = estimateTerrainHardness(tType);
+  const terrStr = `TERR: ${tType.replace(/_/g, ' ').slice(0, 11)} ${hardness.mohs}M`.slice(0, maxLen);
+  buf.writeString(x, y + 1, terrStr, '#ecf0f1');
+
+  // Row 2: Atmospheric & Forensic Sensors
+  const smokePpm = cell?.smokePpm ?? 0;
+  const acousticsDb = estimateTerrainAcousticDb(tType);
+  const gasStr = isGaslit ? 'LUM' : 'SHAD';
+  const sensorStr = `${smokePpm}PPM · ${acousticsDb}dB · [${gasStr}]`.slice(0, maxLen);
+  buf.writeString(x, y + 2, sensorStr, smokePpm > 100 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.VERDIGRIS_PATINA);
+
+  // Row 3: Occupying entity
+  if (entities.length > 0) {
+    const ent = entities[0]!;
+    const glyph = ent.visual.glyph;
+    const name = ent.name.slice(0, maxLen - 4);
+    const color = ent.actor ? (ent.aiController?.hostile ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.POLISHED_BRASS) : '#bdc3c7';
+    buf.writeString(x, y + 3, `${glyph} ${name}`.slice(0, maxLen), color);
+  } else {
+    buf.writeString(x, y + 3, '<No Occupant on Tile>', VICTORIAN_PALETTE.MUTED_PIPE);
   }
 }

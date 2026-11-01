@@ -92,3 +92,79 @@ export function renderDiegeticPaperdoll(
   if (toxStr) buf.writeString(originX + 12, originY + 8, toxStr, (anatomy.toxicityPct ?? 0) > 50 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.VERDIGRIS_PATINA);
   if (painStr) buf.writeString(originX + 1, originY + 9, painStr, (anatomy.painShock ?? 0) > 40 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.SEPIA_INK);
 }
+
+/**
+ * Renders a compact 6-row anatomical wireframe for the 30-column tactical console:
+ * Row 0: Head glyph & HP
+ * Row 1: Upper limbs (L-Arm, Torso, R-Arm) with prosthetic markers
+ * Row 2: Upper limb HP numbers
+ * Row 3: Lower limbs (L-Leg, R-Leg)
+ * Row 4: Lower limb HP numbers
+ * Row 5: Toxicity, Pain Shock, and Stamina status
+ */
+export function renderCompactPaperdoll(
+  buf: UiCellBuffer,
+  x: number,
+  y: number,
+  anatomy: Partial<AnatomyComponent>,
+): void {
+  if (!anatomy.limbs) {
+    buf.writeString(x, y, 'ANATOMY TELEMETRY OFFLINE', VICTORIAN_PALETTE.SEPIA_INK);
+    return;
+  }
+
+  const limbs = anatomy.limbs;
+  const getLimb = (slot: LimbSlotId) => {
+    const l = limbs[slot];
+    const isProsthetic = Boolean(l?.installedProstheticEntityId);
+    const hp = l?.hp ?? 0;
+    const maxHp = l?.maxHp ?? 100;
+    const color = resolveLimbColor(hp, maxHp, isProsthetic);
+    const glyph = isProsthetic ? '⚙' : hp <= 0 ? '✗' : '■';
+    return { hp, color, glyph };
+  };
+
+  const head = getLimb('HEAD');
+  const torso = getLimb('TORSO');
+  const lArm = getLimb('LEFT_ARM');
+  const rArm = getLimb('RIGHT_ARM');
+  const lLeg = getLimb('LEFT_LEG');
+  const rLeg = getLimb('RIGHT_LEG');
+
+  // Row 0: Centered Head
+  buf.setCell(x + 9, y, head.glyph, head.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 11, y, `HEAD ${head.hp}`, head.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+
+  // Row 1: Upper Limbs
+  buf.setCell(x + 1, y + 1, lArm.glyph, lArm.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 3, y + 1, 'L-ARM', lArm.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.setCell(x + 10, y + 1, torso.glyph, torso.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 12, y + 1, 'BODY', torso.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.setCell(x + 18, y + 1, rArm.glyph, rArm.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 20, y + 1, 'R-ARM', rArm.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+
+  // Row 2: Upper HP
+  buf.writeString(x + 3, y + 2, `${Math.max(-999, Math.min(9999, lArm.hp))}HP`.padStart(5, ' ').slice(0, 6), VICTORIAN_PALETTE.RIVET_STEEL);
+  buf.writeString(x + 11, y + 2, `${Math.max(-999, Math.min(9999, torso.hp))}HP`.padStart(5, ' ').slice(0, 6), VICTORIAN_PALETTE.RIVET_STEEL);
+  buf.writeString(x + 20, y + 2, `${Math.max(-999, Math.min(9999, rArm.hp))}HP`.padStart(5, ' ').slice(0, 6), VICTORIAN_PALETTE.RIVET_STEEL);
+
+  // Row 3: Lower Limbs
+  buf.setCell(x + 5, y + 3, lLeg.glyph, lLeg.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 7, y + 3, 'L-LEG', lLeg.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.setCell(x + 15, y + 3, rLeg.glyph, rLeg.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 17, y + 3, 'R-LEG', rLeg.color, VICTORIAN_PALETTE.SOOT_IRON_BG);
+
+  // Row 4: Lower HP
+  buf.writeString(x + 7, y + 4, `${Math.max(-999, Math.min(9999, lLeg.hp))}HP`.padStart(5, ' ').slice(0, 6), VICTORIAN_PALETTE.RIVET_STEEL);
+  buf.writeString(x + 17, y + 4, `${Math.max(-999, Math.min(9999, rLeg.hp))}HP`.padStart(5, ' ').slice(0, 6), VICTORIAN_PALETTE.RIVET_STEEL);
+
+  // Row 5: Vitals Summary (Tox, Pain, Stamina)
+  const tox = anatomy.toxicityPct ?? 0;
+  const pain = anatomy.painShock ?? 0;
+  const stam = anatomy.stamina ?? 100;
+  const toxFg = tox > 50 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.VERDIGRIS_PATINA;
+  const painFg = pain > 40 ? VICTORIAN_PALETTE.WARN_RED : VICTORIAN_PALETTE.SEPIA_INK;
+  buf.writeString(x, y + 5, `TOX:${Math.min(999, tox)}%`.padEnd(8, ' ').slice(0, 8), toxFg);
+  buf.writeString(x + 9, y + 5, `PAIN:${Math.min(999, pain)}`.padEnd(8, ' ').slice(0, 8), painFg);
+  buf.writeString(x + 18, y + 5, `STM:${Math.max(0, Math.min(999, Math.round(stam)))}%`.slice(0, 8), VICTORIAN_PALETTE.POLISHED_BRASS);
+}

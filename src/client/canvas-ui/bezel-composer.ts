@@ -1,5 +1,9 @@
 import { UiCellBuffer } from './cell-buffer.js';
-import { VICTORIAN_PALETTE } from './material-palette.js';
+import {
+  resolveVisualDepthTier,
+  VICTORIAN_PALETTE,
+  VisualDepthTierKey,
+} from './material-palette.js';
 import { UiRect } from './viewport-controls.js';
 
 export interface BezelOptions {
@@ -8,6 +12,7 @@ export interface BezelOptions {
   readonly rivetStyle?: 'BRASS_BOLTS' | 'STEEL_STUDS' | 'INDUSTRIAL_GEARS';
   readonly fgColor?: string;
   readonly bgColor?: string;
+  readonly tier?: VisualDepthTierKey;
 }
 
 /**
@@ -22,8 +27,9 @@ export function drawMachinedBezel(
   const { x, y, width, height } = rect;
   if (width < 3 || height < 3) return;
 
-  const fg = options.fgColor ?? VICTORIAN_PALETTE.TARNISHED_BRASS;
-  const bg = options.bgColor ?? VICTORIAN_PALETTE.SOOT_IRON_BG;
+  const tierConfig = options.tier ? resolveVisualDepthTier(options.tier) : undefined;
+  const fg = options.fgColor ?? tierConfig?.border ?? VICTORIAN_PALETTE.TARNISHED_BRASS;
+  const bg = options.bgColor ?? tierConfig?.bg ?? VICTORIAN_PALETTE.SOOT_IRON_BG;
   const rivet = options.rivetStyle === 'INDUSTRIAL_GEARS' ? '⚙' : options.rivetStyle === 'STEEL_STUDS' ? 'Ø' : '☼';
 
   // 0. Opaque recessed housing fill so underlying world glyphs never bleed through bezel panels
@@ -33,44 +39,47 @@ export function drawMachinedBezel(
     }
   }
 
-  // 1. Horizontal borders
+  // 1. Horizontal double borders (CP437 ═)
   for (let col = 1; col < width - 1; col++) {
     buf.setCell(x + col, y, '═', fg, bg);
     buf.setCell(x + col, y + height - 1, '═', fg, bg);
   }
 
-  // 2. Vertical borders
+  // 2. Vertical double borders (CP437 ║)
   for (let row = 1; row < height - 1; row++) {
     buf.setCell(x, y + row, '║', fg, bg);
     buf.setCell(x + width - 1, y + row, '║', fg, bg);
   }
 
-  // 3. Corner rivet housings
+  // 3. Corner rivet housings (CP437 ╔, ╗, ╚, ╝)
   buf.setCell(x, y, '╔', fg, bg);
   buf.setCell(x + width - 1, y, '╗', fg, bg);
   buf.setCell(x, y + height - 1, '╚', fg, bg);
   buf.setCell(x + width - 1, y + height - 1, '╝', fg, bg);
 
   // Exterior structural rivets on perimeter
+  const rivetColor = tierConfig?.accent ?? VICTORIAN_PALETTE.RIVET_STEEL;
   if (width > 6) {
-    buf.setCell(x + 1, y, rivet, VICTORIAN_PALETTE.RIVET_STEEL, bg);
-    buf.setCell(x + width - 2, y, rivet, VICTORIAN_PALETTE.RIVET_STEEL, bg);
-    buf.setCell(x + 1, y + height - 1, rivet, VICTORIAN_PALETTE.RIVET_STEEL, bg);
-    buf.setCell(x + width - 2, y + height - 1, rivet, VICTORIAN_PALETTE.RIVET_STEEL, bg);
+    buf.setCell(x + 1, y, rivet, rivetColor, bg);
+    buf.setCell(x + width - 2, y, rivet, rivetColor, bg);
+    buf.setCell(x + 1, y + height - 1, rivet, rivetColor, bg);
+    buf.setCell(x + width - 2, y + height - 1, rivet, rivetColor, bg);
   }
 
   // 4. Engraved Title Header Housing
   if (options.title) {
     const formattedTitle = `╡ ${options.title.toUpperCase()} ╞`;
     const titleStart = x + Math.max(3, Math.floor((width - formattedTitle.length) / 2));
-    buf.writeString(titleStart, y, formattedTitle, VICTORIAN_PALETTE.POLISHED_BRASS, bg);
+    const titleFg = tierConfig ? tierConfig.fg : VICTORIAN_PALETTE.POLISHED_BRASS;
+    buf.writeString(titleStart, y, formattedTitle, titleFg, bg);
   }
 
   // 5. Engraved Subtitle / Calibration Marking
   if (options.subtitle && height > 4) {
     const subStr = `[${options.subtitle}]`;
     const subStart = x + Math.max(3, Math.floor((width - subStr.length) / 2));
-    buf.writeString(subStart, y + height - 1, subStr, VICTORIAN_PALETTE.VERDIGRIS_PATINA, bg);
+    const subFg = tierConfig ? tierConfig.accent : VICTORIAN_PALETTE.VERDIGRIS;
+    buf.writeString(subStart, y + height - 1, subStr, subFg, bg);
   }
 }
 
@@ -85,21 +94,26 @@ export function drawStructuralDivider(
   orientation: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL',
   fg = VICTORIAN_PALETTE.TARNISHED_BRASS,
   bg = VICTORIAN_PALETTE.SOOT_IRON_BG,
+  tier?: VisualDepthTierKey,
 ): void {
   if (length <= 0) return;
 
+  const tierConfig = tier ? resolveVisualDepthTier(tier) : undefined;
+  const resolvedFg = tierConfig?.border ?? fg;
+  const resolvedBg = tierConfig?.bg ?? bg;
+
   if (orientation === 'HORIZONTAL') {
-    buf.setCell(x, y, '╠', fg, bg);
+    buf.setCell(x, y, '╠', resolvedFg, resolvedBg);
     for (let c = 1; c < length - 1; c++) {
-      buf.setCell(x + c, y, '═', fg, bg);
+      buf.setCell(x + c, y, '═', resolvedFg, resolvedBg);
     }
-    buf.setCell(x + length - 1, y, '╣', fg, bg);
+    buf.setCell(x + length - 1, y, '╣', resolvedFg, resolvedBg);
   } else {
-    buf.setCell(x, y, '╦', fg, bg);
+    buf.setCell(x, y, '╦', resolvedFg, resolvedBg);
     for (let r = 1; r < length - 1; r++) {
-      buf.setCell(x, y + r, '║', fg, bg);
+      buf.setCell(x, y + r, '║', resolvedFg, resolvedBg);
     }
-    buf.setCell(x, y + length - 1, '╩', fg, bg);
+    buf.setCell(x + length - 1, y, '╩', resolvedFg, resolvedBg);
   }
 }
 

@@ -13,6 +13,11 @@ async function bootstrapClient(): Promise<void> {
   const topBarHost = document.getElementById('top-bar-root');
   if (!canvasHost || !hudHost) throw new Error('Missing #canvas-stage or #hud-root mount elements');
 
+  // Ensure IBM Plex Mono WOFF2 font is fully decoded prior to atlas rasterization
+  if (typeof document !== 'undefined' && 'fonts' in document) {
+    await document.fonts.ready;
+  }
+
   const stageRenderer = await GlyphStageRenderer.create(canvasHost, WIDESCREEN_GRID_WIDTH, WIDESCREEN_GRID_HEIGHT);
   canvasHost.style.position = 'relative';
   const overlayHost = document.createElement('div');

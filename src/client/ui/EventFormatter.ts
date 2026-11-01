@@ -8,40 +8,24 @@ export function formatEventMessage(ev: SimEvent): string {
   switch (ev.type) {
     case 'ENTITY_MOVED':
       return `[T${ev.turn}] Stepped to (${ev.to.x}, ${ev.to.y}) on ${ev.to.stratum} [${ev.apSpent} AP]`;
-    case 'MOVEMENT_BLOCKED':
-      return `[T${ev.turn}] Movement blocked (${ev.reason}) at (${ev.target.x}, ${ev.target.y})`;
-    case 'STRATUM_CHANGED':
-      return `[T${ev.turn}] Traversed portal: ${ev.fromStratum} -> ${ev.toStratum}`;
-    case 'PORTAL_FAILED':
-      return `[T${ev.turn}] Portal traversal failed: ${ev.reason}`;
-    case 'ACTOR_WAITED':
-      return `[T${ev.turn}] Artificer holds position and checks pressure gauges.`;
-    case 'STEAM_VENTED':
-      return `[T${ev.turn}] Vented ${ev.pressureReleasedKpa} kPa superheated steam!`;
-    case 'STEAM_VENT_FAILED':
-      return `[T${ev.turn}] Steam venting failed: ${ev.reason}`;
-    case 'LIMB_DAMAGED':
-      return `[T${ev.turn}] ${ev.slot} took ${ev.damage} dmg (${ev.remainingHp} HP left)`;
-    case 'LIMB_AMPUTATED':
-      return `[T${ev.turn}] CRITICAL: ${ev.slot} severed!`;
+    case 'MOVEMENT_BLOCKED': return `[T${ev.turn}] Movement blocked (${ev.reason}) at (${ev.target.x}, ${ev.target.y})`;
+    case 'STRATUM_CHANGED': return `[T${ev.turn}] Traversed portal: ${ev.fromStratum} -> ${ev.toStratum}`;
+    case 'PORTAL_FAILED': return `[T${ev.turn}] Portal traversal failed: ${ev.reason}`;
+    case 'ACTOR_WAITED': return `[T${ev.turn}] Artificer holds position and checks pressure gauges.`;
+    case 'STEAM_VENTED': return `[T${ev.turn}] Vented ${ev.pressureReleasedKpa} kPa superheated steam!`;
+    case 'STEAM_VENT_FAILED': return `[T${ev.turn}] Steam venting failed: ${ev.reason}`;
+    case 'LIMB_DAMAGED': return `[T${ev.turn}] ${ev.slot} took ${ev.damage} dmg (${ev.remainingHp} HP left)`;
+    case 'LIMB_AMPUTATED': return `[T${ev.turn}] CRITICAL: ${ev.slot} severed!`;
     case 'PROSTHETIC_INSTALLED': return `[T${ev.turn}] Installed prosthetic into ${ev.slot} socket.`;
     case 'PROSTHETIC_REMOVED': return `[T${ev.turn}] Detached prosthetic from ${ev.slot} socket.`;
-    case 'PROSTHETIC_ACTION_FAILED':
-      return `[T${ev.turn}] Surgery failed on ${ev.slot}: ${ev.reason}`;
-    case 'STEAM_REFILLED':
-      return `[T${ev.turn}] Boiler re-pressurized to ${ev.newReserveKpa} kPa.`;
-    case 'STEAM_REFILL_FAILED':
-      return `[T${ev.turn}] Boiler stoking failed: ${ev.reason}`;
-    case 'VESSEL_RUPTURED':
-      return `[T${ev.turn}] BOILER RUPTURE! ${ev.releasedPressureKpa} kPa blasted at (${ev.origin.x}, ${ev.origin.y})!`;
-    case 'COAL_DUST_IGNITED':
-      return `[T${ev.turn}] FLASH FIRE! ${ev.ignitedTileCount} coal dust tiles ignited!`;
-    case 'THERMAL_SCALD':
-      return `[T${ev.turn}] SCALD! Superheated steam (${ev.steamPressureKpa} kPa) burns ${ev.slot}!`;
-    case 'PEDESTAL_STOCKED':
-      return `[T${ev.turn}] Stocked ${ev.quantity}x ${ev.commodity} on display pedestal.`;
-    case 'SUPPLY_SHOCK_TRIGGERED':
-      return `[T${ev.turn}] SUPPLY SHOCK! ${ev.commodity} -> ${ev.newPricePence}d (${ev.factionAffected} rep: ${ev.newReputation})`;
+    case 'PROSTHETIC_ACTION_FAILED': return `[T${ev.turn}] Surgery failed on ${ev.slot}: ${ev.reason}`;
+    case 'STEAM_REFILLED': return `[T${ev.turn}] Boiler re-pressurized to ${ev.newReserveKpa} kPa.`;
+    case 'STEAM_REFILL_FAILED': return `[T${ev.turn}] Boiler stoking failed: ${ev.reason}`;
+    case 'VESSEL_RUPTURED': return `[T${ev.turn}] BOILER RUPTURE! ${ev.releasedPressureKpa} kPa blasted at (${ev.origin.x}, ${ev.origin.y})!`;
+    case 'COAL_DUST_IGNITED': return `[T${ev.turn}] FLASH FIRE! ${ev.ignitedTileCount} coal dust tiles ignited!`;
+    case 'THERMAL_SCALD': return `[T${ev.turn}] SCALD! Superheated steam (${ev.steamPressureKpa} kPa) burns ${ev.slot}!`;
+    case 'PEDESTAL_STOCKED': return `[T${ev.turn}] Stocked ${ev.quantity}x ${ev.commodity} on display pedestal.`;
+    case 'SUPPLY_SHOCK_TRIGGERED': return `[T${ev.turn}] SUPPLY SHOCK! ${ev.commodity} -> ${ev.newPricePence}d (${ev.factionAffected} rep: ${ev.newReputation})`;
     case 'STOREFRONT_SALE_COMPLETED':
       return `[T${ev.turn}] SALE! Sold ${ev.unitsSold}x ${ev.commodity} for ${ev.revenuePence}d!`;
     case 'MACRO_TICK_COMPLETED':
@@ -213,15 +197,20 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'HYDROLOGY_DRAINED': return `[T${ev.turn}] Hydrology sluice drained ${ev.volumeDrainedMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y}).`;
     case 'HYDROLOGY_FLOODING': return `[T${ev.turn}] FLOOD WARNING! Closed sluice flooded ${ev.volumeOverflowMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y})!`;
 
-case 'CHUNK_WINDOW_SHIFTED':
+    case 'CHUNK_WINDOW_SHIFTED':
       return `[T${ev.turn}] The cityscape shifts, aether currents rearrange the very fabric of the metropolis.`;
-case 'CAUSAL_CONDUIT_MODULATED':
+    case 'CAUSAL_CONDUIT_MODULATED':
       return `[T${ev.turn}] The aether's currents surged, manipulated by unseen forces`;
-case 'DISTRICT_CAUSAL_CASCADE_TRIGGERED':
-      return `[T${ev.turn}] The unbridled chaos of the causal cascade threatens to engulf the district!`;  }
+    case 'DISTRICT_CAUSAL_CASCADE_TRIGGERED':
+      return `[T${ev.turn}] The unbridled chaos of the causal cascade threatens to engulf the district!`;
+    default: {
+      const raw: unknown = ev;
+      const turn = raw && typeof raw === 'object' && 'turn' in raw && typeof raw.turn === 'number' ? raw.turn : 0;
+      const type = raw && typeof raw === 'object' && 'type' in raw && typeof raw.type === 'string' ? raw.type : 'UNKNOWN';
+      return `[T${turn}] Telegraph dispatch: ${type}.`;
+    }
+  }
 }
-
-
 
 export const formatChronicleLog = aggregateChronicleEvents;
 

@@ -2,6 +2,7 @@ import { Container, Filter } from 'pixi.js';
 import { createDiegeticPostFilter, updateDiegeticFilterUniforms } from './diegetic-post-filter.js';
 import {
   createDefaultShaderUniformValues,
+  DEFAULT_TACTICAL_SPLIT,
   DiegeticShaderUniformValues,
   interpolateThermoStress,
 } from './shader-uniforms.js';
@@ -86,6 +87,17 @@ export class SteampunkRenderPipeline {
 
   public getUniforms(): Readonly<DiegeticShaderUniformValues> {
     return this.uniforms;
+  }
+
+  public setTacticalSplit(split: number): void {
+    this.uniforms.tacticalSplit = split;
+    if (this.postFilter && this.filterEnabled) {
+      updateDiegeticFilterUniforms(this.postFilter, this.uniforms);
+    }
+  }
+
+  public getTacticalSplit(): number {
+    return this.uniforms.tacticalSplit ?? DEFAULT_TACTICAL_SPLIT;
   }
 
   public updateUniforms(

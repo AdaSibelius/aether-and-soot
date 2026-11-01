@@ -136,3 +136,48 @@ export function drawSplitFlapOdometer(
 
   buf.setCell(startX + valStr.length * 2, y, ']', VICTORIAN_PALETTE.RIVET_STEEL);
 }
+
+/**
+ * Renders a compact multi-parameter atmospheric barometer and thermodynamic stress readout:
+ * Row 0: Internal strain load (kW) vs governor capacity
+ * Row 1: Ambient steam pressure (kPa) + soot concentration (PPM)
+ * Row 2: Atmospheric classification and thermodynamic stress state
+ */
+export function drawAtmosphericBarometer(
+  buf: UiCellBuffer,
+  x: number,
+  y: number,
+  width: number,
+  strainKw: number,
+  governorCapKw: number,
+  ambientSteamKpa: number,
+  smokePpm: number,
+  stressLevel: 'NOMINAL' | 'ELEVATED' | 'CRITICAL',
+): void {
+  const maxLen = Math.max(10, width);
+  const strainRatio = governorCapKw > 0 ? strainKw / governorCapKw : 0;
+  const isCritical = stressLevel === 'CRITICAL' || strainRatio >= 0.85;
+  const isElevated = stressLevel === 'ELEVATED' || strainRatio >= 0.50;
+
+  // Row 0: Strain Load bar
+  const strainChars = Math.round(Math.max(0, Math.min(1, strainRatio)) * 8);
+  const bar = '█'.repeat(strainChars) + '·'.repeat(8 - strainChars);
+  const strainFg = isCritical ? VICTORIAN_PALETTE.WARN_RED : isElevated ? VICTORIAN_PALETTE.AMBER_GASLIGHT : VICTORIAN_PALETTE.AETHER_BLUE;
+  buf.writeString(x, y, 'STR:', VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 5, y, `[${bar}]`, strainFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 16, y, `${Math.round(strainKw)}/${governorCapKw}kW`.slice(0, 9), strainFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
+
+  // Row 1: Ambient Soot PPM & Steam kPa
+  const sootFg = smokePpm > 100 ? VICTORIAN_PALETTE.WARN_RED : smokePpm > 40 ? VICTORIAN_PALETTE.AMBER_GASLIGHT : VICTORIAN_PALETTE.VERDIGRIS_PATINA;
+  const steamFg = ambientSteamKpa > 50 ? VICTORIAN_PALETTE.COPPER_ACCENT : VICTORIAN_PALETTE.TARNISHED_BRASS;
+  const sootStr = `SOOT:${smokePpm}PPM`.padEnd(12, ' ');
+  const steamStr = `STM:${Math.round(ambientSteamKpa)}kPa`;
+  buf.writeString(x, y + 1, sootStr.slice(0, 12), sootFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
+  buf.writeString(x + 13, y + 1, steamStr.slice(0, 12), steamFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
+
+  // Row 2: Status classifications
+  const gasStatus = smokePpm > 100 ? 'TOXIC' : smokePpm > 40 ? 'SMOKY' : 'CALM';
+  const statusStr = `ATM:[${gasStatus}] THM:[${stressLevel}]`.slice(0, maxLen);
+  const statusFg = isCritical ? VICTORIAN_PALETTE.WARN_RED : isElevated ? VICTORIAN_PALETTE.AMBER_GASLIGHT : VICTORIAN_PALETTE.POLISHED_BRASS;
+  buf.writeString(x, y + 2, statusStr, statusFg, VICTORIAN_PALETTE.SOOT_IRON_BG);
+}

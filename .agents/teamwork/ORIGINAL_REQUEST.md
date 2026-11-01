@@ -1,35 +1,42 @@
 # Original User Request
 
-## Initial Request — 2026-10-31T22:16:22Z
+## Initial Request — 2026-11-01T18:35:11Z
 
-Deploy the following specialized agent analysis tracks: [Architectural Modularity & State Auditor], [Systemic Interconnectivity & Simulation Critic], and [Documentation & Workflow DevOps] to conduct a clean, full-game codebase audit and documentation sweep to map existing headless ECS systems, identify simulation limitations, and document interconnectivity gaps.
+Act as Principal UI/UX Architect to execute an interface utility overhaul and Dear ImGui feasibility study for Aether & Soot, modifying the codebase directly to deepen the Edison-era mechanical aesthetic and authoring a clinical Architectural Decision Record (ADR).
 
 Working directory: /Users/emmett/Desktop/Game
 Integrity mode: development
 
-Reference material: `ARCHITECTURE.md`, `docs/architecture-map.md`, `AGENTS.md`
-
 ## Requirements
 
-### R1. Architectural Modularity & State Audit
-Map current headless ECS schemas and codebase boundaries across core domain systems (`src/sim/`), data layer (`src/schemas/`), and presentation shell (`src/client/`) without referencing future roadmap phases. Verify strict adherence to the 300-line modularity ceiling and Core/Shell separation, identifying architectural bottlenecks or dormant commands that limit true emergent simulation.
+### R1. Phase 1: Utility and Aesthetic Refinement
+Analyze the current DOM/Canvas UI implementation and implement code changes directly in the repository to improve functional utility and deepen the "Edison-era mechanical" aesthetic (Caves of Qud style, zero Pip-Boy tropes). Provide implementation covering:
+- Information Density: Restructure the HUD to display thermodynamic stress states, inventory, and character health using diegetic ASCII gauges and heavy block framing.
+- Visual Hierarchy: Apply the oxidized iron palette to create clear depth separation between the tactical map, log window, and status readouts.
+- Shader Compositing: Ensure the UI layer cleanly overlays or interacts with existing WebGL shaders (aether bloom, volumetric smoke) without degrading text readability on 4K HDR displays.
 
-### R2. Systemic Interconnectivity & Simulation Critique
-Evaluate causal links between world systems, NPC agency, and environmental storytelling, referencing existing architectural documentation (`ARCHITECTURE.md`, `docs/architecture-map.md`, `AGENTS.md`) to evaluate simulation depth. Document interconnectivity and limitations across spatial strata, industrial hazards (steam, decibel propagation), physical trade, and NPC diurnal schedules, identifying gaps where mechanical interactions remain siloed, fail to influence the macro-economy, or lack persistent environmental traces and causality.
+### R2. Phase 2: Dear ImGui Evaluation
+Generate a clinical Architectural Decision Record (ADR) evaluating a migration from the current UI pipeline to Dear ImGui (via WebAssembly/bindings). The ADR must address:
+- ECS Integration: Technical friction of mapping existing Entity Component System (ECS) data to an Immediate Mode GUI paradigm.
+- Rendering Pipeline: How ImGui will bind to the existing WebGL context and handle custom post-processing shaders.
+- Aesthetic Compatibility: Exact custom styling and font rendering overhead required to force ImGui to match the heavy ASCII/Victorian terminal aesthetic.
+- Token/Performance Cost: Complexity of maintaining ImGui bindings in this specific AI-assisted codebase.
 
-### R3. Documentation & Workflow DevOps Sweep
-Audit active project documentation (`AGENTS.md`, `ARCHITECTURE.md`, `STATE.md`) for accuracy against the live codebase. Identify friction points, missing guidelines, or outdated state data that could cause AI agents to hallucinate or cross structural boundaries during future development.
-
-### R4. Unified Systemic Mapping and Evaluation Report
-Compile a unified 'Systemic Mapping and Evaluation Report' saved to `docs/SYSTEMIC_MAPPING_REPORT.md`, written in a clinical, critical, strictly objective tone with zero flattery, artificial praise, or conversational padding for AI Agents (Antigravity/Gemini). The report must provide a concrete, objective map of current systems, their causal interconnectivity, and identified simulation limitations, followed by a sequenced list of structured, copy-pasteable execution prompts designed to feed directly back into Antigravity. Each prompt must define the exact steps and schemas required to improve the identified limitations, enforcing the 300-line limit and requiring `npm run verify` and `tests/scripts/check-boundaries.ts` validation upon completion.
+### R3. Output Format
+Present the Phase 1 UI code changes first, followed by the Phase 2 clinical ADR, without introductory fluff.
 
 ## Acceptance Criteria
 
-### Audit Report & Deliverable
-- [ ] The unified report is compiled and saved to `docs/SYSTEMIC_MAPPING_REPORT.md`.
-- [ ] The report addresses all three specialized tracks: Architectural Modularity & State Auditor, Systemic Interconnectivity & Simulation Critic, and Documentation & Workflow DevOps.
-- [ ] Tone is clinical, critical, and strictly objective with zero flattery, artificial praise, or conversational padding.
-- [ ] The report contains a concrete, objective map of current headless ECS systems, their causal interconnectivity, and identified simulation limitations.
-- [ ] The report contains a sequenced list of structured, copy-pasteable execution prompts for Antigravity.
-- [ ] Each execution prompt defines the exact steps and schemas required to address identified limitations.
-- [ ] Each execution prompt enforces the 300-line modularity ceiling and specifies validation via `npm run verify` and `tests/scripts/check-boundaries.ts`.
+### UI Utility & Aesthetic Implementation
+- [ ] Code changes for Phase 1 are implemented directly in the repository.
+- [ ] HUD displays thermodynamic stress states, inventory, and character health using diegetic ASCII gauges and heavy block framing.
+- [ ] Tactical map, log window, and status readouts have visual depth separation using the oxidized iron palette.
+- [ ] UI overlays or interacts with WebGL shaders (aether bloom, volumetric smoke) while maintaining readable text at 4K resolution.
+- [ ] Repository verification checks (`npm run verify`) pass with zero errors.
+
+### Dear ImGui Architectural Decision Record
+- [ ] ADR contains a dedicated section analyzing ECS data mapping friction to an Immediate Mode GUI paradigm.
+- [ ] ADR contains a dedicated section evaluating WebGL context binding and custom shader compositing feasibility.
+- [ ] ADR contains a dedicated section quantifying custom styling and font rendering overhead for the Victorian ASCII aesthetic.
+- [ ] ADR contains a dedicated section evaluating maintenance complexity and token/performance costs for this AI-assisted codebase.
+- [ ] Final output delivers Phase 1 code changes first followed by the Phase 2 ADR with zero introductory fluff.
