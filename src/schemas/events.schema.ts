@@ -131,6 +131,19 @@ export type {
 } from './lore-events.schema.js';
 export type { CompanionTransitPreservedEvent } from './core-events.schema.js';
 
+import {
+  ConduitRupturedEventSchema, ShaftTransportEventSchema,
+  HydrologySluiceEventSchema, HydrologyFloodingEventSchema,
+} from './utility-events.schema.js';
+export {
+  ConduitRupturedEventSchema, ShaftTransportEventSchema,
+  HydrologySluiceEventSchema, HydrologyFloodingEventSchema,
+};
+export type {
+  ConduitRupturedEvent, ShaftTransportEvent,
+  HydrologySluiceEvent, HydrologyFloodingEvent,
+} from './utility-events.schema.js';
+
 export const SimEventSchema = z.discriminatedUnion('type', [
   EntityMovedEventSchema,
   MovementBlockedEventSchema,
@@ -196,5 +209,7 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   HazardTriggeredEventSchema,
   ProceduralBarkEmittedEventSchema, TurfTariffEnforcedEventSchema,
   SmogChokingPulseEventSchema, CorpseDesecrationWitnessedEventSchema,
+  ConduitRupturedEventSchema, ShaftTransportEventSchema,
+  HydrologySluiceEventSchema, HydrologyFloodingEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

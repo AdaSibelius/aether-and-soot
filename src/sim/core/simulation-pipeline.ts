@@ -7,6 +7,7 @@ import { computeProstheticFovBonus } from '../systems/anatomy.system.js';
 import { advanceEnvironmentalHazards } from '../systems/environmental-hazards.system.js';
 import { decrementProstheticCooldowns } from '../systems/prosthetics.system.js';
 import { advanceThermodynamicsTick } from '../systems/thermo.system.js';
+import { advanceUtilityConduitTick } from '../systems/utility-simulation.system.js';
 import { CommandResolution } from './command-resolution.js';
 import { SeededRNG } from './rng.js';
 import { advanceTurnSchedule } from './scheduler.js';
@@ -38,6 +39,10 @@ export function advanceWorldEnvironment(
     const thermoTick = advanceThermodynamicsTick(workingState);
     workingState = thermoTick.state;
     events.push(...thermoTick.events);
+
+    const utilityTick = advanceUtilityConduitTick(workingState);
+    workingState = utilityTick.state;
+    events.push(...utilityTick.events);
 
     for (const stratum of Object.keys(workingState.strata) as StratumId[]) {
       const hazardTick = advanceEnvironmentalHazards(workingState, stratum);

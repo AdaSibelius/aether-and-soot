@@ -145,6 +145,7 @@ export const UtilityConduitComponentSchema = z.object({
   operatingPressureKpa: z.number().nonnegative().default(0),
   maxPressureKpa: z.number().positive().default(200),
   ruptured: z.boolean().default(false),
+  isRuptured: z.boolean().default(false).optional(),
   connectedEndpointEntityIds: z.array(EntityIdSchema).default([]),
 });
 export type UtilityConduitComponent = z.infer<typeof UtilityConduitComponentSchema>;

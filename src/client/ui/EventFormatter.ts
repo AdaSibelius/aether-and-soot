@@ -208,6 +208,10 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'TURF_TARIFF_ENFORCED': return `[T${ev.turn}] Faction guard enforced ${ev.tariffPenceCharged}d tariff on turf ${ev.turfId}.`;
     case 'SMOG_CHOKING_PULSE': return `[T${ev.turn}] Choking smog pulse: ${ev.smokePpm} PPM soot occludes breath.`;
     case 'CORPSE_DESECRATION_WITNESSED': return `[T${ev.turn}] Corpse desecration witnessed! Reputation penalized by ${ev.reputationPenalty}.`;
+    case 'CONDUIT_RUPTURED': return `[T${ev.turn}] DANGER! Conduit ${ev.networkId} ruptured at (${ev.origin.x}, ${ev.origin.y}) venting ${ev.ventedPressureKpa} kPa steam!`;
+    case 'SHAFT_TRANSPORT_COMPLETED': return `[T${ev.turn}] Shaft ${ev.shaftEntityId} (${ev.transportKind}) transported between ${ev.fromStratum} and ${ev.toStratum}.`;
+    case 'HYDROLOGY_DRAINED': return `[T${ev.turn}] Hydrology sluice drained ${ev.volumeDrainedMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y}).`;
+    case 'HYDROLOGY_FLOODING': return `[T${ev.turn}] FLOOD WARNING! Closed sluice flooded ${ev.volumeOverflowMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y})!`;
   }
 }
 
