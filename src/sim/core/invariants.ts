@@ -11,6 +11,7 @@ import { WorldState } from './world.js';
  * 4. Installed prosthetics exist, possess prostheticSpec, and are not socketed in multiple limbs.
  * 5. Living actors with positions are within stratum bounds on non-blocking terrain.
  * 6. Defeated NPCs are excised from active actor/AI scheduling.
+ * 7. Chunk streaming entities are disjoint between active/dormant sets, and dormant chunk residents exist.
  *
  * @returns Array of human-readable violation descriptions. Empty if state is 100% valid.
  */
@@ -161,6 +162,28 @@ export function validateWorldInvariants(state: Readonly<WorldState>): string[] {
         violations.push(
           `Item entity '${entityId}' is orphaned: possesses neither ground coordinates nor inventory/prosthetic/pedestal ownership.`,
         );
+      }
+    }
+  }
+
+  // 6. Chunk streaming invariants: active/dormant disjointness & dormant resident entity presence
+  if (state.chunkLedger) {
+    const dormantEntities = state.chunkLedger.dormantEntities;
+    for (const dormantEntityId of Object.keys(dormantEntities)) {
+      if (state.entities[dormantEntityId]) {
+        violations.push(
+          `Entity '${dormantEntityId}' exists simultaneously in active entities and dormantEntities.`,
+        );
+      }
+    }
+
+    for (const [chunkKey, chunk] of Object.entries(state.chunkLedger.dormantChunks)) {
+      for (const residentId of chunk.residentEntityIds) {
+        if (!dormantEntities[residentId]) {
+          violations.push(
+            `Dormant chunk '${chunkKey}' references resident entity '${residentId}' which is missing from dormantEntities.`,
+          );
+        }
       }
     }
   }

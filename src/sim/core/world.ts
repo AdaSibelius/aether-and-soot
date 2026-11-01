@@ -8,6 +8,8 @@ import { RNGStateSchema } from './rng.js';
 import { FactionContractSchema } from '../../schemas/contracts.schema.js';
 import { CodexEntryRecordSchema, SafehouseDeedRecordSchema } from '../../schemas/safehouse-records.schema.js';
 import { EscortConvoyRecordSchema, GuildAuditRecordSchema, TurfSectorRecordSchema } from '../../schemas/skirmish-records.schema.js';
+import { CityGraphLedgerSchema } from '../../schemas/city-graph.schema.js';
+import { ChunkStreamingLedgerSchema } from '../../schemas/chunk-streaming.schema.js';
 
 export const SavedDistrictSnapshotSchema = z.object({
   strata: z.object({
@@ -61,6 +63,8 @@ export const WorldStateSchema = z.object({
     grid: StratumGridSchema,
     entities: z.record(z.string(), EntityComponentsSchema),
   })).default({}),
+  cityGraph: CityGraphLedgerSchema.optional(),
+  chunkLedger: ChunkStreamingLedgerSchema.optional(),
 });
 export type WorldState = z.infer<typeof WorldStateSchema>;
 

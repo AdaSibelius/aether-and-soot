@@ -30,7 +30,7 @@ export interface MigrationStep {
  * Guarantees version stamp and populates missing subsystem structures.
  */
 export function migrateV0ToV1(raw: Record<string, unknown>): Record<string, unknown> {
-  return {
+  const result: Record<string, unknown> = {
     ...raw,
     version: 1,
     macroTickCount: typeof raw['macroTickCount'] === 'number' ? raw['macroTickCount'] : 0,
@@ -45,6 +45,13 @@ export function migrateV0ToV1(raw: Record<string, unknown>): Record<string, unkn
       typeof raw['savedDistricts'] === 'object' && raw['savedDistricts'] !== null ? raw['savedDistricts'] : {},
     eventLog: Array.isArray(raw['eventLog']) ? raw['eventLog'] : [],
   };
+  if (result['cityGraph'] === null) {
+    delete result['cityGraph'];
+  }
+  if (result['chunkLedger'] === null) {
+    delete result['chunkLedger'];
+  }
+  return result;
 }
 
 export const MIGRATION_PIPELINE: readonly MigrationStep[] = [
