@@ -22,6 +22,7 @@ import { resolveApplyMomentumVector, resolveSetPosture } from '../systems/moment
 import { resolveInstallWeaponMod, resolveLoadAmmo, resolvePryObstacle, resolveUninstallWeaponMod } from '../systems/weapon-mods.system.js';
 import { resolveCleanSpill, resolveCoatWeapon, resolveThrowFlask } from '../systems/liquids.system.js';
 import { resolveEmitSquadCallout, resolveReportCrime } from '../systems/squad-witness.system.js';
+import { resolveModulateCausalConduit } from '../systems/city-causal.system.js';
 import { resolveBoardMonorail, resolveLaunchMonorail } from '../systems/monorail.system.js';
 import { resolveDescendCatacombs, resolveAscendCatacombs } from '../spatial/catacombs.js';
 import {
@@ -204,6 +205,8 @@ function executeDomainHandler(
       return resolveDissectCorpseAnatomy(state, command);
     case 'ENFORCE_TURF_AUTHORITY':
       return resolveEnforceTurfAuthority(state, command);
+    case 'MODULATE_CAUSAL_CONDUIT':
+      return resolveModulateCausalConduit(state, command.actorId, command.edgeId, command.action);
     default:
       return undefined;
   }

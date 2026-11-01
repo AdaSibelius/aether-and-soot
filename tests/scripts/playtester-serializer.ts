@@ -180,6 +180,16 @@ export function serializePlayerContext(
   const damagedLimb = Object.entries(player.anatomy?.limbs ?? {}).find(([_, l]) => l.hp < l.maxHp);
   if (damagedLimb) contextualCommands.push(`{"action": "FIELD_REPAIR_LIMB", "slot": "${damagedLimb[0]}"}`);
 
+  if (state.cityGraph) {
+    const activeDistrict = state.currentDistrictId ?? 'district_spitalfields_soot_works';
+    for (const [edgeId, edge] of Object.entries(state.cityGraph.edges)) {
+      if (edge.fromDistrictId === activeDistrict || edge.toDistrictId === activeDistrict) {
+        contextualCommands.push(`{"action": "MODULATE_CAUSAL_CONDUIT", "edgeId": "${edgeId}", "conduitAction": "${edge.valveOpen ? 'CLOSE_VALVE' : 'OPEN_VALVE'}"}`);
+        break;
+      }
+    }
+  }
+
   const primaryObj = options?.primaryObjective ?? 'Explore district and survive.';
   const secDir = options?.secondaryDirective ?? 'Interact with doors (+), avoid traps (^), vent steam (~).';
   const recentSteps = options?.recentPositions?.length ? options.recentPositions.map((p) => `(${p.x},${p.y})`).join(', ') : 'None';

@@ -11,9 +11,11 @@ import {
 } from './equipment.schema.js';
 import {
   BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema, AscendCatacombsCommandSchema,
+  ModulateCausalConduitCommandSchema,
 } from './transit-commands.schema.js';
 export type {
   BoardMonorailCommand, LaunchMonorailCommand, DescendCatacombsCommand, AscendCatacombsCommand,
+  ModulateCausalConduitCommand,
 } from './transit-commands.schema.js';
 
 import {
@@ -48,6 +50,7 @@ export type {
 
 export {
   BoardMonorailCommandSchema, LaunchMonorailCommandSchema, DescendCatacombsCommandSchema, AscendCatacombsCommandSchema,
+  ModulateCausalConduitCommandSchema,
   EmitSquadCalloutCommandSchema, ReportCrimeCommandSchema,
   ClaimWorkshopDeedCommandSchema, BuildStructureCommandSchema,
   StoreItemInStructureCommandSchema, RetrieveItemFromStructureCommandSchema, ConsultCodexCommandSchema,
@@ -214,6 +217,7 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   LaunchMonorailCommandSchema,
   DescendCatacombsCommandSchema,
   AscendCatacombsCommandSchema,
+  ModulateCausalConduitCommandSchema,
   ClaimWorkshopDeedCommandSchema,
   BuildStructureCommandSchema,
   StoreItemInStructureCommandSchema,

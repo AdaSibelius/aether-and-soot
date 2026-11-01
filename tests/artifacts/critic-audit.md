@@ -1,6 +1,6 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
-**Generated:** 2026-10-31 | **Benchmark Engine:** Hermes Critic v1.0
+**Generated:** 2026-11-01 | **Benchmark Engine:** Hermes Critic v1.0
 - **Execution Mode**: MOCK_FALLBACK (playtester-mock.ts)
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 
@@ -9,29 +9,28 @@
   - Headless Determinism & Boundary Isolation: **25/25**
   - Spatial, Acoustic & Environmental Depth: **22/25**
   - NPC Ecological Parity vs Player: **18/25**
-  - Command Surface Playtest Coverage: **4/25**
+  - Command Surface Playtest Coverage: **3/25**
 - **Overall Assessment**: *Aether & Soot* exhibits exceptional deterministic headless rigor matching CDDA simulation fidelity and Caves of Qud tactile worldcraft, with complete Core/Shell separation.
 
 ## 2. Architectural & Modularity Health
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
-- `src/client/bootstrap-loop.ts`: **271 lines** (threshold: 230)
-- `src/client/input/keyboard-router.ts`: **262 lines** (threshold: 230)
-- `src/client/input/modal-nav-router.ts`: **247 lines** (threshold: 230)
-- `src/schemas/components.schema.ts`: **241 lines** (threshold: 230)
+- `src/schemas/core-events.schema.ts`: **244 lines** (threshold: 230)
 - `src/client/renderer/glyph-stage.ts`: **240 lines** (threshold: 230)
-- `src/schemas/events.schema.ts`: **238 lines** (threshold: 230)
+- `src/sim/systems/ai.system.ts`: **240 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
 - `src/sim/systems/district-spawner.ts`: **237 lines** (threshold: 230)
+- `src/client/projection/biome-palette.ts`: **236 lines** (threshold: 230)
 - `src/sim/systems/safehouse.system.ts`: **235 lines** (threshold: 230)
+- `src/schemas/commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/schemas/domain-commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/client/audio/procedural-synth.ts`: **233 lines** (threshold: 230)
-- `src/schemas/core-events.schema.ts`: **233 lines** (threshold: 230)
-- `src/sim/systems/environmental-hazards.system.ts`: **232 lines** (threshold: 230)
+- `src/sim/systems/environmental-hazards.system.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **231 lines** (threshold: 230)
-- `src/schemas/commands.schema.ts`: **230 lines** (threshold: 230)
+- `src/sim/core/command-router.ts`: **230 lines** (threshold: 230)
 - `src/sim/systems/surgery.system.ts`: **230 lines** (threshold: 230)
+- `src/sim/systems/utility-simulation.system.ts`: **230 lines** (threshold: 230)
 
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
@@ -68,6 +67,7 @@
 - `LAUNCH_MONORAIL`
 - `LOAD_AMMO`
 - `LOOT_CONTAINER`
+- `MODULATE_CAUSAL_CONDUIT`
 - `PAY_CHIRURGEON_HEAL`
 - `PICK_UP_ITEM`
 - `PREPARE_SUPPLY_CONVOY`
@@ -88,10 +88,16 @@
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
 - `ASCEND_CATACOMBS`
+- `DISSECT_CORPSE_ANATOMY`
+- `EMIT_PROCEDURAL_BARK`
+- `ENFORCE_TURF_AUTHORITY`
+- `EQUIP_ITEM`
+- `FIRE_RANGED_WEAPON`
 - `SMASH_TERRAIN`
 - `THROW_FLASK`
 - `TRAVEL_DISTRICT`
 - `TRIGGER_SUPPLY_SHOCK`
+- `UNEQUIP_ITEM`
 - `UNINSTALL_WEAPON_MOD`
 
 ## 4. Systemic Depth & NPC Agency Critique (vs. CDDA / Qud / Arcostate)
@@ -107,17 +113,17 @@
   - Physical container looting and storefront trading remain predominantly player-driven.
 
 ## 5. Self-Directed Prescriptions for Next Phase
-- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Implement macro-commodity supply chains and scarcity cascades (Anthracite Coal, Carbolic Tincture, Preserved Rations) with downstream clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. (Target: `src/sim/systems/economy.system.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ASCEND_CATACOMBS, SMASH_TERRAIN, THROW_FLASK, TRAVEL_DISTRICT) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
-- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/client/bootstrap-loop.ts to resolve modularityHotspot anomaly. (Target: `src/client/bootstrap-loop.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P1: Phase 56** [UNREACHABLE_MECHANIC]: Focus core systems development on **Phase 56: Causal Supply Chains & Disruption Cascades** *(PLANNED)*: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. resolving unwiredCommands and telemetry anomalies. (Target: `src/sim/systems/economy.system.ts`, `src/sim/systems/trade.system.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P2: Expand Playtest Serializer Command Surface** [SIM_BALANCE]: Wire unwired commands (ASCEND_CATACOMBS, DISSECT_CORPSE_ANATOMY, EMIT_PROCEDURAL_BARK, ENFORCE_TURF_AUTHORITY) to reduce unwiredCommands count. (Target: `tests/scripts/playtester-serializer.ts` | Verification: `tests/sim/determinism.test.ts`)
+- **P3: Modularity Guard & File Splitting** [MODULE_SPLIT]: Monitor and pre-split near-cap modules like src/schemas/core-events.schema.ts to resolve modularityHotspot anomaly. (Target: `src/schemas/core-events.schema.ts` | Verification: `tests/sim/determinism.test.ts`)
 
 ## 6. Next-Phase Handoff Prompt
 
 ```markdown
-Implement **Phase 56**: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. adhering to AGENTS.md and ARCHITECTURE.md:
+Implement **Phase 56: Causal Supply Chains & Disruption Cascades** *(PLANNED)*: Aggregate macro-tick simulation of 3 vital commodities (*Anthracite Coal*, *Carbolic Tincture*, *Preserved Rations*). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes. adhering to AGENTS.md and ARCHITECTURE.md:
 1. Run `npm run hermes:scout -- --task "the active phase"` and complete the 6-point Pre-Flight Impact Analysis (including STATE.md P1/P2/P3 triage).
-2. Pre-split any src/ hotspot >= 245 lines (`src/client/bootstrap-loop.ts` (271 lines)) via `npm run hermes:split`.
-3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `ASCEND_CATACOMBS`, `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
+2. Pre-split any src/ hotspot >= 245 lines (`src/schemas/core-events.schema.ts` (244 lines)) via `npm run hermes:split`.
+3. Implement the active phase while folding in P2 (systemic cross-wiring & unwired serializer commands: `ASCEND_CATACOMBS`, `DISSECT_CORPSE_ANATOMY`, `EMIT_PROCEDURAL_BARK`, `ENFORCE_TURF_AUTHORITY`) and P3 (serialization & deterministic unit tests in tests/sim/), and promoting any out-of-budget P1 agency items into ROADMAP.md.
 4. Delegate blueprints (`generate:content`), event logs (`hermes:chronicler`), and test scaffolding (`hermes:testgen`) to local models.
 5. Run `npm run verify`, `npm run hermes:critic`, and `npm run sync:state`, then output the next copy-pasteable prompt.
 ```

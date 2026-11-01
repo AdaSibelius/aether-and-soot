@@ -1,6 +1,7 @@
 import { StratumId } from '../../schemas/primitives.schema.js';
 import { getShiftPhase, WorldState } from '../../sim/core/world.js';
 import { resolveCatalogDisplayName } from '../projection/frame-adapter.js';
+import { projectChunkStreamingSummary, projectDistrictCausalSummary } from '../projection/city-graph-projection.js';
 import { UiCellBuffer } from './cell-buffer.js';
 import { VICTORIAN_PALETTE } from './material-palette.js';
 
@@ -93,5 +94,27 @@ export function renderAtlasDossierPanel(
   } else {
     buf.writeString(rightX, dY, 'No direct district gates on this stratum.'.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
     dY++;
+  }
+
+  // Causal Grid Telemetry
+  const causalSummary = projectDistrictCausalSummary(state.cityGraph, currentDistrict);
+  if (causalSummary) {
+    dY++;
+    buf.writeString(rightX, dY, '─[ CAUSAL GRID RESERVOIRS ]─'.slice(0, rightWidth), VICTORIAN_PALETTE.TARNISHED_BRASS, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY++;
+    buf.writeString(rightX, dY, `Steam: ${causalSummary.steamKpa}kPa | Coal: ${causalSummary.coalTons}t`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY++;
+    buf.writeString(rightX, dY, `Carbolic: ${causalSummary.carbolicLiters}L | Rations: ${causalSummary.rationsCrates}`.slice(0, rightWidth), VICTORIAN_PALETTE.SEPIA_INK, VICTORIAN_PALETTE.SOOT_IRON_BG);
+    dY++;
+    if (causalSummary.activeAlerts.length > 0) {
+      buf.writeString(rightX, dY, `ALERT: ${causalSummary.activeAlerts.join(', ')}`.slice(0, rightWidth), VICTORIAN_PALETTE.WARN_RED, VICTORIAN_PALETTE.SOOT_IRON_BG);
+      dY++;
+    }
+  }
+
+  const chunkSummary = projectChunkStreamingSummary(state.chunkLedger);
+  if (chunkSummary.activeCount > 0 || chunkSummary.dormantCount > 0) {
+    dY++;
+    buf.writeString(rightX, dY, `Chunks: ${chunkSummary.activeCount} active / ${chunkSummary.dormantCount} dormant`.slice(0, rightWidth), VICTORIAN_PALETTE.MUTED_PIPE, VICTORIAN_PALETTE.SOOT_IRON_BG);
   }
 }

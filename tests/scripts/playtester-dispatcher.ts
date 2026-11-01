@@ -2,6 +2,7 @@ import { GameCommand } from '../../src/schemas/commands.schema.js';
 import {
   BlueprintIdSchema,
   CommodityIdSchema,
+  ConduitEdgeIdSchema,
   EntityId,
   EntityIdSchema,
   FactionIdSchema,
@@ -115,6 +116,7 @@ export function parseLlmResponseToCommand(
             case 'PAY_CHIRURGEON_HEAL': return { type: 'PAY_CHIRURGEON_HEAL', actorId: playerId, chirurgeonId: EntityIdSchema.parse(p.chirurgeonId) };
             case 'DESCEND_CATACOMBS': return { type: 'DESCEND_CATACOMBS', actorId: playerId, stairEntityId: EntityIdSchema.parse(p.stairEntityId ?? p.portalId ?? 'portal_catacombs') };
             case 'EMIT_SQUAD_CALLOUT': return { type: 'EMIT_SQUAD_CALLOUT', actorId: playerId, targetId: EntityIdSchema.parse(p.targetId ?? playerId), alertMessage: p.alertMessage ?? 'Intruder spotted! Rally to me!' };
+            case 'MODULATE_CAUSAL_CONDUIT': return { type: 'MODULATE_CAUSAL_CONDUIT', actorId: playerId, edgeId: ConduitEdgeIdSchema.parse(p.edgeId), action: p.conduitAction };
           }
         }
         const normDir = normalizeDirection(String(rawObj.dir || rawObj.direction || ''));

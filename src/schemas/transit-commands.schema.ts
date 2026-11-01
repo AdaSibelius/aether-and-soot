@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BlueprintIdSchema, EntityIdSchema } from './primitives.schema.js';
+import { BlueprintIdSchema, ConduitEdgeIdSchema, EntityIdSchema } from './primitives.schema.js';
 
 export const BoardMonorailCommandSchema = z.object({
   type: z.literal('BOARD_MONORAIL'),
@@ -29,3 +29,12 @@ export const AscendCatacombsCommandSchema = z.object({
   stairEntityId: EntityIdSchema,
 });
 export type AscendCatacombsCommand = z.infer<typeof AscendCatacombsCommandSchema>;
+
+export const ModulateCausalConduitCommandSchema = z.object({
+  type: z.literal('MODULATE_CAUSAL_CONDUIT'),
+  actorId: EntityIdSchema,
+  edgeId: ConduitEdgeIdSchema,
+  action: z.enum(['OPEN_VALVE', 'CLOSE_VALVE', 'SABOTAGE_CONDUIT', 'REPAIR_CONDUIT']),
+});
+export type ModulateCausalConduitCommand = z.infer<typeof ModulateCausalConduitCommandSchema>;
+

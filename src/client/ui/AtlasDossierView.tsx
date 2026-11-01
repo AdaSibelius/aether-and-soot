@@ -4,6 +4,11 @@ import { EntityRecord } from '../../schemas/components.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { WorldState } from '../../sim/core/world.js';
 import { getAllDistrictDossiers, getDistrictDossier } from '../../sim/spatial/overworld-matrix.js';
+import {
+  projectChunkStreamingSummary,
+  projectDistrictCausalSummary,
+  projectDistrictConduits,
+} from '../projection/city-graph-projection.js';
 
 export interface AtlasDossierViewProps {
   readonly state: Readonly<WorldState>;
@@ -23,6 +28,9 @@ export function AtlasDossierView({
 
   const allDossiers = getAllDistrictDossiers();
   const activeDossier = getDistrictDossier(selectedDistrictId) ?? allDossiers[0];
+  const causalSummary = projectDistrictCausalSummary(state.cityGraph, selectedDistrictId);
+  const conduits = projectDistrictConduits(state.cityGraph, selectedDistrictId);
+  const chunkSummary = projectChunkStreamingSummary(state.chunkLedger);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '10px', height: '100%', minHeight: 0 }}>
@@ -71,6 +79,9 @@ export function AtlasDossierView({
             </div>
           );
         })}
+        <div style={{ fontSize: '9px', color: '#7f8c8d', padding: '4px 6px', borderTop: '1px solid #1c2833' }}>
+          Chunks: <b>{chunkSummary.activeCount}</b> active / <b>{chunkSummary.dormantCount}</b> dormant
+        </div>
       </div>
 
       {/* Right Column: Selected District Landmark Dossier */}
@@ -83,6 +94,45 @@ export function AtlasDossierView({
               Smog: <b>{activeDossier.smog}</b> | Wealth: <b>x{activeDossier.wealthIndex}</b> | Natural Barriers: {activeDossier.naturalBarriers.join(', ')}
             </div>
           </div>
+
+          {causalSummary && (
+            <div style={{ padding: '6px', background: '#0e161a', border: '1px solid #17202a' }}>
+              <div class="panel-header" style={{ margin: '0 0 4px 0', border: 'none', fontSize: '9px' }}>CAUSAL GRID TELEMETRY</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px', fontSize: '9px', color: '#bdc3c7' }}>
+                <div>Steam: <b>{causalSummary.steamKpa} kPa</b></div>
+                <div>Coal: <b>{causalSummary.coalTons} t</b></div>
+                <div>Carbolic: <b>{causalSummary.carbolicLiters} L</b></div>
+                <div>Rations: <b>{causalSummary.rationsCrates} crates</b></div>
+                <div>Miasma: <b>{causalSummary.miasmaPpm} PPM</b></div>
+                <div>Unrest: <b>{causalSummary.unrestPct}%</b></div>
+              </div>
+              {causalSummary.activeAlerts.length > 0 && (
+                <div style={{ marginTop: '4px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {causalSummary.activeAlerts.map((alert) => (
+                    <span key={alert} style={{ fontSize: '8px', color: '#fff', background: '#922b21', padding: '1px 4px', borderRadius: '2px', fontWeight: 'bold' }}>
+                      ⚠ {alert}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {conduits.length > 0 && (
+            <div style={{ padding: '6px', background: '#0e161a', border: '1px solid #17202a' }}>
+              <div class="panel-header" style={{ margin: '0 0 4px 0', border: 'none', fontSize: '9px' }}>CONNECTING CONDUITS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {conduits.slice(0, 4).map((c) => (
+                  <div key={c.edgeId} style={{ fontSize: '8px', display: 'flex', justifyContent: 'space-between', color: '#95a5a6' }}>
+                    <span>{c.conduitType} ({c.capacity} cap)</span>
+                    <span style={{ color: c.valveOpen ? 'var(--ok-green)' : '#e74c3c' }}>
+                      {c.valveOpen ? 'OPEN' : 'CLOSED'} ({c.integrityPct}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div class="panel-header" style={{ margin: '4px 0 0 0', border: 'none', fontSize: '10px' }}>KEY LANDMARK DOSSIERS</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
