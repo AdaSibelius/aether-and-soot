@@ -1,42 +1,56 @@
-# BRIEFING — 2026-11-01T18:55:00Z
+# BRIEFING — 2026-11-01T20:30:00Z
 
 ## Mission
-Design exact implementation blueprint for isolating UI sidebar (cols 58-87) from lens distortion/heat haze/chromatic aberration blur and ensuring 4K HDR text sharpness while preserving test pass rates and strict modularity limits.
+Investigate and design `src/sim/spatial/building-templates.ts` and `src/sim/spatial/template-instantiator.ts` for Milestone 1.
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: investigator, synthesizer
-- Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_3/
-- Original parent: 61239d6e-5e21-48a8-8b66-444d6753c37e
-- Milestone: M1 Shader Compositing & 4K HDR Readability
+- Roles: M1 Template & Stamping Architect
+- Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_3
+- Original parent: 8bcaf026-ce3c-48eb-9daf-0cfea72b7f7d
+- Milestone: Milestone 1 (Procedural Interior Floorplans & Building Template Architecture)
 
 ## 🔒 Key Constraints
 - Read-only investigation — do NOT implement
-- glyph-stage.ts (239 lines) MUST NOT be modified
-- Keep pipeline and filter files <= 220 lines (300 ceiling)
-- Preserving 100% pass rate in tests/sim/phase54-shader-pipeline.test.ts and all verification tests
-- Self-contained handoff.md with 5 components
+- Do NOT modify source code or run build/test commands
+- Both target files must remain strictly under 220 lines (target <= 250, hard ceiling 300)
+- Deliver report to /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_3/handoff.md and notify orchestrator
 
 ## Current Parent
-- Conversation ID: 61239d6e-5e21-48a8-8b66-444d6753c37e
-- Updated: 2026-11-01T18:55:00Z
+- Conversation ID: 8bcaf026-ce3c-48eb-9daf-0cfea72b7f7d
+- Updated: not yet
 
 ## Investigation State
-- **Explored paths**: ORIGINAL_REQUEST.md, PROJECT.md, survey_2/handoff.md, steampunk-pipeline.ts, diegetic-post-filter.ts, shader-uniforms.ts, glyph-stage.ts, main.tsx, glyph-atlas-extended.ts, index.html, phase54-shader-pipeline.test.ts, check-boundaries.ts.
+- **Explored paths**:
+  - `src/sim/spatial/grid.ts`
+  - `src/sim/spatial/block-geometry.ts`
+  - `src/sim/spatial/district-blocks.ts`
+  - `src/sim/spatial/district-layout.ts`
+  - `src/sim/spatial/typologies-civic.ts`
+  - `src/sim/spatial/typologies-industrial.ts`
+  - `src/sim/spatial/interior-zoning.ts`
+  - `src/sim/spatial/building-variation.ts`
+  - `src/schemas/primitives.schema.ts`
+  - `src/schemas/world-components.schema.ts`
+  - `src/schemas/components.schema.ts`
+  - `tests/scripts/check-boundaries.ts`
+  - Survey R2-3 handoff report
 - **Key findings**:
-  1. Container-level filter attachment fails due to opaque alpha fill in gaslightLightingContainer, double FBO draw calls at 4K, and lighting decoupling.
-  2. Single-pass fullscreen shader branch with `uTacticalSplit` uniform (default `58.0 / 88.0 ≈ 0.65909`) mathematically isolates UI sidebar (`vTextureCoord.x >= uTacticalSplit`) with zero lens distortion, zero heat haze, zero CA channel splitting, zero bloom halo bleed, zero scanline flicker, zero corner vignette dimming.
-  3. Font race condition solved by adding `await document.fonts.ready` in `src/client/main.tsx` prior to `GlyphStageRenderer.create`.
-  4. `glyph-stage.ts` (239 lines) untouched; `diegetic-post-filter.ts` (~187 lines) and `steampunk-pipeline.ts` (~138 lines) stay safely under 220-line target.
-  5. All 11 tests in `phase54-shader-pipeline.test.ts` and all 560 project tests pass cleanly.
-- **Unexplored areas**: None. Ready for handoff report.
+  - Existing imperative typologies are approaching line limits (204 and 198 lines).
+  - Declarative CDDA matrix templates using shared common legends allow 6 full templates to be specified in ~185 lines.
+  - Coordinate rotation (0, 90, 180, 270) and mirroring (`mirrorX`, `flipY`) map bijectively and handle door outward normal vectors.
+  - Walkability invariant BFS (`hasWalkablePath`) from entrance door to interior rooms guarantees zero inaccessible zones.
+  - Instantiator module stays compact at ~175 lines.
+- **Unexplored areas**: None for M1 scope.
 
 ## Key Decisions Made
-- Selected `uTacticalSplit` uniform approach in `DIEGETIC_FRAGMENT_SHADER` over container-level filter attachment.
-- Designed exact diffs for `shader-uniforms.ts`, `diegetic-post-filter.ts`, `steampunk-pipeline.ts`, `main.tsx`, and `tests/sim/phase54-shader-pipeline.test.ts`.
+- Factored out `COMMON_LEGEND` to keep `building-templates.ts` <= 185 lines.
+- Unified rotation (0/90/180/270) and mirroring (`mirrorX`/`flipY`) order of operations.
+- Engineered 100% BFS path reachability guarantee into `instantiateTemplateIntoGrid`.
+- Authored 30+ seed deterministic unit test suite specification.
 
 ## Artifact Index
-- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_3/DISPATCH.md — Incoming assignments
-- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_3/BRIEFING.md — Working memory & identity
-- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_3/progress.md — Heartbeat & status
-- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_3/handoff.md — Final handoff report
+- DISPATCH.md — Task assignment from parent
+- BRIEFING.md — Working memory and identity
+- progress.md — Liveness heartbeat
+- handoff.md — Complete architectural blueprint and test suite specifications

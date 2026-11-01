@@ -1,748 +1,380 @@
-# M1 Explorer 2 Handoff Report: Oxidized Iron Palette & Visual Depth Separation
+# Handoff Report: Victorian Steampunk Fixture Catalog Architecture (`src/sim/spatial/fixture-catalog.ts`)
+
+**Author**: Teamwork Explorer (M1 Fixture Blueprint Architect)  
+**Date**: 2026-11-01  
+**Working Directory**: `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_2/`  
+**Milestone**: Milestone 1 (M1) — Building Layout Templates & Steampunk Fixtures (Feature 7)  
+**Deliverable**: Architectural Specification & Implementation Blueprint for `src/sim/spatial/fixture-catalog.ts`
+
+---
 
 ## 1. Observation
 
-Direct code observations from inspection of `src/client/canvas-ui/`, `src/client/ui/`, `index.html`, and existing test suites:
+Inspection of existing schemas, spatial pipelines, and container systems in the repository reveals the following concrete implementation details:
 
-### 1.1 Existing Palette Definition in `src/client/canvas-ui/material-palette.ts`
-- Current file size: 71 lines (`wc -l` POSIX 70).
-- Lines 1-26 define `VICTORIAN_PALETTE`:
-  ```ts
-  export const VICTORIAN_PALETTE = {
-    // Core 6-color ratified Victorian Industrial tokens
-    SOOT_BLACK: '#101615',
-    GUNMETAL: '#202A28',
-    OXIDIZED_TEAL: '#355B54',
-    AGED_BRASS: '#C1A15B',
-    PARCHMENT: '#D9CCAA',
-    WARNING_RED: '#B94B42',
-
-    // Named semantic & legacy backward-compatible bindings
-    SOOT_IRON_BG: '#101615',
-    OXIDIZED_IRON: '#202A28',
-    TARNISHED_BRASS: '#c5a059',
-    AMBER_GASLIGHT: '#e6a145',
-    SEPIA_PARCHMENT: '#261f18',
-    SEPIA_INK: '#D9CCAA',
-    AETHER_BLUE: '#355B54',
-    INCANDESCENT_RED: '#B94B42',
-    WARN_RED: '#B94B42',
-    OK_GREEN: '#2ecc71',
-    POLISHED_BRASS: '#C1A15B',
-    COPPER_ACCENT: '#d35400',
-    VERDIGRIS_PATINA: '#355B54',
-    RIVET_STEEL: '#7f8c8d',
-    MUTED_PIPE: '#594928',
-  } as const;
+### 1.1 Existing Component Schemas
+- **`FurnitureComponentSchema`** (`src/schemas/world-components.schema.ts:59-83`):
+  ```typescript
+  export const FurnitureComponentSchema = z.object({
+    kind: z.enum([
+      'BED', 'SURGICAL_TABLE', 'LOCKER', 'CRATE', 'BOOKSHELF',
+      'ARTIFICER_BENCH', 'STEAM_CHARGER', 'BARRICADE_WOOD', 'BARRICADE_IRON',
+      'SAFE_VAULT', 'SMELTING_FURNACE', 'CLOCKTOWER_MECHANISM', 'WATER_PUMP',
+      'CANAL_LOCK_MECHANISM', 'BOTANICAL_PLANTER', 'MONORAIL_DEPOT_CONSOLE',
+      'APOTHECARY_COUNTER', 'PEDESTAL',
+    ]),
+    label: z.string().min(1),
+    durabilityHp: z.number().int().positive().optional(),
+  });
   ```
-- **Discrepancies against Requirements**:
-  1. Mandated oxidized iron tokens `DEEP_RUST` (`#7A2E22`), `CHARCOAL` (`#1B1F22`), and `SULFUR_AMBER` (`#E5A93C`) are completely absent.
-  2. `SOOT_BLACK` is defined as `#101615` (luminance 0.006) instead of the ratified deepest void `#0B0C0E` (luminance 0.002).
-  3. `TARNISHED_BRASS` is lowercase `#c5a059` instead of canonical uppercase `#C5A059`.
-  4. `VERDIGRIS_PATINA` and `OXIDIZED_TEAL` are both `#355B54` (identical to `AETHER_BLUE`), lacking distinct verdigris copper-carbonate patina (`#3D7E73`).
-  5. There is no formal 4-tier Z-depth stratification hierarchy (`Z0_TACTICAL_VOID`, `Z1_RECESS_WELL`, `Z2_MACHINED_CHASSIS`, `Z3_EMISSIVE_READOUT`).
+  `'ARTIFICER_BENCH'` is already defined in the enum. The other 7 fixtures (`COAL_STOVE`, `IRON_BOILER`, `ROLL_TOP_DESK`, `GAS_LAMP`, `PNEUMATIC_DISPATCH`, `FILING_CABINET`, `VALVE_MANIFOLD`) are new kinds to be added in `world-components.schema.ts`. Current line count of `world-components.schema.ts` is 195 lines; adding 7 enum strings will reach ~202 lines, well below the 240-line warning threshold.
 
-### 1.2 Bezel & Conduit Rendering in `src/client/canvas-ui/bezel-composer.ts`
-- Current file size: 119 lines.
-- Lines 5-11 define `BezelOptions`:
-  ```ts
-  export interface BezelOptions {
-    readonly title?: string;
-    readonly subtitle?: string;
-    readonly rivetStyle?: 'BRASS_BOLTS' | 'STEEL_STUDS' | 'INDUSTRIAL_GEARS';
-    readonly fgColor?: string;
-    readonly bgColor?: string;
-  }
+- **`PositionComponentSchema`** (`src/schemas/components.schema.ts:37-41`):
+  ```typescript
+  export const PositionComponentSchema = Point3DSchema.extend({
+    blocksMovement: z.boolean().default(true),
+    blocksSight: z.boolean().default(false),
+  });
   ```
-- Lines 25-27 and 49-60 default to `VICTORIAN_PALETTE.TARNISHED_BRASS`, `VICTORIAN_PALETTE.SOOT_IRON_BG`, and `VICTORIAN_PALETTE.RIVET_STEEL`.
-- Bezels lack programmatic awareness of visual depth layers (e.g. whether drawing a recessed instrument well at Z1 or a raised machine chassis frame at Z2).
+  Position explicitly tracks spatial stratum and coordinates (`x`, `y`, `stratum`) along with `blocksMovement` and `blocksSight`.
 
-### 1.3 HTML DOM CSS Styling in `index.html`
-- Current file size: 172 lines.
-- Lines 9-21 define `:root` CSS variables:
-  ```css
-  :root {
-    --bg-soot: #101615;
-    --panel-bg: #202A28;
-    --panel-border: #355B54;
-    --panel-border-bright: #C1A15B;
-    --brass-gold: #C1A15B;
-    --oxidized-copper: #cd7f32;
-    --tesla-cyan: #355B54;
-    --parchment: #D9CCAA;
-    --muted-slate: #7a868a;
-    --ok-green: #52be80;
-    --warn-red: #B94B42;
-  }
+- **`VisualGlyphSpecSchema` / Renderable Representation** (`src/schemas/primitives.schema.ts:118-125`):
+  ```typescript
+  export const VisualGlyphSpecSchema = z.object({
+    glyph: z.string().min(1).max(32),
+    fgPrimary: HexColorSchema,
+    fgSecondary: HexColorSchema,
+    bgColor: HexColorSchema,
+    shaderFlags: z.array(ShaderFlagSchema).default([]),
+  });
   ```
-- **Discrepancies against Requirements**:
-  1. `--panel-border: #355B54` renders generic teal-green borders on all DOM panels, conflicting with the Victorian Edison-era mechanical aesthetic.
-  2. `.panel-box` (lines 86-92) uses a flat `border: 1px solid var(--panel-border)` with no CP437 double-borders (`═`, `║`) or machined corner rivets.
-  3. `#canvas-stage` (lines 64-73) uses a generic brown border `border: 2px solid #221c15`.
-  4. Buttons and log entries use generic `#11181c` and `#172126` backgrounds with teal borders.
+  Every entity in `state.entities` carries a `visual: VisualGlyphSpec` property, which represents its renderable presentation in the WebGL glyph stage.
 
-### 1.4 Test Suite Coupling to Palette Tokens
-- Inspection of `tests/sim/canvas-ui-primitives.test.ts:74-75`, `tests/sim/mechanical-conduits.test.ts:47, 81`, and `tests/sim/diegetic-visualizations.test.ts:42, 49`:
-  All existing tests assert token identity references (`toBe(VICTORIAN_PALETTE.TARNISHED_BRASS)`, `toBe(VICTORIAN_PALETTE.SOOT_IRON_BG)`, `toBe(VICTORIAN_PALETTE.AMBER_GASLIGHT)`), not raw string literals.
-- `npm run check:boundaries && npm run typecheck` currently succeeds with 0 errors across 404 files.
+- **`ShaderFlagSchema`** (`src/schemas/primitives.schema.ts:46-56`):
+  Enums include: `'NONE'`, `'PULSE_STEAM'`, `'HEAT_SHIMMER'`, `'SPARK_GLINT'`, `'SOOT_OCCLUSION'`, `'GASLIGHT_RADIANCE'`, `'VOLUMETRIC_PLUME'`, `'COUNTER_GLINT'`. All visual shader effects needed for our 8 fixtures already exist verbatim in this schema.
+
+- **Specialized Fixture Components**:
+  - `WorkbenchComponentSchema` (`src/schemas/world-components.schema.ts:28-33`): `{ stationType: 'ARTIFICER_BENCH' | 'ALCHEMICAL_STILL', bonusEfficiencyPct: number }`.
+  - `ThermalComponentSchema` (`src/schemas/world-components.schema.ts:93-96`): `{ coreHeatPct: number }` (min 0, max 100).
+  - `PressureVesselComponentSchema` (`src/schemas/components.schema.ts:90-95`): `{ currentPressureKpa: number, maxPressureKpa: number, ruptured: boolean }`.
+  - `InventoryComponentSchema` (`src/schemas/components.schema.ts:128-135`): `{ containedEntityIds: EntityId[], maxMassGrams: number, maxVolumeMl: number, currentMassGrams: number }`.
+  - `UtilityConduitComponentSchema` (`src/schemas/world-components.schema.ts:136-151`): `{ conduitType: 'HIGH_PRESSURE_STEAM_MAIN' | 'HYDRAULIC_DRAINAGE' | 'PNEUMATIC_TRANSIT_TUBE' | 'COAL_GAS_FEED' | 'AETHER_CONDUIT', networkId: string, operatingPressureKpa: number, maxPressureKpa: number, ruptured: boolean, isRuptured?: boolean, connectedEndpointEntityIds: EntityId[] }`.
+
+- **Container Looting and Valid Kinds** (`src/sim/systems/container.system.ts:19-20`):
+  `const VALID_CONTAINER_KINDS = new Set(['LOCKER', 'CRATE', 'BOOKSHELF']);`
+  Loots items from adjacent containers using `resolveLootContainer`.
+
+- **Existing Container Seeding Utility** (`src/sim/spatial/building-variation.ts:9-25`):
+  `seedContainer(entities, items)` creates child item entities using `createEntityFromBlueprint` and inserts them into `entities`, returning an `inventory` record populated with `containedEntityIds`.
+
+- **Available Blueprint Items for Default Loot**:
+  - `commodity_anthracite_briquette` (`data/items/commodities.json:3`)
+  - `item_crown_pence_pouch` (`data/items/materials.json:329`)
+  - `book_pneumatic_schematic` (`data/items/materials.json:151`)
+  - `book_ocular_schematic` (`data/items/materials.json:174`)
+  - `item_pressurized_steam_canister` (`data/items/materials.json:122`)
+  - `mat_brass_gears` (`data/items/materials.json:3`)
+  - `mat_vulcanized_rubber` (`data/items/materials.json:27`)
+  - `gear_heavy_pipe_wrench` (`data/items/materials.json:199`)
 
 ---
 
 ## 2. Logic Chain
 
-1. **Root Aesthetic Cause**:
-   - The current UI suffers from visual flatness because both the tactical map background, console frame, and instrument wells share the same background tone (`#101615` / `#202A28`) and generic teal borders (`#355B54`).
-   - By ratifying the 6 oxidized iron tokens (`DEEP_RUST: #7A2E22`, `CHARCOAL: #1B1F22`, `TARNISHED_BRASS: #C5A059`, `VERDIGRIS: #3D7E73`, `SULFUR_AMBER: #E5A93C`, `SOOT_BLACK: #0B0C0E`), we establish distinct material identities for corrosion, soot, structural brass, patina, gaslight emissions, and the dark void.
-2. **Depth Stratification**:
-   - Visual hierarchy requires distinct luminance planes:
-     - **Z0 (Tactical Void - `#0B0C0E`)**: Sub-stratum darkness and outer canvas viewport.
-     - **Z1 (Recess Well - `#1B1F22` / `#7A2E22`)**: Recessed instrument beds, ticker-tape chronicles, and inventory satchels.
-     - **Z2 (Machined Chassis - `#202A28` / `#C5A059`)**: Heavy brass framing, structural partitions, rivets, and conduit pipes.
-     - **Z3 (Emissive Readout - `#E5A93C` / `#D9CCAA`)**: High-contrast needle indicators, odometers, and active vernier dossiers.
-3. **DOM & Canvas Cohesion**:
-   - Replacing `--panel-border: #355B54` with `--iron-deep-rust: #7A2E22` and applying `3px double var(--iron-tarnished-brass)` with `::before` / `::after` CP437 rivet studs (`☼`) aligns the HTML DOM fallback with the diegetic Canvas console aesthetic.
-4. **Modularity Preservation**:
-   - `material-palette.ts` will expand from 71 lines to ~115 lines, which satisfies the <= 150-line target and stays far below the 300-line ceiling in `tests/scripts/check-boundaries.ts`.
-   - `bezel-composer.ts` will expand from 119 lines to ~135 lines, well below the 250-line target.
+1. **Flat Relational ECS Compliance**:
+   - Rule 2.3 mandates flat relational entities: `EntityRecord` instances stored in `state.entities[id]` with no nested entity objects.
+   - Fixtures are registered directly into `state.entities[fixtureId]`.
+   - When a fixture contains loot (e.g., Coal Stove holding coal briquettes, Desk holding pence and ledgers), the items are spawned as separate `EntityRecord` instances in `state.entities[itemId]` and their IDs are recorded in `fixture.inventory.containedEntityIds`.
+
+2. **Deterministic Entity ID Generation**:
+   - The required format is `entity_${kind}_${x}_${y}_${stratum}`.
+   - Using `EntityIdSchema.parse(\`entity_\${kind.toLowerCase()}_\${x}_\${y}_\${stratum.toLowerCase()}\`)` produces branded `EntityId` strings that are 100% deterministic, seed-reproducible, and free of collision across different coordinates and strata.
+   - An optional `customId?: EntityId` parameter allows district pipelines or landmark systems to supply named overrides (e.g. `'station_guild_artisan_bench'`) without breaking the default deterministic generation.
+
+3. **Collision & Line-of-Sight (LOS) Physics**:
+   - **Line-of-Sight (`blocksSight`)**:
+     * Only the **Industrial Iron Boiler** is a massive, opaque, floor-to-ceiling riveted iron pressure vessel that occludes vision (`blocksSight: true`).
+     * All other 7 fixtures are waist-height, wall-mounted, or open framework (`blocksSight: false`), preserving room visibility.
+   - **Collision (`blocksMovement`)**:
+     * **Artificer Workbench**: `blocksMovement: false` — allows the artisan/player to step up to or work at the bench.
+     * **Gas Lamp**: `blocksMovement: false` — wall- or ceiling-mounted illumination source; actors walk beneath or beside it.
+     * **Coal Stove, Iron Boiler, Roll-Top Desk, Pneumatic Dispatch Tube, Filing Cabinet, Valve Manifold**: `blocksMovement: true` — solid physical obstacles requiring pathfinding navigation.
+
+4. **Component Assembly Mapping**:
+   The prompt details 8 conceptual components:
+   - `PositionComponent`: `position: { x, y, stratum, blocksMovement, blocksSight }`
+   - `RenderableComponent`: `visual: { glyph, fgPrimary, fgSecondary, bgColor, shaderFlags }`
+   - `InteractionComponent`: represented in Aether & Soot by `furniture: { kind, label, durabilityHp }` plus domain components (`inventory`, `workbench`, `pressureVessel`, `utilityConduit`, `thermal`).
+   - `ThermalComponent`: `thermal: { coreHeatPct }`
+   - `PressureVesselComponent`: `pressureVessel: { currentPressureKpa, maxPressureKpa, ruptured: false }`
+   - `InventoryComponent`: `inventory: { containedEntityIds, currentMassGrams, maxMassGrams, maxVolumeMl }`
+   - `WorkbenchComponent`: `workbench: { stationType: 'ARTIFICER_BENCH', bonusEfficiencyPct }`
+   - `UtilityConduitComponent`: `utilityConduit: { conduitType, networkId, operatingPressureKpa, maxPressureKpa, ruptured: false, ... }`
+
+5. **Modularity & File Size Budget (< 200 Lines)**:
+   - Target line count: **< 200 lines** (Rule 2.2 target <= 250, hard ceiling 300).
+   - By creating a lean `seedFixtureInventory` helper and parameterized factory functions sharing a standard `FixtureOptions` interface, all 8 factories plus a unified `createVictorianFixture` dispatcher require exactly **~172 lines of clean TypeScript**.
 
 ---
 
 ## 3. Caveats
 
-1. **Browser Color Gamut**:
-   - Hex colors are mapped in standard sRGB. On wide-gamut Display P3 or HDR monitors, colors will appear slightly more saturated, but relative luminance steps between Z0, Z1, Z2, and Z3 remain mathematically invariant.
-2. **Read-Only Explorer Scope**:
-   - In accordance with Teamwork Explorer protocols, no source files were mutated during this investigation. All code specifications below are complete, drop-in replacement artifacts for implementation.
-3. **Headless DOM Testing**:
-   - Vitest runs in Node.js without a full CSS engine; visual verification of pseudo-elements (`::before`/`::after`) requires browser rendering, while token presence is deterministically verified via TypeScript unit tests.
+1. **Schema Extension Pre-Condition**:
+   Before `fixture-catalog.ts` can be compiled, `FurnitureComponentSchema` in `src/schemas/world-components.schema.ts` must have the 7 new enum variants added (`COAL_STOVE`, `IRON_BOILER`, `ROLL_TOP_DESK`, `GAS_LAMP`, `PNEUMATIC_DISPATCH`, `FILING_CABINET`, `VALVE_MANIFOLD`).
+2. **Container Looting System Interaction**:
+   `VALID_CONTAINER_KINDS` in `src/sim/systems/container.system.ts:19` is currently hardcoded to `Set(['LOCKER', 'CRATE', 'BOOKSHELF'])`. In Milestone 1, the implementer must add `'COAL_STOVE'`, `'ROLL_TOP_DESK'`, `'PNEUMATIC_DISPATCH'`, and `'FILING_CABINET'` to this set so the player can interact with them via `LOOT_CONTAINER`.
+3. **Atmospheric Thermodynamic Halos**:
+   `IRON_BOILER` and `COAL_STOVE` have high thermal ratings (`coreHeatPct: 90` and `80`). In district generation (`district-pipeline-late.ts`), these coordinates should be used to infuse ambient steam and heat into adjacent `TileCell.steamPressureKpa` and `TileCell.smokePpm`.
+4. **Scope Discipline**:
+   Per task instructions, this investigation is strictly read-only. No source files were modified or test commands executed.
 
 ---
 
 ## 4. Conclusion & Implementation Blueprint
 
-The following blueprint provides the exact, production-ready code changes for `src/client/canvas-ui/material-palette.ts`, `src/client/canvas-ui/bezel-composer.ts`, `index.html`, and the accompanying verification test `tests/sim/oxidized-iron-palette.test.ts`.
+### 4.1 Component Mapping Matrix (All 8 Fixtures)
 
-### Blueprint 4.1: `src/client/canvas-ui/material-palette.ts`
-**Target File**: `/Users/emmett/Desktop/Game/src/client/canvas-ui/material-palette.ts`  
-**Line Count Projection**: ~115 lines (Target: <= 150, Hard Ceiling: 300)
-
-```typescript
-/**
- * Ratified Victorian Steampunk & Oxidized Iron Color Palette
- * Defines the canonical 6-token oxidized iron system, 4-tier Z-depth stratification,
- * and thermodynamic stress color resolution.
- */
-
-export const VICTORIAN_PALETTE = {
-  // 1. Ratified 6 Oxidized Iron Tokens
-  DEEP_RUST: '#7A2E22',
-  CHARCOAL: '#1B1F22',
-  TARNISHED_BRASS: '#C5A059',
-  VERDIGRIS: '#3D7E73',
-  SULFUR_AMBER: '#E5A93C',
-  SOOT_BLACK: '#0B0C0E',
-
-  // 2. Named Semantic & Backward-Compatible Material Bindings
-  SOOT_IRON_BG: '#0B0C0E',
-  GUNMETAL: '#202A28',
-  OXIDIZED_IRON: '#202A28',
-  OXIDIZED_TEAL: '#3D7E73',
-  AGED_BRASS: '#C5A059',
-  POLISHED_BRASS: '#C1A15B',
-  PARCHMENT: '#D9CCAA',
-  AMBER_GASLIGHT: '#E5A93C',
-  COPPER_ACCENT: '#cd7f32',
-  VERDIGRIS_PATINA: '#3D7E73',
-  RIVET_STEEL: '#7f8c8d',
-  MUTED_PIPE: '#594928',
-  SEPIA_PARCHMENT: '#261f18',
-  SEPIA_INK: '#D9CCAA',
-  AETHER_BLUE: '#355B54',
-  INCANDESCENT_RED: '#B94B42',
-  WARN_RED: '#B94B42',
-  WARNING_RED: '#B94B42',
-  OK_GREEN: '#2ecc71',
-} as const;
-
-export type VisualDepthTierKey =
-  | 'Z0_TACTICAL_VOID'
-  | 'Z1_RECESS_WELL'
-  | 'Z2_MACHINED_CHASSIS'
-  | 'Z3_EMISSIVE_READOUT';
-
-export interface VisualDepthTier {
-  readonly tier: VisualDepthTierKey;
-  readonly zIndex: number;
-  readonly bg: string;
-  readonly fg: string;
-  readonly border: string;
-  readonly accent: string;
-  readonly description: string;
-}
-
-export const VISUAL_DEPTH_TIERS: Record<VisualDepthTierKey, VisualDepthTier> = {
-  Z0_TACTICAL_VOID: {
-    tier: 'Z0_TACTICAL_VOID',
-    zIndex: 0,
-    bg: VICTORIAN_PALETTE.SOOT_BLACK,
-    fg: '#4A5552',
-    border: VICTORIAN_PALETTE.CHARCOAL,
-    accent: VICTORIAN_PALETTE.DEEP_RUST,
-    description: 'Sub-stratum tactical map void & background viewport underlay',
-  },
-  Z1_RECESS_WELL: {
-    tier: 'Z1_RECESS_WELL',
-    zIndex: 1,
-    bg: VICTORIAN_PALETTE.CHARCOAL,
-    fg: VICTORIAN_PALETTE.PARCHMENT,
-    border: VICTORIAN_PALETTE.DEEP_RUST,
-    accent: VICTORIAN_PALETTE.VERDIGRIS,
-    description: 'Recessed readout wells, ticker-tape paper backing, and gauge beds',
-  },
-  Z2_MACHINED_CHASSIS: {
-    tier: 'Z2_MACHINED_CHASSIS',
-    zIndex: 2,
-    bg: VICTORIAN_PALETTE.GUNMETAL,
-    fg: VICTORIAN_PALETTE.TARNISHED_BRASS,
-    border: VICTORIAN_PALETTE.TARNISHED_BRASS,
-    accent: VICTORIAN_PALETTE.RIVET_STEEL,
-    description: 'Raised heavy industrial chassis framing, structural bezels, and conduits',
-  },
-  Z3_EMISSIVE_READOUT: {
-    tier: 'Z3_EMISSIVE_READOUT',
-    zIndex: 3,
-    bg: VICTORIAN_PALETTE.CHARCOAL,
-    fg: VICTORIAN_PALETTE.SULFUR_AMBER,
-    border: VICTORIAN_PALETTE.SULFUR_AMBER,
-    accent: VICTORIAN_PALETTE.PARCHMENT,
-    description: 'Active optical readouts, Bourdon needles, odometers, and vernier reticles',
-  },
-};
-
-export function resolveVisualDepthTier(tier: VisualDepthTierKey): VisualDepthTier {
-  return VISUAL_DEPTH_TIERS[tier];
-}
-
-export type ThermodynamicStressLevel = 'NOMINAL' | 'ELEVATED' | 'CRITICAL';
-
-export type ExtendedShaderFlag =
-  | 'GASLIGHT_BLOOM'
-  | 'AETHER_HALATION'
-  | 'THERMO_CRITICAL_PULSE'
-  | 'SMOKE_MASK_REGION'
-  | 'TREMOR_JITTER';
-
-export interface ThermodynamicPaletteResult {
-  readonly borderFg: string;
-  readonly accentFg: string;
-  readonly bg: string;
-  readonly primaryShaderFlag?: ExtendedShaderFlag;
-}
-
-export function resolveThermodynamicPalette(
-  stressLevel: ThermodynamicStressLevel = 'NOMINAL',
-): ThermodynamicPaletteResult {
-  switch (stressLevel) {
-    case 'CRITICAL':
-      return {
-        borderFg: VICTORIAN_PALETTE.INCANDESCENT_RED,
-        accentFg: '#ff6b4a',
-        bg: VICTORIAN_PALETTE.SOOT_IRON_BG,
-        primaryShaderFlag: 'THERMO_CRITICAL_PULSE',
-      };
-    case 'ELEVATED':
-      return {
-        borderFg: VICTORIAN_PALETTE.SULFUR_AMBER,
-        accentFg: '#f39c12',
-        bg: VICTORIAN_PALETTE.SOOT_IRON_BG,
-        primaryShaderFlag: 'GASLIGHT_BLOOM',
-      };
-    case 'NOMINAL':
-    default:
-      return {
-        borderFg: VICTORIAN_PALETTE.TARNISHED_BRASS,
-        accentFg: VICTORIAN_PALETTE.SULFUR_AMBER,
-        bg: VICTORIAN_PALETTE.SOOT_IRON_BG,
-      };
-  }
-}
-```
+| Fixture Name | Furniture `kind` | Position (`blocksMovement` / `blocksSight`) | Visual Glyph / Palette / Shader | Primary Functional Components | Default Loot Seeding |
+|---|---|---|---|---|---|
+| **Brass Artificer Workbench** | `ARTIFICER_BENCH` | `false` / `false` | `'T'` / `#D4AF37` / `#CD7F32` / `['SPARK_GLINT']` | `workbench: { stationType: 'ARTIFICER_BENCH', bonusEfficiencyPct: 25 }`, durability 150 | None by default (optional tool rack: `gear_heavy_pipe_wrench`) |
+| **Cast-Iron Coal Stove** | `COAL_STOVE` | `true` / `false` | `'♨'` / `#E67E22` / `#BA4A00` / `['HEAT_SHIMMER']` | `thermal: { coreHeatPct: 80 }`, `inventory` (40kg / 30L), durability 200 | 2x `commodity_anthracite_briquette` |
+| **Industrial Iron Boiler** | `IRON_BOILER` | `true` / **`true`** | `'Ω'` / `#5DADE2` / `#2E86C1` / `['PULSE_STEAM', 'VOLUMETRIC_PLUME']` | `pressureVessel: { 140/250 kPa }`, `thermal: { coreHeatPct: 90 }`, durability 400 | None (mechanical pressure vessel) |
+| **Mahogany Roll-Top Desk** | `ROLL_TOP_DESK` | `true` / `false` | `'╤'` / `#873600` / `#5B2C6F` / `['COUNTER_GLINT']` | `inventory` (25kg / 25L), durability 120 | 1x `item_crown_pence_pouch` (18p) |
+| **Welsbach Mantle Gas Lamp** | `GAS_LAMP` | `false` / `false` | `'☼'` / `#F9E79F` / `#F39C12` / `['GASLIGHT_RADIANCE']` | `thermal: { coreHeatPct: 25 }`, light emitter, durability 50 | None (ceiling/wall luminaire) |
+| **Brass Pneumatic Dispatch Tube** | `PNEUMATIC_DISPATCH` | `true` / `false` | `'¶'` / `#D4AF37` / `#B7950B` / `['PULSE_STEAM']` | `utilityConduit: { PNEUMATIC_TRANSIT_TUBE, 70/150 kPa }`, `inventory` (15kg / 10L), durability 180 | 1x `item_pressurized_steam_canister` |
+| **Rolled-Steel Filing Cabinet** | `FILING_CABINET` | `true` / `false` | `'⌸'` / `#7F8C8D` / `#34495E` / `[]` | `inventory` (40kg / 45L), durability 220 | 1x `book_pneumatic_schematic` |
+| **High-Pressure Valve Manifold** | `VALVE_MANIFOLD` | `true` / `false` | `'X'` / `#E74C3C` / `#922B21` / `['SPARK_GLINT']` | `pressureVessel: { 140/250 kPa }`, durability 300 | None (pipe network control) |
 
 ---
 
-### Blueprint 4.2: `src/client/canvas-ui/bezel-composer.ts`
-**Target File**: `/Users/emmett/Desktop/Game/src/client/canvas-ui/bezel-composer.ts`  
-**Line Count Projection**: ~135 lines (Target: <= 250, Hard Ceiling: 300)
+### 4.2 Exact TypeScript Implementation (`src/sim/spatial/fixture-catalog.ts`)
+
+The complete proposed file is 172 lines (well within the `< 200` line budget):
 
 ```typescript
-import { UiCellBuffer } from './cell-buffer.js';
-import {
-  resolveVisualDepthTier,
-  VICTORIAN_PALETTE,
-  VisualDepthTierKey,
-} from './material-palette.js';
-import { UiRect } from './viewport-controls.js';
+import { EntityRecord } from '../../schemas/components.schema.js';
+import { EntityId, EntityIdSchema, StratumId } from '../../schemas/primitives.schema.js';
+import { createEntityFromBlueprint } from '../data/item-catalog.js';
 
-export interface BezelOptions {
-  readonly title?: string;
-  readonly subtitle?: string;
-  readonly rivetStyle?: 'BRASS_BOLTS' | 'STEEL_STUDS' | 'INDUSTRIAL_GEARS';
-  readonly fgColor?: string;
-  readonly bgColor?: string;
-  readonly tier?: VisualDepthTierKey;
+export type VictorianFixtureKind =
+  | 'ARTIFICER_BENCH'
+  | 'COAL_STOVE'
+  | 'IRON_BOILER'
+  | 'ROLL_TOP_DESK'
+  | 'GAS_LAMP'
+  | 'PNEUMATIC_DISPATCH'
+  | 'FILING_CABINET'
+  | 'VALVE_MANIFOLD';
+
+export interface FixtureLootItem {
+  readonly blueprintId: string;
+  readonly quantity?: number;
 }
 
-/**
- * Renders a heavy Victorian machined brass/iron console bezel with double-line conduits,
- * structural corner rivets, engraved title brackets, and recessed display housing.
- */
-export function drawMachinedBezel(
-  buf: UiCellBuffer,
-  rect: UiRect,
-  options: BezelOptions = {},
-): void {
-  const { x, y, width, height } = rect;
-  if (width < 3 || height < 3) return;
-
-  const tierConfig = options.tier ? resolveVisualDepthTier(options.tier) : undefined;
-  const fg = options.fgColor ?? tierConfig?.border ?? VICTORIAN_PALETTE.TARNISHED_BRASS;
-  const bg = options.bgColor ?? tierConfig?.bg ?? VICTORIAN_PALETTE.SOOT_IRON_BG;
-  const rivet = options.rivetStyle === 'INDUSTRIAL_GEARS' ? '⚙' : options.rivetStyle === 'STEEL_STUDS' ? 'Ø' : '☼';
-
-  // 0. Opaque recessed housing fill so underlying world glyphs never bleed through bezel panels
-  for (let row = 1; row < height - 1; row++) {
-    for (let col = 1; col < width - 1; col++) {
-      buf.setCell(x + col, y + row, ' ', fg, bg);
-    }
-  }
-
-  // 1. Horizontal double borders (CP437 ═)
-  for (let col = 1; col < width - 1; col++) {
-    buf.setCell(x + col, y, '═', fg, bg);
-    buf.setCell(x + col, y + height - 1, '═', fg, bg);
-  }
-
-  // 2. Vertical double borders (CP437 ║)
-  for (let row = 1; row < height - 1; row++) {
-    buf.setCell(x, y + row, '║', fg, bg);
-    buf.setCell(x + width - 1, y + row, '║', fg, bg);
-  }
-
-  // 3. Corner rivet housings (CP437 ╔, ╗, ╚, ╝)
-  buf.setCell(x, y, '╔', fg, bg);
-  buf.setCell(x + width - 1, y, '╗', fg, bg);
-  buf.setCell(x, y + height - 1, '╚', fg, bg);
-  buf.setCell(x + width - 1, y + height - 1, '╝', fg, bg);
-
-  // Exterior structural rivets on perimeter
-  const rivetColor = tierConfig?.accent ?? VICTORIAN_PALETTE.RIVET_STEEL;
-  if (width > 6) {
-    buf.setCell(x + 1, y, rivet, rivetColor, bg);
-    buf.setCell(x + width - 2, y, rivet, rivetColor, bg);
-    buf.setCell(x + 1, y + height - 1, rivet, rivetColor, bg);
-    buf.setCell(x + width - 2, y + height - 1, rivet, rivetColor, bg);
-  }
-
-  // 4. Engraved Title Header Housing
-  if (options.title) {
-    const formattedTitle = `╡ ${options.title.toUpperCase()} ╞`;
-    const titleStart = x + Math.max(3, Math.floor((width - formattedTitle.length) / 2));
-    const titleFg = tierConfig ? tierConfig.fg : VICTORIAN_PALETTE.POLISHED_BRASS;
-    buf.writeString(titleStart, y, formattedTitle, titleFg, bg);
-  }
-
-  // 5. Engraved Subtitle / Calibration Marking
-  if (options.subtitle && height > 4) {
-    const subStr = `[${options.subtitle}]`;
-    const subStart = x + Math.max(3, Math.floor((width - subStr.length) / 2));
-    const subFg = tierConfig ? tierConfig.accent : VICTORIAN_PALETTE.VERDIGRIS;
-    buf.writeString(subStart, y + height - 1, subStr, subFg, bg);
-  }
+export interface FixtureOptions {
+  readonly x: number;
+  readonly y: number;
+  readonly stratum?: StratumId;
+  readonly customId?: EntityId;
+  readonly lootItems?: readonly FixtureLootItem[];
+  readonly coreHeatPct?: number;
+  readonly bonusEfficiencyPct?: number;
+  readonly currentPressureKpa?: number;
+  readonly maxPressureKpa?: number;
+  readonly networkId?: string;
 }
 
-/**
- * Draws a rigid pressure-line divider or structural partition separating instrument dials.
- */
-export function drawStructuralDivider(
-  buf: UiCellBuffer,
-  x: number,
-  y: number,
-  length: number,
-  orientation: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL',
-  fg = VICTORIAN_PALETTE.TARNISHED_BRASS,
-  bg = VICTORIAN_PALETTE.SOOT_IRON_BG,
-  tier?: VisualDepthTierKey,
-): void {
-  if (length <= 0) return;
-
-  const tierConfig = tier ? resolveVisualDepthTier(tier) : undefined;
-  const resolvedFg = tierConfig?.border ?? fg;
-  const resolvedBg = tierConfig?.bg ?? bg;
-
-  if (orientation === 'HORIZONTAL') {
-    buf.setCell(x, y, '╠', resolvedFg, resolvedBg);
-    for (let c = 1; c < length - 1; c++) {
-      buf.setCell(x + c, y, '═', resolvedFg, resolvedBg);
-    }
-    buf.setCell(x + length - 1, y, '╣', resolvedFg, resolvedBg);
-  } else {
-    buf.setCell(x, y, '╦', resolvedFg, resolvedBg);
-    for (let r = 1; r < length - 1; r++) {
-      buf.setCell(x, y + r, '║', resolvedFg, resolvedBg);
-    }
-    buf.setCell(x, y + length - 1, '╩', resolvedFg, resolvedBg);
-  }
+export function buildFixtureEntityId(kind: string, x: number, y: number, stratum: StratumId): EntityId {
+  return EntityIdSchema.parse(`entity_${kind.toLowerCase()}_${x}_${y}_${stratum.toLowerCase()}`);
 }
 
-/**
- * Emplaces a high-torque machined rivet cluster at structural stress intersections.
- */
-export function drawRivetFlange(
-  buf: UiCellBuffer,
-  x: number,
-  y: number,
-  fg = VICTORIAN_PALETTE.RIVET_STEEL,
-  bg = VICTORIAN_PALETTE.SOOT_IRON_BG,
-): void {
-  buf.setCell(x, y, '◈', fg, bg);
-  buf.setCell(x + 1, y, '◈', fg, bg);
-}
-```
-
----
-
-### Blueprint 4.3: `index.html` (Complete CSS & DOM Blueprint)
-**Target File**: `/Users/emmett/Desktop/Game/index.html`
-
-Replace lines 8-158 in `<style>` with:
-
-```html
-    <style>
-      :root {
-        /* Ratified 6-Token Oxidized Iron Palette */
-        --iron-deep-rust: #7A2E22;
-        --iron-charcoal: #1B1F22;
-        --iron-tarnished-brass: #C5A059;
-        --iron-verdigris: #3D7E73;
-        --iron-sulfur-amber: #E5A93C;
-        --iron-soot-black: #0B0C0E;
-
-        /* 4-Tier Z-Depth Stratification Hierarchy */
-        --z0-tactical-void: #0B0C0E;
-        --z1-recess-well: #1B1F22;
-        --z2-machined-chassis: #202A28;
-        --z3-emissive-readout: #E5A93C;
-
-        /* Semantic Mappings */
-        --bg-soot: var(--z0-tactical-void);
-        --panel-bg: var(--z1-recess-well);
-        --panel-border: var(--iron-deep-rust);
-        --panel-border-bright: var(--iron-tarnished-brass);
-        --brass-gold: var(--iron-tarnished-brass);
-        --oxidized-copper: #cd7f32;
-        --tesla-cyan: var(--iron-verdigris);
-        --parchment: #D9CCAA;
-        --muted-slate: #7a868a;
-        --ok-green: #52be80;
-        --warn-red: #B94B42;
+function seedFixtureInventory(
+  fixtureId: EntityId,
+  lootItems: readonly FixtureLootItem[] | undefined,
+  entities: Record<string, EntityRecord> | undefined,
+  maxMassGrams = 30000,
+  maxVolumeMl = 25000,
+): EntityRecord['inventory'] {
+  const containedEntityIds: EntityId[] = [];
+  let totalMass = 0;
+  if (lootItems && entities) {
+    lootItems.forEach((item, idx) => {
+      const itemId = EntityIdSchema.parse(`${fixtureId}_item_${idx}`);
+      const qty = item.quantity ?? 1;
+      const created = createEntityFromBlueprint(item.blueprintId, itemId, qty);
+      if (created) {
+        entities[itemId] = created;
+        containedEntityIds.push(itemId);
+        totalMass += (created.item?.massGrams ?? 0) * qty;
       }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: var(--z0-tactical-void);
-        color: var(--parchment);
-        font-family: 'IBM Plex Mono', 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-      }
-      .app-frame {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100vw;
-        height: 100vh;
-        margin: 0;
-        padding: 0;
-        background: #050708;
-        position: relative;
-        overflow: hidden;
-      }
-      .viewport-column {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        position: relative;
-      }
-      #hud-root:empty,
-      #top-bar-root:empty,
-      #action-bar-root:empty {
-        display: none !important;
-      }
-      #canvas-stage {
-        border: 3px double var(--iron-tarnished-brass);
-        outline: 2px solid var(--iron-deep-rust);
-        outline-offset: 1px;
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: auto;
-        overflow: hidden;
-        background: var(--z0-tactical-void);
-        box-shadow:
-          0 0 32px rgba(197, 160, 89, 0.20),
-          inset 0 0 24px rgba(11, 12, 14, 0.95);
-      }
-      #canvas-stage canvas {
-        width: 100% !important;
-        height: 100% !important;
-        display: block;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
-      }
-      .hud-sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .panel-box {
-        position: relative;
-        background: var(--z1-recess-well);
-        border: 3px double var(--iron-tarnished-brass);
-        outline: 1px solid var(--iron-deep-rust);
-        padding: 8px 10px;
-        font-size: 11px;
-        box-shadow:
-          inset 0 0 12px rgba(0, 0, 0, 0.85),
-          0 2px 6px rgba(0, 0, 0, 0.6);
-      }
-      .panel-box::before {
-        content: '☼';
-        position: absolute;
-        top: -6px;
-        left: -3px;
-        font-size: 8px;
-        line-height: 1;
-        color: var(--iron-tarnished-brass);
-        text-shadow: 0 0 2px #000;
-        pointer-events: none;
-      }
-      .panel-box::after {
-        content: '☼';
-        position: absolute;
-        top: -6px;
-        right: -3px;
-        font-size: 8px;
-        line-height: 1;
-        color: var(--iron-tarnished-brass);
-        text-shadow: 0 0 2px #000;
-        pointer-events: none;
-      }
-      .panel-header {
-        color: var(--iron-tarnished-brass);
-        font-weight: bold;
-        letter-spacing: 0.08em;
-        border-bottom: 2px solid var(--iron-deep-rust);
-        padding-bottom: 4px;
-        margin-bottom: 6px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-      }
-      .stat-row,
-      .limb-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 2px 0;
-      }
-      .brass-text {
-        color: var(--iron-tarnished-brass);
-      }
-      .copper-text {
-        color: var(--oxidized-copper);
-      }
-      .tesla-text {
-        color: var(--iron-verdigris);
-      }
-      .amber-text {
-        color: var(--iron-sulfur-amber);
-      }
-      .rust-text {
-        color: var(--iron-deep-rust);
-      }
-      .ok-text {
-        color: var(--ok-green);
-      }
-      .warn-text {
-        color: var(--warn-red);
-      }
-      .button-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      button {
-        background: var(--iron-charcoal);
-        color: var(--iron-tarnished-brass);
-        border: 1px solid var(--iron-deep-rust);
-        border-left: 3px solid var(--iron-tarnished-brass);
-        padding: 4px 8px;
-        font-family: inherit;
-        font-size: 11px;
-        cursor: pointer;
-        text-align: left;
-        transition: border-color 0.15s, background 0.15s, color 0.15s;
-      }
-      button:hover {
-        background: #232a2f;
-        border-color: var(--iron-sulfur-amber);
-        border-left-color: var(--iron-sulfur-amber);
-        color: var(--iron-sulfur-amber);
-      }
-      .log-box {
-        flex: 1;
-        min-height: 140px;
-        background: var(--z1-recess-well);
-      }
-      .log-entry {
-        font-size: 11px;
-        line-height: 1.4;
-        padding: 2px 0;
-        border-bottom: 1px dashed var(--iron-deep-rust);
-      }
-      .muted {
-        color: var(--muted-slate);
-      }
-    </style>
-```
-
----
-
-### Blueprint 4.4: Verification Test Suite `tests/sim/oxidized-iron-palette.test.ts`
-**Target File**: `/Users/emmett/Desktop/Game/tests/sim/oxidized-iron-palette.test.ts`  
-**Purpose**: Deterministic unit verification for the 6 oxidized iron tokens, 4-tier Z-depth stratification, bezel tier integration, and backward compatibility.
-
-```typescript
-import { describe, expect, it } from 'vitest';
-import { createUiCellBuffer } from '../../src/client/canvas-ui/cell-buffer.js';
-import { drawMachinedBezel } from '../../src/client/canvas-ui/bezel-composer.js';
-import {
-  resolveThermodynamicPalette,
-  resolveVisualDepthTier,
-  VICTORIAN_PALETTE,
-  VISUAL_DEPTH_TIERS,
-} from '../../src/client/canvas-ui/material-palette.js';
-
-describe('Oxidized Iron Palette & Visual Depth Stratification', () => {
-  it('ratifies the 6 canonical oxidized iron tokens with exact hex values', () => {
-    expect(VICTORIAN_PALETTE.DEEP_RUST).toBe('#7A2E22');
-    expect(VICTORIAN_PALETTE.CHARCOAL).toBe('#1B1F22');
-    expect(VICTORIAN_PALETTE.TARNISHED_BRASS).toBe('#C5A059');
-    expect(VICTORIAN_PALETTE.VERDIGRIS).toBe('#3D7E73');
-    expect(VICTORIAN_PALETTE.SULFUR_AMBER).toBe('#E5A93C');
-    expect(VICTORIAN_PALETTE.SOOT_BLACK).toBe('#0B0C0E');
-  });
-
-  it('defines the 4-tier Z-depth stratification hierarchy with strict ascending zIndex', () => {
-    expect(VISUAL_DEPTH_TIERS.Z0_TACTICAL_VOID.zIndex).toBe(0);
-    expect(VISUAL_DEPTH_TIERS.Z1_RECESS_WELL.zIndex).toBe(1);
-    expect(VISUAL_DEPTH_TIERS.Z2_MACHINED_CHASSIS.zIndex).toBe(2);
-    expect(VISUAL_DEPTH_TIERS.Z3_EMISSIVE_READOUT.zIndex).toBe(3);
-
-    // Z0 Tactical Void
-    const z0 = resolveVisualDepthTier('Z0_TACTICAL_VOID');
-    expect(z0.bg).toBe(VICTORIAN_PALETTE.SOOT_BLACK);
-    expect(z0.accent).toBe(VICTORIAN_PALETTE.DEEP_RUST);
-
-    // Z1 Recess Well
-    const z1 = resolveVisualDepthTier('Z1_RECESS_WELL');
-    expect(z1.bg).toBe(VICTORIAN_PALETTE.CHARCOAL);
-    expect(z1.border).toBe(VICTORIAN_PALETTE.DEEP_RUST);
-
-    // Z2 Machined Chassis
-    const z2 = resolveVisualDepthTier('Z2_MACHINED_CHASSIS');
-    expect(z2.border).toBe(VICTORIAN_PALETTE.TARNISHED_BRASS);
-
-    // Z3 Emissive Readout
-    const z3 = resolveVisualDepthTier('Z3_EMISSIVE_READOUT');
-    expect(z3.fg).toBe(VICTORIAN_PALETTE.SULFUR_AMBER);
-  });
-
-  it('binds bezel tier options to the 4-tier visual depth palette in drawMachinedBezel', () => {
-    const buf = createUiCellBuffer(12, 6);
-    drawMachinedBezel(buf, { x: 0, y: 0, width: 12, height: 6 }, {
-      tier: 'Z1_RECESS_WELL',
-      title: 'TICKER',
     });
+  }
+  return { containedEntityIds, currentMassGrams: totalMass, maxMassGrams, maxVolumeMl };
+}
 
-    // Interior well uses CHARCOAL background
-    expect(buf.getCell(1, 1)?.bg).toBe(VICTORIAN_PALETTE.CHARCOAL);
-    // Border uses DEEP_RUST
-    expect(buf.getCell(1, 0)?.fg).toBe(VICTORIAN_PALETTE.DEEP_RUST);
-    // Double line characters
-    expect(buf.getCell(1, 0)?.glyph).toBe('═');
-    expect(buf.getCell(0, 1)?.glyph).toBe('║');
-  });
+export function createArtificerBenchFixture(opts: FixtureOptions): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('artificer_bench', opts.x, opts.y, stratum);
+  return {
+    id,
+    name: 'Brass Artificer Workbench',
+    visual: { glyph: 'T', fgPrimary: '#D4AF37', fgSecondary: '#CD7F32', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: false, blocksSight: false },
+    furniture: { kind: 'ARTIFICER_BENCH', label: 'Brass Artificer Workbench', durabilityHp: 150 },
+    workbench: { stationType: 'ARTIFICER_BENCH', bonusEfficiencyPct: opts.bonusEfficiencyPct ?? 25 },
+  };
+}
 
-  it('preserves thermodynamic palette stress levels with sulfur amber highlights', () => {
-    const nominal = resolveThermodynamicPalette('NOMINAL');
-    expect(nominal.borderFg).toBe(VICTORIAN_PALETTE.TARNISHED_BRASS);
-    expect(nominal.accentFg).toBe(VICTORIAN_PALETTE.SULFUR_AMBER);
+export function createCoalStoveFixture(opts: FixtureOptions, entities?: Record<string, EntityRecord>): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('coal_stove', opts.x, opts.y, stratum);
+  const loot = opts.lootItems ?? [{ blueprintId: 'commodity_anthracite_briquette', quantity: 2 }];
+  return {
+    id,
+    name: 'Cast-Iron Coal Stove',
+    visual: { glyph: '♨', fgPrimary: '#E67E22', fgSecondary: '#BA4A00', bgColor: '#0A0D0E', shaderFlags: ['HEAT_SHIMMER'] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: true, blocksSight: false },
+    furniture: { kind: 'COAL_STOVE', label: 'Cast-Iron Coal Stove', durabilityHp: 200 },
+    thermal: { coreHeatPct: opts.coreHeatPct ?? 80 },
+    inventory: seedFixtureInventory(id, loot, entities, 40000, 30000),
+  };
+}
 
-    const elevated = resolveThermodynamicPalette('ELEVATED');
-    expect(elevated.borderFg).toBe(VICTORIAN_PALETTE.SULFUR_AMBER);
-    expect(elevated.primaryShaderFlag).toBe('GASLIGHT_BLOOM');
+export function createIronBoilerFixture(opts: FixtureOptions): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('iron_boiler', opts.x, opts.y, stratum);
+  return {
+    id,
+    name: 'Industrial Iron Boiler',
+    visual: { glyph: 'Ω', fgPrimary: '#5DADE2', fgSecondary: '#2E86C1', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM', 'VOLUMETRIC_PLUME'] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: true, blocksSight: true },
+    furniture: { kind: 'IRON_BOILER', label: 'Industrial Iron Boiler', durabilityHp: 400 },
+    pressureVessel: { currentPressureKpa: opts.currentPressureKpa ?? 140, maxPressureKpa: opts.maxPressureKpa ?? 250, ruptured: false },
+    thermal: { coreHeatPct: opts.coreHeatPct ?? 90 },
+  };
+}
 
-    const critical = resolveThermodynamicPalette('CRITICAL');
-    expect(critical.borderFg).toBe(VICTORIAN_PALETTE.INCANDESCENT_RED);
-    expect(critical.primaryShaderFlag).toBe('THERMO_CRITICAL_PULSE');
-  });
-});
+export function createRollTopDeskFixture(opts: FixtureOptions, entities?: Record<string, EntityRecord>): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('roll_top_desk', opts.x, opts.y, stratum);
+  const loot = opts.lootItems ?? [{ blueprintId: 'item_crown_pence_pouch', quantity: 1 }];
+  return {
+    id,
+    name: 'Mahogany Roll-Top Desk',
+    visual: { glyph: '╤', fgPrimary: '#873600', fgSecondary: '#5B2C6F', bgColor: '#0A0D0E', shaderFlags: ['COUNTER_GLINT'] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: true, blocksSight: false },
+    furniture: { kind: 'ROLL_TOP_DESK', label: 'Mahogany Roll-Top Desk', durabilityHp: 120 },
+    inventory: seedFixtureInventory(id, loot, entities, 25000, 25000),
+  };
+}
+
+export function createGasLampFixture(opts: FixtureOptions): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('gas_lamp', opts.x, opts.y, stratum);
+  return {
+    id,
+    name: 'Welsbach Mantle Gas Lamp',
+    visual: { glyph: '☼', fgPrimary: '#F9E79F', fgSecondary: '#F39C12', bgColor: '#0A0D0E', shaderFlags: ['GASLIGHT_RADIANCE'] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: false, blocksSight: false },
+    furniture: { kind: 'GAS_LAMP', label: 'Welsbach Mantle Gas Lamp', durabilityHp: 50 },
+    thermal: { coreHeatPct: opts.coreHeatPct ?? 25 },
+  };
+}
+
+export function createPneumaticDispatchFixture(opts: FixtureOptions, entities?: Record<string, EntityRecord>): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('pneumatic_dispatch', opts.x, opts.y, stratum);
+  const loot = opts.lootItems ?? [{ blueprintId: 'item_pressurized_steam_canister', quantity: 1 }];
+  return {
+    id,
+    name: 'Brass Pneumatic Dispatch Tube',
+    visual: { glyph: '¶', fgPrimary: '#D4AF37', fgSecondary: '#B7950B', bgColor: '#0A0D0E', shaderFlags: ['PULSE_STEAM'] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: true, blocksSight: false },
+    furniture: { kind: 'PNEUMATIC_DISPATCH', label: 'Brass Pneumatic Dispatch Tube', durabilityHp: 180 },
+    utilityConduit: {
+      conduitType: 'PNEUMATIC_TRANSIT_TUBE',
+      networkId: opts.networkId ?? 'dispatch_central',
+      operatingPressureKpa: opts.currentPressureKpa ?? 70,
+      maxPressureKpa: opts.maxPressureKpa ?? 150,
+      ruptured: false,
+      isRuptured: false,
+      connectedEndpointEntityIds: [],
+    },
+    inventory: seedFixtureInventory(id, loot, entities, 15000, 10000),
+  };
+}
+
+export function createFilingCabinetFixture(opts: FixtureOptions, entities?: Record<string, EntityRecord>): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('filing_cabinet', opts.x, opts.y, stratum);
+  const loot = opts.lootItems ?? [{ blueprintId: 'book_pneumatic_schematic', quantity: 1 }];
+  return {
+    id,
+    name: 'Rolled-Steel Filing Cabinet',
+    visual: { glyph: '⌸', fgPrimary: '#7F8C8D', fgSecondary: '#34495E', bgColor: '#0A0D0E', shaderFlags: [] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: true, blocksSight: false },
+    furniture: { kind: 'FILING_CABINET', label: 'Rolled-Steel Filing Cabinet', durabilityHp: 220 },
+    inventory: seedFixtureInventory(id, loot, entities, 40000, 45000),
+  };
+}
+
+export function createValveManifoldFixture(opts: FixtureOptions): EntityRecord {
+  const stratum = opts.stratum ?? 'STREET';
+  const id = opts.customId ?? buildFixtureEntityId('valve_manifold', opts.x, opts.y, stratum);
+  return {
+    id,
+    name: 'High-Pressure Valve Manifold',
+    visual: { glyph: 'X', fgPrimary: '#E74C3C', fgSecondary: '#922B21', bgColor: '#0A0D0E', shaderFlags: ['SPARK_GLINT'] },
+    position: { x: opts.x, y: opts.y, stratum, blocksMovement: true, blocksSight: false },
+    furniture: { kind: 'VALVE_MANIFOLD', label: 'High-Pressure Valve Manifold', durabilityHp: 300 },
+    pressureVessel: { currentPressureKpa: opts.currentPressureKpa ?? 140, maxPressureKpa: opts.maxPressureKpa ?? 250, ruptured: false },
+  };
+}
+
+export function createVictorianFixture(
+  kind: VictorianFixtureKind,
+  opts: FixtureOptions,
+  entities?: Record<string, EntityRecord>,
+): EntityRecord {
+  switch (kind) {
+    case 'ARTIFICER_BENCH': return createArtificerBenchFixture(opts);
+    case 'COAL_STOVE': return createCoalStoveFixture(opts, entities);
+    case 'IRON_BOILER': return createIronBoilerFixture(opts);
+    case 'ROLL_TOP_DESK': return createRollTopDeskFixture(opts, entities);
+    case 'GAS_LAMP': return createGasLampFixture(opts);
+    case 'PNEUMATIC_DISPATCH': return createPneumaticDispatchFixture(opts, entities);
+    case 'FILING_CABINET': return createFilingCabinetFixture(opts, entities);
+    case 'VALVE_MANIFOLD': return createValveManifoldFixture(opts);
+  }
+}
 ```
 
 ---
 
 ## 5. Verification Method
 
-To verify these changes after implementation by the worker:
+To independently verify the implementation during Milestone 1 execution:
 
-1. **Boundary & Modularity Ceiling Check**:
-   ```bash
-   npm run check:boundaries
-   ```
-   *Expected Output*: Checked 404+ files. Zero Core/Shell violations. `material-palette.ts` <= 150 lines, `bezel-composer.ts` <= 250 lines.
-
-2. **TypeScript Strict Typecheck**:
+1. **TypeScript Typecheck**:
    ```bash
    npm run typecheck
    ```
-   *Expected Output*: Exit code 0, 0 errors.
+   Must pass with 0 errors, validating all `EntityRecord` shapes, `EntityId` branded strings, and exhaustive switch in `createVictorianFixture`.
 
-3. **Targeted Palette Unit Test**:
+2. **File Size & Boundary Gate**:
    ```bash
-   npx vitest run tests/sim/oxidized-iron-palette.test.ts
+   npm run check:boundaries
    ```
-   *Expected Output*: 4 passed (all assertions green).
+   Confirms `src/sim/spatial/fixture-catalog.ts` is `<= 200 lines` (far below the 300-line hard modularity ceiling) and contains zero browser globals or forbidden client imports.
 
-4. **Existing Canvas Primitives & Conduits Regression**:
+3. **Targeted Vitest Unit Suite**:
    ```bash
-   npx vitest run tests/sim/canvas-ui-primitives.test.ts tests/sim/mechanical-conduits.test.ts tests/sim/diegetic-visualizations.test.ts
+   npx vitest run tests/sim/building-templates.test.ts
    ```
-   *Expected Output*: All tests pass 100%.
-
-5. **Full Verification Pipeline**:
-   ```bash
-   npm run verify
-   ```
-   *Expected Output*: 0 typecheck errors, 0 boundary violations, 0 data validation errors, all 109+ sim tests pass.
+   Verify:
+   - All 8 factory functions return valid `EntityRecord` instances.
+   - Deterministic entity ID generation formula `entity_${kind}_${x}_${y}_${stratum}` produces exact matches.
+   - Only `IRON_BOILER` has `blocksSight: true`; all others have `blocksSight: false`.
+   - `ARTIFICER_BENCH` and `GAS_LAMP` have `blocksMovement: false`; the other 6 have `blocksMovement: true`.
+   - Containers seeded with `entities` populate child items in `entities` and record child IDs in `inventory.containedEntityIds`.
+   - Adjacent looting via `LOOT_CONTAINER` successfully transfers items from `COAL_STOVE`, `ROLL_TOP_DESK`, `PNEUMATIC_DISPATCH`, and `FILING_CABINET`.

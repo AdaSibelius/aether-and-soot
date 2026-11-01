@@ -1,41 +1,53 @@
-# BRIEFING — 2026-11-01T18:55:00Z
+# BRIEFING — 2026-11-01T20:27:00Z
 
 ## Mission
-Design the implementation blueprint for restructuring the 30-column tactical console with thermodynamic stress, satchel load, pneumatic ticker chronicle, and diegetic gauges.
+Design exact schema specifications for Milestone 1 (Building Layout Templates & Steampunk Fixtures) covering primitives, world-components, and building-template schema.
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: investigator, analyzer, blueprint designer
-- Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_1
-- Original parent: 61239d6e-5e21-48a8-8b66-444d6753c37e
-- Milestone: M1 (Tactical Console & Diegetic Gauges)
+- Roles: Schema Architect, Investigator
+- Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_1/
+- Original parent: 8bcaf026-ce3c-48eb-9daf-0cfea72b7f7d
+- Milestone: M1 (Building Layout Templates & Steampunk Fixtures)
 
 ## 🔒 Key Constraints
 - Read-only investigation — do NOT implement
-- Modularity target <= 200 lines per file (hard ceiling: 300)
-- Preserve headless simulation separation (`src/sim/` vs `src/client/`)
-- 30-column tactical console row allocation (0..35 rows)
-- Strict TypeScript types, zero `any` / `@ts-ignore`
+- Do NOT modify source code or run build/test commands
+- Keep modified schema files well under 250 lines (300 hard limit)
+- Ensure 100% backward/forward serialization compatibility
 
 ## Current Parent
-- Conversation ID: 61239d6e-5e21-48a8-8b66-444d6753c37e
-- Updated: not yet
+- Conversation ID: 8bcaf026-ce3c-48eb-9daf-0cfea72b7f7d
+- Updated: 2026-11-01T20:25:00Z
 
 ## Investigation State
-- **Explored paths**: `src/client/canvas-ui/tactical-console.ts`, `analog-gauges.ts`, `dossier-paperdoll.ts`, `tactical-vernier.ts`, `bezel-composer.ts`, `industrial-primitives.ts`, `material-palette.ts`, `diegetic-screen-composer.ts`, `satchel-screen.ts`, `src/sim/systems/inventory-utils.ts`, `src/client/ui/EventFormatterDomain.ts`, `src/client/renderer/steampunk-shader.ts`, `tests/sim/canvas-ui-primitives.test.ts`, `tests/sim/diegetic-screens.test.ts`.
+- **Explored paths**:
+  - `src/schemas/primitives.schema.ts` (205 lines): `TerrainTypeSchema`, `InteriorZoneTypeSchema`, `BuildingArchetypeIdSchema`
+  - `src/schemas/world-components.schema.ts` (195 lines): `FurnitureComponentSchema`
+  - `src/schemas/blueprint.schema.ts` (174 lines): Zod `.refine` patterns and data schemas
+  - `src/schemas/components.schema.ts` (193 lines): ECS components and `EntityComponentsSchema`
+  - `src/sim/core/world.ts` (104 lines): `WorldStateSchema`, `serializeWorld`, `deserializeWorld`
+  - `src/sim/core/world-migration.ts` (121 lines): Versioning and migration pipeline
+  - `src/sim/spatial/grid.ts` (131 lines): `TileCellSchema`, `StratumGridSchema`
+  - `src/sim/spatial/interior-zoning.ts` (128 lines): `InteriorZoneType` usage
+  - `src/sim/spatial/block-geometry.ts` (121 lines): `BuildingPlacement`, `CANONICAL` footprints
+  - `src/sim/spatial/district-blocks.ts` (162 lines): `planMacroLayout`, `applyTypologyPlacements`
+  - `tests/scripts/validate-data.ts` (95 lines): Data validation rules
+  - `tests/scripts/check-boundaries.ts` (73 lines): Modularity (300 ceiling) and Core/Shell rules
 - **Key findings**:
-  1. Identified 10-row collision in current `tactical-console.ts` where physical status lines overwrite paperdoll vitals.
-  2. Identified zero inventory and zero action log presence in the current tactical console.
-  3. Developed 36-row mathematical allocation (Rows 0..35) partitioning the console into 7 distinct instrument tiers separated by rigid structural dividers (`╠═[ HEADER ]═╣`).
-  4. Formulated modularity split plan creating `console-satchel.ts` (~80 lines) and `console-chronicle.ts` (~75 lines), keeping all modules <= 220 lines.
-- **Unexplored areas**: None for M1 Tactical Console scope. Investigation is complete.
+  - Adding requested enum variants to `primitives.schema.ts` (+11 lines) brings total to ~216 lines (well below 250 threshold).
+  - Extracting `FurnitureKindSchema` and adding 9 new fixtures to `world-components.schema.ts` (+12 lines) brings total to ~207 lines (well below 250 threshold).
+  - New `building-template.schema.ts` specifies `TemplateCellRuleSchema`, `TemplateRoomDefinitionSchema`, `TemplatePlacementSchema`, and `BuildingTemplateSchema` in ~85 lines.
+  - Serialization compatibility is 100%: all enum changes are purely additive unions; no fields are added to `WorldStateSchema` or required on existing components.
+- **Unexplored areas**: None for M1 schema scope.
 
 ## Key Decisions Made
-1. Formulated complete implementation blueprint in `handoff.md` with drop-in code listings for `console-satchel.ts`, `console-chronicle.ts`, `analog-gauges.ts`, `dossier-paperdoll.ts`, `tactical-vernier.ts`, `tactical-console.ts`, and `tests/sim/tactical-console.test.ts`.
-2. Preserved full backwards compatibility with `diegetic-screen-composer.ts` and modal buffer routers.
-3. Designed fading typewriter-ribbon ink gradient (`#6b5e4f` to `#f5e6cb`) for live action telegram log.
+- Export `FurnitureKindSchema` and `type FurnitureKind` from `world-components.schema.ts` so `building-template.schema.ts` and `fixture-catalog.ts` can reference the type directly.
+- Add `.refine()` to `BuildingTemplateSchema` verifying `rows.length === height` and `row.length === width` for CDDA matrix consistency.
+- Add `TemplatePlacementSchema` in `building-template.schema.ts` to formalize rotation (0/90/180/270), mirroring, and destination placement for the instantiator.
 
 ## Artifact Index
-- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_1/handoff.md — Final handoff report and blueprint
-- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_1/DISPATCH.md — Received mission dispatches
-- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_1/progress.md — Progress heartbeat log
+- DISPATCH.md — Dispatch instructions from orchestrator
+- BRIEFING.md — Persistent context & state
+- progress.md — Liveness heartbeat
+- handoff.md — Final handoff report

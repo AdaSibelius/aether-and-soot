@@ -55,28 +55,40 @@ export const CombatStatsComponentSchema = z.object({
 });
 export type CombatStatsComponent = z.infer<typeof CombatStatsComponentSchema>;
 
-/** Interactive furniture fixture (e.g. Bed, Surgical Table, Locker, Crate). */
+export const FurnitureKindSchema = z.enum([
+  'BED',
+  'SURGICAL_TABLE',
+  'LOCKER',
+  'CRATE',
+  'BOOKSHELF',
+  'ARTIFICER_BENCH',
+  'STEAM_CHARGER',
+  'BARRICADE_WOOD',
+  'BARRICADE_IRON',
+  'SAFE_VAULT',
+  'SMELTING_FURNACE',
+  'CLOCKTOWER_MECHANISM',
+  'WATER_PUMP',
+  'CANAL_LOCK_MECHANISM',
+  'BOTANICAL_PLANTER',
+  'MONORAIL_DEPOT_CONSOLE',
+  'APOTHECARY_COUNTER',
+  'PEDESTAL',
+  'COAL_STOVE',
+  'IRON_BOILER',
+  'ROLL_TOP_DESK',
+  'GAS_LAMP',
+  'PNEUMATIC_DISPATCH',
+  'FILING_CABINET',
+  'VALVE_MANIFOLD',
+  'BAR_COUNTER',
+  'CELL_BENCH',
+]);
+export type FurnitureKind = z.infer<typeof FurnitureKindSchema>;
+
+/** Interactive furniture fixture (e.g. Bed, Surgical Table, Locker, Crate, Stoves, Boilers). */
 export const FurnitureComponentSchema = z.object({
-  kind: z.enum([
-    'BED',
-    'SURGICAL_TABLE',
-    'LOCKER',
-    'CRATE',
-    'BOOKSHELF',
-    'ARTIFICER_BENCH',
-    'STEAM_CHARGER',
-    'BARRICADE_WOOD',
-    'BARRICADE_IRON',
-    'SAFE_VAULT',
-    'SMELTING_FURNACE',
-    'CLOCKTOWER_MECHANISM',
-    'WATER_PUMP',
-    'CANAL_LOCK_MECHANISM',
-    'BOTANICAL_PLANTER',
-    'MONORAIL_DEPOT_CONSOLE',
-    'APOTHECARY_COUNTER',
-    'PEDESTAL',
-  ]),
+  kind: FurnitureKindSchema,
   label: z.string().min(1),
   durabilityHp: z.number().int().positive().optional(),
 });

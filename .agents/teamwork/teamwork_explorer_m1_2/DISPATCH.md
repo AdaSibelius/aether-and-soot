@@ -1,40 +1,33 @@
-# Task Assignment: M1 Explorer 2 — Oxidized Iron Palette & Visual Depth Separation
-
-Read:
-- `/Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_survey_2/handoff.md`
-- `src/client/canvas-ui/material-palette.ts`
-- `src/client/canvas-ui/bezel-composer.ts`
-- `index.html` (CSS styling)
-- `AGENTS.md` and `ARCHITECTURE.md`
-
-Your Mission:
-Formulate an exact, implementation-ready code blueprint and diff specification for the Worker:
-1. Update `src/client/canvas-ui/material-palette.ts`:
-   - Ratify the 6 oxidized iron tokens: `DEEP_RUST` (`#7A2E22`), `CHARCOAL` (`#1B1F22`), `TARNISHED_BRASS` (`#C5A059`), `VERDIGRIS` (`#3D7E73`), `SULFUR_AMBER` (`#E5A93C`), `SOOT_BLACK` (`#0B0C0E`).
-   - Define a 4-tier Z-depth stratification hierarchy (`Z0_TACTICAL_VOID`, `Z1_RECESS_WELL`, `Z2_MACHINED_CHASSIS`, `Z3_EMISSIVE_READOUT`).
-2. Update `index.html` (and any related CSS/DOM components) to replace generic green borders with oxidized iron palette variables, heavy CP437 double-borders (`═`, `║`), and machined rivet corner pseudo-elements.
-3. Keep `material-palette.ts` (currently 70 lines) well under 250 lines.
-4. Output your detailed plan to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_2/handoff.md`.
-
-
-## 2026-11-01T18:48:05Z
-You are M1 Explorer 2 (Oxidized Iron Palette & Visual Depth Separation).
+## 2026-11-01T20:23:49Z
+You are teamwork_explorer (M1 Fixture Blueprint Architect).
 Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_2/
-Read the mandatory files:
-1. /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
-2. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_2/DISPATCH.md
-3. /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md
-4. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_survey_2/handoff.md
-5. src/client/canvas-ui/material-palette.ts, bezel-composer.ts, and index.html
 
-Design the exact implementation blueprint for:
-- Ratifying the 6 oxidized iron tokens in material-palette.ts (DEEP_RUST, CHARCOAL, TARNISHED_BRASS, VERDIGRIS, SULFUR_AMBER, SOOT_BLACK).
-- 4-tier Z-depth stratification hierarchy.
-- Heavy block framing & CP437 double-borders in CSS / HTML DOM.
-- Keeping material-palette.ts <= 150 lines (300 ceiling).
+MANDATORY FIRST STEP:
+Read the authoritative user request at:
+/Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
+Also read the Project Index at:
+/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_2/PROJECT.md
+And reference the Survey Report at:
+/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_survey_r2_3/handoff.md
 
-Write your detailed blueprint and handoff report to:
-/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_2/handoff.md
-When done, notify me via send_message.
+OBJECTIVE:
+Investigate and design the Victorian Steampunk Fixture Catalog module `src/sim/spatial/fixture-catalog.ts` for Milestone 1:
+1. Specify deterministic entity creation factories for all 8 required fixtures:
+   - Brass Artificer Workbench (`ARTIFICER_BENCH`, workbench component)
+   - Cast-Iron Coal Stove (`COAL_STOVE`, thermal component, container for coal)
+   - Industrial Iron Boiler (`IRON_BOILER`, pressure vessel component, thermal, steam emission)
+   - Mahogany Roll-Top Desk (`ROLL_TOP_DESK`, container for ledger/pence)
+   - Welsbach Mantle Gas Lamp (`GAS_LAMP`, thermal, light emitter)
+   - Brass Pneumatic Dispatch Tube (`PNEUMATIC_DISPATCH`, utility conduit component)
+   - Rolled-Steel Filing Cabinet (`FILING_CABINET`, container for dossiers)
+   - High-Pressure Valve Manifold (`VALVE_MANIFOLD`, pressure vessel component)
+2. Detail exact ECS components attached to each fixture (`PositionComponent`, `RenderableComponent`, `InteractionComponent`, `ThermalComponent`, `PressureVesselComponent`, `InventoryComponent`, `WorkbenchComponent`, `UtilityConduitComponent`).
+3. Ensure fixtures follow flat relational ECS rules (`EntityRecord` in `state.entities[id]`) and deterministic entity ID generation (`entity_${kind}_${x}_${y}_${stratum}`).
+4. Check file size: `src/sim/spatial/fixture-catalog.ts` must stay under 200 lines (target <= 250, hard ceiling 300).
+
+DELIVERABLE:
+Write a concrete specification report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m1_2/handoff.md` with:
+- Exact TypeScript factory function implementations and component assembly details
+- Collision and line-of-sight properties (`blocksMovement`, `blocksSight`)
+- Container initialization and loot seeding strategy
+When done, message the orchestrator with the completion status and report path. Do NOT modify source code or run build/test commands.

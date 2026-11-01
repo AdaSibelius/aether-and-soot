@@ -112,6 +112,7 @@ export const TerrainTypeSchema = z.enum([
   'RAIL_TRACK',
   'BOARDING_PLATFORM',
   'SCORCHED_STONE',
+  'TIMBER_STRUT',
 ]);
 export type TerrainType = z.infer<typeof TerrainTypeSchema>;
 
@@ -172,6 +173,13 @@ export const InteriorZoneTypeSchema = z.enum([
   'PLATFORM',
   'TICKET_BOOTH',
   'BACKROOM',
+  'CORRIDOR',
+  'LIVING_QUARTERS',
+  'SCULLERY',
+  'CELLAR',
+  'PUBLIC_BAR',
+  'HOLDING_CELL',
+  'INSPECTOR_OFFICE',
 ]);
 export type InteriorZoneType = z.infer<typeof InteriorZoneTypeSchema>;
 
@@ -182,6 +190,9 @@ export const BuildingArchetypeIdSchema = z.enum([
   'TENEMENT_ROOKERIES',
   'PNEUMATIC_MONORAIL_DEPOT',
   'GUILD_ARTISAN_WORKSHOP',
+  'VICTORIAN_TAVERN',
+  'CONSTABULARY_OFFICE',
+  'TENEMENT_HOUSE',
 ]);
 export type BuildingArchetypeId = z.infer<typeof BuildingArchetypeIdSchema>;
 

@@ -16,7 +16,15 @@ export interface ContainerResolutionResult {
   readonly apSpent: number;
 }
 
-const VALID_CONTAINER_KINDS = new Set(['LOCKER', 'CRATE', 'BOOKSHELF']);
+const VALID_CONTAINER_KINDS = new Set([
+  'LOCKER',
+  'CRATE',
+  'BOOKSHELF',
+  'COAL_STOVE',
+  'ROLL_TOP_DESK',
+  'PNEUMATIC_DISPATCH',
+  'FILING_CABINET',
+]);
 
 function failContainer(
   state: WorldState, actorId: EntityId,
