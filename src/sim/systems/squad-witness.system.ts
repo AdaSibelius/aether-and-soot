@@ -60,13 +60,14 @@ export function resolveReportCrime(
   witnessId: EntityId,
   perpetratorId: EntityId,
   crime: 'THEFT' | 'ASSAULT' | 'TRESPASS',
+  victimFactionId?: FactionId,
 ): SquadWitnessResult {
   const witness = state.entities[witnessId];
   const perp = state.entities[perpetratorId];
   if (!witness?.position || !witness.aiController || !perp?.position) return { state, events: [] };
 
   const turn = state.turnCount + 1;
-  const factionId = witness.aiController.factionId;
+  const factionId = victimFactionId ?? witness.aiController.factionId;
   const penalty = CRIME_REPUTATION_PENALTIES[crime];
   const currentRep = state.economy.factionReputation[factionId] ?? 0;
   const newRep = Math.max(-100, Math.min(100, currentRep + penalty));
@@ -102,8 +103,17 @@ export function processCrimeWitnesses(
   if (!perp?.position || isLocationOccludedBySmog(state, perp.position)) return { state, events: [] };
 
   const witnessCandidates = Object.values(state.entities)
-    .filter((e) => e.id !== perpetratorId && e.aiController?.factionId === victimFactionId && e.position?.stratum === perp.position!.stratum && e.actor && !e.actor.isPlayer)
-    .sort((a, b) => (b.aiController?.role === 'GUARD' ? 1 : 0) - (a.aiController?.role === 'GUARD' ? 1 : 0));
+    .filter((e) => {
+      if (e.id === perpetratorId || !e.position || e.position.stratum !== perp.position!.stratum || !e.actor || e.actor.isPlayer) return false;
+      const isVictimFaction = e.aiController?.factionId === victimFactionId;
+      const isGuardOrConstabulary = e.aiController?.role === 'GUARD' || e.aiController?.factionId === 'CROWN_CONSTABULARY';
+      return isVictimFaction || isGuardOrConstabulary;
+    })
+    .sort((a, b) => {
+      const aScore = (a.aiController?.role === 'GUARD' ? 2 : 0) + (a.aiController?.factionId === 'CROWN_CONSTABULARY' ? 1 : 0);
+      const bScore = (b.aiController?.role === 'GUARD' ? 2 : 0) + (b.aiController?.factionId === 'CROWN_CONSTABULARY' ? 1 : 0);
+      return bScore - aScore;
+    });
 
   let workingState = state;
   const allEvents: SimEvent[] = [];
@@ -113,7 +123,7 @@ export function processCrimeWitnesses(
     if (!candidate.position || isLocationOccludedBySmog(workingState, candidate.position) || !canActorSpotTarget(workingState, candidate.id, perpetratorId)) continue;
 
     if (!reported) {
-      const repRes = resolveReportCrime(workingState, candidate.id, perpetratorId, crime);
+      const repRes = resolveReportCrime(workingState, candidate.id, perpetratorId, crime, victimFactionId);
       workingState = repRes.state;
       allEvents.push(...repRes.events);
       reported = true;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EntityIdSchema } from './primitives.schema.js';
+import { EntityIdSchema, FactionIdSchema } from './primitives.schema.js';
 
 export const EmitSquadCalloutCommandSchema = z.object({
   type: z.literal('EMIT_SQUAD_CALLOUT'),
@@ -14,6 +14,7 @@ export const ReportCrimeCommandSchema = z.object({
   witnessId: EntityIdSchema,
   perpetratorId: EntityIdSchema,
   crime: z.enum(['THEFT', 'ASSAULT', 'TRESPASS']),
+  victimFactionId: FactionIdSchema.optional(),
 });
 export type ReportCrimeCommand = z.infer<typeof ReportCrimeCommandSchema>;
 

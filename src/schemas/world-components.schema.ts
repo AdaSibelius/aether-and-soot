@@ -99,6 +99,7 @@ export const NpcScheduleComponentSchema = z.object({
   workAnchor: Point3DSchema,
   restAnchor: Point3DSchema,
   currentGoal: z.enum(['WORK', 'REST', 'PATROL', 'SEEK_MEDICAL']).default('WORK'),
+  patrolWaypoints: z.array(Point3DSchema).default([]).optional(),
 });
 export type NpcScheduleComponent = z.infer<typeof NpcScheduleComponentSchema>;
 

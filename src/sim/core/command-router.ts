@@ -173,7 +173,7 @@ function executeDomainHandler(
     case 'EMIT_SQUAD_CALLOUT':
       return resolveEmitSquadCallout(state, command.actorId, command.targetId, command.alertMessage);
     case 'REPORT_CRIME':
-      return resolveReportCrime(state, command.witnessId, command.perpetratorId, command.crime);
+      return resolveReportCrime(state, command.witnessId, command.perpetratorId, command.crime, command.victimFactionId);
     case 'BOARD_MONORAIL':
       return resolveBoardMonorail(state, command.actorId, command.monorailEntityId);
     case 'LAUNCH_MONORAIL':

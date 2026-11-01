@@ -1,7 +1,7 @@
 import { GameCommand } from '../../schemas/commands.schema.js';
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
-import { LimbSlotId, Point3D } from '../../schemas/primitives.schema.js';
+import { FactionId, LimbSlotId, Point3D } from '../../schemas/primitives.schema.js';
 import { SeededRNG } from '../core/rng.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
@@ -10,7 +10,8 @@ import { resolveAttackActor } from './combat.system.js';
 import { sortEntitiesById } from './inventory-utils.js';
 import { resolveMoveStep } from './movement.system.js';
 import { resolveNpcEcologyAction } from './npc-ecology.system.js';
-import { resolveEmitSquadCallout } from './squad-witness.system.js';
+import { getTurfAtPosition, resolveEnforceTurfAuthority } from './skirmish-turf.system.js';
+import { processCrimeWitnesses, resolveEmitSquadCallout } from './squad-witness.system.js';
 import { canActorSpotTarget } from './stealth-acoustics.system.js';
 
 export { createDefaultNpcAnatomy, createProceduralDistrictContracts, spawnDistrictNpcs } from './district-spawner.js';
@@ -18,9 +19,7 @@ export { createDefaultNpcAnatomy, createProceduralDistrictContracts, spawnDistri
 export const NPC_VISION_RADIUS = 8;
 export const HOSTILE_REPUTATION_THRESHOLD = -30;
 
-const TARGETABLE_SLOTS: readonly LimbSlotId[] = [
-  'TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG', 'HEAD',
-];
+const TARGETABLE_SLOTS: readonly LimbSlotId[] = ['TORSO', 'LEFT_ARM', 'RIGHT_ARM', 'LEFT_LEG', 'RIGHT_LEG', 'HEAD'];
 
 export interface NpcIntentDecision {
   readonly command?: GameCommand | undefined;
@@ -29,10 +28,6 @@ export interface NpcIntentDecision {
   readonly shouldEmitSquadCallout?: boolean | undefined;
 }
 
-/**
- * Pure decision function: evaluates spatial queries and social relationships to formulate
- * a declarative GameCommand intent without mutating simulation state.
- */
 export function decideNpcIntent(
   npc: EntityRecord,
   state: WorldState,
@@ -77,6 +72,17 @@ export function decideNpcIntent(
     return { command: { type: 'MOVE_STEP', actorId: npc.id, dx: dir.dx, dy: dir.dy }, nextAlertState, nextLastKnownTargetPos, shouldEmitSquadCallout };
   }
 
+  if (!isHostile && npc.aiController.role === 'GUARD' && player?.position && player.position.stratum === npc.position.stratum && canActorSpotTarget(state, npc.id, player.id)) {
+    const turf = getTurfAtPosition(state, npc.position);
+    if (turf && player.aiController?.factionId !== (turf.controllingFactionId ?? npc.aiController.factionId)) {
+      return {
+        command: { type: 'ENFORCE_TURF_AUTHORITY', guardId: npc.id, intruderId: player.id, turfId: turf.turfId, action: 'DEMAND_TARIFF' },
+        nextAlertState,
+        nextLastKnownTargetPos,
+      };
+    }
+  }
+
   if (nextAlertState === 'COMBAT') nextAlertState = 'INVESTIGATING';
 
   if (nextAlertState === 'INVESTIGATING' && nextLastKnownTargetPos && nextLastKnownTargetPos.stratum === npc.position.stratum) {
@@ -90,10 +96,35 @@ export function decideNpcIntent(
   return { nextAlertState, nextLastKnownTargetPos };
 }
 
-/**
- * Advances energy and executes deterministic AI turns for all autonomous NPCs.
- * Queries spatial environment through SpatialView and formulates actions as typed GameCommands.
- */
+function checkSafehouseTrespass(state: WorldState): { state: WorldState; events: SimEvent[] } {
+  const deeds = Object.values(state.safehouses ?? {});
+  if (deeds.length === 0) return { state, events: [] };
+  let workingState = state;
+  const events: SimEvent[] = [];
+  for (const deed of deeds) {
+    const owner = workingState.entities[deed.ownerId];
+    const ownerFaction = (owner?.aiController?.factionId ?? 'CROWN_CONSTABULARY') as FactionId;
+    for (const occ of Object.values(workingState.entities)) {
+      if (!occ.actor || !occ.position || occ.position.stratum !== deed.stratum || occ.id === deed.ownerId) continue;
+      const { x, y } = occ.position;
+      if (x < deed.bounds.xMin || x > deed.bounds.xMax || y < deed.bounds.yMin || y > deed.bounds.yMax) continue;
+      const auth = occ.aiController?.companionOfActorId === deed.ownerId || occ.aiController?.factionId === ownerFaction;
+      if (auth) continue;
+      const spotted = Object.values(workingState.entities).some((w) =>
+        (w.id === deed.ownerId || w.aiController?.role === 'GUARD') &&
+        w.position?.stratum === deed.stratum && canActorSpotTarget(workingState, w.id, occ.id)
+      );
+      if (spotted) {
+        const res = processCrimeWitnesses(workingState, occ.id, ownerFaction, 'TRESPASS');
+        workingState = res.state;
+        events.push(...res.events);
+        break;
+      }
+    }
+  }
+  return { state: workingState, events };
+}
+
 export function advanceNpcTurns(
   state: WorldState,
   rng: SeededRNG,
@@ -142,13 +173,8 @@ export function advanceNpcTurns(
         events.push(...ecoRes.events);
         const afterEcoNpc = workingState.entities[npc.id];
         if (afterEcoNpc?.actor && afterEcoNpc.aiController) {
-          workingState = {
-            ...workingState,
-            entities: {
-              ...workingState.entities,
-              [npc.id]: { ...afterEcoNpc, actor: { ...afterEcoNpc.actor, energy: gainedEnergy - ecoRes.apSpent } },
-            },
-          };
+          const updatedActor = { ...afterEcoNpc.actor, energy: gainedEnergy - ecoRes.apSpent };
+          workingState = { ...workingState, entities: { ...workingState.entities, [npc.id]: { ...afterEcoNpc, actor: updatedActor } } };
         }
         continue;
       }
@@ -178,6 +204,15 @@ export function advanceNpcTurns(
       if (movedNpc?.position && nextLastKnownTargetPos && movedNpc.position.x === nextLastKnownTargetPos.x && movedNpc.position.y === nextLastKnownTargetPos.y) {
         nextAlertState = 'IDLE'; nextLastKnownTargetPos = undefined;
       }
+    } else if (decision.command?.type === 'ENFORCE_TURF_AUTHORITY') {
+      const c = decision.command;
+      const turfRes = resolveEnforceTurfAuthority(workingState, c);
+      workingState = turfRes.state; apSpent = turfRes.apSpent ?? STANDARD_ACTION_AP; events.push(...turfRes.events);
+      if (turfRes.events.some((ev) => ev.type === 'TURF_TARIFF_ENFORCED' && ev.refused)) {
+        nextAlertState = 'COMBAT';
+        const intruderEnt = workingState.entities[c.intruderId];
+        if (intruderEnt?.position) nextLastKnownTargetPos = { ...intruderEnt.position };
+      }
     } else {
       const ecoRes = resolveNpcEcologyAction(workingState, npc.id);
       if (ecoRes.handled) {
@@ -188,24 +223,17 @@ export function advanceNpcTurns(
     const afterNpc = workingState.entities[npc.id];
     if (afterNpc?.actor && afterNpc.aiController) {
       const { lastKnownTargetPos: _prevTarget, ...restAi } = afterNpc.aiController;
+      const ai = { ...restAi, hostile: isHostile, alertState: nextAlertState, ...(nextLastKnownTargetPos ? { lastKnownTargetPos: nextLastKnownTargetPos } : {}) };
       workingState = {
         ...workingState,
-        entities: {
-          ...workingState.entities,
-          [npc.id]: {
-            ...afterNpc,
-            actor: { ...afterNpc.actor, energy: gainedEnergy - apSpent },
-            aiController: {
-              ...restAi,
-              hostile: isHostile,
-              alertState: nextAlertState,
-              ...(nextLastKnownTargetPos ? { lastKnownTargetPos: nextLastKnownTargetPos } : {}),
-            },
-          },
-        },
+        entities: { ...workingState.entities, [npc.id]: { ...afterNpc, actor: { ...afterNpc.actor, energy: gainedEnergy - apSpent }, aiController: ai } },
       };
     }
   }
+
+  const trespass = checkSafehouseTrespass(workingState);
+  workingState = trespass.state;
+  events.push(...trespass.events);
 
   return { state: workingState, events };
 }

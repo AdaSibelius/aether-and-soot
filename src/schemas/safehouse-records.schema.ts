@@ -15,6 +15,7 @@ export const SafehouseDeedRecordSchema = z.object({
   }),
   isVault: z.boolean().default(false),
   claimedTurn: z.number().int().nonnegative(),
+  productionProgress: z.number().int().nonnegative().default(0).optional(),
 });
 export type SafehouseDeedRecord = z.infer<typeof SafehouseDeedRecordSchema>;
 
