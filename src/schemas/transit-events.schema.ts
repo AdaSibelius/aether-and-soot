@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BlueprintIdSchema, EntityIdSchema } from './primitives.schema.js';
+import { BlueprintIdSchema, ConduitEdgeIdSchema, EntityIdSchema } from './primitives.schema.js';
 
 export const MonorailBoardedEventSchema = z.object({
   type: z.literal('MONORAIL_BOARDED'),
@@ -57,3 +57,26 @@ export const MonorailActionFailedEventSchema = z.object({
   reason: z.string(),
 });
 export type MonorailActionFailedEvent = z.infer<typeof MonorailActionFailedEventSchema>;
+
+export const CausalConduitModulatedEventSchema = z.object({
+  type: z.literal('CAUSAL_CONDUIT_MODULATED'),
+  turn: z.number().int().nonnegative(),
+  actorId: EntityIdSchema,
+  edgeId: ConduitEdgeIdSchema,
+  action: z.enum(['OPEN_VALVE', 'CLOSE_VALVE', 'SABOTAGE_CONDUIT', 'REPAIR_CONDUIT']),
+  valveOpen: z.boolean(),
+  integrityPct: z.number().min(0).max(100),
+});
+export type CausalConduitModulatedEvent = z.infer<typeof CausalConduitModulatedEventSchema>;
+
+export const DistrictCausalCascadeTriggeredEventSchema = z.object({
+  type: z.literal('DISTRICT_CAUSAL_CASCADE_TRIGGERED'),
+  turn: z.number().int().nonnegative(),
+  districtId: BlueprintIdSchema,
+  cascadeType: z.enum(['STEAM_OUTAGE', 'CLINIC_STOCKOUT', 'WORKER_STRIKE', 'SLUICE_FLOODED']),
+  detail: z.string(),
+});
+export type DistrictCausalCascadeTriggeredEvent = z.infer<
+  typeof DistrictCausalCascadeTriggeredEventSchema
+>;
+

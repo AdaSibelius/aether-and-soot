@@ -212,7 +212,11 @@ export function formatEventMessage(ev: SimEvent): string {
     case 'SHAFT_TRANSPORT_COMPLETED': return `[T${ev.turn}] Shaft ${ev.shaftEntityId} (${ev.transportKind}) transported between ${ev.fromStratum} and ${ev.toStratum}.`;
     case 'HYDROLOGY_DRAINED': return `[T${ev.turn}] Hydrology sluice drained ${ev.volumeDrainedMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y}).`;
     case 'HYDROLOGY_FLOODING': return `[T${ev.turn}] FLOOD WARNING! Closed sluice flooded ${ev.volumeOverflowMl}ml of ${ev.fluidType} at (${ev.at.x}, ${ev.at.y})!`;
-  }
+
+case 'CAUSAL_CONDUIT_MODULATED':
+      return `[T${ev.turn}] The aether's currents surged, manipulated by unseen forces`;
+case 'DISTRICT_CAUSAL_CASCADE_TRIGGERED':
+      return `[T${ev.turn}] The unbridled chaos of the causal cascade threatens to engulf the district!`;  }
 }
 
 

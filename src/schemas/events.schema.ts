@@ -56,14 +56,17 @@ export type { HazardTriggeredEvent, HazardType };
 import {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
   CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, MonorailActionFailedEventSchema,
+  CausalConduitModulatedEventSchema, DistrictCausalCascadeTriggeredEventSchema,
 } from './transit-events.schema.js';
 export {
   MonorailBoardedEventSchema, MonorailLaunchedEventSchema, MonorailArrivedEventSchema,
   CatacombsDepthDescendedEventSchema, CatacombsDepthAscendedEventSchema, MonorailActionFailedEventSchema,
+  CausalConduitModulatedEventSchema, DistrictCausalCascadeTriggeredEventSchema,
 };
 export type {
   MonorailBoardedEvent, MonorailLaunchedEvent, MonorailArrivedEvent,
   CatacombsDepthDescendedEvent, CatacombsDepthAscendedEvent, MonorailActionFailedEvent,
+  CausalConduitModulatedEvent, DistrictCausalCascadeTriggeredEvent,
 } from './transit-events.schema.js';
 
 import {
@@ -211,5 +214,6 @@ export const SimEventSchema = z.discriminatedUnion('type', [
   SmogChokingPulseEventSchema, CorpseDesecrationWitnessedEventSchema,
   ConduitRupturedEventSchema, ShaftTransportEventSchema,
   HydrologySluiceEventSchema, HydrologyFloodingEventSchema,
+  CausalConduitModulatedEventSchema, DistrictCausalCascadeTriggeredEventSchema,
 ]);
 export type SimEvent = z.infer<typeof SimEventSchema>;

@@ -2,6 +2,7 @@ import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { advanceDistrictEconomyMacroTick } from '../systems/economy.system.js';
+import { advanceCityGraphMacroTick } from '../systems/city-causal.system.js';
 import { advanceMetabolismTick } from '../systems/metabolism.system.js';
 import { isActorFatal } from '../systems/mortality.system.js';
 import { SeededRNG } from './rng.js';
@@ -54,6 +55,8 @@ export function advanceTurnSchedule(
   const nextTurn = state.turnCount + ticks;
   let nextMacroTick = state.macroTickCount;
   let nextEconomy = state.economy;
+  let currentEntities = updatedEntities;
+  let currentCityGraph = metaState.cityGraph;
   const combinedEvents: SimEvent[] = [...newEvents, ...metaEvents];
 
   if (ticks > 0) {
@@ -63,9 +66,26 @@ export function advanceTurnSchedule(
 
     for (let m = 0; m < macroTicksToAdvance; m++) {
       nextMacroTick += 1;
-      const econRes = advanceDistrictEconomyMacroTick(metaState, rng, nextTurn);
+      const econRes = advanceDistrictEconomyMacroTick(
+        { ...metaState, entities: currentEntities, economy: nextEconomy, cityGraph: currentCityGraph },
+        rng,
+        nextTurn,
+      );
       nextEconomy = econRes.economy;
       combinedEvents.push(...econRes.events);
+
+      if (currentCityGraph) {
+        const cityRes = advanceCityGraphMacroTick(
+          { ...metaState, entities: currentEntities, economy: nextEconomy, cityGraph: currentCityGraph },
+          rng,
+          nextTurn,
+        );
+        currentCityGraph = cityRes.state.cityGraph;
+        currentEntities = cityRes.state.entities;
+        nextEconomy = cityRes.state.economy;
+        combinedEvents.push(...cityRes.events);
+      }
+
       combinedEvents.push({
         type: 'MACRO_TICK_COMPLETED',
         turn: nextTurn,
@@ -86,8 +106,9 @@ export function advanceTurnSchedule(
       rngState: rng.getState(),
       turnCount: nextTurn,
       macroTickCount: nextMacroTick,
-      entities: updatedEntities,
+      entities: currentEntities,
       economy: nextEconomy,
+      ...(currentCityGraph !== undefined ? { cityGraph: currentCityGraph } : {}),
       eventLog,
     },
     allEvents: combinedEvents,

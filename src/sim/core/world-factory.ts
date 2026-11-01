@@ -4,6 +4,7 @@ import { BlueprintIdSchema, EntityIdSchema, StratumId,  } from '../../schemas/pr
 import { createStratumGrid, markExploredTiles, StratumGridSchema } from '../spatial/grid.js';
 import { computeVisibleTiles } from '../spatial/fov.js';
 import { createInitialEconomyLedger,  } from '../systems/economy.system.js';
+import { createInitialCityGraphLedger } from '../spatial/city-graph.js';
 import { SeededRNG } from './rng.js';
 import { WorldState, CreateWorldConfig } from './world.js';
 
@@ -172,5 +173,6 @@ export function createInitialWorld(config: CreateWorldConfig): WorldState {
     eventLog: [],
     savedDistricts: {},
     catacombDepths: {},
+    cityGraph: createInitialCityGraphLedger(),
   };
 }
