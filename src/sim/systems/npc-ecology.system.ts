@@ -13,6 +13,7 @@ import {
 import { findEcologyNextStep } from './npc-pathfinding.js';
 
 export type { NpcEcologyResult };
+export { restockAdjacentPedestal, simulateNpcSleepHealing, simulateNpcWorkProduction };
 
 function findNearestMedicalFixture(state: WorldState, actor: EntityRecord): EntityRecord | undefined {
   if (!actor.position) return undefined;

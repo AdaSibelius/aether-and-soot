@@ -2,6 +2,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
+import { computeBoundedPricePence } from './economy.system.js';
 import {
   allocateSplitId,
   computeCarriedVolumeMl,
@@ -115,16 +116,32 @@ export function resolveBuyFromMerchant(
     nextActorInv.currentMassGrams += addedMass;
   }
 
+  const merchantWallet = merchant.merchant?.walletPence ?? 500;
   nextEntities[actorId] = { ...actor, inventory: nextActorInv };
-  nextEntities[merchantId] = { ...merchant, inventory: nextMerchantInv };
+  nextEntities[merchantId] = {
+    ...merchant,
+    inventory: nextMerchantInv,
+    merchant: { walletPence: merchantWallet + totalCost },
+  };
 
   const nextTreasury = state.economy.playerTreasuryPence - totalCost;
+  const commodityId = itemEntity.item?.commodityId;
+  let nextMarketQuotes = state.economy.marketQuotes;
+  if (commodityId && state.economy.marketQuotes[commodityId]) {
+    const q = state.economy.marketQuotes[commodityId]!;
+    const nextSupply = Math.max(0, q.supplyUnits - quantity);
+    const nextPrice = computeBoundedPricePence(q.basePricePence, nextSupply, q.demandUnits);
+    nextMarketQuotes = {
+      ...state.economy.marketQuotes,
+      [commodityId]: { ...q, supplyUnits: nextSupply, currentPricePence: nextPrice },
+    };
+  }
 
   return {
     state: {
       ...state,
       entities: nextEntities,
-      economy: { ...state.economy, playerTreasuryPence: nextTreasury },
+      economy: { ...state.economy, playerTreasuryPence: nextTreasury, marketQuotes: nextMarketQuotes },
     },
     events: [
       {

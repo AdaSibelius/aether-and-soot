@@ -2,6 +2,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
+import { computeBoundedPricePence } from './economy.system.js';
 import {
   allocateSplitId,
   getCarryProfile,
@@ -53,6 +54,10 @@ export function resolveSellToMerchant(
   const quantity = Math.min(requestedQuantity ?? 1, availableQuantity);
   const unitPayout = computeSellUnitPrice(state, merchant, itemEntity);
   const totalPayout = unitPayout * quantity;
+  const merchantWallet = merchant.merchant?.walletPence ?? 500;
+  if (merchantWallet < totalPayout) {
+    return createTradeFailure(state, actorId, 'SELL', 'INSUFFICIENT_FUNDS', merchantId);
+  }
 
   const profile = getCarryProfile(itemEntity);
   const unitMass = itemEntity.item ? itemEntity.item.massGrams : (profile?.massGrams ?? 0);
@@ -93,17 +98,31 @@ export function resolveSellToMerchant(
   }
 
   nextEntities[actorId] = { ...actor, inventory: nextActorInv };
-  if (nextMerchantInv) {
-    nextEntities[merchantId] = { ...merchant, inventory: nextMerchantInv };
-  }
+  const nextMerchantWallet = merchantWallet - totalPayout;
+  nextEntities[merchantId] = {
+    ...merchant,
+    ...(nextMerchantInv ? { inventory: nextMerchantInv } : {}),
+    merchant: { walletPence: nextMerchantWallet },
+  };
 
   const nextTreasury = state.economy.playerTreasuryPence + totalPayout;
+  const commodityId = itemEntity.item?.commodityId;
+  let nextMarketQuotes = state.economy.marketQuotes;
+  if (commodityId && state.economy.marketQuotes[commodityId]) {
+    const q = state.economy.marketQuotes[commodityId]!;
+    const nextSupply = q.supplyUnits + quantity;
+    const nextPrice = computeBoundedPricePence(q.basePricePence, nextSupply, q.demandUnits);
+    nextMarketQuotes = {
+      ...state.economy.marketQuotes,
+      [commodityId]: { ...q, supplyUnits: nextSupply, currentPricePence: nextPrice },
+    };
+  }
 
   return {
     state: {
       ...state,
       entities: nextEntities,
-      economy: { ...state.economy, playerTreasuryPence: nextTreasury },
+      economy: { ...state.economy, playerTreasuryPence: nextTreasury, marketQuotes: nextMarketQuotes },
     },
     events: [
       {

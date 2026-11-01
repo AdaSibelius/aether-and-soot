@@ -134,6 +134,15 @@ export function processDropItemDelivery(
   );
   if (!matchingConvoy) return { state, events: [] };
 
+  if (matchingConvoy.destinationPos) {
+    if (dropPos.stratum !== matchingConvoy.destinationPos.stratum) return { state, events: [] };
+    const dist = Math.max(
+      Math.abs(dropPos.x - matchingConvoy.destinationPos.x),
+      Math.abs(dropPos.y - matchingConvoy.destinationPos.y),
+    );
+    if (dist > 2) return { state, events: [] };
+  }
+
   const turn = state.turnCount + 1;
   const allCompanionsAlive = matchingConvoy.escortCompanionIds.every((cid) => {
     const comp = state.entities[cid];

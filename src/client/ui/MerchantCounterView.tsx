@@ -23,6 +23,7 @@ export function MerchantCounterView({
   discountPct,
   onCommand,
 }: MerchantCounterViewProps) {
+  const merchantWallet = adjacentMerchant.merchant?.walletPence ?? 500;
   const merchantItems = (adjacentMerchant.inventory?.containedEntityIds ?? [])
     .map((id) => state.entities[id])
     .filter((e): e is EntityRecord => e !== undefined);
@@ -32,7 +33,7 @@ export function MerchantCounterView({
       {/* Left Column: Merchant's Stock (Buy) */}
       <div class="panel-box" style={{ display: 'flex', flexDirection: 'column' }}>
         <div class="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{adjacentMerchant.name.toUpperCase()} (STOCK)</span>
+          <span>{adjacentMerchant.name.toUpperCase()} (COFFER: {merchantWallet}d)</span>
           <span style={{ fontSize: '10px', color: discountPct > 0 ? 'var(--ok-green)' : discountPct < 0 ? 'var(--warn-red)' : '#7f8c8d' }}>
             {discountPct > 0 ? `+${discountPct}% discount` : discountPct < 0 ? `${discountPct}% surcharge` : 'Par value'}
           </span>
@@ -103,6 +104,7 @@ export function MerchantCounterView({
             playerItems.map((item) => {
               const unitPrice = computeSellUnitPrice(state, adjacentMerchant, item);
               const qty = item.item?.quantity ?? 1;
+              const canMerchantAfford = merchantWallet >= unitPrice;
 
               return (
                 <div
@@ -124,6 +126,7 @@ export function MerchantCounterView({
                     <span class="copper-text">{unitPrice}d</span>
                     <button
                       type="button"
+                      disabled={!canMerchantAfford}
                       onClick={() =>
                         onCommand({
                           type: 'SELL_TO_MERCHANT',
@@ -133,7 +136,7 @@ export function MerchantCounterView({
                           quantity: 1,
                         })
                       }
-                      style={{ padding: '2px 6px', fontSize: '10px' }}
+                      style={{ padding: '2px 6px', fontSize: '10px', opacity: canMerchantAfford ? 1 : 0.4 }}
                     >
                       Sell
                     </button>

@@ -22,6 +22,8 @@ import {
   FurnitureComponentSchema,
   HydrologyChannelComponentSchema,
   LandmarkComponentSchema,
+  MerchantComponent,
+  MerchantComponentSchema,
   MonorailCarComponentSchema,
   NpcScheduleComponentSchema,
   ThermalComponentSchema,
@@ -174,6 +176,7 @@ export const EntityComponentsSchema = z.object({
   landmark: LandmarkComponentSchema.optional(),
   traits: z.array(TraitIdSchema).optional(),
   profession: ProfessionIdSchema.optional(),
+  merchant: MerchantComponentSchema.optional(),
   thermal: ThermalComponentSchema.optional(),
   schedule: NpcScheduleComponentSchema.optional(),
   tradePedestal: TradePedestalComponentSchema.optional(),
@@ -185,4 +188,5 @@ export const EntityComponentsSchema = z.object({
   districtGraphNode: DistrictGraphNodeComponentSchema.optional(),
 });
 export type EntityRecord = z.infer<typeof EntityComponentsSchema>;
+export { MerchantComponentSchema, type MerchantComponent };
 

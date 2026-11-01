@@ -2,6 +2,7 @@ import { SimEvent } from '../../schemas/events.schema.js';
 import { CommodityId, EntityId, EntityIdSchema } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
+import { allocateSplitId, withoutPosition } from './inventory-utils.js';
 import { createTradeFailure, matchesCommodity } from './trade-pricing.js';
 
 export function resolveStockPedestal(
@@ -19,6 +20,15 @@ export function resolveStockPedestal(
 
   const nextEntities = { ...state.entities };
   let consumedUnits = 0;
+  let stockedItemEntityId: EntityId | undefined;
+
+  const nearbyPedestal = actor?.position
+    ? Object.values(state.entities).find((e) => {
+        if (!e.position || e.position.stratum !== actor.position!.stratum) return false;
+        const d = Math.max(Math.abs(e.position.x - actor.position!.x), Math.abs(e.position.y - actor.position!.y));
+        return d <= 1 && (e.tradePedestal !== undefined || e.id.includes('pedestal') || e.name.toLowerCase().includes('pedestal'));
+      })
+    : undefined;
 
   if (actor?.inventory) {
     const matchingIds = actor.inventory.containedEntityIds.filter((id) => {
@@ -51,12 +61,22 @@ export function resolveStockPedestal(
 
       if (entity.item.quantity === take) {
         nextContained = nextContained.filter((cid) => cid !== id);
-        delete nextEntities[id];
+        if (nearbyPedestal && !stockedItemEntityId) {
+          stockedItemEntityId = id;
+          nextEntities[id] = withoutPosition({ ...entity, item: { ...entity.item, quantity: take } });
+        } else {
+          delete nextEntities[id];
+        }
       } else {
         nextEntities[id] = {
           ...entity,
           item: { ...entity.item, quantity: entity.item.quantity - take },
         };
+        if (nearbyPedestal && !stockedItemEntityId) {
+          const splitId = allocateSplitId(state, id);
+          stockedItemEntityId = splitId;
+          nextEntities[splitId] = withoutPosition({ ...entity, id: splitId, item: { ...entity.item, quantity: take } });
+        }
       }
     }
 
@@ -78,6 +98,22 @@ export function resolveStockPedestal(
 
   const finalStockQty = consumedUnits > 0 ? consumedUnits : quantity;
   const ledger = state.economy;
+  const quote = ledger.marketQuotes[commodity];
+  const basePrice = quote?.currentPricePence ?? 20;
+  const askingPricePence = Math.max(1, Math.round(basePrice * (1 + askingPriceMarkupPct / 100)));
+
+  if (nearbyPedestal) {
+    nextEntities[nearbyPedestal.id] = {
+      ...nearbyPedestal,
+      tradePedestal: {
+        ...nearbyPedestal.tradePedestal,
+        ...(stockedItemEntityId ? { itemEntityId: stockedItemEntityId } : {}),
+        commodityId: commodity,
+        pricePence: askingPricePence,
+      },
+    };
+  }
+
   const existingIdx = ledger.storefrontListings.findIndex((l) => l.commodity === commodity);
   const nextListings = [...ledger.storefrontListings];
 

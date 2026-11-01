@@ -103,6 +103,11 @@ export const NpcScheduleComponentSchema = z.object({
 });
 export type NpcScheduleComponent = z.infer<typeof NpcScheduleComponentSchema>;
 
+export const MerchantComponentSchema = z.object({
+  walletPence: z.number().int().nonnegative().default(500),
+});
+export type MerchantComponent = z.infer<typeof MerchantComponentSchema>;
+
 export const TradePedestalComponentSchema = z.object({
   itemEntityId: EntityIdSchema.optional(),
   commodityId: CommodityIdSchema.optional(),

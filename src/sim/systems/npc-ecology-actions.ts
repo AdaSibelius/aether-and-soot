@@ -1,7 +1,9 @@
 import { EntityRecord } from '../../schemas/components.schema.js';
 import { SimEvent } from '../../schemas/events.schema.js';
+import { EntityId } from '../../schemas/primitives.schema.js';
 import { STANDARD_ACTION_AP } from '../core/scheduler.js';
 import { WorldState } from '../core/world.js';
+import { allocateSplitId, withoutPosition } from './inventory-utils.js';
 
 export interface NpcEcologyResult {
   readonly state: WorldState;
@@ -31,10 +33,23 @@ export function restockAdjacentPedestal(state: WorldState, merchant: EntityRecor
 
     const remainingQty = itemEnt.item.quantity - 1;
     const nextEntities = { ...state.entities };
+    let stockedItemId: EntityId;
+
     if (remainingQty > 0) {
+      const splitId = allocateSplitId(state, itemId);
       nextEntities[itemId] = { ...itemEnt, item: { ...itemEnt.item, quantity: remainingQty } };
+      nextEntities[splitId] = withoutPosition({
+        ...itemEnt,
+        id: splitId,
+        item: { ...itemEnt.item, quantity: 1 },
+      });
+      stockedItemId = splitId;
     } else {
-      delete nextEntities[itemId];
+      nextEntities[itemId] = withoutPosition({
+        ...itemEnt,
+        item: { ...itemEnt.item, quantity: 1 },
+      });
+      stockedItemId = itemId;
     }
 
     const nextContained = remainingQty > 0
@@ -53,7 +68,7 @@ export function restockAdjacentPedestal(state: WorldState, merchant: EntityRecor
     nextEntities[ent.id] = {
       ...ent,
       tradePedestal: {
-        itemEntityId: itemId,
+        itemEntityId: stockedItemId,
         commodityId: itemEnt.item.commodityId,
         pricePence: itemEnt.item.penceValue ?? 10,
       },
