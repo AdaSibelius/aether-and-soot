@@ -1,7 +1,7 @@
 # Progress — orchestrator_3
 
 ## Current Status
-Last visited: 2026-11-02T00:51:30Z
+Last visited: 2026-11-02T01:01:30Z
 - [x] Phase 0: Survey Codebase (completed in orchestrator_2)
 - [x] Phase 1: Project Plan & Milestone Decomposition (PROJECT.md authored, 16 features inventoried)
 - [ ] Phase 2: Milestone Execution
@@ -22,8 +22,14 @@ Last visited: 2026-11-02T00:51:30Z
     - [x] Step 2e: Forensic Auditor (1) — CLEAN (9372d6c9-d0ef-4cc0-8a66-727fad3d1119)
     - [x] Step 2f: Gate Verdict (PASS)
   - [ ] Milestone 4: E2E Integration, Determinism & Full Verification (IN_PROGRESS)
+    - [x] Step 2a: Explorers (3) — All 3 handoffs completed (E2E worldgen, presentation projection, and modularity blueprint)
+    - [ ] Step 2b: Worker (1) — ACTIVE: af377e5a-8d08-4316-aa03-e647e3e52f44 (implementing tests/sim/cdda-worldgen-presentation-e2e.test.ts)
+    - [ ] Step 2c: Reviewers (2) — Architecture & Verification Review
+    - [ ] Step 2d: Challengers (2) — Multi-Seed Determinism & Presentation Stress
+    - [ ] Step 2e: Forensic Auditor (1) — Final Forensic Integrity Audit
+    - [ ] Step 2f: Gate Verdict
 - [ ] Phase 3: Final E2E & Hardening Verification
 - [ ] Phase 4: Final Synthesis & Human Report
 
 ## Iteration Status
-Current iteration: 1 / 32 (Milestone 3)
+Current iteration: 1 / 32 (Milestone 4)
