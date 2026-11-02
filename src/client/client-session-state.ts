@@ -2,6 +2,7 @@ import { CharacterCreationConfig } from '../schemas/character.schema.js';
 import { EntityId } from '../schemas/primitives.schema.js';
 import { ModalNavState } from './input/modal-nav-router.js';
 import { FloatingTextCallout } from './renderer/floating-combat-text.js';
+import { VisualRenderMode } from './renderer/tileset-manager.js';
 import { ModalWindowId } from './ui/CharacterModalShell.js';
 
 export interface ClientSessionState {
@@ -17,6 +18,7 @@ export interface ClientSessionState {
   floatingCallouts: FloatingTextCallout[];
   modalNavState: ModalNavState;
   embarkConfig: CharacterCreationConfig;
+  visualRenderMode?: VisualRenderMode;
 }
 
 export function createInitialSessionState(initialSeed: number): ClientSessionState {
@@ -38,6 +40,7 @@ export function createInitialSessionState(initialSeed: number): ClientSessionSta
       scenarioId: 'SPITALFIELDS_FOUNDRY_ROW',
       seed: initialSeed,
     },
+    visualRenderMode: 'HYBRID_OVERLAY',
   };
 }
 

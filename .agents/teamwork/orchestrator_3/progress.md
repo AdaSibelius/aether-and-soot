@@ -1,7 +1,7 @@
 # Progress — orchestrator_3
 
 ## Current Status
-Last visited: 2026-11-02T00:14:50Z
+Last visited: 2026-11-02T00:51:30Z
 - [x] Phase 0: Survey Codebase (completed in orchestrator_2)
 - [x] Phase 1: Project Plan & Milestone Decomposition (PROJECT.md authored, 16 features inventoried)
 - [ ] Phase 2: Milestone Execution
@@ -14,10 +14,16 @@ Last visited: 2026-11-02T00:14:50Z
     - [x] Iteration 2 Step 2d: Challengers (2) (APPROVE: 8dcc5e50-ac19-479d-97e8-f3c0c416d8ca, 589b282d-84ff-469b-9d1d-92d6306214b6)
     - [x] Iteration 2 Step 2e: Forensic Auditor (1) (CLEAN: 0b9af239-eb0a-4613-a04d-aa4c92d5fb0d)
     - [x] Iteration 2 Step 2f: Gate Verdict (PASS)
-  - [ ] Milestone 3: Enhanced CP437 Glyphs & Graphical Tileset Presentation (PLANNED)
-  - [ ] Milestone 4: E2E Integration, Determinism & Full Verification (PLANNED)
+  - [x] Milestone 3: Enhanced CP437 Glyphs & Graphical Tileset Presentation (DONE — Gate Passed Unanimously)
+    - [x] Step 2a: Explorers (3) — All 3 handoffs completed (layer-projection, extended-box-drawing, tactical-layer-composer, procedural-tileset, tileset-manager)
+    - [x] Step 2b: Worker (1) — Implementation complete and verified (DONE: 120/120 test suites pass, 632 tests, all files <= 213 lines)
+    - [x] Step 2c: Reviewers (2) — APPROVE (a28a4521-8243-41c0-aeb3-5d9ab652f758 Architecture, f42d913d-00fb-492d-a548-cf6d59a843a0 Pipeline)
+    - [x] Step 2d: Challengers (2) — APPROVE (b88269ad-6260-4f95-8d12-5042f1147eb1 Projection, 61cc4390-87b7-4bcd-9452-334cf35fcdb1 Presentation & Shaders)
+    - [x] Step 2e: Forensic Auditor (1) — CLEAN (9372d6c9-d0ef-4cc0-8a66-727fad3d1119)
+    - [x] Step 2f: Gate Verdict (PASS)
+  - [ ] Milestone 4: E2E Integration, Determinism & Full Verification (IN_PROGRESS)
 - [ ] Phase 3: Final E2E & Hardening Verification
 - [ ] Phase 4: Final Synthesis & Human Report
 
 ## Iteration Status
-Current iteration: 2 / 32
+Current iteration: 1 / 32 (Milestone 3)

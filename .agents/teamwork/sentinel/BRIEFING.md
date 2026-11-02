@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-01T23:05:00Z
+# BRIEFING — 2026-11-02T00:27:30Z
 
 ## Mission
 Sentinel monitoring for Enhanced CP437 glyphs & tileset support, alongside multi-stratum world generation & building layout templates (CDDA Victorian Steampunk style).
@@ -40,9 +40,10 @@ Sentinel monitoring for Enhanced CP437 glyphs & tileset support, alongside multi
   - Phase 1 UI Utility & Edison Aesthetic Overhaul code changes implemented and verified
   - Phase 2 Dear ImGui Clinical ADR authored at `docs/adr/001-dear-imgui-feasibility.md`
   - Milestone 1 CDDA Building Layout Templates & Steampunk Fixtures implemented, verified, and committed (`ecea285`)
+  - Milestone 2 Multi-Stratum Worldgen & Urban District Layouts implemented, verified, and committed (`0a9c9bb`)
 
 ## Project Status
-- **Phase**: in progress (orchestrator_3 dispatched: 601ac16f-482f-4000-b0b1-e97361589e3d, monitoring crons active)
+- **Phase**: in progress (Milestone 3: Enhanced CP437 Glyphs & Graphical Tilesets in progress)
 
 ## Victory Audit Status
 - **Triggered**: no

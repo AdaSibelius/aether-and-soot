@@ -46,8 +46,8 @@ The system integrates visual representation advancements with deep procedural si
 |---|---|---|---|---|
 | M1 | Building Layout Templates & Steampunk Fixtures | Features 6, 7, 8, 9: Schemas, fixture catalog, CDDA matrix templates, instantiator, unit tests | None | **DONE** |
 | M2 | Multi-Stratum Procedural Generation & Urban Layouts | Features 10, 11, 12, 13, 14: City districts, sewers, mines, industrial zones, portals, walkability | M1 | **DONE** |
-| M3 | Enhanced CP437 Glyphs & Graphical Tileset Presentation | Features 1, 2, 3, 4, 5: Multi-layer projection, extended box-drawing, layer composer, tileset manager | M1 | PLANNED |
-| M4 | E2E Integration, Determinism & Full Verification | Features 15, 16: Multi-seed integration tests, full verification gate (`npm run verify`), audit signoff | M1, M2, M3 | PLANNED |
+| M3 | Enhanced CP437 Glyphs & Graphical Tileset Presentation | Features 1, 2, 3, 4, 5: Multi-layer projection, extended box-drawing, layer composer, tileset manager | M1 | **DONE** |
+| M4 | E2E Integration, Determinism & Full Verification | Features 15, 16: Multi-seed integration tests, full verification gate (`npm run verify`), audit signoff | M1, M2, M3 | IN_PROGRESS |
 
 ---
 

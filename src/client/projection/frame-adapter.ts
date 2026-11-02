@@ -4,7 +4,17 @@ import { WorldState } from '../../sim/core/world.js';
 import { computeVisibleTiles, pointKey } from '../../sim/spatial/fov.js';
 import { computeProstheticFovBonus } from '../../sim/systems/anatomy.system.js';
 import { resolveBiomeTerrainVisual, resolveDistrictBiome } from './biome-palette.js';
-import { resolveConnectingWallGlyph, WALL_BOX_GLYPHS } from './wall-connections.js';
+import { WALL_BOX_GLYPHS } from './wall-connections.js';
+import { resolveExtendedConnectingWallGlyph } from './extended-box-drawing.js';
+import {
+  buildCellLayers,
+  buildEntityLayerVisual,
+  buildOutOfBoundsLayers,
+  classifyEntityLayer,
+  composeLayersToVisualSpec,
+  isFixtureTerrain,
+  RenderCellLayers,
+} from './layer-projection.js';
 import { applyGaslightVisual, applyLiquidSurfaceVisual, applySootVisualOverlay } from './environmental-visuals.js';
 import { calculateGaslightField } from '../../sim/systems/gaslight.system.js';
 import { calculateCameraViewport, resolveOutOfBoundsVisual } from './camera-governor.js';
@@ -22,6 +32,7 @@ export interface RenderCellFrame {
   readonly worldX: number;
   readonly worldY: number;
   readonly visual: VisualGlyphSpec;
+  readonly layers: RenderCellLayers;
   readonly visible: boolean;
   readonly explored: boolean;
   readonly steamPressureKpa: number;
@@ -92,16 +103,11 @@ export function projectWorldToVisualFrame(
       const worldY = vp.cameraY + vy - vp.offsetY;
 
       if (worldX < 0 || worldX >= grid.width || worldY < 0 || worldY >= grid.height) {
+        const oobVisual = resolveOutOfBoundsVisual(worldX, worldY, grid.width, grid.height, state.turnCount);
         cells.push({
-          x: vx,
-          y: vy,
-          worldX,
-          worldY,
-          visual: resolveOutOfBoundsVisual(worldX, worldY, grid.width, grid.height, state.turnCount),
-          visible: false,
-          explored: false,
-          steamPressureKpa: 0,
-          coalDustDensity: 0,
+          x: vx, y: vy, worldX, worldY, visual: oobVisual,
+          layers: buildOutOfBoundsLayers(oobVisual),
+          visible: false, explored: false, steamPressureKpa: 0, coalDustDensity: 0,
         });
         continue;
       }
@@ -111,7 +117,7 @@ export function projectWorldToVisualFrame(
       const isExplored = isVisible || (tile?.explored ?? false);
 
       let isUnderlay = false;
-      const connectingWallGlyph = tile ? resolveConnectingWallGlyph(grid, worldX, worldY) : WALL_BOX_GLYPHS.DEFAULT;
+      const connectingWallGlyph = tile ? resolveExtendedConnectingWallGlyph(grid, worldX, worldY) : WALL_BOX_GLYPHS.DEFAULT;
       let cellVisual = tile
         ? resolveBiomeTerrainVisual(tile.terrainType, isVisible, isExplored, districtBiome, connectingWallGlyph, tile.steamPressureKpa ?? 0)
         : resolveBiomeTerrainVisual('COBBLESTONE_FLOOR', isVisible, false, districtBiome, WALL_BOX_GLYPHS.DEFAULT, 0);
@@ -126,7 +132,7 @@ export function projectWorldToVisualFrame(
             isUnderlay = true;
             cellVisual = {
               glyph: streetVisual.glyph !== ' ' ? streetVisual.glyph : '·',
-              fgPrimary: '#1a2634', // desaturated soot-navy tint
+              fgPrimary: '#1a2634',
               fgSecondary: '#101820',
               bgColor: '#080d14',
               shaderFlags: [],
@@ -142,8 +148,13 @@ export function projectWorldToVisualFrame(
       const isGaslit = (gaslightField.get(pointKey(worldX, worldY)) ?? 0) > 0.15;
       cellVisual = applyGaslightVisual(cellVisual, isGaslit);
 
+      const baseFloorSpec = tile && isFixtureTerrain(tile.terrainType)
+        ? resolveBiomeTerrainVisual('COBBLESTONE_FLOOR', isVisible, isExplored, districtBiome, WALL_BOX_GLYPHS.DEFAULT, 0)
+        : undefined;
+      const cellLayers = buildCellLayers(cellVisual, tile?.terrainType, baseFloorSpec);
+
       cells.push({
-        x: vx, y: vy, worldX, worldY, visual: cellVisual, visible: isVisible, explored: isExplored,
+        x: vx, y: vy, worldX, worldY, visual: cellVisual, layers: cellLayers, visible: isVisible, explored: isExplored,
         steamPressureKpa: tile?.steamPressureKpa ?? 0, coalDustDensity: tile?.coalDustDensity ?? 0,
         isUnderlay,
       });
@@ -170,13 +181,13 @@ export function projectWorldToVisualFrame(
       if (currentCell) {
         const isGaslit = (gaslightField.get(pointKey(pos.x, pos.y)) ?? 0) > 0.15;
         const gaslitVisual = applyGaslightVisual(entity.visual, isGaslit);
+        const entityLayer = classifyEntityLayer(entity);
+        const layerVisual = buildEntityLayerVisual(entity, gaslitVisual, currentCell.layers.floor.bgColor ?? '#0A0D0E');
+        const updatedLayers: RenderCellLayers = { ...currentCell.layers, [entityLayer]: layerVisual };
         cells[idx] = {
           ...currentCell,
-          visual: {
-            ...gaslitVisual,
-            // Preserve the tile's underlying background color so entity glyphs do not stamp opaque black boxes
-            bgColor: currentCell.visual.bgColor,
-          },
+          layers: updatedLayers,
+          visual: composeLayersToVisualSpec(updatedLayers),
         };
       }
     }

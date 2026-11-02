@@ -4,7 +4,10 @@ import { VisualGridFrame } from '../projection/frame-adapter.js';
 import { createExtendedGlyphAtlas } from './glyph-atlas-extended.js';
 import { GlyphAtlas } from './glyph-atlas.js';
 import { getPerformanceGovernor, PerformanceGovernor } from './performance-governor.js';
+import { createProceduralTileset } from './procedural-tileset.js';
 import { SteampunkRenderPipeline } from './steampunk-pipeline.js';
+import { TacticalLayerComposer } from './tactical-layer-composer.js';
+import { TilesetManager, VisualRenderMode } from './tileset-manager.js';
 
 import {
   CELL_HEIGHT_PX,
@@ -16,14 +19,7 @@ import {
   WIDESCREEN_GRID_WIDTH,
 } from './glyph-stage-types.js';
 
-export {
-  CELL_HEIGHT_PX,
-  CELL_WIDTH_PX,
-  DESKTOP_GRID_HEIGHT,
-  DESKTOP_GRID_WIDTH,
-  WIDESCREEN_GRID_HEIGHT,
-  WIDESCREEN_GRID_WIDTH,
-};
+export { CELL_HEIGHT_PX, CELL_WIDTH_PX, DESKTOP_GRID_HEIGHT, DESKTOP_GRID_WIDTH, WIDESCREEN_GRID_HEIGHT, WIDESCREEN_GRID_WIDTH };
 
 export class GlyphStageRenderer {
   private readonly app: Application;
@@ -33,7 +29,8 @@ export class GlyphStageRenderer {
   private readonly frameGraphics: Graphics;
   private readonly uiBgGraphics: Graphics;
   private readonly overlayGraphics: Graphics;
-  private readonly glyphSprites: Sprite[] = [];
+  private readonly tacticalComposer: TacticalLayerComposer;
+  private readonly tilesetManager: TilesetManager;
   private readonly uiGlyphSprites: Sprite[] = [];
   private readonly atlas: GlyphAtlas;
   private readonly gridWidth: number;
@@ -68,6 +65,16 @@ export class GlyphStageRenderer {
     canvasUiBufferContainer.addChild(this.uiBgGraphics);
     opticalOverlayContainer.addChild(this.overlayGraphics);
 
+    const tileset = createProceduralTileset(CELL_WIDTH_PX, CELL_HEIGHT_PX);
+    this.tilesetManager = new TilesetManager(atlas, tileset, 'HYBRID_OVERLAY');
+    this.tacticalComposer = new TacticalLayerComposer(
+      worldTacticalContainer,
+      atlas,
+      gridWidth,
+      gridHeight,
+      this.tilesetManager,
+    );
+
     this.app.stage.addChild(this.pipeline.rootStage);
   }
 
@@ -75,6 +82,10 @@ export class GlyphStageRenderer {
   public getPipeline(): SteampunkRenderPipeline { return this.pipeline; }
   public getCanvas(): HTMLCanvasElement { return this.app.canvas; }
   public setCrtScanlinesEnabled(enabled: boolean): void { this.pipeline.setFilterEnabled(enabled); }
+  public getTacticalComposer(): TacticalLayerComposer { return this.tacticalComposer; }
+  public getTilesetManager(): TilesetManager { return this.tilesetManager; }
+  public getVisualRenderMode(): VisualRenderMode { return this.tilesetManager.getMode(); }
+  public setVisualRenderMode(mode: VisualRenderMode): void { this.tilesetManager.setMode(mode); }
 
   public static async create(
     hostElement: HTMLElement,
@@ -86,7 +97,7 @@ export class GlyphStageRenderer {
       preference: 'webgl',
       width: gridWidth * CELL_WIDTH_PX,
       height: gridHeight * CELL_HEIGHT_PX,
-      backgroundColor: 0x0b0c0e, // Oxidized soot-iron background
+      backgroundColor: 0x0b0c0e,
       antialias: false,
       resolution: (typeof window !== 'undefined' && window.devicePixelRatio) || 1,
       autoDensity: true,
@@ -97,7 +108,7 @@ export class GlyphStageRenderer {
 
     const atlas = createExtendedGlyphAtlas(CELL_WIDTH_PX, CELL_HEIGHT_PX);
     const renderer = new GlyphStageRenderer(app, atlas, gridWidth, gridHeight);
-    renderer.initializeGlyphPool(gridWidth, gridHeight);
+    renderer.initializeUiGlyphPool(gridWidth, gridHeight);
     return renderer;
   }
 
@@ -114,42 +125,11 @@ export class GlyphStageRenderer {
     const distortion = this.governor.getEffectiveDistortionScale();
     this.pipeline.updateUniforms(thermoStress, deltaMs / 1000, distortion, advanceTime);
 
-    this.bgGraphics.clear();
-    this.lightingGraphics.clear();
-    this.frameGraphics.clear();
-    this.uiBgGraphics.clear();
-    this.overlayGraphics.clear();
+    this.bgGraphics.clear(); this.lightingGraphics.clear();
+    this.frameGraphics.clear(); this.uiBgGraphics.clear(); this.overlayGraphics.clear();
 
-    // 1. Render World Tactical Grid & Atmospheric Steam/Lighting
-    const maxWorldCells = Math.min(frame.cells.length, this.glyphSprites.length);
-    for (let i = 0; i < maxWorldCells; i++) {
-      const cell = frame.cells[i];
-      const sprite = this.glyphSprites[i];
-      if (!cell || !sprite) continue;
-
-      const px = cell.x * CELL_WIDTH_PX;
-      const py = cell.y * CELL_HEIGHT_PX;
-
-      const alpha = cell.isUnderlay ? 0.22 : cell.visible ? 1.0 : cell.explored ? 0.65 : 1.0;
-      this.bgGraphics.rect(px, py, CELL_WIDTH_PX, CELL_HEIGHT_PX).fill({
-        color: hexToNumber(cell.visual.bgColor),
-        alpha,
-      });
-
-      if (cell.steamPressureKpa > 0 && cell.visible) {
-        this.lightingGraphics.rect(px + 2, py + 2, CELL_WIDTH_PX - 4, CELL_HEIGHT_PX - 4).fill({ color: 0xd4af37, alpha: 0.18 });
-      }
-
-      const useSecondary =
-        (cell.visual.shaderFlags.includes('PULSE_STEAM') && (cell.x + cell.y + frame.turnCount) % 2 === 0) ||
-        (cell.visual.shaderFlags.includes('SPARK_GLINT') && (cell.x * 3 + cell.y * 7 + frame.turnCount) % 3 === 0);
-
-      const fgHex = useSecondary ? cell.visual.fgSecondary : cell.visual.fgPrimary;
-      sprite.position.set(px, py);
-      sprite.texture = this.atlas.getTexture(cell.visual.glyph);
-      sprite.tint = hexToNumber(fgHex);
-      sprite.alpha = cell.isUnderlay ? 0.22 : cell.visible ? 1.0 : cell.explored ? 0.42 : cell.visual.glyph !== ' ' ? 0.85 : 0.0;
-    }
+    // 1. Delegate World Tactical Grid to TacticalLayerComposer
+    this.tacticalComposer.renderLayeredCells(frame, this.bgGraphics, this.lightingGraphics);
 
     // 2. Composite Diegetic UiCellBuffer Layer over World Grid
     if (uiBuffer) {
@@ -168,13 +148,11 @@ export class GlyphStageRenderer {
           const px = ux * CELL_WIDTH_PX;
           const py = uy * CELL_HEIGHT_PX;
 
-          // Background fill for UI cell on canvasUiBufferContainer
           this.uiBgGraphics.rect(px, py, CELL_WIDTH_PX, CELL_HEIGHT_PX).fill({
             color: hexToNumber(uiCell.bg),
             alpha: 1.0,
           });
 
-          // Mechanical Tremor Jitter on stressed components (bypassed if reduced motion or terminal tier)
           let jx = 0;
           let jy = 0;
           if (uiCell.shaderFlags?.includes('TREMOR_JITTER') && this.governor.shouldApplyTremorJitter()) {
@@ -215,17 +193,9 @@ export class GlyphStageRenderer {
     return this.activeUiBuffer.resolveHitActionAt(col, row);
   }
 
-  private initializeGlyphPool(gridWidth: number, gridHeight: number): void {
+  private initializeUiGlyphPool(gridWidth: number, gridHeight: number): void {
     for (let y = 0; y < gridHeight; y++) {
       for (let x = 0; x < gridWidth; x++) {
-        const sprite = new Sprite(this.atlas.getTexture('·'));
-        sprite.position.set(x * CELL_WIDTH_PX, y * CELL_HEIGHT_PX);
-        sprite.width = CELL_WIDTH_PX;
-        sprite.height = CELL_HEIGHT_PX;
-        sprite.tint = 0xd4af37;
-        this.pipeline.layers.worldTacticalContainer.addChild(sprite);
-        this.glyphSprites.push(sprite);
-
         const uiSprite = new Sprite(this.atlas.getTexture(' '));
         uiSprite.position.set(x * CELL_WIDTH_PX, y * CELL_HEIGHT_PX);
         uiSprite.width = CELL_WIDTH_PX;
