@@ -73,7 +73,7 @@ export function generateIndustrialTypologies(
   keyPositions.stoker = { x: 8, y: 26 };
 
   for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -1; dx <= 1; dx++) {
+    for (let dx = -1; dx <= 5; dx++) {
       grid = setTileCell(grid, boilerPos.x + dx, boilerPos.y + dy, (c) => ({
         ...c,
         steamPressureKpa: Math.max(c.steamPressureKpa, 35),

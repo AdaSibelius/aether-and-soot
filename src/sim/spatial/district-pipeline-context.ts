@@ -23,6 +23,7 @@ export interface PipelineDistrictContext {
   /** Seeded block layout; undefined for compact fixtures that keep the legacy stamped layout. */
   readonly layout: MacroLayout | undefined;
   readonly monorailCarPos: Point2D;
+  readonly mineHoistPos: Point2D;
   readonly currDistrict: string;
   readonly biomeDust: number;
   readonly workshopDoor: Point2D;
@@ -85,6 +86,7 @@ export function createPipelineContext(state: WorldState): PipelineDistrictContex
     compass: resolveCompassAdjacency(currDistrict),
     layout,
     monorailCarPos: depot ? mapPoint(depot, { x: 20, y: 5 }) : { x: 20, y: 5 },
+    mineHoistPos: depot ? mapPoint(depot, { x: 28, y: 5 }) : { x: Math.min(width - 4, center.x + 8), y: 5 },
     currDistrict,
     biomeDust,
     workshopDoor: layout ? layout.workshop.door : { x: 4, y: 7 },
@@ -104,7 +106,15 @@ export function createPipelineContext(state: WorldState): PipelineDistrictContex
 
 /** Every STREET point that must stay reachable from the plaza (gates, lift, boiler, building entrances, drops). */
 export function connectivityTargets(ctx: PipelineDistrictContext): Point2D[] {
-  const targets: Point2D[] = [ctx.westGatePos, ctx.eastGatePos, ctx.liftPos, ctx.boilerPos, ...ctx.sewerDrops];
+  const targets: Point2D[] = [
+    ctx.westGatePos,
+    ctx.eastGatePos,
+    ctx.liftPos,
+    ctx.boilerPos,
+    ctx.mineHoistPos,
+    { x: Math.floor(ctx.width * 0.35), y: ctx.monorailCarPos.y },
+    ...ctx.sewerDrops,
+  ];
   if (ctx.compass.north) targets.push(ctx.northGatePos);
   if (ctx.compass.south) targets.push(ctx.southGatePos);
   if (ctx.layout) {

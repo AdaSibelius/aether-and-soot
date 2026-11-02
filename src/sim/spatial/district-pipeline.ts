@@ -15,6 +15,7 @@ import {
 import { ensureDistrictConnectivity, fillUnbuiltYards } from './district-yards.js';
 import { setTileCell } from './grid.js';
 import { seedOutdoorStreetLandmarks } from './landmark-micro-locations.js';
+import { generateUrbanDistrict } from './urban-district.js';
 
 export { DISTRICT_ADJACENCY } from './compass-gates.js';
 export { connectivityTargets, createPipelineContext };
@@ -24,6 +25,15 @@ export {
   executeStage7InteractiveUtilityInfrastructure,
   executeStage8EmergenceAtmosphericSeeding,
 } from './district-pipeline-late.js';
+export { generateUrbanDistrict };
+export { carveVictorianSewerTopology } from './sewer-topology.js';
+export { generateSubterraneanMineStratum } from './mines-generation.js';
+export { generateHeavyIndustrialSector } from './industrial-district.js';
+export { linkAllStrataPortals } from './strata-portals.js';
+
+export function isUrbanDistrict(districtId: string): boolean {
+  return districtId.includes('whitechapel') || districtId.includes('ward') || districtId.includes('rookeries') || districtId.includes('urban');
+}
 
 /** Stage 1: Topology & Hydrology */
 export function executeStage1TopologyHydrology(ctx: PipelineDistrictContext): void {
@@ -72,6 +82,30 @@ export function executeStage3ThoroughfareSkeletization(ctx: PipelineDistrictCont
     ctx.street = carveCorridor(ctx.street, ctx.center, ctx.boilerPos, 'COBBLESTONE_FLOOR');
   }
   ctx.street = carveCorridor(ctx.street, ctx.westGatePos, ctx.eastGatePos, 'COBBLESTONE_FLOOR');
+  if (ctx.compass.north) {
+    for (let y = ctx.northGatePos.y; y <= ctx.center.y; y++) {
+      ctx.street = setTileCell(ctx.street, ctx.center.x, y, (c) => (
+        c.terrainType === 'IRON_GRATE' ? c : {
+          ...c,
+          terrainType: 'COBBLESTONE_FLOOR',
+          blocksMovement: false,
+          blocksSight: false,
+        }
+      ));
+    }
+  }
+  if (ctx.compass.south) {
+    for (let y = ctx.center.y; y <= ctx.southGatePos.y; y++) {
+      ctx.street = setTileCell(ctx.street, ctx.center.x, y, (c) => (
+        c.terrainType === 'IRON_GRATE' ? c : {
+          ...c,
+          terrainType: 'COBBLESTONE_FLOOR',
+          blocksMovement: false,
+          blocksSight: false,
+        }
+      ));
+    }
+  }
 
   carveGateCell(ctx, ctx.westGatePos);
   carveGateCell(ctx, ctx.eastGatePos);
@@ -110,6 +144,26 @@ export function executeStage5ArchitecturalTypologies(ctx: PipelineDistrictContex
     ctx.doors = archetypes.doors ?? {};
     ctx.keyPositions = archetypes.keyPositions ?? {};
     ctx.landmarks = archetypes.landmarks ?? {};
+    return;
+  }
+
+  // CDDA Hierarchical Urban District Generation (Whitechapel Ward / Urban Districts)
+  if (isUrbanDistrict(ctx.currDistrict) && ctx.width >= 45 && ctx.height >= 35) {
+    const urban = generateUrbanDistrict(ctx.street, ctx.entities, ctx.width, ctx.height, ctx.center, ctx.rng);
+    ctx.street = urban.grid;
+    ctx.entities = urban.entities;
+    ctx.doors = { ...ctx.doors, ...urban.doors };
+    ctx.keyPositions = { ...ctx.keyPositions, ...urban.keyPositions };
+    if (urban.parcels.length > 0) {
+      const footprints = urban.parcels.map((p) => p.bounds);
+      ctx.street = fillUnbuiltYards(
+        seedDistrictArchitecture(ctx.street, ctx.currDistrict, ctx.rng, critical),
+        footprints,
+        ctx.rng,
+      );
+    }
+    const repaired = ensureDistrictConnectivity(ctx.street, ctx.center, connectivityTargets(ctx));
+    ctx.street = repaired.grid;
     return;
   }
 

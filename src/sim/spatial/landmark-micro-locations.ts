@@ -103,13 +103,20 @@ export function seedSpireGreenhouse(
       const isDoor = dx === 2 && dy === 4;
       const x = ghX + dx;
       const y = ghY + dy;
-      grid = setTileCell(grid, x, y, (c) => ({
-        ...c,
-        terrainType: isDoor ? 'WOODEN_DOOR_CLOSED' : isPerimeter ? 'GLASS_WINDOW' : 'BRASS_CATWALK',
-        blocksMovement: isPerimeter && !isDoor,
-        blocksSight: false,
-        interiorZone: isPerimeter ? 'NONE' : 'WORKSHOP',
-      }));
+      grid = setTileCell(grid, x, y, (c) => {
+        const isExistingCatwalk = c.terrainType === 'BRASS_CATWALK';
+        return {
+          ...c,
+          terrainType: isDoor
+            ? 'WOODEN_DOOR_CLOSED'
+            : isPerimeter && !isExistingCatwalk
+              ? 'GLASS_WINDOW'
+              : 'BRASS_CATWALK',
+          blocksMovement: isDoor ? false : isPerimeter && !isExistingCatwalk,
+          blocksSight: false,
+          interiorZone: isPerimeter ? 'NONE' : 'WORKSHOP',
+        };
+      });
     }
   }
 

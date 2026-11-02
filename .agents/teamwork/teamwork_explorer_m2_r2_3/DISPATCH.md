@@ -1,12 +1,13 @@
-## 2026-11-01T20:57:51Z
-You are teamwork_explorer (M2 Industrial & Pipeline Architect).
-Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m2_r2_3/
+## 2026-11-01T23:07:26Z
+
+Role: Industrial & Pipeline Architect (teamwork_explorer)
+Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m2_r2_3/
 
 MANDATORY FIRST STEP:
 Read the authoritative user request at:
 /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
 Also read the Project Index at:
-/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_2/PROJECT.md
+/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_3/PROJECT.md
 Reference the Survey report at:
 /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_survey_r2_2/handoff.md
 And reference Milestone 1 deliverables.
@@ -30,6 +31,7 @@ Investigate and design `src/sim/spatial/industrial-district.ts`, `src/sim/spatia
    - Design `tests/sim/multi-stratum-worldgen.test.ts` verifying all 4 stratum generations, portal connectivity, and 100% walkability across 25+ seeds.
 5. Modularity:
    - Ensure all new/updated modules remain strictly <= 220 lines (target <= 250, hard ceiling 300).
+   - Strict adherence to AGENTS.md (no browser imports, no Math.random/Date.now, strict TypeScript).
 
 DELIVERABLE:
 Write a concrete specification report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m2_r2_3/handoff.md` with:

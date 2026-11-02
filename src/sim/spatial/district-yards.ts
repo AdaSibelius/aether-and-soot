@@ -126,6 +126,8 @@ function punchPath(grid: StratumGrid, from: Point2D, to: Point2D): StratumGrid {
       cells[idx] = { ...cell, terrainType: 'WOODEN_DOOR_OPEN', blocksMovement: false, blocksSight: false };
     } else if (cell.terrainType === 'CANAL_SLUICE') {
       cells[idx] = { ...cell, terrainType: 'TIMBER_PIER', blocksMovement: false, blocksSight: false };
+    } else if (grid.stratum === 'SPIRE') {
+      cells[idx] = { ...cell, terrainType: 'BRASS_CATWALK', blocksMovement: false, blocksSight: false };
     } else {
       cells[idx] = { ...cell, terrainType: 'COBBLESTONE_FLOOR', blocksMovement: false, blocksSight: false };
     }
@@ -161,4 +163,59 @@ export function ensureDistrictConnectivity(
     punched++;
   }
   return { grid: current, punched };
+}
+
+/**
+ * BFS flood fill from the stratum hub; any walkable cell or door unreachable from the hub is sealed back to solid
+ * wall / void to eliminate orphaned floor pockets created by post-Stage 5 feature carving.
+ */
+export function sealOrphanedWalkableTiles(grid: StratumGrid, hub: Point2D): StratumGrid {
+  const { width, height, stratum } = grid;
+  const isSpire = stratum === 'SPIRE';
+  const visited = new Uint8Array(width * height);
+  const queue: number[] = [];
+  const startIdx = hub.y * width + hub.x;
+
+  const startCell = grid.cells[startIdx];
+  if (!startCell) return grid;
+
+  visited[startIdx] = 1;
+  queue.push(startIdx);
+
+  while (queue.length > 0) {
+    const curr = queue.shift()!;
+    const cx = curr % width;
+    const cy = Math.floor(curr / width);
+
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const nx = cx + dx;
+      const ny = cy + dy;
+      if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+      const nIdx = ny * width + nx;
+      if (visited[nIdx]) continue;
+      const cell = grid.cells[nIdx];
+      if (cell && (!cell.blocksMovement || cell.terrainType === 'WOODEN_DOOR_CLOSED' || cell.terrainType === 'WOODEN_DOOR_OPEN')) {
+        visited[nIdx] = 1;
+        queue.push(nIdx);
+      }
+    }
+  }
+
+  let modified = false;
+  const newCells = grid.cells.slice();
+  for (let i = 0; i < newCells.length; i++) {
+    const cell = newCells[i]!;
+    if ((!cell.blocksMovement || cell.terrainType === 'WOODEN_DOOR_CLOSED' || cell.terrainType === 'WOODEN_DOOR_OPEN') && !visited[i]) {
+      modified = true;
+      newCells[i] = {
+        ...cell,
+        terrainType: isSpire ? 'ABYSS_DROP' : 'SOOT_BRICK_WALL',
+        blocksMovement: true,
+        blocksSight: !isSpire,
+        interiorZone: 'NONE',
+      };
+    }
+  }
+
+  return modified ? { ...grid, cells: newCells } : grid;
 }

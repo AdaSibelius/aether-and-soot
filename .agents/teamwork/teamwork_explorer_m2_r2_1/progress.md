@@ -1,13 +1,15 @@
-# Progress Tracker — M2 Urban Layout Architect
+# Progress — Urban Layout Architect
 
-- Last visited: 2026-11-01T20:58:00Z
-- Status: Initialized, starting source and document review.
+Last visited: 2026-11-01T23:12:15Z
 
-## Steps
-- [x] Step 1: Initialize DISPATCH.md, BRIEFING.md, and progress.md
-- [ ] Step 2: Read ORIGINAL_REQUEST.md, PROJECT.md, and survey handoff.md
-- [ ] Step 3: Inspect Milestone 1 deliverables (`building-templates.ts`, `template-instantiator.ts`, `fixture-catalog.ts`) and existing generator/grid infrastructure
-- [ ] Step 4: Analyze algorithmic layout requirements (hierarchical streets, plaza, parcel subdivision, setbacks, rotation/door alignment, BFS connectivity)
-- [ ] Step 5: Design modular architecture for `urban-district.ts` to strictly adhere to < 220 lines (and identify any helper separation if needed)
-- [ ] Step 6: Draft and refine comprehensive `handoff.md`
-- [ ] Step 7: Update BRIEFING.md and notify orchestrator via send_message
+## Status
+Specification complete. Deliverable report written to handoff.md. Message ready for orchestrator.
+
+## Milestones
+- [x] Initial dispatch and briefing setup
+- [x] Read authoritative user request & project docs (`ORIGINAL_REQUEST.md`, `PROJECT.md`, survey `handoff.md`)
+- [x] Examine Milestone 1 deliverables (`building-templates.ts`, `template-instantiator.ts`, `fixture-catalog.ts`, `building-template.schema.ts`)
+- [x] Examine current district generator (`generator.ts`, `district-pipeline.ts`, `district-blocks.ts`, `district-yards.ts`, `compass-gates.ts`)
+- [x] Synthesize layout architecture (Avenue, Plaza, Cross-streets, Alleys, Parcels, Stamping, Walkability)
+- [x] Draft comprehensive specification in `handoff.md`
+- [x] Message orchestrator with findings

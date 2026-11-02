@@ -4,9 +4,10 @@ import { seedSpireGreenhouse } from './building-prefabs.js';
 import { spawnCompassGate } from './compass-gates.js';
 import { connectivityTargets, PipelineDistrictContext } from './district-pipeline-context.js';
 import { enrichLargeScaleDistrict } from './district-scaler.js';
-import { ensureDistrictConnectivity } from './district-yards.js';
+import { ensureDistrictConnectivity, sealOrphanedWalkableTiles } from './district-yards.js';
 import { setTileCell } from './grid.js';
 import { generateSpireCatwalks, generateUndercroftDungeon } from './strata-dungeons.js';
+import { linkAllStrataPortals } from './strata-portals.js';
 import { seedDistrictUtilityNetworks, spawnDistrictInfrastructure } from './utility-networks.js';
 
 /** Stage 6: Multi-Stratum Dungeon Weaving (cellular Undercroft sewers, radial Spire web, macro barriers) */
@@ -74,8 +75,69 @@ export function executeStage7InteractiveUtilityInfrastructure(ctx: PipelineDistr
 
   seedDistrictUtilityNetworks(ctx.entities, ctx.currDistrict, ctx.boilerPos, ctx.artificerWorkbench, ctx.center);
 
+  linkAllStrataPortals(
+    ctx,
+    { STREET: ctx.street, UNDERCROFT: ctx.undercroft, SPIRE: ctx.spire },
+    ctx.entities,
+    { mineHoistPos: ctx.mineHoistPos },
+  );
+
   // TSK-P3-04: macro barriers (canal, viaduct, fences) may have severed arteries; punch corridors where needed.
   ctx.street = ensureDistrictConnectivity(ctx.street, ctx.center, connectivityTargets(ctx)).grid;
+  const spireTargets = [
+    { x: 10, y: 7 },
+    { x: 37, y: 7 },
+    { x: 37, y: 28 },
+    { x: 10, y: 28 },
+  ];
+  ctx.spire = ensureDistrictConnectivity(ctx.spire, ctx.liftPos, spireTargets).grid;
+
+  // Guarantee cardinal transit arteries remain 100% open floor
+  ensureCompassGateTransitCorridors(ctx);
+
+  // Seal isolated orphaned walkable floor pockets across all strata
+  ctx.street = sealOrphanedWalkableTiles(ctx.street, ctx.center);
+  ctx.spire = sealOrphanedWalkableTiles(ctx.spire, ctx.liftPos);
+  ctx.undercroft = sealOrphanedWalkableTiles(ctx.undercroft, ctx.center);
+}
+
+/** Guarantees that public transit routes between compass gates and the central plaza are 100% open floor. */
+function ensureCompassGateTransitCorridors(ctx: PipelineDistrictContext): void {
+  const { width, height, center } = ctx;
+  const cx = center.x;
+  const cy = center.y;
+
+  const openTransit = (c: import('./grid.js').TileCell) => {
+    if (!c.blocksMovement && c.terrainType !== 'WOODEN_DOOR_CLOSED' && c.terrainType !== 'WOODEN_DOOR_OPEN') {
+      return c;
+    }
+    return {
+      ...c,
+      terrainType: 'COBBLESTONE_FLOOR' as const,
+      blocksMovement: false,
+      blocksSight: false,
+      interiorZone: 'NONE' as const,
+    };
+  };
+
+  // West-to-East Avenue
+  for (let x = 2; x <= width - 3; x++) {
+    ctx.street = setTileCell(ctx.street, x, cy, openTransit);
+  }
+
+  // North Transit Corridor
+  if (ctx.compass.north) {
+    for (let y = 2; y <= cy - 1; y++) {
+      ctx.street = setTileCell(ctx.street, cx, y, openTransit);
+    }
+  }
+
+  // South Transit Corridor
+  if (ctx.compass.south) {
+    for (let y = cy + 1; y <= height - 3; y++) {
+      ctx.street = setTileCell(ctx.street, cx, y, openTransit);
+    }
+  }
 }
 
 /** Stage 8: Emergence & Atmospheric Seeding */

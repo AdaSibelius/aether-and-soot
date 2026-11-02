@@ -1,13 +1,13 @@
-# Progress
+# Progress — Sewers & Mines Architect
 
-Last visited: 2026-11-01T20:58:10Z
+Last visited: 2026-11-01T23:11:30Z
 
-- [x] Initialized workspace files (DISPATCH.md, BRIEFING.md, progress.md)
-- [ ] Read ORIGINAL_REQUEST.md, PROJECT.md, and survey handoff.md
-- [ ] Inspect Milestone 1 spatial code (undercroft-topology.ts, district-blueprints.ts, generator.ts, portals.ts, etc.)
-- [ ] Inspect primitives, components, blueprints schemas for terrain types, fixture types, item types
-- [ ] Design Victorian Sewer Stratum Topology (`sewer-topology.ts`) algorithm and schema interactions
-- [ ] Design Subterranean Mine Generation (`mines-generation.ts`) algorithm and schema interactions
-- [ ] Design Cross-Stratum Portal Linkages (Surface <-> Undercroft <-> Sewers <-> Mines)
-- [ ] Synthesize findings and write 5-component handoff.md
-- [ ] Notify caller via send_message
+## Status
+- [x] Initialized DISPATCH.md, BRIEFING.md, and progress.md
+- [x] Read ORIGINAL_REQUEST.md, PROJECT.md, survey handoff, and Milestone 1 deliverables
+- [x] Inspected spatial generators, strata hierarchy, and primitive schemas in `src/sim/` and `src/schemas/`
+- [x] Designed Sewer Stratum Topology (`src/sim/spatial/sewer-topology.ts`) with dual-channel conduit profiles, octagonal junction chambers, catch basins, and miasma gradients
+- [x] Designed Subterranean Mine Generation (`src/sim/spatial/mines-generation.ts`) with meandering drift shafts, room-and-pillar stopes, timber struts, narrow-gauge rail haulage, and hoist shaft cage
+- [x] Formulated 100% BFS reachability guarantees, anti-trapping invariants, and modularity line budgets (<= 220 lines per module)
+- [x] Authored final comprehensive specification report to `handoff.md`
+- [x] Notified orchestrator via `send_message`

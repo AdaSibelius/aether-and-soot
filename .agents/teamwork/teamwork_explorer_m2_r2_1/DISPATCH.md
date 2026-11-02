@@ -1,12 +1,12 @@
-## 2026-11-01T20:57:32Z
-You are teamwork_explorer (M2 Urban Layout Architect).
+## 2026-11-01T23:07:08Z
+Your role: Urban Layout Architect (teamwork_explorer)
 Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m2_r2_1/
 
 MANDATORY FIRST STEP:
 Read the authoritative user request at:
 /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
 Also read the Project Index at:
-/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_2/PROJECT.md
+/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_3/PROJECT.md
 Reference the Survey report at:
 /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_survey_r2_2/handoff.md
 And reference Milestone 1 deliverables in:
@@ -26,8 +26,9 @@ Investigate and design `src/sim/spatial/urban-district.ts` for Milestone 2 (CDDA
    - Stamping templates: Call `instantiateTemplateIntoGrid` using `ALL_BUILDING_TEMPLATES` / `BUILDING_TEMPLATE_REGISTRY` with proper rotation and street door alignment.
 3. Walkability & Pathfinding Guarantees:
    - Guarantee 100% BFS pathfinding from central plaza to all parcel entrance doors and transit gates.
-4. Modularity:
+4. Modularity & Invariants:
    - Ensure `src/sim/spatial/urban-district.ts` stays strictly under 220 lines (target <= 250, hard ceiling 300).
+   - Strict adherence to AGENTS.md (no browser imports, no Math.random/Date.now, strict TypeScript).
 
 DELIVERABLE:
 Write a concrete specification report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_explorer_m2_r2_1/handoff.md` with:
