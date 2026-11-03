@@ -1,174 +1,204 @@
-# Handoff Report: Challenger 1 — Milestone 1 Tactical Console Stress Testing
+# Empirical Challenge Report: Milestone 1 Tooling Modularity & Boundary Early Warnings
+
+**Milestone**: M1 (Features 1 & 2: Tooling Modularity Pre-Splitting and Boundary Early Warnings / Layout Compliance)  
+**Agent**: `teamwork_challenger_m1_1` (Empirical Challenger: Critic & Specialist)  
+**Verdict**: **PASS**  
+**Overall Risk Assessment**: **LOW**
+
+---
 
 ## 1. Observation
 
-### 1.1 Test Suite & Verification Execution
-- **Created Adversarial Stress Suite**:
-  - `tests/sim/tactical-console-stress.test.ts`: 224 lines (`wc -l` verified 224, strictly within the $\le 250$ line target ceiling and well below the 300 hard limit).
-  - Executed targeted stress suite:
-    `npx vitest run tests/sim/tactical-console-stress.test.ts`
-    Output: `✓ tests/sim/tactical-console-stress.test.ts (5) — 5 passed (5)` in 925ms.
-  - Executed full repository verification:
-    `npm run verify`
-    Output:
-    - `typecheck` (`tsc --noEmit`): exit code 0.
-    - `check:boundaries`: `[check:boundaries] OK — Checked 410 files. Zero Core/Shell or modularity violations.`
-    - `validate:data`: `[validate:data] OK — Validated 5 prosthetics, 2 commodities, 22 materials/consumables, 9 recipes, 2 gases/fluids, 5 districts, 4 bark corpora, 3 codex entries.`
-    - `test:sim`: `113 test files passed (113), 590 tests passed (590)`.
+Direct empirical evidence was gathered through independent verification commands, dedicated stress test harnesses, and isolated temporary execution environments:
 
-### 1.2 Empirically Verified Passing Invariants
-Across all tested stress scenarios:
-1. **Limb Edge Cases**:
-   - Player with 0 limbs (`limbs: {}`): renders without throwing, gracefully falls back to empty limb slots with red indicators.
-   - Player with 100% prosthetic limbs (`installedProstheticEntityId` on all 6 limbs): correctly renders brass `⚙` gear glyphs and `#C5A059` palette.
-   - Amputated limbs & negative HP (`hp: -25`): correctly renders red `✗` glyphs.
-   - Moderate high HP (`hp: 9999`): cleanly fits within column allocations without border clobbering.
-2. **Inventory Mass/Volume Overload**:
-   - Carried mass overload of 500,000g (20x capacity of 25,000g): correctly displays `[████████]` capped bar and `500.0/25k` readout in `WARN_RED`.
-   - Carried volume overload of 1,000,000ml (33x capacity of 30,000ml): correctly displays `[████████]` capped bar and `1000.0/30` readout in `WARN_RED`.
-   - Empty inventory (`containedEntityIds: []`, `currentMassGrams: 0`): displays `WIELD: Bare Hands` and `PACK: 0 items · [I]nspect`.
-   - Nonexistent weapon / item IDs in `equippedSlots` or `containedEntityIds`: gracefully falls back to `"Instrument"` / `"Item"` without throwing.
-3. **Extreme Thermodynamic Stress**:
-   - Strain load 350kW vs governor capacity 100kW: correctly clamps bar to `[████████]`, renders `350/100kW` in `WARN_RED`.
-   - Ambient soot concentration 650 PPM (> 500 PPM): flags `ATM:[TOXIC]` and renders `SOOT:650PPM` in `WARN_RED`.
-   - Ambient steam pressure 240 kPa (> 200 kPa): renders `STM:240kPa` in `COPPER_ACCENT`.
-4. **Rapid Event Log Stream**:
-   - Empty event log: cleanly displays `» Awaiting telegraph...` and padding ticker lines.
-   - Single valid event (`STEAM_VENTED`): formats `Vented 50 kPa`.
-   - 1,000 sequential rapid `ENTITY_MOVED` events: aggregated and rendered in under 25ms (well within the 100ms threshold) without frame lag.
-5. **Tactical Vernier Robustness**:
-   - `hoverCoord = null`: renders `VERNIER: STANDBY` and standby instructions.
-   - `hoverCoord = { x: -999, y: -999 }` (far negative OOB): renders `COORD:(-999,-999)`, `TERR: EMPTY 3M`, `0PPM · 60dB · [SHAD]`, `<No Occupant on Tile>`.
-   - `hoverCoord = { x: 88888, y: 99999 }` (far positive OOB): renders `COORD:(88888,99999)`, zero exceptions.
-6. **Data Leak Scans**:
-   - All 36 rows across all stress scenarios were audited with regex: zero instances of `NaN`, `undefined`, `null`, or `[object Object]` leaked into rendered cells.
-   - Buffer isolation oracle: columns 0..57 remained completely untouched (`~` sentinel preserved across all 36 rows).
+### 1.1 Full Repository Verification Gate (`npm run verify`)
+Executing `npm run verify` synchronously through all four project gates:
+- Gate 1 (`tsc --noEmit`): 0 type errors.
+- Gate 2 (`tsx tests/scripts/check-boundaries.ts`): Checked 437 files. 0 violations. Emitted 18 non-fatal advisory warnings for files between 240 and 297 lines. Exited with code `0`.
+- Gate 3 (`tsx tests/scripts/validate-data.ts`): Validated 5 prosthetics, 2 commodities, 22 materials/consumables, 9 recipes, 2 gases/fluids, 5 districts, 4 bark corpora, 3 codex entries with 0 schema violations.
+- Gate 4 (`vitest run`): 124 test files passed, 654 tests passed (0 failures).
 
-### 1.3 Empirically Discovered Critical Vulnerabilities
-Two distinct failure modes were empirically reproduced and verified:
+### 1.2 Targeted Verification Suites
+Executing `npx vitest run tests/sim/check-boundaries.test.ts tests/sim/phase53-governance-state.test.ts`:
+- `tests/sim/check-boundaries.test.ts`: 3/3 tests passed.
+- `tests/sim/phase53-governance-state.test.ts`: 6/6 tests passed.
+- Total: 9/9 passed in 1.51s.
 
-#### Vulnerability A: Buffer Boundary Overflow & Bezel Clobbering on Extreme Limb HP
-- **Location**: `src/client/canvas-ui/dossier-paperdoll.ts:149`, `159`, `169`.
-- **Verbatim Code**:
-  Line 149:
-  ```ts
-  buf.writeString(x + 20, y + 2, `${rArm.hp}HP`.padStart(5, ' '), VICTORIAN_PALETTE.RIVET_STEEL);
-  ```
-  Line 159:
-  ```ts
-  buf.writeString(x + 17, y + 4, `${rLeg.hp}HP`.padStart(5, ' '), VICTORIAN_PALETTE.RIVET_STEEL);
-  ```
-  Line 169:
-  ```ts
-  buf.writeString(x + 18, y + 5, `STM:${stam}%`, VICTORIAN_PALETTE.POLISHED_BRASS);
-  ```
-- **Observed Behavior**:
-  - `renderTacticalConsole` passes `innerX = rect.x + 2 = 60` (where `rect = { x: 58, y: 0, width: 30, height: 36 }`).
-  - At line 149, `x + 20 = 60 + 20 = 80`.
-  - The right border of the console bezel is located at `x + width - 1 = 58 + 29 = 87`.
-  - When `rArm.hp` is `999999` (6 digits), `${rArm.hp}HP` has 8 characters (`"999999HP"`). Starting at column 80, the 8th character `'P'` is written to column 87.
-  - **Empirical Failure**: Column 87's right border glyph is clobbered from `'║'` to `'P'` (`expect(buf.getCell(87, 21)?.glyph).toBe('║')` fails with received `'P'`).
-  - Furthermore, when `rArm.hp` is `9999999` (7 digits), the 9th character `'P'` is written to column 88 (`58 + 30`), which is **outside the 30-column console boundary** (`[58..87]`).
-  - Similar unconstrained writes occur in Row 4 (`rLeg.hp` at `x + 17`) and Row 5 (`STM:${stam}%` at `x + 18`).
+### 1.3 Boundary Limit Stress Testing (`check-boundaries.ts`)
+A synthetic file generator was executed across exact boundary line thresholds in an isolated directory:
+- **239 lines**: `violations: 0`, `warnings: 0`. Exit code `0`.
+- **240 lines**: `violations: 0`, `warnings: 1` (`[check:boundaries] WARNING: ... is near cap (240/300 lines)`). Exit code `0`.
+- **300 lines**: `violations: 0`, `warnings: 1` (`[check:boundaries] WARNING: ... is near cap (300/300 lines)`). Exit code `0`.
+- **301 lines**: `violations: 1` (`...: 301 lines exceeds hard modularity ceiling (300)`), `warnings: 0`. Exit code `1`.
+- **Real CLI Execution**: Spawned `npx tsx tests/scripts/check-boundaries.ts` against the repository: returned exit code `0`. Spawned CLI against synthetic directories with 300 vs 301 lines: confirmed exit `0` on warnings-only and exit `1` on 301 lines.
 
-#### Vulnerability B: Fatal Runtime Crash on Unhandled Simulation Event
-- **Location**: `src/client/canvas-ui/console-chronicle.ts:66:27`.
-- **Verbatim Error**:
-  ```
-  TypeError: Cannot read properties of undefined (reading 'replace')
-   ❯ Module.renderPneumaticTickerChronicle src/client/canvas-ui/console-chronicle.ts:66:27
-       64|     const rawLine = lines[idx]!;
-       65|     // Strip turn range prefix [T123] or [T12–T14] for clean ticker readout
-       66|     const clean = rawLine.replace(/^\[T\d+(?:–T\d+)?\]\s*/, '');
-         |                           ^
-   ❯ Module.renderTacticalConsole src/client/canvas-ui/tactical-console.ts:130:3
-  ```
-- **Observed Behavior**:
-  - In `src/client/ui/EventFormatter.ts:222`, `formatEventMessage(ev: SimEvent): string` is implemented as an explicit switch-case over event types without a `default` branch.
-  - If any simulation event arrives in `state.eventLog` that is unhandled or missing from `formatEventMessage` (or if an unexpected schema variant is logged), `formatEventMessage` returns `undefined`.
-  - In `src/client/ui/EventFormatterDomain.ts:42`, `aggregateChronicleEvents` pushes the returned `undefined` directly into `result`.
-  - In `src/client/canvas-ui/console-chronicle.ts:66`, `renderPneumaticTickerChronicle` does `rawLine.replace(...)` without guarding for `undefined` or null (e.g. `(rawLine ?? '').replace(...)`).
-  - This immediately crashes the console renderer with an unhandled `TypeError`, aborting UI rendering entirely.
+### 1.4 Layout Compliance Stress Testing (`checkTeamworkLayoutCompliance`)
+Layout compliance scanning of `.agents/teamwork/` was tested against synthetic file trees:
+- **Forbidden extensions**: `.ts`, `.tsx`, `.js`, `.json`, `.TS`, `.Tsx`, and nested `sub/nested.js` were all detected and flagged with verbatim error:
+  `...: Illegal source/data file in .agents/teamwork/ (workspace must contain only metadata .md files)`
+- **Reserved rule filenames**: `AGENTS.md`, `GEMINI.md`, `agents.md`, `gemini.md`, `Agents.Md`, and nested `sub/AGENTS.MD` were all detected and flagged with verbatim error:
+  `...: Forbidden rule filename in .agents/teamwork/ (AGENTS.md/GEMINI.md are reserved for root)`
+- **Permitted metadata files**: `BRIEFING.md`, `progress.md`, `handoff.md`, `plan.md`, `context.md`, `DISPATCH.md`, `README.md`, `.gitkeep`, and `.txt` files produced exactly 0 violations.
+- **Current Repository State**: `checkTeamworkLayoutCompliance(process.cwd(), violations)` returned `violations: []` (0 violations).
+
+### 1.5 Edge-Case & Error-Resilience Stress Testing (`state-markdown-compiler.ts` & `critic-domain-targets.ts`)
+Synthetic stress tests executed against pure compilers and domain target resolvers:
+- **Completely Empty ProjectState**: `compileStateMarkdown` with empty string `lastUpdated: ''`, empty `recentCommits: []`, empty `phases: []`, empty `hotspots: []`, empty `prescriptions: []`, and empty `immediateNextPriority: ''` executed cleanly, rendered empty markdown tables, and defaulted top hotspot to `'none'`. Zero unhandled exceptions.
+- **Adversarial `immediateNextPriority` Formats**: Evaluated strings with no colon, multiple colons, bold asterisks (`**Phase 54**: ...`), leading/trailing whitespace, and unicode characters. All compiled without throwing or regex corruption.
+- **Roadmap Markdown Edge Cases**: `compileRoadmapMarkdown` tested with empty markdown `''`, missing phase entries (phase numbers not present in roadmap text), mixed array vs string `targetFiles`, and idempotent re-compilation over completed phases. Prevented `*(Completed)* *(Completed)*` duplication and filtered duplicate prescriptions by `id::title`.
+- **`compileAgentsMarkdown`**: Tested with empty near caps `[]` and empty markdown `''`. Correctly replaced warning section without crashing.
+- **`parseVerifiedPrescriptions`**: Tested with empty strings, strings without `## 5.`, strings with corrupted lines, missing targets/verifications, stop section markers (`### Quarantined`, `## 6.`), and markdown containing pipe characters `|`. Parsed expected valid entries and gracefully discarded malformed lines without throwing.
+- **`resolvePhaseDomainTargetFiles`**: Tested with numeric phase IDs, empty strings, all 6 domain keyword sets (`GOVERNANCE_TOOLING`, `ECONOMY_SUPPLY`, `CHRONICLE_WITNESS`, `FORENSIC_CLUES`, `TOPOGRAPHY_ATLAS`, `PREFABS_LANDMARKS`), unmapped domain titles (`"Phase 999: Completely Unknown Domain"`), and non-existent root directories. Verified fallback safely returns `['src/sim/core/engine.ts']`. Zero unhandled exceptions.
+- **`collectTelemetryAnomalies`**: Evaluated with zeros, negative numbers, and high numbers. Handled cleanly without NaN or exceptions.
+- **`buildDomainPrescriptions`**: Evaluated with empty contexts (`phaseNumber: 0`, empty strings, empty unwired commands, undefined top near-cap file). Generated standard 3-prescription triage records (`P1`, `P2`, `P3`) with zero exceptions.
+
+### 1.6 File Line Count Verification
+All 13 files touched in Milestone 1 were measured via `content.split('\n').length`:
+- `tests/scripts/state-markdown-compiler.ts`: **130 lines** (<= 250 target ceiling)
+- `tests/scripts/update-state.ts`: **132 lines** (<= 250 target ceiling)
+- `tests/scripts/critic-domain-targets.ts`: **153 lines** (<= 250 target ceiling)
+- `tests/scripts/hermes-critic.ts`: **195 lines** (<= 250 target ceiling)
+- `tests/scripts/check-boundaries.ts`: **98 lines** (<= 120 target budget, <= 250 target ceiling)
+- `tests/scripts/local-llm-ledger.ts`: **188 lines** (<= 200 target budget, <= 250 target ceiling)
+- `tests/scripts/projection-cell-scanner.ts`: **48 lines** (<= 250 target ceiling)
+- `tests/scripts/playtester-projection-audit.ts`: **219 lines** (<= 250 target ceiling)
+- `tests/scripts/critic-report.ts`: **239 lines** (<= 250 target ceiling)
+- `tests/scripts/local-llm-config.ts`: **229 lines** (<= 250 target ceiling)
+- `tests/scripts/llm-playtester.ts`: **239 lines** (<= 250 target ceiling)
+- `tests/sim/check-boundaries.test.ts`: **68 lines** (<= 250 target ceiling)
+- `tests/sim/phase53-governance-state.test.ts`: **204 lines** (<= 250 target ceiling)
 
 ---
 
 ## 2. Logic Chain
 
-1. **Requirement Verification Against Dispatch**:
-   - Dispatch Rule 2 mandates: *"Confirm zero runtime crashes, zero buffer overflows outside 30 columns x 36 rows, and zero NaN/undefined string leaks."*
-2. **Evaluation of Vulnerability A (Buffer Overflow & Border Clobbering)**:
-   - *Observation*: `dossier-paperdoll.ts:149` does not clamp or slice `${rArm.hp}HP`.
-   - *Logic*: An input of `hp: 999999` overwrites the right bezel border at column 87. An input of `hp: 9999999` writes to column 88, violating the 30-column boundary requirement.
-   - *Conclusion*: Fails the requirement of *"zero buffer overflows outside 30 columns x 36 rows"*.
-3. **Evaluation of Vulnerability B (Unhandled Event Crash)**:
-   - *Observation*: `console-chronicle.ts:66` executes `rawLine.replace(...)` on unchecked elements produced by `aggregateChronicleEvents`.
-   - *Logic*: If `state.eventLog` contains any event variant unmapped in `formatEventMessage`, the ticker chronicle crashes with `TypeError`.
-   - *Conclusion*: Fails the requirement of *"zero runtime crashes"*.
-4. **Assessment of Architecture & Aesthetic Quality**:
-   - The tactical console layout, 7-tier partitioning, oxidized iron palette depth stratification, and WebGL tactical split (`uTacticalSplit = 58.0 / 88.0`) are robust, modular (all files $\le 196$ lines), and completely free of NaN/leak artifacts under valid domain inputs.
-   - However, because the system prompt and dispatch contract require empirical validation of zero crashes and zero buffer overflows, an unconditional approval cannot be granted while these two reproducible vulnerabilities exist.
+1. **Premise 1 (Modularity Guard)**: AGENTS.md Rule 2.2 and PROJECT.md require all modules to stay <= 250 lines target ceiling and fail if > 300 lines. Pre-splitting `update-state.ts` (down from 245 to 132 lines) into `state-markdown-compiler.ts` (130 lines) and `hermes-critic.ts` (down from 243 to 195 lines) into `critic-domain-targets.ts` (153 lines) brought both modules well under the 250-line target ceiling while preserving all interface contracts and exports.
+2. **Premise 2 (Boundary Early Warnings)**: By introducing `WARN_LINES_THRESHOLD = 240` alongside `MAX_LINES_HARD_CEILING = 300`, `check-boundaries.ts` warns agents about files nearing the ceiling without triggering false CI failures. Observation 1.3 proves that files at 239 lines trigger 0 warnings and 0 violations; files at 240 and 300 lines trigger warnings but exit 0; and files at 301 lines trigger a fatal violation and exit 1.
+3. **Premise 3 (Teamwork Layout Protection)**: By inspecting `.agents/teamwork/` for source/data extensions (`.ts`, `.tsx`, `.js`, `.json`) and root rule overrides (`AGENTS.md`, `GEMINI.md`), `checkTeamworkLayoutCompliance` ensures agent workspaces cannot contaminate TypeScript builds or override system instructions. Observation 1.4 proves all forbidden variants are rejected while permitted metadata markdown files pass cleanly.
+4. **Premise 4 (Resilience Under Degradation)**: Pure compilation functions in `state-markdown-compiler.ts` and domain heuristics in `critic-domain-targets.ts` must tolerate empty states, novel domain descriptions, and missing fields. Observation 1.5 proves that zero unhandled exceptions occur across synthetic empty objects, missing phases, corrupt inputs, or missing directories.
+5. **Conclusion**: Features 1 and 2 meet all functional, modularity, and architectural requirements with zero regressions.
 
 ---
 
-## 3. Caveats
+## 3. Adversarial Review & Stress Test Results
 
-1. **Simulated Headless Environment**: Testing was conducted headless via Vitest and Node.js. WebGL shader compilation was verified via uniform packing assertions and GLSL fragment syntax tests; full GPU rasterization on physical 4K display panels is contingent on browser WebGL execution.
-2. **Schema Invariant Context**: In standard gameplay, `hp` is typically bounded below 10,000 and `eventLog` events are defined in `events.schema.ts`. Nonetheless, defensive UI programming requires presentation layers never to crash or overflow when underlying simulation states encounter abnormal values.
-3. **Non-Modification Constraint**: As Challenger, I adhered strictly to the constraint of review-only execution and did NOT modify the implementation files (`console-chronicle.ts`, `dossier-paperdoll.ts`). The fixes are documented below for immediate application by the worker or parent agent.
+### Challenge Summary
+- **Overall risk assessment**: **LOW**
+- **Architecture**: Pure deterministic utility separation with zero circular dependencies and zero external dependencies.
+
+### Detailed Challenges
+
+#### Challenge 1: Line Count Boundary Conditions & Exit Codes
+- **Assumption challenged**: `check-boundaries.ts` might misclassify boundary lines (e.g. Off-by-One error at 240 or 300 lines, or exit with code 1 when only warnings are present).
+- **Attack scenario**: Inject synthetic files of exact line counts 239, 240, 300, and 301 into a mock repository and execute boundary check.
+- **Blast radius**: If 240 lines fails the build, CI would break on legitimate near-cap files; if 301 lines passes, modularity creep goes unchecked.
+- **Result**: PASSED. 239 lines = clean, 240 lines = warning (exit 0), 300 lines = warning (exit 0), 301 lines = violation (exit 1).
+
+#### Challenge 2: Workspace Layout Bypass via Case Variation or Subdirectories
+- **Assumption challenged**: Agents creating illegal files inside subdirectories (e.g. `.agents/teamwork/agent_1/sub/test.ts`) or with uppercase extensions (`.TS`, `.JSON`) or mixed-case rule files (`Agents.Md`) might evade layout detection.
+- **Attack scenario**: Inject nested subdirectories with `.TS`, `.Tsx`, `.js`, `.json`, and varied-casing `AGENTS.MD` and `gemini.md`.
+- **Blast radius**: Build pollution or unauthorized prompt override injection.
+- **Result**: PASSED. Recursive scanner detected all 13 injected forbidden variants.
+
+#### Challenge 3: Compiler Null Pointer Exceptions on Empty State or Corrupted Backlog
+- **Assumption challenged**: `compileStateMarkdown` or `compileRoadmapMarkdown` might access undefined array indices (e.g., `state.hotspots[0].file`) or throw during regex parsing of malformed critic outputs.
+- **Attack scenario**: Feed empty objects `{ hotspots: [], recentCommits: [], prescriptions: [] }` and malformed Markdown without standard headers into compilers.
+- **Blast radius**: Hermes sync crash (`npm run sync:state`) halting automated phase handoff.
+- **Result**: PASSED. `state.hotspots[0]` guards fallback to `'none'`, empty commits format cleanly, and regex parser ignores malformed lines with zero unhandled exceptions.
+
+#### Challenge 4: Unmapped Domain Keywords in Phase Titles
+- **Assumption challenged**: Hermes critic resolving domain target files for a completely new or unmapped phase domain (e.g., Phase 99 or exotic mechanics) might return empty candidate arrays, leading to downstream undefined errors.
+- **Attack scenario**: Call `resolvePhaseDomainTargetFiles` with empty strings, unmapped domain titles, and non-existent root directories.
+- **Blast radius**: `hermes:critic` failure during post-phase evaluation.
+- **Result**: PASSED. Unmapped domains and missing directories reliably fall back to `['src/sim/core/engine.ts']`.
+
+### Stress Test Matrix
+
+| Scenario | Input | Expected Output | Actual Output | Result |
+|---|---|---|---|---|
+| Line Count: 239 | 239-line `.ts` file | 0 violations, 0 warnings | 0 violations, 0 warnings | **PASS** |
+| Line Count: 240 | 240-line `.ts` file | 0 violations, 1 warning (exit 0) | 0 violations, 1 warning (exit 0) | **PASS** |
+| Line Count: 300 | 300-line `.ts` file | 0 violations, 1 warning (exit 0) | 0 violations, 1 warning (exit 0) | **PASS** |
+| Line Count: 301 | 301-line `.ts` file | 1 violation (exit 1) | 1 violation (exit 1) | **PASS** |
+| Teamwork Layout: Bad Exts | `.ts`, `.tsx`, `.js`, `.json`, `.TS` in `.agents/teamwork/` | Detected and flagged as illegal | 7/7 flagged | **PASS** |
+| Teamwork Layout: Rule Files | `AGENTS.md`, `GEMINI.md`, `agents.md` in `.agents/teamwork/` | Detected and flagged as forbidden | 6/6 flagged | **PASS** |
+| Teamwork Layout: Clean Workspace | `.md`, `.gitkeep`, `.txt` in `.agents/teamwork/` | 0 violations | 0 violations | **PASS** |
+| State Compiler: Empty State | Empty `ProjectState` with empty arrays/strings | Valid Markdown, topHotspot: 'none', 0 exceptions | Valid Markdown, 0 exceptions | **PASS** |
+| Roadmap Compiler: Idempotency | Re-compiling already completed roadmap phases | No duplicate `*(Completed)*`, idempotent output | Idempotent, zero duplicate tokens | **PASS** |
+| Critic Resolver: Unmapped Domain | `"Phase 999: Exotic Alien Domain"` | Fallback to `src/sim/core/engine.ts` | Returns `['src/sim/core/engine.ts']` | **PASS** |
+| Critic Resolver: Missing RootDir | `/nonexistent/dir` | Fallback to `src/sim/core/engine.ts` | Returns `['src/sim/core/engine.ts']` | **PASS** |
+| Telemetry Anomalies: Zeros/Negatives | `{ totalProjectionLeaks: 0, unwiredCount: -5 }` | 0 anomalies, zero crashes | 0 anomalies, zero crashes | **PASS** |
+
+### Unchallenged Areas
+- Dynamic file writing under concurrent disk I/O contention (out of scope for deterministic CLI scripts).
 
 ---
 
-## 4. Conclusion
+## 4. Caveats
 
-### Empirical Verdict: **REJECT** (Pending 2 Minimal Hardening Fixes)
-
-While the implementation is 98% architecturally exemplary, it violates Dispatch Requirement 2 under extreme inputs. To achieve unconditional APPROVAL, the following two minimal 1-line hardening fixes must be applied:
-
-1. **Fix for Vulnerability A in `src/client/canvas-ui/dossier-paperdoll.ts`**:
-   - Line 149:
-     ```ts
-     // Replace:
-     buf.writeString(x + 20, y + 2, `${rArm.hp}HP`.padStart(5, ' '), VICTORIAN_PALETTE.RIVET_STEEL);
-     // With:
-     buf.writeString(x + 20, y + 2, `${Math.min(9999, rArm.hp)}HP`.padStart(5, ' ').slice(0, 5), VICTORIAN_PALETTE.RIVET_STEEL);
-     ```
-   - Similar clamping should be applied to line 159 (`rLeg.hp`) and line 169 (`STM:${Math.min(999, stam)}%`).
-2. **Fix for Vulnerability B in `src/client/canvas-ui/console-chronicle.ts`**:
-   - Line 64–66:
-     ```ts
-     // Replace:
-     const rawLine = lines[idx]!;
-     const clean = rawLine.replace(/^\[T\d+(?:–T\d+)?\]\s*/, '');
-     // With:
-     const rawLine = lines[idx];
-     if (!rawLine) continue;
-     const clean = rawLine.replace(/^\[T\d+(?:–T\d+)?\]\s*/, '');
-     ```
-   - And optionally add a `default` case in `src/client/ui/EventFormatter.ts:222` returning `"[T...] Event recorded."`.
-
-Once these two defensive guards are applied, the console will be 100% resilient against all arbitrary inputs, buffer overflows, and runtime crashes.
+No caveats. All boundary thresholds, layout rules, error paths, and modularity limits were empirically exercised and confirmed.
 
 ---
 
-## 5. Verification Method
+## 5. Conclusion
 
-To independently reproduce all empirical findings:
+**Verdict: PASS**
 
-1. **Run the Adversarial Stress Suite**:
+The Milestone 1 implementation of Feature 1 (Tooling Modularity Pre-Splitting) and Feature 2 (Early Warnings & Layout Compliance) is architecturally sound, thoroughly tested, and resilient against edge cases. All 13 affected files conform strictly to line ceilings (all <= 239 lines except tests <= 204 lines). `npm run verify` runs 100% clean with 124 passed test files and 654 passed unit tests.
+
+---
+
+## 6. Verification Method
+
+To independently reproduce and verify this assessment:
+
+1. **Targeted Unit Tests**:
    ```bash
-   npx vitest run tests/sim/tactical-console-stress.test.ts
+   npx vitest run tests/sim/check-boundaries.test.ts tests/sim/phase53-governance-state.test.ts
    ```
-   *Expected Result*: All 5 stress tests execute and pass in under 1 second, confirming that:
-   - Scenarios A–C (0 limbs, 100% prosthetics, mass/vol overloads, thermodynamic stress, OOB vernier, 1,000 rapid movement logs) pass cleanly.
-   - Scenario D demonstrates that unconstrained HP >= 999,999 overwrites the column 87 border glyph with `'P'`, and unconstrained HP >= 9,999,999 spills into column 88.
-   - Scenario D demonstrates that an unhandled event in `eventLog` throws `TypeError: Cannot read properties of undefined (reading 'replace')`.
-2. **Run Full Verification Gate**:
+   *Expected*: 2 test files passed, 9 tests passed.
+
+2. **Full Repository Verification Suite**:
    ```bash
    npm run verify
    ```
-   *Expected Result*: All 4 gates pass sequentially (Typecheck, Boundary Check, Data Validation, 113 Test Files / 590 Tests passing).
-3. **Verify Line Counts & Modularity Ceilings**:
+   *Expected*: All 4 gates pass cleanly (`tsc`, `check-boundaries`, `validate-data`, `test:sim` with 654 tests passed).
+
+3. **Line Count Ceiling Verification**:
    ```bash
-   wc -l tests/sim/tactical-console-stress.test.ts src/client/canvas-ui/*.ts
+   node -e "
+   const fs = require('fs');
+   const files = [
+     'tests/scripts/state-markdown-compiler.ts',
+     'tests/scripts/update-state.ts',
+     'tests/scripts/critic-domain-targets.ts',
+     'tests/scripts/hermes-critic.ts',
+     'tests/scripts/check-boundaries.ts',
+     'tests/scripts/local-llm-ledger.ts',
+     'tests/scripts/projection-cell-scanner.ts',
+     'tests/scripts/playtester-projection-audit.ts',
+     'tests/scripts/critic-report.ts',
+     'tests/scripts/local-llm-config.ts',
+     'tests/scripts/llm-playtester.ts',
+     'tests/sim/check-boundaries.test.ts',
+     'tests/sim/phase53-governance-state.test.ts'
+   ];
+   for (const f of files) {
+     const len = fs.readFileSync(f, 'utf8').split('\n').length;
+     console.log(f + ': ' + len + ' lines (' + (len <= 250 ? 'PASS' : 'FAIL') + ')');
+   }
+   "
    ```
-   *Expected Result*: `tactical-console-stress.test.ts` is 224 lines ($\le 250$); all console `.ts` modules are strictly $\le 196$ lines.
+   *Expected*: All 13 files report `PASS` (<= 250 lines).
+
+4. **Teamwork Layout Compliance Check**:
+   ```bash
+   npx tsx -e "
+   import { checkTeamworkLayoutCompliance } from './tests/scripts/check-boundaries.ts';
+   const v = [];
+   checkTeamworkLayoutCompliance(process.cwd(), v);
+   console.log('Layout violations count:', v.length);
+   if (v.length !== 0) process.exit(1);
+   "
+   ```
+   *Expected*: `Layout violations count: 0`.

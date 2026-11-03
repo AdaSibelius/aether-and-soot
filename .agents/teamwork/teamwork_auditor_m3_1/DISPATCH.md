@@ -1,40 +1,45 @@
-## 2026-11-02T00:49:49Z
-You are the Forensic Integrity Auditor for Milestone 3 (Enhanced CP437 Glyphs & Graphical Tileset Presentation).
-Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_auditor_m3_1
+## 2026-11-03T01:08:33Z
+You are teamwork_auditor_m3_1 (Forensic Auditor for Milestone 3: Continuous World Evolution & Border Seams).
 
-MANDATORY INPUTS:
-- Read ORIGINAL_REQUEST.md at: /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
-- Read PROJECT.md at: /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_3/PROJECT.md
-- Read Worker M3 Handoff Report at: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m3/handoff.md
+Working Directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_auditor_m3_1/
+Parent Orchestrator ID: b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57
 
-YOUR MISSION (FORENSIC INTEGRITY AUDIT):
-Perform a comprehensive forensic integrity audit of the Milestone 3 implementation:
-1. Hardcoded Output & Cheating Detection:
-   - Grep `src/client/projection/` and `src/client/renderer/` for hardcoded test comparisons, seed sniffers, or fake returns.
-   - Confirm all procedural graphics drawing in `procedural-tileset.ts` and box-drawing bitmasks in `extended-box-drawing.ts` are authentic, general algorithms.
-2. Facade & Stub Detection:
-   - Check all 9 files for stubbed methods, dummy returns (`return true`, `return []`), or `TODO` / `mock` markers in production code.
-3. Tautological Test Assertion Audit:
-   - Audit `tests/sim/client-presentation-modes.test.ts`. Verify that test assertions do NOT compare hardcoded expected values directly against self-mocked tautologies. Assertions must rigorously evaluate layer extraction, 81-state box-drawing autotiling, mode state cycling, and uniform stability.
-4. Architectural Guardrails:
-   - Verify strict Headless Separation (`src/sim/` never imports `src/client/`).
-   - Verify zero `Math.random()` or `Date.now()` tokens in `src/sim/`.
-   - Verify all modified/created files are strictly <= 250 lines (hard ceiling 300).
-5. Independent Execution:
-   - Run `npm run check:boundaries`
-   - Run `npm run typecheck`
-   - Run `npx vitest run tests/sim/client-presentation-modes.test.ts`
-   - Run `npm run verify`
+Read these files first:
+1. /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
+2. /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md
+3. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m3_1/handoff.md
 
-VERDICT POLICY:
-Binary veto: If any integrity violation, cheating, or hardcoded facade is found, report INTEGRITY VIOLATION. If clean and authentic, report CLEAN.
+Your Audit Scope:
+All Milestone 3 deliverables:
+- `src/sim/spatial/urban-parcels.ts`
+- `src/sim/spatial/district-boundaries.ts`
+- `src/sim/systems/continuous-transit.system.ts`
+- `src/sim/spatial/building-templates-expanded.ts`
+- `src/client/projection/continuous-projection.ts`
+- `tests/sim/continuous-worldgen.test.ts`
+- Integrations in `src/sim/systems/movement.system.ts` and `src/client/projection/frame-adapter.ts`
 
-OUTPUT REQUIREMENTS:
-Write your complete report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_auditor_m3_1/handoff.md` with:
-- Observation (forensic scans, grep checks, execution outputs)
-- Logic Chain (evaluation of integrity evidence)
-- Caveats
-- Conclusion & Verdict: CLEAN or INTEGRITY VIOLATION
-- Verification Method (commands to reproduce)
-
-When finished, send a message to the orchestrator with your verdict and handoff path.
+Audit Requirements:
+1. Static Analysis:
+   - Check file lengths (`wc -l`): verify all files <= 250 lines.
+   - Check Core/Shell separation: verify `src/sim/` files have 0 imports from `src/client/`, 0 references to browser globals (`window`, `document`, `HTMLCanvasElement`, `requestAnimationFrame`), 0 `Math.random()`, 0 `Date.now()`.
+   - Check TypeScript strictness: verify zero `any`, zero `@ts-ignore`, zero `@ts-expect-error`.
+2. Authenticity & Anti-Cheat Inspection:
+   - Verify that `generateUrbanParcelLayout` implements genuine procedural geometry (carving streets, alleys, plazas) rather than hardcoded layouts.
+   - Verify that `computeDistrictBoundarySeams` implements genuine hash-based aperture placement that aligns reciprocally across boundaries.
+   - Verify that `continuousTransitSystem` genuinely migrates entity records, updates party coordinates, serializes departures, and restores saved districts rather than faking transit via teleportation or dummy logs.
+   - Verify that `resolveContinuousLookaheadCell` is strictly read-only and computes neighbor coordinates without mutating simulation state.
+   - Verify that `continuous-worldgen.test.ts` asserts genuine invariants and does not use tautological assertions (`expect(true).toBe(true)`).
+3. Runtime Validation:
+   - Execute verification:
+     `npm run typecheck`
+     `npm run check:boundaries`
+     `npm run validate:data`
+     `npx vitest run tests/sim/continuous-worldgen.test.ts`
+4. Deliver your Forensic Audit report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_auditor_m3_1/handoff.md` with:
+   - Verdict: CLEAN or INTEGRITY VIOLATION (⚠️ This is a binary veto)
+   - Checks Performed: Detailed evidence tables for each file and check
+   - Forensic Findings: Code inspection analysis and proof of authenticity
+   - Verification Commands & Results
+   - Conclusion
+5. Send a message to parent `b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57` with your verdict and handoff summary.

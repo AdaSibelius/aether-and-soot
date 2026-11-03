@@ -1,80 +1,59 @@
-# BRIEFING — 2026-11-01T19:12:00Z
+# BRIEFING — 2026-11-02T23:35:00Z
 
 ## Mission
-Objective review and adversarial critique of Milestone 1 UI/HUD implementation (information density, Edison aesthetic, oxidized iron palette depth separation, modularity, and verification).
+Objective quality review and adversarial critique of Milestone 1 (Tooling Modularity Pre-Splitting and Early Warning Layout Compliance).
 
 ## 🔒 My Identity
-- Archetype: reviewer & critic
+- Archetype: reviewer_critic
 - Roles: reviewer, critic
-- Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/
-- Original parent: 61239d6e-5e21-48a8-8b66-444d6753c37e
-- Milestone: Milestone 1 (Tactical Console UI & HUD)
-- Instance: 1 of 2
+- Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1
+- Original parent: b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57
+- Milestone: M1
+- Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Check for integrity violations (hardcoded test results, facade logic, shortcuts, fabricated outputs)
-- Enforce strict 300-line ceiling, target <=220 lines
-- Strict headless separation (no client imports in sim, no sim mutation in client)
-- Evidence-based findings with concrete file/line references
+- Check for integrity violations (hardcoded test results, facade implementations, bypassed shortcuts, fabricated outputs, self-certifying work)
+- Adhere to AGENTS.md, ARCHITECTURE.md, GEMINI.md
 
 ## Current Parent
-- Conversation ID: 61239d6e-5e21-48a8-8b66-444d6753c37e
-- Updated: 2026-11-01T19:08:36Z
+- Conversation ID: b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57
+- Updated: 2026-11-02T23:29:32Z
 
 ## Review Scope
-- **Files to review**:
-  - `src/client/canvas-ui/material-palette.ts`
-  - `src/client/canvas-ui/bezel-composer.ts`
-  - `src/client/canvas-ui/console-satchel.ts`
-  - `src/client/canvas-ui/console-chronicle.ts`
-  - `src/client/canvas-ui/analog-gauges.ts`
-  - `src/client/canvas-ui/dossier-paperdoll.ts`
-  - `src/client/canvas-ui/tactical-vernier.ts`
-  - `src/client/canvas-ui/tactical-console.ts`
-  - `index.html`
-  - `src/client/renderer/shader-uniforms.ts`
-  - `src/client/renderer/diegetic-post-filter.ts`
-  - `src/client/renderer/steampunk-pipeline.ts`
-  - `src/client/renderer/glyph-atlas-extended.ts`
-  - `src/client/renderer/glyph-stage.ts`
-  - `src/client/main.tsx`
-  - `tests/sim/oxidized-iron-palette.test.ts`
-  - `tests/sim/tactical-console.test.ts`
-- **Interface contracts**:
-  - `.agents/teamwork/ORIGINAL_REQUEST.md`
-  - `.agents/teamwork/orchestrator_1/PROJECT.md`
-  - `AGENTS.md`
-  - `ARCHITECTURE.md`
-- **Review criteria**:
-  - Information density (thermodynamic stress, satchel mass/volume, character health, live chronicle)
-  - Visual hierarchy & oxidized iron palette depth separation
-  - Edison aesthetic (amber filament glows, meter needles, riveted brass bezels)
-  - Code modularity (lines <= 220 target, <= 300 hard limit)
-  - Integrity & correctness checks
-
-## Key Decisions Made
-- Confirmed full compliance with Milestone 1 specifications.
-- Verified zero integrity violations: no hardcoded facade data, no skipped logic, real causal event consumption.
-- Verified all 4 verification gates passed: 111 test files, 569 tests passing, 0 boundary errors.
-- Verified modularity: all modified `.ts` files <= 196 lines (strictly within <= 220 target and 300 ceiling); `glyph-stage.ts` preserved frozen at 239 lines.
-- Verdict issued: APPROVE.
-
-## Artifact Index
-- `BRIEFING.md` — persistent memory
-- `progress.md` — heartbeat and task progress
-- `handoff.md` — final 5-component handoff review report
+- **Files to review**: tests/scripts/state-markdown-compiler.ts, tests/scripts/update-state.ts, tests/scripts/critic-domain-targets.ts, tests/scripts/hermes-critic.ts, tests/scripts/check-boundaries.ts, tests/sim/check-boundaries.test.ts, tests/sim/phase53-governance-state.test.ts
+- **Interface contracts**: /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md, /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
+- **Review criteria**: correctness, modularity compliance (<=250 lines target, <300 lines hard limit), isolatedModules compatibility, boundary checking and layout compliance, edge case resistance, integrity violations
 
 ## Review Checklist
-- **Items reviewed**: All 17 files listed in review scope
+- **Items reviewed**:
+  - `state-markdown-compiler.ts` (130 lines) & `update-state.ts` (132 lines): verified re-exports, idempotence, type-only exports under isolatedModules.
+  - `critic-domain-targets.ts` (153 lines) & `hermes-critic.ts` (195 lines): verified both parameter signatures of `resolvePhaseDomainTargetFiles`, semantic mapping, fallback mechanics.
+  - `check-boundaries.ts` (98 lines <= 120 target): verified advisory warnings (240-300 lines) exit 0, teamwork layout compliance flags forbidden code/data and reserved filenames.
+  - `tests/sim/check-boundaries.test.ts` (68 lines): 3/3 tests pass.
+  - `tests/sim/phase53-governance-state.test.ts` (204 lines): 6/6 tests pass.
+  - `tests/sim/hermes-critic.test.ts` (187 lines): 10/10 tests pass.
+  - Full verification suite (`npm run verify`): 4/4 gates pass cleanly (124 test files, 654 tests pass).
 - **Verdict**: APPROVE
-- **Unverified claims**: None; all verified independently via direct tool commands
+- **Unverified claims**: none; all claims verified independently.
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Buffer bounds & empty state handling (tested: verified graceful fallbacks)
-  - Shader UV division by zero (tested: verified `max(uTacticalSplit, 0.01)` guard)
-  - Font race conditions (tested: verified `await document.fonts.ready`)
-  - Missing anatomy or inventory components (tested: verified null-safe guards)
-- **Vulnerabilities found**: None critical or blocking; minor edge considerations documented in report
-- **Untested angles**: Hardware-specific WebGL GPU driver quirks on exotic displays
+  - H1: `resolvePhaseDomainTargetFiles` handles negative phase numbers, undefined titles, empty strings, and unknown domains. (Pass: defaults to fallback files `src/sim/core/simulation-pipeline.ts` and `src/sim/core/engine.ts`).
+  - H2: Layout compliance regex `/\\.(ts|tsx|js|json)$/i` correctly catches uppercase extensions (`UPPER.TS`, `UPPER.JSON`) and case variations of `AGENTS.md` and `GEMINI.md`. (Pass: verified with synthetic directory test).
+  - H3: Non-teamwork metadata like `.agents/state.json` is not falsely flagged as an illegal file. (Pass: verified).
+  - H4: Advisory warnings do not cause non-zero exit codes. (Pass: verified).
+  - H5: Zero integrity violations (no dummy facades, no hardcoded expected outputs, no bypassed tests). (Pass: verified).
+- **Vulnerabilities found**: None that compromise correctness or safety. (Note: high concurrency on 1,000-turn fuzzer test `emergence-fuzzer.test.ts` can cause timing variance if CPU is starved, but passes cleanly in standard single-run < 1.8s).
+- **Untested angles**: None within M1 scope.
+
+## Key Decisions Made
+- Confirmed full compliance with <= 250 line ceiling across all touched files.
+- Confirmed strict headless separation and zero integrity violations.
+- Issued APPROVE verdict for Milestone 1 Feature 1 and Feature 2 deliverables.
+
+## Artifact Index
+- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/DISPATCH.md — incoming message log
+- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/BRIEFING.md — situational awareness
+- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/progress.md — progress tracking
+- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/handoff.md — final review and challenge report

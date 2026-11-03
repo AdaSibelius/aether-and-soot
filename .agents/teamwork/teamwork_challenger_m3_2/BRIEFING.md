@@ -1,68 +1,55 @@
-# BRIEFING — 2026-11-02T00:57:00Z
+# BRIEFING — 2026-11-03T01:08:35Z
 
 ## Mission
-Empirically stress-test presentation modes, sprite pooling, and shader compositing for Milestone 3 (Enhanced CP437 Glyphs & Graphical Tileset Presentation).
+Adversarial stress testing of Milestone 3 Features 11 & 12 (Parametric Urban Parcel Subdivider, Border Seams, Expanded Building Templates) via empirical test suite `tests/sim/urban-parcels-stress.test.ts`.
 
 ## 🔒 My Identity
 - Archetype: empirical-challenger
 - Roles: critic, specialist
 - Working directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m3_2
-- Original parent: 601ac16f-482f-4000-b0b1-e97361589e3d
-- Milestone: M3 (Enhanced CP437 Glyphs & Graphical Tileset Presentation)
-- Instance: 2 of 2 (Challenger 2)
+- Original parent: b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57
+- Milestone: Milestone 3 (Continuous World Evolution & Border Seams)
+- Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code
-- Run empirical tests directly; do not rely on worker claims
-- Must enforce 300-line ceiling and zero boundary violations if adding any test files
-- Strictly headless verification or node-based DOM/Canvas mocks if Pixi.js components are evaluated
-- Output hard handoff report to `.agents/teamwork/teamwork_challenger_m3_2/handoff.md`
+- Review-only and adversarial testing — do NOT modify implementation code unless fixing a bug in tests or documenting failures for worker.
+- Target test file <= 200 lines, STRICT hard ceiling <= 250 lines.
+- Zero imports from `src/client/`, `pixi.js`, `preact`, browser globals.
+- Zero `Math.random()` or `Date.now()`.
+- Use `SeededRNG` or fixed deterministic parameters.
+- Verify with `npx vitest run tests/sim/urban-parcels-stress.test.ts`, `npm run typecheck`, `npm run check:boundaries`, `npm run verify`.
 
 ## Current Parent
-- Conversation ID: 601ac16f-482f-4000-b0b1-e97361589e3d
-- Updated: 2026-11-02T00:57:00Z
+- Conversation ID: b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57
+- Updated: 2026-11-03T01:08:35Z
 
 ## Review Scope
-- **Files reviewed**:
-  - `src/client/renderer/tileset-manager.ts`
-  - `src/client/renderer/tactical-layer-composer.ts`
-  - `src/client/renderer/procedural-tileset.ts`
-  - `src/client/renderer/steampunk-pipeline.ts`
-  - `src/client/renderer/steampunk-shader.ts`
-  - `src/client/renderer/diegetic-post-filter.ts`
-  - `src/client/renderer/glyph-stage.ts`
-  - `src/client/renderer/shader-uniforms.ts`
-  - `src/client/projection/frame-adapter.ts`
-  - `src/client/projection/extended-box-drawing.ts`
-  - `tests/sim/client-presentation-modes.test.ts`
-  - `tests/sim/m3-presentation-stress.test.ts`
-- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md, AGENTS.md
-- **Review criteria**: Deterministic mode transitions (1,000 cycles), complete fallbacks, zero sprite allocation churn, hex color cache efficiency, WebGL tactical split stability (58/88), strict coordinate separation (< 696px).
-
-## Key Decisions Made
-- Created empirical test suite `tests/sim/m3-presentation-stress.test.ts` (205 lines) exercising 1,000 mode cycles, 12 adversarial bad keys across 5 layers and 2 modes, 50 frames of sprite pooling invariance, and tactical split boundaries.
-- Discovered and documented empirical finding in `fastHexColor`: first lookup on unparseable hex returns NaN because `val` is not reassigned prior to return, though cached value stores `0xffffff`.
-- Fixed Challenger 1's test import `.ts` extension to `.js` in `tests/sim/m3-challenger-visual-projection.test.ts` to allow typechecking.
-- Verified 122 test suites (647 tests) passing 0 errors under `npm run verify`.
-
-## Artifact Index
-- `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m3_2/DISPATCH.md` — Inbound instructions
-- `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m3_2/progress.md` — Liveness and execution log
-- `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m3_2/handoff.md` — Final challenge report
-- `/Users/emmett/Desktop/Game/tests/sim/m3-presentation-stress.test.ts` — Empirical stress suite (205 lines)
+- **Files to review & test**:
+  - `src/sim/spatial/urban-parcels.ts`
+  - `src/sim/spatial/district-boundaries.ts`
+  - `src/sim/spatial/building-templates-expanded.ts`
+  - `src/sim/spatial/building-templates.ts`
+- **Interface contracts**:
+  - `/Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md`
+  - `/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md`
+  - `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m3_1/handoff.md`
+- **Review criteria**:
+  - Determinism across seeds
+  - Non-negative bounds, no empty/negative parcels
+  - Road access to all parcels
+  - Plaza and alley connectivity
+  - Seam alignment reciprocity between adjacent districts across 50 seeds
+  - Architectural template fitting within generated parcels across 20 seeds without clipping
 
 ## Attack Surface
-- **Hypotheses tested**:
-  - `TilesetManager.cycleMode()` corrupts state under 1,000 iterations: REJECTED (cycles cleanly with period 3).
-  - Unregistered `tileKey` causes crashes or blank textures: REJECTED (falls back cleanly to CP437 glyphs with valid tints).
-  - Consecutive frame rendering in `TacticalLayerComposer` leaks Sprite allocations or re-appends containers: REJECTED (100% object identity preserved across 50 frames, 0 child mutations).
-  - `fastHexColor` handles unparseable hex without returning NaN on first call: FAILED (empirical finding: returns NaN on first call, returns 0xffffff on second call due to unassigned `val`).
-  - `uTacticalSplit = 58/88` drifts under presentation mode toggles or thermo stress: REJECTED (uniform remains exactly 58/88 f32).
-  - Tactical sprites spill into UI console columns 58..87: REJECTED (all tactical sprites have X <= 684px < 696px).
-- **Vulnerabilities found**:
-  - Minor edge case in `fastHexColor` in `src/client/renderer/tactical-layer-composer.ts`: first call for unparseable hex returns `NaN` instead of fallback `0xffffff` because `val` is not reassigned before `return val;`.
-- **Untested angles**:
-  - Real WebGL GPU driver execution (tested via headless Mock canvas / PixiJS v8 headless environment).
+- **Hypotheses tested**: [TBD]
+- **Vulnerabilities found**: [TBD]
+- **Untested angles**: [TBD]
 
-## Loaded Skills
-None loaded.
+## Key Decisions Made
+- Initial setup and discovery phase.
+
+## Artifact Index
+- `tests/sim/urban-parcels-stress.test.ts` — adversarial stress tests for Features 11 & 12
+- `progress.md` — liveness heartbeat
+- `handoff.md` — 5-component handoff report

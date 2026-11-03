@@ -6,10 +6,11 @@ import {
   AuditProjectionOptions,
   auditUiCellBuffer,
   ProjectionLeak,
+  ProjectionSourceGroup,
 } from './projection-cell-scanner.js';
 
 export { auditUiCellBuffer };
-export type { AuditProjectionOptions, ProjectionLeak };
+export type { AuditProjectionOptions, ProjectionLeak, ProjectionSourceGroup };
 
 export interface ClientProjectionAudit {
   readonly leaks: readonly ProjectionLeak[];
@@ -40,6 +41,7 @@ export function auditClientProjection(
 
   const player = state.entities[playerId];
   const pos = player?.position;
+  const playerCoord = pos ? { x: pos.x, y: pos.y } : undefined;
 
   // 1. HUD Labels
   const hudLabels: string[] = [
@@ -108,6 +110,8 @@ export function auditClientProjection(
             category: 'RAW_IDENTIFIER',
             location: `${group.name} string`,
             text: m,
+            sourceGroup: group.name,
+            coordinate: playerCoord,
             details: `Found unformatted identifier '${m}' in '${str}'`,
           });
         }
@@ -121,6 +125,8 @@ export function auditClientProjection(
             category: 'TRUNCATED_STRING',
             location: `${group.name} string`,
             text: tm,
+            sourceGroup: group.name,
+            coordinate: playerCoord,
             details: `Found truncated identifier ending with underscore in '${str}'`,
           });
         }
@@ -133,6 +139,8 @@ export function auditClientProjection(
             category: 'TRUNCATED_STRING',
             location: `${group.name} string`,
             text: clipped,
+            sourceGroup: group.name,
+            coordinate: playerCoord,
             details: `Found clipped token '${clipped}' in '${str}'`,
           });
         }
@@ -160,6 +168,8 @@ export function auditClientProjection(
         category: 'DESYNC_COORDINATES',
         location: 'LookCursorOverlay vs TileInspectorPanel',
         text: `Look (${options.lookCursor.x}, ${options.lookCursor.y}) !== Inspector (${options.inspectorTile.x}, ${options.inspectorTile.y})`,
+        sourceGroup: 'HUD',
+        coordinate: options.lookCursor,
         details: 'LookCursor coordinates do not match hovered TileInspectorPanel coordinates.',
       });
     }
@@ -182,6 +192,8 @@ export function auditClientProjection(
         category: 'DUPLICATE_CHRONICLE',
         location: 'ACTION CHRONICLE',
         text: `Duplicate consecutive ENTITY_MOVED to (${cur.to.x}, ${cur.to.y}) on turn ${cur.turn}`,
+        sourceGroup: 'Chronicle',
+        coordinate: { x: cur.to.x, y: cur.to.y },
         details: 'Consecutive duplicate movement log entries detected in recent chronicle window.',
       });
     }

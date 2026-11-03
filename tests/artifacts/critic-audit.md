@@ -1,10 +1,10 @@
 # Aether & Soot — Whole-Game Architecture & Emergence Audit
 
-**Generated:** 2026-11-01 | **Benchmark Engine:** Hermes Critic v1.0
+**Generated:** 2026-11-02 | **Benchmark Engine:** Hermes Critic v1.0
 - **Execution Mode**: MOCK_FALLBACK (playtester-mock.ts)
 - **LLM Telemetry**: Mode: MOCK_FALLBACK | Temperature: 0.1 | Enforce JSON Schema: true
 
-## 1. Whole-Game Emergence & Readiness Score (0/100)
+## 1. Whole-Game Emergence & Readiness Score (10/100)
 - **Score Breakdown**:
   - Headless Determinism & Boundary Isolation: **25/25**
   - Spatial, Acoustic & Environmental Depth: **22/25**
@@ -16,21 +16,27 @@
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
 - `src/schemas/core-events.schema.ts`: **244 lines** (threshold: 230)
-- `src/client/renderer/glyph-stage.ts`: **240 lines** (threshold: 230)
 - `src/sim/systems/ai.system.ts`: **240 lines** (threshold: 230)
 - `src/sim/systems/furniture.system.ts`: **238 lines** (threshold: 230)
+- `src/sim/spatial/strata-portals.ts`: **237 lines** (threshold: 230)
+- `src/sim/spatial/template-instantiator.ts`: **237 lines** (threshold: 230)
 - `src/sim/systems/district-spawner.ts`: **237 lines** (threshold: 230)
 - `src/client/projection/biome-palette.ts`: **236 lines** (threshold: 230)
+- `src/sim/spatial/building-templates.ts`: **236 lines** (threshold: 230)
 - `src/sim/systems/safehouse.system.ts`: **235 lines** (threshold: 230)
 - `src/schemas/commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/schemas/domain-commands.schema.ts`: **234 lines** (threshold: 230)
 - `src/client/audio/procedural-synth.ts`: **233 lines** (threshold: 230)
 - `src/sim/systems/environmental-hazards.system.ts`: **233 lines** (threshold: 230)
+- `src/sim/spatial/fixture-catalog.ts`: **232 lines** (threshold: 230)
 - `src/sim/systems/metabolism.system.ts`: **232 lines** (threshold: 230)
 - `src/client/ui/SystemMenuModal.tsx`: **231 lines** (threshold: 230)
 - `src/sim/core/command-router.ts`: **230 lines** (threshold: 230)
 - `src/sim/systems/surgery.system.ts`: **230 lines** (threshold: 230)
 - `src/sim/systems/utility-simulation.system.ts`: **230 lines** (threshold: 230)
+
+### Actionable UI Projection Bug Reports
+- **Status**: CLEAN — Zero UI projection leaks detected.
 
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
@@ -87,18 +93,10 @@
 - `TOGGLE_DOOR`
 - `WAIT_TURN`
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
-- `ASCEND_CATACOMBS`
-- `DISSECT_CORPSE_ANATOMY`
-- `EMIT_PROCEDURAL_BARK`
-- `ENFORCE_TURF_AUTHORITY`
-- `EQUIP_ITEM`
-- `FIRE_RANGED_WEAPON`
-- `SMASH_TERRAIN`
-- `THROW_FLASK`
-- `TRAVEL_DISTRICT`
-- `TRIGGER_SUPPLY_SHOCK`
-- `UNEQUIP_ITEM`
-- `UNINSTALL_WEAPON_MOD`
+- **Transit & Overworld**: `ASCEND_CATACOMBS`
+- **Forensic & Lore**: `DISSECT_CORPSE_ANATOMY`, `EMIT_PROCEDURAL_BARK`, `ENFORCE_TURF_AUTHORITY`
+- **Equipment & Crafting**: `EQUIP_ITEM`, `FIRE_RANGED_WEAPON`, `UNEQUIP_ITEM`
+- **Economy & Contracts**: `SMASH_TERRAIN`, `THROW_FLASK`, `TRAVEL_DISTRICT`, `TRIGGER_SUPPLY_SHOCK`, `UNINSTALL_WEAPON_MOD`
 
 ## 4. Systemic Depth & NPC Agency Critique (vs. CDDA / Qud / Arcostate)
 > **AGENT DIRECTIVE:** The systemic analysis below is theoretical. Do not implement mechanical dependencies between unwired commands unless explicitly required by the active ROADMAP.

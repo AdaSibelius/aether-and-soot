@@ -25,39 +25,20 @@ import {
   buildHandoffPrompt,
   formatCriticReport,
 } from './critic-report.js';
-
 import { CriticConfig, parseCriticArgs } from './critic-config.js';
+import {
+  DOMAIN_TARGET_RULES,
+  buildDomainPrescriptions,
+  collectTelemetryAnomalies,
+  resolvePhaseDomainTargetFiles,
+} from './critic-domain-targets.js';
 
 export {
   CriticAuditSchema, CriticPrescriptionSchema, TelemetryAnomalySchema, verifyCriticSanity,
   auditCommandCoverage, auditModularityHotspots, buildHandoffPrompt, formatCriticReport,
-  parseCriticArgs,
+  parseCriticArgs, resolvePhaseDomainTargetFiles, buildDomainPrescriptions, DOMAIN_TARGET_RULES,
 };
 export type { CriticAudit, CriticPrescription, CriticSanityResult, TelemetryAnomaly, CommandCoverage, CriticConfig };
-
-export function resolvePhaseDomainTargetFiles(nextPriority: string, rootDir: string): string[] {
-  const text = nextPriority.toLowerCase();
-  let candidateFiles: string[] = [];
-
-  if (text.includes('state machine') || text.includes('governance') || text.includes('tooling') || text.includes('devops')) {
-    candidateFiles = ['tests/scripts/update-state.ts', 'src/schemas/project-state.schema.ts'];
-  } else if (text.includes('supply') || text.includes('commodity') || text.includes('scarcity') || text.includes('cascade')) {
-    candidateFiles = ['src/sim/systems/economy.system.ts', 'src/sim/systems/trade.system.ts'];
-  } else if (text.includes('chronicle') || text.includes('rumor') || text.includes('witness')) {
-    candidateFiles = ['src/sim/systems/squad-witness.system.ts', 'src/sim/systems/dialogue-quest.system.ts'];
-  } else if (text.includes('clue') || text.includes('investigation') || text.includes('journal') || text.includes('forensic')) {
-    candidateFiles = ['src/sim/systems/surgery.system.ts', 'src/sim/systems/stealth-acoustics.system.ts'];
-  } else if (text.includes('conduit') || text.includes('graph') || text.includes('topography') || text.includes('atlas')) {
-    candidateFiles = ['src/sim/spatial/generator.ts', 'src/sim/spatial/overworld-matrix.ts'];
-  } else if (text.includes('landmark') || text.includes('prefab')) {
-    candidateFiles = ['src/sim/spatial/building-prefabs.ts', 'src/sim/spatial/generator.ts'];
-  } else {
-    candidateFiles = ['src/sim/core/simulation-pipeline.ts', 'src/sim/core/engine.ts'];
-  }
-
-  const existing = candidateFiles.filter((f) => fs.existsSync(path.resolve(rootDir, f)));
-  return existing.length > 0 ? existing : ['src/sim/core/engine.ts'];
-}
 
 export async function runCritic(config: CriticConfig, rootDir: string): Promise<string> {
   const aggregatedHistogram: Record<string, number> = {};
@@ -103,17 +84,12 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
     enforceJsonSchema: true,
   });
 
-  const anomalies: TelemetryAnomaly[] = [];
-  if (totalProjectionLeaks > 0) {
-    anomalies.push({ metricKey: 'uiProjectionLeaks', observedValue: totalProjectionLeaks, expectedThreshold: 0, severity: 'P0_BLOCKER' });
-  }
-  if (coverage.unwired.length > 0) {
-    anomalies.push({ metricKey: 'unwiredCommands', observedValue: coverage.unwired.length, expectedThreshold: 0, severity: 'P1_HIGH' });
-  }
   const topNearCap = hotspots.find((h) => h.lines >= 240);
-  if (topNearCap) {
-    anomalies.push({ metricKey: 'modularityHotspot', observedValue: `${topNearCap.file}:${topNearCap.lines}`, expectedThreshold: '230 lines', severity: 'P2_MEDIUM' });
-  }
+  const anomalies = collectTelemetryAnomalies({
+    totalProjectionLeaks,
+    unwiredCount: coverage.unwired.length,
+    topNearCap,
+  });
 
   let audit: CriticAudit | undefined;
   let sanityResult: CriticSanityResult | undefined;
@@ -164,38 +140,14 @@ export async function runCritic(config: CriticConfig, rootDir: string): Promise<
     audit = {
       phaseNumber,
       telemetryAnomalies: anomalies,
-      prescriptions: [
-        {
-          id: 'P1',
-          category: 'UNREACHABLE_MECHANIC',
-          title: `${nextPriority.split(':')[0]?.replace(/\*+/g, '').trim() || 'Next Roadmap Phase'}`,
-          targetFiles: resolvePhaseDomainTargetFiles(nextPriority, rootDir),
-          affectedSchemas: ['src/schemas/commands.schema.ts'],
-          implementationDirective: `Focus core systems development on ${nextPriority} resolving unwiredCommands and telemetry anomalies.`,
-          verificationTestFile: defaultVerificationTest,
-          citedAnomalyMetricKey: 'unwiredCommands',
-        },
-        {
-          id: 'P2',
-          category: 'SIM_BALANCE',
-          title: 'Expand Playtest Serializer Command Surface',
-          targetFiles: ['tests/scripts/playtester-serializer.ts'],
-          affectedSchemas: ['src/schemas/commands.schema.ts'],
-          implementationDirective: `Wire unwired commands (${coverage.unwired.slice(0, 4).join(', ')}) to reduce unwiredCommands count.`,
-          verificationTestFile: defaultVerificationTest,
-          citedAnomalyMetricKey: 'unwiredCommands',
-        },
-        {
-          id: 'P3',
-          category: 'MODULE_SPLIT',
-          title: 'Modularity Guard & File Splitting',
-          targetFiles: [topNearCap?.file ?? 'src/sim/core/engine.ts'],
-          affectedSchemas: [],
-          implementationDirective: `Monitor and pre-split near-cap modules like ${topNearCap?.file ?? 'engine'} to resolve modularityHotspot anomaly.`,
-          verificationTestFile: defaultVerificationTest,
-          citedAnomalyMetricKey: 'modularityHotspot',
-        },
-      ],
+      prescriptions: buildDomainPrescriptions({
+        phaseNumber,
+        nextPriority,
+        rootDir,
+        unwiredCommands: coverage.unwired,
+        topNearCapFile: topNearCap?.file,
+        defaultVerificationTest,
+      }),
     };
     sanityResult = verifyCriticSanity(audit, rootDir);
   }

@@ -1,34 +1,25 @@
-# Task Assignment: Reviewer 1 — Milestone 1 UI Review
-
-Read:
-- `/Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1/handoff.md`
-- Changed files: `src/client/canvas-ui/material-palette.ts`, `bezel-composer.ts`, `console-satchel.ts`, `console-chronicle.ts`, `analog-gauges.ts`, `dossier-paperdoll.ts`, `tactical-vernier.ts`, `tactical-console.ts`, `index.html`
-- Test files: `tests/sim/oxidized-iron-palette.test.ts`, `tests/sim/tactical-console.test.ts`
-- `AGENTS.md` and `ARCHITECTURE.md`
-
-Your Mission:
-Objectively review the implementation against requirements:
-1. Verify information density in HUD: thermodynamic stress states (strain kW, ambient soot PPM, steam kPa), satchel mass/volume, character health / anatomical wireframe, live action chronicle.
-2. Verify visual hierarchy and oxidized iron palette depth separation across tactical map, log window, and status readouts.
-3. Run verification checks: `npm run verify`, `npx vitest run tests/sim/tactical-console.test.ts tests/sim/oxidized-iron-palette.test.ts`.
-4. Check modularity ceilings (target <=220 lines, hard ceiling 300).
-5. State your verdict clearly: APPROVE or REQUEST_CHANGES.
-6. Write your report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/handoff.md`.
-
-## 2026-11-01T19:08:36Z
-You are Reviewer 1 for Milestone 1.
+## 2026-11-02T23:29:32Z
+[Message] sender=b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57 priority=MESSAGE_PRIORITY_HIGH content=You are teamwork_reviewer_m1_1 (M1 Modularity Reviewer).
 Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/
-Read:
-1. /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
-2. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/DISPATCH.md
-3. /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md
-4. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1/handoff.md
-5. The implemented code in src/client/canvas-ui/ and index.html
 
-Review information density, Edison aesthetic, oxidized iron palette depth separation, and run `npm run verify`.
-State your verdict: APPROVE or REQUEST_CHANGES.
-Write your report to:
-/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/handoff.md
-When done, notify me via send_message.
+MANDATORY FIRST STEP: Read /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md.
+Also read:
+- /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md
+- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1_1/handoff.md
+
+Review Scope:
+Examine the implementation of Feature 1 (Tooling Modularity Pre-Splitting) and Feature 2 (Early Warnings & Layout Compliance in `check-boundaries.ts`):
+1. Verify `tests/scripts/state-markdown-compiler.ts` (130 lines) and `tests/scripts/update-state.ts` (132 lines). Confirm all symbols are re-exported and TypeScript compiles cleanly under `isolatedModules`.
+2. Verify `tests/scripts/critic-domain-targets.ts` (153 lines) and `tests/scripts/hermes-critic.ts` (195 lines). Confirm both parameter signatures of `resolvePhaseDomainTargetFiles` work and re-exports function properly.
+3. Verify `tests/scripts/check-boundaries.ts` (98 lines <= 120 line target budget):
+   - Confirm advisory warnings are emitted for files between 240 and 300 lines without setting non-zero exit code.
+   - Confirm `.agents/teamwork/` layout compliance scans for forbidden code/data files (`.ts`, `.tsx`, `.js`, `.json`) and reserved filenames.
+4. Execute verification commands:
+   - `npm run verify` (`tsc --noEmit`, `check:boundaries`, `validate:data`, `test:sim`).
+   - `npx vitest run tests/sim/check-boundaries.test.ts tests/sim/phase53-governance-state.test.ts`.
+5. Check file line counts (`wc -l`) for all touched files to verify strict <= 250 line compliance.
+
+Output Requirements:
+- Write your review report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_1/handoff.md`.
+- Conclude with a clear verdict: APPROVE or REQUEST_CHANGES.
+- Send message to parent (`b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57`) when done.

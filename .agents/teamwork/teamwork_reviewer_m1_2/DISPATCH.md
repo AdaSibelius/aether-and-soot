@@ -1,34 +1,30 @@
-# Task Assignment: Reviewer 2 — Milestone 1 Shaders & Modularity Review
-
-Read:
-- `/Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1/handoff.md`
-- Changed files: `src/client/renderer/shader-uniforms.ts`, `diegetic-post-filter.ts`, `steampunk-pipeline.ts`, `glyph-atlas-extended.ts`, `main.tsx`, `glyph-stage.ts`
-- Test files: `tests/sim/phase54-shader-pipeline.test.ts`
-- `AGENTS.md` and `ARCHITECTURE.md`
-
-Your Mission:
-Objectively review the implementation against requirements:
-1. Verify shader compositing: tactical split uniform `uTacticalSplit = 58.0 / 88.0`, ensuring the UI sidebar (x >= 58 cols) is isolated from lens curvature, heat haze, chromatic aberration, bloom, and scanlines.
-2. Verify 4K HDR text readability: font loading synchronization (`document.fonts.ready`), font stack priority.
-3. Check that `src/client/renderer/glyph-stage.ts` remains frozen at exactly 239 lines and all files comply with modularity ceilings.
-4. Run verification checks: `npm run verify` and `npx vitest run tests/sim/phase54-shader-pipeline.test.ts`.
-5. State your verdict clearly: APPROVE or REQUEST_CHANGES.
-6. Write your report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_2/handoff.md`.
-
-## 2026-11-01T19:08:42Z
-You are Reviewer 2 for Milestone 1.
+## 2026-11-02T23:29:42Z
+You are teamwork_reviewer_m1_2 (M1 Pipeline & Token Reviewer).
 Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_2/
-Read:
-1. /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
-2. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_2/DISPATCH.md
-3. /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md
-4. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1/handoff.md
-5. The implemented code in src/client/renderer/ and main.tsx
 
-Review shader compositing (tactical split), 4K HDR readability, font synchronization, modularity ceilings (glyph-stage.ts frozen at 239 lines), and run `npm run verify`.
-State your verdict: APPROVE or REQUEST_CHANGES.
-Write your report to:
-/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_2/handoff.md
-When done, notify me via send_message.
+MANDATORY FIRST STEP: Read /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md.
+Also read:
+- /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md
+- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1_1/handoff.md
+
+Review Scope:
+Examine the implementation of Feature 3 (Token Ledger Audit CLI), Feature 4 (Projection Leak Locality), and Feature 5 (Pre-Flight Diagnostics):
+1. Verify `tests/scripts/local-llm-ledger.ts` (188 lines <= 200 line target budget):
+   - Confirm `computeCloudSavings` correctly applies $3.00/M prompt and $15.00/M completion tokens.
+   - Confirm `npm run audit:tokens` (`local-llm-ledger.ts --summary`) runs and outputs a valid Markdown summary table.
+2. Verify `tests/scripts/projection-cell-scanner.ts` (48 lines) and `playtester-projection-audit.ts` (219 lines):
+   - Confirm `ProjectionLeak` holds `sourceGroup` and `coordinate`.
+   - Confirm `critic-report.ts` (239 lines <= 250) clusters unwired commands by domain category and renders actionable bug tickets.
+3. Verify `tests/scripts/local-llm-config.ts` (229 lines) and `llm-playtester.ts` (239 lines):
+   - Confirm `formatOllamaConnectionError` outputs the exact diagnostic message referencing `BypassSandbox: true` and `--mock`.
+   - Confirm `checkEndpointHealth` probe works.
+4. Execute verification commands:
+   - `npm run audit:tokens`.
+   - `npx vitest run tests/sim/local-llm-routing.test.ts tests/sim/hermes-critic.test.ts tests/sim/phase2-1-identifier-leaks.test.ts`.
+   - `npm run verify`.
+5. Check file line counts to verify strict <= 250 line compliance.
+
+Output Requirements:
+- Write your review report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m1_2/handoff.md`.
+- Conclude with a clear verdict: APPROVE or REQUEST_CHANGES.
+- Send message to parent (`b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57`) when done.

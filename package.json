@@ -34,6 +34,7 @@
     "capture:screenshots": "tsx tests/scripts/capture-screenshots.ts",
     "check:governance": "tsx tests/scripts/check-agent-governance.ts",
     "sync:state": "tsx tests/scripts/update-state.ts",
+    "audit:tokens": "tsx tests/scripts/local-llm-ledger.ts --summary",
     "verify": "npm run typecheck && npm run check:boundaries && npm run validate:data && npm run test:sim"
   },
   "dependencies": {

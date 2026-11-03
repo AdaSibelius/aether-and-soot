@@ -18,6 +18,7 @@ import {
 import { applyGaslightVisual, applyLiquidSurfaceVisual, applySootVisualOverlay } from './environmental-visuals.js';
 import { calculateGaslightField } from '../../sim/systems/gaslight.system.js';
 import { calculateCameraViewport, resolveOutOfBoundsVisual } from './camera-governor.js';
+import { resolveContinuousLookaheadCell } from './continuous-projection.js';
 import { humanizeIdentifier, resolveCatalogDisplayName } from './catalog-display.js';
 
 export { humanizeIdentifier, resolveCatalogDisplayName };
@@ -103,6 +104,15 @@ export function projectWorldToVisualFrame(
       const worldY = vp.cameraY + vy - vp.offsetY;
 
       if (worldX < 0 || worldX >= grid.width || worldY < 0 || worldY >= grid.height) {
+        if (!vp.isCenteredWidescreen) {
+          const lookaheadCell = resolveContinuousLookaheadCell(
+            state, activeStratum, worldX, worldY, grid.width, grid.height, vx, vy,
+          );
+          if (lookaheadCell) {
+            cells.push(lookaheadCell);
+            continue;
+          }
+        }
         const oobVisual = resolveOutOfBoundsVisual(worldX, worldY, grid.width, grid.height, state.turnCount);
         cells.push({
           x: vx, y: vy, worldX, worldY, visual: oobVisual,

@@ -1,28 +1,30 @@
-## 2026-11-02T00:49:12Z
+## 2026-11-03T01:07:52Z
+You are teamwork_reviewer_m3_1 (Reviewer 1 for Milestone 3: Continuous World Evolution & Border Seams).
 
-You are Reviewer 1: M3 Architecture Reviewer for Milestone 3 (Enhanced CP437 Glyphs & Graphical Tileset Presentation).
-Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_1
+Working Directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_1/
+Parent Orchestrator ID: b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57
 
-MANDATORY INPUTS:
-- Read ORIGINAL_REQUEST.md at: /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
-- Read PROJECT.md at: /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_3/PROJECT.md
-- Read Worker M3 Handoff Report at: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m3/handoff.md
+Read these files first:
+1. /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
+2. /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md
+3. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m3_1/handoff.md
 
-YOUR MISSION:
-Perform an objective, adversarial review of the Milestone 3 architectural changes:
-1. Examine `src/client/projection/layer-projection.ts`, `src/client/projection/extended-box-drawing.ts`, and `src/client/projection/frame-adapter.ts`.
-2. Verify strict modularity: ensure EVERY file touched or created is <= 250 lines (hard ceiling 300 lines). Confirm `glyph-stage.ts` is reduced below 215 lines.
-3. Verify Headless Core/Shell purity: confirm `src/sim/` and `src/schemas/` have zero imports from `src/client/`, zero browser globals, and zero `Math.random()` / `Date.now()`.
-4. Verify zero untyped boundaries: confirm no `any`, `as unknown as`, or `@ts-ignore` in new code.
-5. Verify backward compatibility: confirm `RenderCellFrame.visual: VisualGlyphSpec` matches top layer visual and preserves floor background colors.
-6. Run `npm run check:boundaries` and `npm run typecheck`.
+Your Review Scope: Features 11 and 12
+- Feature 11: Parametric Urban Parcel Subdivider (`src/sim/spatial/urban-parcels.ts`)
+- Feature 12: District Boundary Seam Alignment & Traversability (`src/sim/spatial/district-boundaries.ts`)
 
-OUTPUT REQUIREMENTS:
-Write your complete review report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_1/handoff.md` with:
-- Observation (line counts, interfaces, boundary check output)
-- Logic Chain (evaluation of architectural invariants)
-- Caveats (any architectural risks or edge cases)
-- Conclusion & Verdict: APPROVE or REQUEST_CHANGES
-- Verification Method (commands and outputs)
-
-When finished, send a message to the orchestrator with your verdict and handoff path.
+Responsibilities:
+1. Examine `urban-parcels.ts` and `district-boundaries.ts` for architectural correctness, robustness, edge cases (e.g. 0-width parcels, negative coords, boundary off-by-one errors).
+2. Check Core/Shell strict headless separation: verify zero imports from `src/client/`, `pixi.js`, `preact`, and zero references to browser globals (`window`, `document`) or non-deterministic tokens (`Math.random()`, `Date.now()`).
+3. Check modularity: run `wc -l` to verify files are <= 250 lines (target <= 200).
+4. Run verification tests:
+   `npm run typecheck`
+   `npm run check:boundaries`
+   `npx vitest run tests/sim/continuous-worldgen.test.ts`
+5. Write your comprehensive review report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_1/handoff.md` with:
+   - Verdict: APPROVE or REQUEST_CHANGES
+   - Observation: Detailed findings, line counts, test outputs
+   - Logic Chain: Rigorous technical review of parcel carving and seam apertures
+   - Caveats & Recommendations
+   - Conclusion
+6. Send a message to parent `b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57` with your verdict and handoff summary.

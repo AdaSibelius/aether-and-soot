@@ -1,14 +1,14 @@
-# Progress Log — Challenger 1 (Milestone 3)
+# Progress: Challenger m3_1
 
-Last visited: 2026-11-02T00:57:00Z
+Last visited: 2026-11-03T01:08:45Z
+Status: In Progress
 
-## Status
-- [x] Initialized DISPATCH.md and BRIEFING.md
-- [x] Read MANDATORY INPUTS: ORIGINAL_REQUEST.md, PROJECT.md, Worker M3 handoff.md
-- [x] Inspected implementation files and existing test suite
-- [x] Empirical Test 1: Extended Box-Drawing Resolution (all 81 connection combinations, partition/facade autotiling, CDDA template autotiling)
-- [x] Empirical Test 2: Layer Stacking & Visibility Invariants (`RenderCellLayers` floor preservation, visual priority `indicator > actor > item > fixture > floor`, floor bg retention, entity classification)
-- [x] Empirical Test 3: Multi-Seed Stress Testing (55 random seed worlds 5001..5055, zero crashes/NaNs, verified frame coordinate & density invariants)
-- [x] Empirical Test 4: Authored and verified `tests/sim/m3-challenger-visual-projection.test.ts` (248 lines, 8 passing tests)
-- [x] Empirical Test 5: Whole-codebase verification & boundary checks (`check:boundaries` 433 files 0 violations, `typecheck` 0 errors, M3 test suite 24/24 passed)
-- [x] Compile handoff.md with APPROVE verdict and send message to orchestrator
+## Tasks
+- [x] Step 1: Record dispatch message and create persistent memory (`BRIEFING.md`, `progress.md`)
+- [ ] Step 2: Read prerequisite files (`ORIGINAL_REQUEST.md`, `orchestrator_5/PROJECT.md`, `worker_m3_1/handoff.md`, core source files)
+- [ ] Step 3: Inspect implementation of `continuous-transit.system.ts`, `district-boundaries.ts`, and `movement.system.ts`
+- [ ] Step 4: Design adversarial stress test suite addressing Challenges 1-4
+- [ ] Step 5: Implement `tests/sim/continuous-transit-stress.test.ts` (keeping within <= 250 lines)
+- [ ] Step 6: Execute vitest, typecheck, boundary check
+- [ ] Step 7: Analyze failure modes/bugs if any, or verify pass criteria
+- [ ] Step 8: Document findings in `handoff.md` and message orchestrator

@@ -7,7 +7,7 @@ import { generateVictorianDistrict } from '../../src/sim/spatial/generator.js';
 import { generateMockAction, parseLlmResponseToCommand, serializePlayerContext, LastTurnContextSummary } from './playtester-serializer.js';
 import { applyPlaytestScenario, getScenarioObjectives, PlaytestScenario } from './playtester-scenarios.js';
 import { PlaytestMetrics, writeReport } from './playtest-report.js';
-import { resolveEndpoint, resolveModel, queryLocalOllama, ModelTier } from './local-llm-config.js';
+import { resolveEndpoint, resolveModel, queryLocalOllama, ModelTier, checkEndpointHealth, formatOllamaConnectionError } from './local-llm-config.js';
 import { recordInferenceMetric, getInferenceLedgerSummary } from './local-llm-ledger.js';
 import { auditClientProjection, ClientProjectionAudit } from './playtester-projection-audit.js';
 import { evaluateDecisionPolicy } from './playtester-policy.js';
@@ -25,10 +25,7 @@ export interface PlaytestConfig {
 }
 
 export function parseCliArgs(argv: string[]): PlaytestConfig {
-  const getArg = (flag: string, fallback: string): string => {
-    const idx = argv.indexOf(flag);
-    return idx !== -1 && argv[idx + 1] ? argv[idx + 1]! : fallback;
-  };
+  const getArg = (flag: string, fallback: string): string => (argv.indexOf(flag) !== -1 ? (argv[argv.indexOf(flag) + 1] ?? fallback) : fallback);
   return {
     mock: argv.includes('--mock'),
     maxTurns: Number(getArg('--turns', '100')),
@@ -51,8 +48,9 @@ async function queryLocalLlm(endpoint: string, model: string, prompt: string, ti
       task: 'llm-playtester',
       tier: tier ?? 'tier3',
     });
-  } catch {
-    console.error('FATAL: Local LLM connection failed. Aborting to prevent paid token burn.');
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes('FATAL: Failed to connect to Ollama')) console.error(formatOllamaConnectionError(endpoint));
     process.exit(1);
   }
 }
@@ -63,7 +61,6 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
   let state = applyPlaytestScenario(generateVictorianDistrict(baseWorld).state, config.scenario);
   const scenarioObjs = getScenarioObjectives(config.scenario);
   const startLedger = getInferenceLedgerSummary();
-
   const metrics: PlaytestMetrics = {
     turnsSurvived: 0, totalDecibels: 0, steamCloudsDeployed: 0, trapsTriggered: 0,
     hostilesAttacked: 0, attackHits: 0, attackMisses: 0, damageDealt: 0, damageTaken: 0,
@@ -227,6 +224,10 @@ export async function runPlaytestSession(config: PlaytestConfig): Promise<Playte
 
 if (process.argv[1]?.endsWith('llm-playtester.ts')) {
   const cfg = parseCliArgs(process.argv.slice(2));
+  if (!cfg.mock && !(await checkEndpointHealth(cfg.endpoint))) {
+    console.error(formatOllamaConnectionError(cfg.endpoint));
+    process.exit(1);
+  }
   console.log(`[llm-playtester] Starting session (mock=${cfg.mock}, turns=${cfg.maxTurns}, seed=${cfg.seed})...`);
   runPlaytestSession(cfg).then((m) => {
     console.log(`[llm-playtester] Complete. Survived ${m.turnsSurvived}/${cfg.maxTurns} turns. Report: ${cfg.reportPath}`);

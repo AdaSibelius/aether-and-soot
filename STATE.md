@@ -1,11 +1,11 @@
 # Project State
 
-**Last Updated:** 2026-11-01
+**Last Updated:** 2026-11-02
 
 ## Recent Commits
-- 731dd83: feat(sim): implement spatial chunk streamer and causal catch-up
-- 82f2310: feat(sim): implement Causal City Graph seeding and cascade system
-- 1ccb17c: feat(sim): implement chunk-loading schemas and WorldState integration
+- 75f668a: feat(e2e): complete Milestone 4 CDDA worldgen and presentation E2E integration suite
+- b430cfc: feat(client): complete milestone 3 enhanced CP437 glyphs, extended box-drawing, and graphical tileset presentation
+- 0a9c9bb: feat(sim): complete milestone 2 multi-stratum worldgen and CDDA urban district layouts
 
 ## Immediate Next Priority
 - Phase 56: Causal Supply Chains & Disruption Cascades: Aggregate macro-tick simulation of 3 vital commodities (Anthracite Coal, Carbolic Tincture, Preserved Rations). Scarcity events trigger downstream consequences: clinic medicine stockouts, workshop steam outages, merchant price inflation, and worker shift strikes.

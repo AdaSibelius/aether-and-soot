@@ -9,6 +9,7 @@ import { worldPointToChunkCoord } from '../spatial/chunk-coords.js';
 import { syncActorChunkWindow } from '../spatial/chunk-streamer.js';
 import { computeActorStepNoiseDb, emitAcousticPulse } from './stealth-acoustics.system.js';
 import { resolveToggleDoor } from './transit.system.js';
+import { continuousTransitSystem } from './continuous-transit.system.js';
 import { resolveStepOnTraps } from './physics-traps.system.js';
 import { resolveStepOnLiquids } from './liquids.system.js';
 import { applyStaminaExertion, computePainShockPenalty } from './physiological-penalties.js';
@@ -102,6 +103,12 @@ export function resolveMoveStep(
   };
 
   if (!grid || !isWithinBounds(grid, targetPoint.x, targetPoint.y)) {
+    if (grid && actor.actor?.isPlayer) {
+      const transitRes = continuousTransitSystem(state, actorId, { x: targetPoint.x, y: targetPoint.y }, origin.stratum);
+      if (transitRes.traversed) {
+        return { state: transitRes.state, events: transitRes.events, apSpent: transitRes.apSpent };
+      }
+    }
     return {
       state,
       apSpent: 0,

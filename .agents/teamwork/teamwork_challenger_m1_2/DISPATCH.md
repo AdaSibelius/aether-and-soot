@@ -1,36 +1,30 @@
-# Task Assignment: Challenger 2 — Shader Compositing & Palette Stress Testing
-
-Read:
-- `/Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md`
-- `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1/handoff.md`
-- `src/client/renderer/shader-uniforms.ts`, `diegetic-post-filter.ts`, `steampunk-pipeline.ts`, `src/client/canvas-ui/material-palette.ts`
-- `AGENTS.md` and `ARCHITECTURE.md`
-
-Your Mission:
-Adversarially challenge and stress-test shader compositing and palette depth separation:
-1. Write empirical stress tests verifying edge cases:
-   - `tacticalSplit` boundary values: 0.0 (full UI), 1.0 (full CRT), negative, >1.0, NaN, undefined.
-   - Screen resolution scaling: 4K (3840x2160), 1440p (2560x1440), 1080p, and native 1056x720.
-   - Uniform data types: verify `uTacticalSplit` packs correctly into Float32Array / number types expected by WebGL GlProgram.
-   - Contrast and luminance verification: verify that Z0, Z1, Z2, and Z3 depth tiers maintain strict non-overlapping mathematical luminance steps.
-2. Confirm that all existing shader pipeline tests pass.
-3. State your empirical verdict: APPROVE or REJECT.
-4. Write your report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m1_2/handoff.md`.
-
-## 2026-11-01T19:08:55Z
-You are Challenger 2 for Milestone 1.
+## 2026-11-02T23:37:35Z
+You are teamwork_challenger_m1_2 (M1 Pipeline Challenger).
 Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m1_2/
-Read:
-1. /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
-2. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m1_2/DISPATCH.md
-3. /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_1/PROJECT.md
-4. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1/handoff.md
-5. Implemented shader and palette code in src/client/renderer/ and src/client/canvas-ui/material-palette.ts
 
-Empirically stress-test shader compositing and palette depth separation:
-Write and execute adversarial tests covering tacticalSplit boundaries (0.0, 1.0, out of bounds), resolution scaling (4K, 1440p, 1080p), uniform packing types, and palette luminance contrast intervals.
-State your empirical verdict: APPROVE or REJECT.
-Write your report to:
-/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m1_2/handoff.md
-When done, notify me via send_message.
+MANDATORY FIRST STEP: Read /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md.
+Also read:
+- /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md
+- /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m1_1/handoff.md
+
+Objective:
+Empirically challenge and stress-test Features 3, 4, and 5 of Milestone 1:
+1. Stress-test `computeCloudSavings` and `formatLedgerSummaryTable` in `local-llm-ledger.ts`:
+   - Test extreme edge cases: 0 tokens, 1 token, 100M tokens, non-integers, boundary values.
+   - Assert arithmetic accuracy against Claude 3.5 Sonnet baseline ($3/M prompt, $15/M completion).
+   - Execute `npm run audit:tokens` and verify markdown table format.
+2. Stress-test `ProjectionLeak` locality and `critic-report.ts`:
+   - Ingest mock UI buffers with raw IDs, truncated strings, and empty cells.
+   - Assert `ProjectionLeak` includes exact `sourceGroup` and `coordinate`.
+   - Verify unwired command clustering across all 8 schema domains.
+3. Stress-test diagnostic probes in `local-llm-config.ts`:
+   - Test `checkEndpointHealth` against unreachable ports, invalid URLs, and network timeouts.
+   - Verify `formatOllamaConnectionError` handles invalid URLs gracefully without unhandled exceptions.
+4. Execute verification:
+   - `npm run verify`.
+   - `npx vitest run tests/sim/local-llm-routing.test.ts tests/sim/hermes-critic.test.ts tests/sim/phase2-1-identifier-leaks.test.ts`.
+
+Output:
+- Write your empirical challenge report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_challenger_m1_2/handoff.md`.
+- Conclude with a clear verdict: PASS or FAIL.
+- Send message to parent (`b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57`) when done.

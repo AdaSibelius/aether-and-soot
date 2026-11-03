@@ -1,27 +1,34 @@
-## 2026-11-02T00:49:20Z
-[Message] timestamp=2026-11-02T00:49:20Z sender=601ac16f-482f-4000-b0b1-e97361589e3d priority=MESSAGE_PRIORITY_HIGH content=You are Reviewer 2: M3 Rendering Pipeline Reviewer for Milestone 3 (Enhanced CP437 Glyphs & Graphical Tileset Presentation).
-Your working directory is: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_2
+## 2026-11-03T01:08:00Z
+You are teamwork_reviewer_m3_2 (Reviewer 2 for Milestone 3: Continuous World Evolution & Border Seams).
 
-MANDATORY INPUTS:
-- Read ORIGINAL_REQUEST.md at: /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
-- Read PROJECT.md at: /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_3/PROJECT.md
-- Read Worker M3 Handoff Report at: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m3/handoff.md
+Working Directory: /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_2/
+Parent Orchestrator ID: b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57
 
-YOUR MISSION:
-Perform an objective, adversarial review of the Milestone 3 rendering pipeline implementations:
-1. Examine `src/client/renderer/tactical-layer-composer.ts`, `src/client/renderer/procedural-tileset.ts`, `src/client/renderer/tileset-manager.ts`, and `src/client/renderer/glyph-stage.ts`.
-2. Verify sprite pooling invariants: 5 layer containers, zero runtime allocations during frame renders, cached hex colors, proper Z-ordering (`floor < fixture < item < actor < indicator`).
-3. Verify presentation mode transitions: `CP437_ASCII`, `GRAPHICAL_TILESET`, `HYBRID_OVERLAY` modes operate correctly; missing tileKeys fall back to CP437 glyphs cleanly.
-4. Verify WebGL shader compatibility: confirm tactical sprites remain in `worldTacticalContainer` (`x < 58 * CELL_WIDTH_PX`), preserving `uTacticalSplit = 58/88` and keeping the sidebar console sharp.
-5. Verify headless Node safety: confirm `typeof document === 'undefined'` mock paths execute cleanly without throwing in Vitest/Node.
-6. Run `npx vitest run tests/sim/client-presentation-modes.test.ts` and `npm run test:sim`.
+Read these files first:
+1. /Users/emmett/Desktop/Game/.agents/teamwork/ORIGINAL_REQUEST.md
+2. /Users/emmett/Desktop/Game/.agents/teamwork/orchestrator_5/PROJECT.md
+3. /Users/emmett/Desktop/Game/.agents/teamwork/teamwork_worker_m3_1/handoff.md
 
-OUTPUT REQUIREMENTS:
-Write your complete review report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_2/handoff.md` with:
-- Observation (code inspected, test outputs)
-- Logic Chain (pipeline evaluation)
-- Caveats (draw calls, shader interactions, memory usage)
-- Conclusion & Verdict: APPROVE or REQUEST_CHANGES
-- Verification Method (commands and outputs)
+Your Review Scope: Features 13, 14, 15, and 16
+- Feature 13: Continuous Transit System (`src/sim/systems/continuous-transit.system.ts`, `src/sim/systems/movement.system.ts`)
+- Feature 14: Expanded Architectural Templates (`src/sim/spatial/building-templates-expanded.ts`)
+- Feature 15: Continuous Lookahead Projection (`src/client/projection/continuous-projection.ts`, `src/client/projection/frame-adapter.ts`)
+- Feature 16: Multi-Seed Walkability Test Suite (`tests/sim/continuous-worldgen.test.ts`)
 
-When finished, send a message to the orchestrator with your verdict and handoff path.
+Responsibilities:
+1. Examine `continuous-transit.system.ts` and movement hooks: verify border crossing detection, seam checking, coordinate translation, safe fallback positioning, and companion preservation (`placePreservedCompanions`).
+2. Examine `building-templates-expanded.ts`: verify dimensions, tile layouts, and district tailoring.
+3. Examine `continuous-projection.ts`: verify read-only behavior, no mutation of `WorldState`, graceful out-of-bounds handling, and that widescreen letterbox margins are preserved.
+4. Check Core/Shell strict headless separation: zero imports from `src/client/` in `src/sim/`. Zero non-deterministic tokens.
+5. Check modularity: run `wc -l` to verify all files are <= 250 lines (target <= 200).
+6. Run verification tests:
+   `npm run typecheck`
+   `npm run check:boundaries`
+   `npx vitest run tests/sim/continuous-worldgen.test.ts`
+7. Write your comprehensive review report to `/Users/emmett/Desktop/Game/.agents/teamwork/teamwork_reviewer_m3_2/handoff.md` with:
+   - Verdict: APPROVE or REQUEST_CHANGES
+   - Observation: Detailed findings, line counts, test outputs
+   - Logic Chain: Rigorous technical review of transit, templates, and projection
+   - Caveats & Recommendations
+   - Conclusion
+8. Send a message to parent `b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57` with your verdict and handoff summary.

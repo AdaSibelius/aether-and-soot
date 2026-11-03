@@ -2,12 +2,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { LlmConnectionTelemetry } from './local-llm-config.js';
 import type { CriticAudit, CriticSanityResult } from './critic-sanity.js';
+import type { ProjectionLeak } from './projection-cell-scanner.js';
 
 export interface CommandCoverage {
   active: string[];
   dormant: string[];
   unwired: string[];
+  unwiredByCategory?: Record<string, string[]>;
 }
+
+const SCHEMA_DOMAIN_MAP: Record<string, string> = {
+  'commands.schema.ts': 'Tactical Combat & Physics',
+  'domain-commands.schema.ts': 'Economy & Contracts',
+  'safehouse-commands.schema.ts': 'Territory & Safehouse',
+  'skirmish-commands.schema.ts': 'Skirmish & Faction',
+  'transit-commands.schema.ts': 'Transit & Overworld',
+  'witness-commands.schema.ts': 'Witness & Social',
+  'lore-commands.schema.ts': 'Forensic & Lore',
+  'equipment.schema.ts': 'Equipment & Crafting',
+};
 
 export function auditCommandCoverage(rootDir: string, histogram: Record<string, number>): CommandCoverage {
   const cmdFiles = [
@@ -21,14 +34,21 @@ export function auditCommandCoverage(rootDir: string, histogram: Record<string, 
     path.join(rootDir, 'src/schemas/equipment.schema.ts'),
   ];
   const allCmds = new Set<string>();
+  const cmdDomainMap = new Map<string, string>();
+
   for (const f of cmdFiles) {
     if (fs.existsSync(f)) {
+      const baseName = path.basename(f);
+      const domain = SCHEMA_DOMAIN_MAP[baseName] ?? 'General';
       const content = fs.readFileSync(f, 'utf-8');
       const regex = f.endsWith('equipment.schema.ts')
         ? /export const \w+CommandSchema\s*=\s*z\.object\(\{[\s\S]*?type:\s*z\.literal\(['"]([A-Z0-9_]+)['"]\)/g
         : /type:\s*z\.literal\(['"]([A-Z0-9_]+)['"]\)/g;
       for (const m of content.matchAll(regex)) {
-        if (m[1]) allCmds.add(m[1]);
+        if (m[1]) {
+          allCmds.add(m[1]);
+          cmdDomainMap.set(m[1], domain);
+        }
       }
     }
   }
@@ -52,7 +72,14 @@ export function auditCommandCoverage(rootDir: string, histogram: Record<string, 
       unwired.push(cmd);
     }
   }
-  return { active, dormant, unwired };
+
+  const unwiredByCategory: Record<string, string[]> = {};
+  for (const cmd of unwired) {
+    const domain = cmdDomainMap.get(cmd) ?? 'General';
+    (unwiredByCategory[domain] ??= []).push(cmd);
+  }
+
+  return { active, dormant, unwired, unwiredByCategory };
 }
 
 export function auditModularityHotspots(rootDir: string, threshold = 230): Array<{ file: string; lines: number }> {
@@ -97,14 +124,32 @@ export function formatCriticReport(data: {
   telemetry?: LlmConnectionTelemetry | undefined;
   audit?: CriticAudit | undefined;
   sanityResult?: CriticSanityResult | undefined;
+  projectionLeaks?: readonly ProjectionLeak[] | undefined;
 }): string {
   const activeList = data.coverage.active.map((c) => `- \`${c}\` (${data.histogram[c]} dispatches)`).join('\n') || '- None';
   const dormantList = data.coverage.dormant.map((c) => `- \`${c}\``).join('\n') || '- None';
-  const unwiredList = data.coverage.unwired.map((c) => `- \`${c}\``).join('\n') || '- None';
   const hotspotList = data.hotspots.map((h) => `- \`${h.file}\`: **${h.lines} lines** (threshold: 230)`).join('\n') || '- None! All modules cleanly decoupled.';
   const topUnwired = data.coverage.unwired.slice(0, 4).map((c) => `\`${c}\``).join(', ') || 'all mapped';
   const nearCap = data.hotspots.find((h) => h.lines >= 245);
   const topHotspot = nearCap ? `\`${nearCap.file}\` (${nearCap.lines} lines)` : (data.hotspots[0] ? `\`${data.hotspots[0].file}\` (${data.hotspots[0].lines} lines)` : 'modular decoupling maintained');
+
+  const catEntries = Object.entries(data.coverage.unwiredByCategory ?? {});
+  const unwiredCategoryBlock = catEntries.length > 0
+    ? catEntries.map(([cat, cmds]) => `- **${cat}**: ${cmds.map((c) => `\`${c}\``).join(', ')}`).join('\n')
+    : (data.coverage.unwired.map((c) => `- \`${c}\``).join('\n') || '- None');
+
+  let leakSection = '';
+  const leaks = data.projectionLeaks ?? [];
+  if (leaks.length > 0) {
+    const leakRows = leaks.map((l) => {
+      const coord = l.coordinate ? `(${l.coordinate.x}, ${l.coordinate.y})` : 'N/A';
+      const grp = l.sourceGroup ?? 'General';
+      return `- **[P0_BLOCKER] ${l.category}** in **${grp}** at \`${coord}\`: Offending token \`${l.text}\` — ${l.details ?? l.location}`;
+    }).join('\n');
+    leakSection = `\n### Actionable UI Projection Bug Reports (${leaks.length} Detected)\n${leakRows}\n`;
+  } else {
+    leakSection = '\n### Actionable UI Projection Bug Reports\n- **Status**: CLEAN — Zero UI projection leaks detected.\n';
+  }
 
   const defaultPrescriptions = `## 5. Self-Directed Prescriptions for Next Phase
 - **P1: ${data.nextPriority.split(':')[0]?.replace(/\*+/g, '').trim() || 'Next Roadmap Phase'}**: Focus core systems development on ${data.nextPriority}.
@@ -168,14 +213,14 @@ ${telemetryLine}
 - **Modularity Ceiling (300 Lines)**: Strictly enforced across all 130+ files.
 - **Near-Cap Watchlist (>= 230 lines)**:
 ${hotspotList}
-
+${leakSection}
 ## 3. Command Coverage & Dead-Mechanic Audit
 - **Active Commands (> 0 Playtest Dispatches across 4 Scenarios)**:
 ${activeList}
 - **Dormant Commands (Wired in Serializer, 0 Dispatches)**:
 ${dormantList}
 - **Unwired Blind-Spot Commands (Missing from Context/Serializer)**:
-${unwiredList}
+${unwiredCategoryBlock}
 
 ${section4Block}
 

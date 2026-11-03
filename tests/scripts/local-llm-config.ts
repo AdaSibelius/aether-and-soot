@@ -44,6 +44,17 @@ export function resolveModel(tierOrFallback: ModelTier | string, override?: stri
   return tierOrFallback;
 }
 
+export function formatOllamaConnectionError(endpoint?: string): string {
+  const target = resolveEndpoint(endpoint);
+  let origin = 'http://localhost:11434';
+  try {
+    origin = new URL(target).origin;
+  } catch {
+    origin = target;
+  }
+  return `FATAL: Failed to connect to Ollama at ${origin}. In Antigravity/sandbox, verify BypassSandbox: true is set. Run with --mock for deterministic fallback.`;
+}
+
 export async function checkEndpointHealth(endpoint?: string, timeoutMs = 1500): Promise<boolean> {
   const target = resolveEndpoint(endpoint);
   try {
@@ -159,12 +170,19 @@ export async function queryLocalOllama(prompt: string, opts: OllamaQueryOptions 
       }
     }
 
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+    } catch (fetchErr: unknown) {
+      const guidance = formatOllamaConnectionError(endpoint);
+      console.error(guidance);
+      throw new Error(`${guidance}\nUnderlying network error: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`);
+    }
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
     const data = (await res.json()) as {

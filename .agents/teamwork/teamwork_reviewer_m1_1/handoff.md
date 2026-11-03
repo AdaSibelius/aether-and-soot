@@ -1,144 +1,187 @@
-# Handoff Report: Reviewer 1 — Milestone 1 UI/HUD Verification & Critique
+# Review & Adversarial Challenge Report: Milestone 1 (Features 1 & 2)
+
+**Reviewer Agent**: `teamwork_reviewer_m1_1` (Roles: reviewer, critic)  
+**Parent / Caller**: `b1f4e92b-f8d8-4000-b9ea-8ea40dd02e57`  
+**Verdict**: **APPROVE**  
+**Integrity Status**: **CLEAN (Zero Integrity Violations)**  
+**Overall Risk Assessment**: **LOW**
+
+---
 
 ## 1. Observation
 
-### 1.1 Direct File Inspections & Verifications
-- **Preserved Frozen Files**:
-  - `src/client/renderer/glyph-stage.ts`: Exactly 239 lines (`wc -l` reports 239). `git diff src/client/renderer/glyph-stage.ts` confirmed 0 modifications.
-- **Line Counts & Modularity Ceilings** (`wc -l` results):
-  - `src/client/canvas-ui/material-palette.ts`: 139 lines (target $\le 220$, ceiling 300)
-  - `src/client/canvas-ui/bezel-composer.ts`: 132 lines (target $\le 220$, ceiling 300)
-  - `src/client/canvas-ui/console-satchel.ts`: 92 lines (target $\le 220$, ceiling 300)
-  - `src/client/canvas-ui/console-chronicle.ts`: 81 lines (target $\le 220$, ceiling 300)
-  - `src/client/canvas-ui/analog-gauges.ts`: 183 lines (target $\le 220$, ceiling 300)
-  - `src/client/canvas-ui/dossier-paperdoll.ts`: 170 lines (target $\le 220$, ceiling 300)
-  - `src/client/canvas-ui/tactical-vernier.ts`: 196 lines (target $\le 220$, ceiling 300)
-  - `src/client/canvas-ui/tactical-console.ts`: 145 lines (target $\le 220$, ceiling 300)
-  - `src/client/renderer/shader-uniforms.ts`: 72 lines (target $\le 220$, ceiling 300)
-  - `src/client/renderer/diegetic-post-filter.ts`: 185 lines (target $\le 220$, ceiling 300)
-  - `src/client/renderer/steampunk-pipeline.ts`: 138 lines (target $\le 220$, ceiling 300)
-  - `src/client/renderer/glyph-atlas-extended.ts`: 113 lines (target $\le 220$, ceiling 300)
-  - `src/client/main.tsx`: 76 lines (target $\le 220$, ceiling 300)
-  - `index.html`: 228 lines
-  - `tests/sim/oxidized-iron-palette.test.ts`: 77 lines (target $\le 220$, ceiling 300)
-  - `tests/sim/tactical-console.test.ts`: 79 lines (target $\le 220$, ceiling 300)
-  - Total line budget: Every single modified/new `.ts` file is $\le 196$ lines, well below the 220-line target and 300-line modularity ceiling.
+### 1.1 Modularity Line Counts and Extraction Metrics
+Direct line-count inspection via `fs.readFileSync(file, 'utf8').split('\n').length`:
+- `tests/scripts/state-markdown-compiler.ts`: **130 lines** (target ceiling: <= 250)
+- `tests/scripts/update-state.ts`: **132 lines** (target ceiling: <= 250)
+- `tests/scripts/critic-domain-targets.ts`: **153 lines** (target ceiling: <= 250)
+- `tests/scripts/hermes-critic.ts`: **195 lines** (target ceiling: <= 250)
+- `tests/scripts/check-boundaries.ts`: **98 lines** (target budget: <= 120 lines, hard ceiling: <= 250)
+- `tests/sim/check-boundaries.test.ts`: **68 lines** (target ceiling: <= 250)
+- `tests/sim/phase53-governance-state.test.ts`: **204 lines** (target ceiling: <= 250)
 
-### 1.2 Information Density Implementation
-- **Thermodynamic Stress & Atmospheric Barometer**:
-  - Implemented in `src/client/canvas-ui/analog-gauges.ts` lines 146–184 (`drawAtmosphericBarometer`).
-  - Measures internal strain load vs governor capacity (`STR: [████····] 42/100kW`), ambient steam pressure (`STM: 40kPa`), soot concentration (`SOOT: 85PPM`), and thermal hazard state (`ATM:[SMOKY] THM:[ELEVATED]`).
-  - Dynamically resolved and rendered on Rows 10–12 of the tactical console.
-- **Satchel Load & Inventory Mass/Volume**:
-  - Implemented in `src/client/canvas-ui/console-satchel.ts` lines 19–86 (`renderConsoleSatchel`).
-  - Measures real ECS inventory state: `computeCarriedVolumeMl(state, inventory)`, `currentMassGrams / maxMassGrams`, wielded item slot resolution (`equippedSlots.WIELD` or top item fallback via `resolveCatalogDisplayName`), item count, and click hook `'open_inventory'`.
-  - Rendered on Rows 14–17 of the tactical console.
-- **Character Health & Vitruvian Anatomical Wireframe**:
-  - Implemented in `src/client/canvas-ui/dossier-paperdoll.ts` lines 105–171 (`renderCompactPaperdoll`).
-  - Displays 6-row anatomical wireframe with distinct limb glyphs (`■` intact, `⚙` prosthetic, `✗` destroyed), localized HP numbers, and vitals summary (`TOX:%`, `PAIN:`, `STM:%`).
-  - Complemented by the Bourdon steam pressure dial (`drawBourdonPressureGauge`) and Sanguine manometer (`drawSanguineManometer`, blood measured in imperial pints and drams) on Rows 4–8.
-- **Pneumatic Ticker Chronicle**:
-  - Implemented in `src/client/canvas-ui/console-chronicle.ts` lines 18–81 (`renderPneumaticTickerChronicle`).
-  - Aggregates live simulation events from `state.eventLog` using `aggregateChronicleEvents` with a 4-tier typewriter ink ribbon gradient (`#6b5e4f`, `#998870`, `#c7b79d`, `#f5e6cb`) and telegraph bullet markers (`»`).
-  - Rendered on Rows 26–29 of the tactical console.
-- **Tactical Optical Vernier**:
-  - Implemented in `src/client/canvas-ui/tactical-vernier.ts` lines 141–196 (`renderCompactVernier`).
-  - Inspects tile coordinates, stratum, terrain Mohs hardness, soot PPM, acoustic echo reverberation dB, gaslight luminescence, and occupying entity glyph/name.
-  - Rendered on Rows 31–34 of the tactical console.
+All touched files adhere strictly to the target budget (<= 250 lines) and well below the 300-line hard failure ceiling.
 
-### 1.3 Visual Hierarchy & Oxidized Iron Palette
-- **Palette Tokens & Z-Depth Stratification**:
-  - Ratified in `src/client/canvas-ui/material-palette.ts` lines 7–91:
-    - 6 Tokens: `DEEP_RUST: '#7A2E22'`, `CHARCOAL: '#1B1F22'`, `TARNISHED_BRASS: '#C5A059'`, `VERDIGRIS: '#3D7E73'`, `SULFUR_AMBER: '#E5A93C'`, `SOOT_BLACK: '#0B0C0E'`.
-    - 4 Tiers: `Z0_TACTICAL_VOID` (zIndex 0, bg: SOOT_BLACK), `Z1_RECESS_WELL` (zIndex 1, bg: CHARCOAL, border: DEEP_RUST, accent: VERDIGRIS), `Z2_MACHINED_CHASSIS` (zIndex 2, bg: GUNMETAL, border: TARNISHED_BRASS), `Z3_EMISSIVE_READOUT` (zIndex 3, bg: CHARCOAL, border: SULFUR_AMBER).
-  - Integrated into `drawMachinedBezel` and `drawStructuralDivider` via `tier` option in `src/client/canvas-ui/bezel-composer.ts`.
-  - Mirrored in `index.html` CSS custom properties (`--iron-*`, `--z0-*` through `--z3-*`), double brass borders (`3px double var(--iron-tarnished-brass)`), deep rust outlines, and corner rivet pseudo-elements (`☼`).
+### 1.2 Isolated Modules & Re-Export Verification
+In `tests/scripts/update-state.ts`:
+```typescript
+import {
+  type BacklogPrescription,
+  compileAgentsMarkdown,
+  compileRoadmapMarkdown,
+  compileStateMarkdown,
+  parseVerifiedPrescriptions,
+} from './state-markdown-compiler.js';
 
-### 1.4 Shader Compositing & 4K HDR Text Readability
-- **Tactical Split Boundary**:
-  - Implemented in `src/client/renderer/shader-uniforms.ts` lines 11, 17, 67 (`uTacticalSplit = 58.0 / 88.0`).
-  - Conditioned in `src/client/renderer/diegetic-post-filter.ts` lines 61–143:
-    `bool isUi = vTextureCoord.x >= uTacticalSplit;`
-    Lens curvature, heat haze, chromatic aberration, phosphor bloom, volumetric smoke, scanline shadow mask, and vignette are strictly bypassed for the UI console (`vTextureCoord.x >= uTacticalSplit`). Text is sampled digitally 1:1 without blurring or distortion.
-- **Font Decoding Synchronization**:
-  - `src/client/main.tsx` lines 17–19 awaits `document.fonts.ready` prior to instantiating `GlyphStageRenderer.create()`, preventing fallback font rasterization before `"IBM Plex Mono"` is ready.
-  - `src/client/renderer/glyph-atlas-extended.ts` line 49 prioritizes `"IBM Plex Mono"` first in the font stack.
+export type { BacklogPrescription };
+export {
+  compileAgentsMarkdown,
+  compileRoadmapMarkdown,
+  compileStateMarkdown,
+  parseVerifiedPrescriptions,
+};
+```
+TypeScript compiles cleanly under `"isolatedModules": true` in `tsconfig.json`. `npm run typecheck` passes with zero errors:
+```
+> aether-and-soot@0.1.0 typecheck
+> tsc --noEmit
+```
 
-### 1.5 Verification Suite Execution Results
-- `npm run verify` executed with exit code 0:
-  - Gate 1: `tsc --noEmit` passed with 0 type errors.
-  - Gate 2: `tests/scripts/check-boundaries.ts` passed: `Checked 408 files. Zero Core/Shell or modularity violations.`
-  - Gate 3: `tests/scripts/validate-data.ts` passed: `Validated 5 prosthetics, 2 commodities, 22 materials/consumables, 9 recipes, 2 gases/fluids, 5 districts, 4 bark corpora, 3 codex entries.`
-  - Gate 4: `vitest run` passed: 111 test files passed, 569 unit tests passed, 0 failures.
-- Targeted Unit Tests:
-  `npx vitest run tests/sim/tactical-console.test.ts tests/sim/oxidized-iron-palette.test.ts tests/sim/phase54-shader-pipeline.test.ts`
-  All 20 tests passed in 762ms.
+### 1.3 `resolvePhaseDomainTargetFiles` Signatures & Semantic Mapping
+In `tests/scripts/critic-domain-targets.ts`:
+```typescript
+export function resolvePhaseDomainTargetFiles(
+  phaseOrPriority: number | string,
+  titleOrRootDir?: string,
+  optionalRootDir?: string,
+): string[]
+```
+Direct verification in Node verified both signatures:
+- Signature 1 `(phaseNum: number, title: string, rootDir?: string)`:
+  `resolvePhaseDomainTargetFiles(53, 'State Machine Modernization & Governance Tooling')` -> `['tests/scripts/update-state.ts', 'src/schemas/project-state.schema.ts']`
+- Signature 2 `(priorityString: string, rootDir?: string)`:
+  `resolvePhaseDomainTargetFiles('Phase 53: State Machine Modernization & Governance Tooling')` -> `['tests/scripts/update-state.ts', 'src/schemas/project-state.schema.ts']`
+- Fallback signature for unmapped / exotic domains:
+  `resolvePhaseDomainTargetFiles(99, 'Exotic Unknown Domain')` -> `['src/sim/core/simulation-pipeline.ts', 'src/sim/core/engine.ts']`
+- Re-export in `tests/scripts/hermes-critic.ts` verified functional without breaking callers.
+
+### 1.4 Early Warning & Layout Compliance in `check-boundaries.ts`
+- Advisory threshold: `WARN_LINES_THRESHOLD = 240`, `MAX_LINES_HARD_CEILING = 300`.
+- Execution output of `npm run check:boundaries`:
+  ```
+  [check:boundaries] WARNING: src/schemas/core-events.schema.ts is near cap (244/300 lines)
+  [check:boundaries] WARNING: src/sim/systems/ai.system.ts is near cap (240/300 lines)
+  ... (18 advisory warnings logged via console.warn)
+  [check:boundaries] OK — Checked 437 files. Zero Core/Shell or modularity violations.
+  ```
+  Process exited with code `0`.
+- Layout compliance in `checkTeamworkLayoutCompliance`:
+  Recursively traverses `.agents/teamwork/` detecting forbidden source/data extensions (`.ts`, `.tsx`, `.js`, `.json`) and reserved root filenames (`AGENTS.md`, `GEMINI.md`).
+- Legacy files `.agents/teamwork/teamwork_auditor_m1_r2_1/adversarial-stress.ts` and `.agents/teamwork/teamwork_explorer_m4_1/proposed_m4-e2e-worldgen-determinism.test.ts` were confirmed deleted from the tree.
+
+### 1.5 Test Suite Execution Results
+- `npx vitest run tests/sim/check-boundaries.test.ts tests/sim/phase53-governance-state.test.ts`:
+  Passed 2 test files, 9 tests, 0 failures.
+- `npx vitest run tests/sim/hermes-critic.test.ts`:
+  Passed 1 test file, 10 tests, 0 failures.
+- Full verification gate (`npm run verify`):
+  1. `typecheck` (`tsc --noEmit`): 0 errors.
+  2. `check:boundaries`: Checked 437 files. Zero violations (18 advisory warnings).
+  3. `validate:data`: Validated all blueprints, districts, recipes, and corpora.
+  4. `test:sim`: 124 test files passed, 654 tests passed (duration: 42.14s).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Information Density & Caves of Qud Diegetic HUD**:
-   - *Observation*: Requirements demanded restructuring HUD to display thermodynamic stress states, inventory, and character health using diegetic ASCII gauges and heavy block framing without Pip-Boy tropes.
-   - *Inference*: The 36-row budget in `tactical-console.ts` is divided into 7 non-overlapping instrument tiers (Split-Flap Odometers & Currency, Bourdon Dial & Sanguine Manometer, Atmospheric Barometer, Compact Satchel, Vitruvian Paperdoll, Pneumatic Ticker, and Optical Vernier) separated by rigid double-conduit dividers (`╠═[ HEADER ]═╣`). Each instrument queries real ECS components (`anatomy`, `inventory`, `eventLog`, `strata`) without dummy mocks or static stubs.
-2. **Visual Hierarchy via Oxidized Iron Palette**:
-   - *Observation*: Requirements called for oxidized iron palette depth separation across map, log, and status readouts.
-   - *Inference*: Ratifying the 6 exact hex tokens and mapping them into the 4 ascending Z-depth tiers establishes clear luminance and hue contrast between the void underlay (`SOOT_BLACK`), recessed wells (`CHARCOAL` + `DEEP_RUST`), raised structural chassis (`GUNMETAL` + `TARNISHED_BRASS`), and active emissive needles (`SULFUR_AMBER`). Both the canvas buffer and HTML DOM elements reflect this uniform spatial depth.
-3. **Shader Compositing & 4K HDR Legibility**:
-   - *Observation*: CRT distortion and chromatic aberration blur monospace glyphs at 4K resolution if applied uniformly across the entire framebuffer.
-   - *Inference*: Splitting the post-filter at `uTacticalSplit = 58.0 / 88.0` allows the tactical map to exhibit rich spherical CRT curvature, heat haze, volumetric smoke, and amber/cyan phosphor bloom, while the UI sidebar retains pristine, sub-pixel aligned digital rendering. Pre-loading `"IBM Plex Mono"` via `document.fonts.ready` guarantees raster atlas fidelity.
-4. **Adversarial Integrity & Edge Case Verification**:
-   - *Observation*: Reviewer directives mandate testing for hardcoded test results, facade logic, and fragile edge cases.
-   - *Inference*:
-     - Dynamic calculations (`massRatio`, `volRatio`, `strainRatio`, `strainChars`) are derived from live state parameters rather than static lookup tables.
-     - Empty states (empty inventory, empty event log, off-grid or missing actor anatomy) degrade gracefully into informative standby messages (`» Awaiting telegraph...`, `ANATOMY TELEMETRY OFFLINE`, `VERNIER: STANDBY`) rather than crashing or throwing `TypeError`.
-     - Shader arithmetic guards against zero-division (`max(uTacticalSplit, 0.01)`).
-     - No integrity violations or cheating patterns detected.
+1. **Extraction Integrity**:
+   - `update-state.ts` (previously 245 lines) was reduced to 132 lines by extracting markdown compilation into `tests/scripts/state-markdown-compiler.ts` (130 lines).
+   - `hermes-critic.ts` (previously 243 lines) was reduced to 195 lines by extracting domain targeting into `tests/scripts/critic-domain-targets.ts` (153 lines).
+   - Re-exports maintain backward compatibility for all existing call sites (including `phase53-governance-state.test.ts` and `hermes-critic.test.ts`).
+2. **Type Safety under `isolatedModules`**:
+   - Type-only imports/exports use `export type { BacklogPrescription }` preventing Vite/ESBuild module transform failures under `isolatedModules: true`.
+3. **Early Warning Policy Compliance**:
+   - `WARN_LINES_THRESHOLD = 240` buffers near-cap warnings before hard failure at 300 lines. The script separates warnings from fatal violations, logging warnings to `console.warn` without mutating process exit code unless `violations.length > 0`.
+4. **Workspace Metadata Enclosure**:
+   - `.agents/teamwork/` rule enforcement protects agent workspace integrity by preventing source code leakage into agent metadata directories.
+5. **Zero Integrity Violations**:
+   - Code inspections confirmed: no hardcoded return values, no mocked logic disguising unimplemented routines, no skipped assertions, and no fabricated telemetry.
 
 ---
 
-## 3. Caveats
+## 3. Adversarial Stress Testing & Edge Cases
 
-1. **Headless Environment Font Rasterization**: In Node.js testing environments where `document` is undefined, `createExtendedGlyphAtlas` defaults to a headless mock atlas using `Texture.WHITE`. Real WOFF2 glyph rasterization occurs exclusively in browser environments where `document.fonts.ready` is supported.
-2. **Color Gamut on Standard vs HDR Panels**: Hex tokens are defined in standard sRGB color space. While contrast ratios are preserved on all screens, HDR panels will render higher dynamic saturation on the `#E5A93C` amber filament and `#7A2E22` rust tones.
-3. **Zero Core Sim Mutation**: As confirmed by boundary checks and git diff, no simulation schemas or logic in `src/sim/` were mutated; all changes are strictly confined to `src/client/canvas-ui/`, `src/client/renderer/`, `index.html`, and client test harnesses.
+### Challenge 1: Boundary & Input Resilience of `resolvePhaseDomainTargetFiles`
+- **Scenario Tested**: Adversarial inputs including negative phase number (`-1`), empty title (`""`), undefined title, garbage text (`"Xylophone Quasar Nonsense"`), and missing filesystem directories.
+- **Result**: `resolvePhaseDomainTargetFiles` gracefully fell back to `FALLBACK_DOMAIN_FILES` (`src/sim/core/simulation-pipeline.ts` and `src/sim/core/engine.ts`), returning valid file paths in all cases without throwing unhandled exceptions.
+- **Pass/Fail**: PASS.
 
----
+### Challenge 2: Layout Compliance Case-Insensitivity & False Positives
+- **Scenario Tested**: Synthetic test environment injecting `UPPER.TS`, `UPPER.JSON`, lowercase `agents.md`, lowercase `gemini.md`, and legitimate metadata files (`BRIEFING.md`, `handoff.md`, `analysis.md`, `.gitkeep`) alongside `.agents/state.json`.
+- **Result**: `checkTeamworkLayoutCompliance` correctly flagged `UPPER.TS`, `UPPER.JSON`, `agents.md`, and `gemini.md`, while correctly ignoring valid metadata files and non-teamwork root files (`.agents/state.json`).
+- **Pass/Fail**: PASS.
 
-## 4. Conclusion
-
-**Verdict: APPROVE**
-
-Milestone 1 (UI Utility & Aesthetic Refinement) satisfies all requirements outlined in `ORIGINAL_REQUEST.md` and `PROJECT.md`:
-- High information density achieved via 7 calibrated instrument tiers (Bourdon dial, Sanguine manometer, Atmospheric barometer, Satchel load, Vitruvian paperdoll, Pneumatic ticker chronicle, Optical vernier).
-- Heavy block framing and Edison mechanical aesthetic realized using CP437 box characters, double conduits, brass rivets, and oxidized iron palette depth stratification.
-- 4K HDR legibility guaranteed via single-pass post-filter tactical splitting (`uTacticalSplit`) and font loading synchronization.
-- Strict modularity respected: all modified files are $\le 196$ lines (well below the 220-line target and 300-line ceiling); `glyph-stage.ts` preserved frozen at 239 lines.
-- Complete verification gate (`npm run verify`) passes with 0 errors (111 test files, 569 tests passing).
+### Challenge 3: Exit Code Integrity Under Advisory Warnings
+- **Scenario Tested**: Checked behavior of `check-boundaries.ts` when 18 files trigger `WARN_LINES_THRESHOLD (>= 240)` but no file exceeds `MAX_LINES_HARD_CEILING (300)`.
+- **Result**: Advisory messages are output via `console.warn` and exit code remains `0`.
+- **Pass/Fail**: PASS.
 
 ---
 
-## 5. Verification Method
+## 4. Caveats
+
+- **Emergence Fuzzer Timing Invariant**: `tests/sim/emergence-fuzzer.test.ts` includes a 10-second performance assertion (`expect(durationMs).toBeLessThan(10000)` for 1,000 headless turns). Under heavy multi-process CPU contention (e.g. running multiple parallel Vitest suites on a loaded machine), execution time can occasionally spike to ~11s. When executed in standard sequential test runs, it completes in ~1.7s. No code change in M1 affects this.
+
+---
+
+## 5. Conclusion & Quality Review Summary
+
+### Review Summary
+**Verdict**: **APPROVE**  
+**Integrity Finding**: Clean. No hardcoded test outputs, no facades, no bypassed shortcuts, no fabricated outputs. All deliverables are genuine, modular, and fully covered by unit tests.
+
+### Verified Claims
+- `tests/scripts/state-markdown-compiler.ts` (130 lines) & `tests/scripts/update-state.ts` (132 lines) <= 250 lines -> PASS.
+- Re-exports maintain backward compatibility and compile under `isolatedModules` -> PASS.
+- `tests/scripts/critic-domain-targets.ts` (153 lines) & `tests/scripts/hermes-critic.ts` (195 lines) <= 250 lines -> PASS.
+- Both parameter signatures of `resolvePhaseDomainTargetFiles` functional -> PASS.
+- `tests/scripts/check-boundaries.ts` (98 lines <= 120 lines budget) emits advisory warnings (240–300 lines) with exit code 0 -> PASS.
+- `.agents/teamwork/` layout compliance detects forbidden code/data files and reserved filenames -> PASS.
+- Legacy `.ts` files inside `.agents/teamwork/` pruned -> PASS.
+- `npm run verify` passes with 0 errors (437 files checked, 654 tests passed) -> PASS.
+
+---
+
+## 6. Verification Method
 
 To independently reproduce and verify this review:
 
-1. **Execute Full Verification Gate**:
+1. **Verify File Line Counts**:
+   ```bash
+   node -e "
+   const fs = require('fs');
+   const files = [
+     ['tests/scripts/state-markdown-compiler.ts', 250],
+     ['tests/scripts/update-state.ts', 250],
+     ['tests/scripts/critic-domain-targets.ts', 250],
+     ['tests/scripts/hermes-critic.ts', 250],
+     ['tests/scripts/check-boundaries.ts', 120],
+     ['tests/sim/check-boundaries.test.ts', 250],
+     ['tests/sim/phase53-governance-state.test.ts', 250]
+   ];
+   for (const [f, limit] of files) {
+     const len = fs.readFileSync(f, 'utf8').split('\n').length;
+     console.log(\`\${f}: \${len} lines (budget \${limit}) -> \${len <= limit ? 'PASS' : 'FAIL'}\`);
+   }
+   "
+   ```
+
+2. **Verify Targeted Tests**:
+   ```bash
+   npx vitest run tests/sim/check-boundaries.test.ts tests/sim/phase53-governance-state.test.ts tests/sim/hermes-critic.test.ts
+   ```
+
+3. **Verify Full Pipeline Gate**:
    ```bash
    npm run verify
    ```
-   *Expected Outcome*: Sequential pass through `typecheck`, `check:boundaries` (408 files checked, 0 violations), `validate:data`, and `test:sim` (111 test files, 569 tests passed, 0 failures).
-2. **Execute Targeted Milestone 1 Unit Tests**:
-   ```bash
-   npx vitest run tests/sim/tactical-console.test.ts tests/sim/oxidized-iron-palette.test.ts tests/sim/phase54-shader-pipeline.test.ts
-   ```
-   *Expected Outcome*: 3 test files, 20 tests pass.
-3. **Verify Line Counts & Modularity Ceilings**:
-   ```bash
-   wc -l src/client/canvas-ui/*.ts src/client/renderer/*.ts index.html tests/sim/tactical-console.test.ts tests/sim/oxidized-iron-palette.test.ts
-   ```
-   *Expected Outcome*: All modified `.ts` files are $\le 196$ lines; `glyph-stage.ts` is exactly 239 lines.
-4. **Inspect Git Diff for Preserved Files**:
-   ```bash
-   git diff src/client/renderer/glyph-stage.ts
-   ```
-   *Expected Outcome*: Empty diff (0 lines changed).
