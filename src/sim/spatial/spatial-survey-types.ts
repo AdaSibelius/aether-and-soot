@@ -8,6 +8,9 @@ export const SpatialAnomalyTypeSchema = z.enum([
   'WALL_COLLISION',
   'DISCONNECTED_PATHWAY',
   'BUILDING_ROAD_COLLISION',
+  'ORPHAN_DOOR',
+  'SEALED_DISTRICT_EDGE',
+  'UNRECIPROCATED_SEAM',
 ]);
 export type SpatialAnomalyType = z.infer<typeof SpatialAnomalyTypeSchema>;
 

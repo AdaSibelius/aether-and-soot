@@ -34,6 +34,7 @@ const ZONE_GLYPHS: Record<InteriorZoneType, string> = {
 
 const ANOMALY_GLYPHS: Record<SpatialAnomalyType, string> = {
   BUILDING_OVERLAP: '!', BLOCKED_DOORWAY: '?', WALL_COLLISION: 'C', DISCONNECTED_PATHWAY: 'X', BUILDING_ROAD_COLLISION: '~',
+  ORPHAN_DOOR: 'O', SEALED_DISTRICT_EDGE: 'E', UNRECIPROCATED_SEAM: 'R',
 };
 
 const TERRAIN_GLYPHS: Partial<Record<TerrainType, string>> = {

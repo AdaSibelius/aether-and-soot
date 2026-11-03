@@ -2,10 +2,12 @@ import { BlueprintIdSchema, EntityIdSchema } from '../../schemas/primitives.sche
 import { createMonorailCarEntity } from '../systems/monorail.system.js';
 import { seedSpireGreenhouse } from './building-prefabs.js';
 import { spawnCompassGate } from './compass-gates.js';
+import { applyBoundarySeamsToGrid, computeDistrictBoundarySeams } from './district-boundaries.js';
 import { connectivityTargets, PipelineDistrictContext } from './district-pipeline-context.js';
 import { enrichLargeScaleDistrict } from './district-scaler.js';
 import { ensureDistrictConnectivity, sealOrphanedWalkableTiles } from './district-yards.js';
 import { setTileCell } from './grid.js';
+import { sanitizeOrphanDoors } from './spatial-anomaly-district.js';
 import { generateSpireCatwalks, generateUndercroftDungeon } from './strata-dungeons.js';
 import { linkAllStrataPortals } from './strata-portals.js';
 import { seedDistrictUtilityNetworks, spawnDistrictInfrastructure } from './utility-networks.js';
@@ -96,12 +98,16 @@ export function executeStage7InteractiveUtilityInfrastructure(ctx: PipelineDistr
   ensureCompassGateTransitCorridors(ctx);
 
   // Seal isolated orphaned walkable floor pockets across all strata
+  const landmarkDoors = [ctx.workshopDoor, ctx.marketDoor, ...Object.values(ctx.doors)];
+  ctx.street = sanitizeOrphanDoors(ctx.street, landmarkDoors);
+  ctx.street = ensureDistrictConnectivity(ctx.street, ctx.center, connectivityTargets(ctx)).grid;
   ctx.street = sealOrphanedWalkableTiles(ctx.street, ctx.center);
+  ctx.street = sanitizeOrphanDoors(ctx.street);
   ctx.spire = sealOrphanedWalkableTiles(ctx.spire, ctx.liftPos);
   ctx.undercroft = sealOrphanedWalkableTiles(ctx.undercroft, ctx.center);
 }
 
-/** Guarantees that public transit routes between compass gates and the central plaza are 100% open floor. */
+/** Guarantees that public transit routes between compass gates/seams and the central plaza are 100% open floor. */
 function ensureCompassGateTransitCorridors(ctx: PipelineDistrictContext): void {
   const { width, height, center } = ctx;
   const cx = center.x;
@@ -120,21 +126,26 @@ function ensureCompassGateTransitCorridors(ctx: PipelineDistrictContext): void {
     };
   };
 
-  // West-to-East Avenue
-  for (let x = 2; x <= width - 3; x++) {
+  if (width >= 36 && height >= 36) {
+    const seams = computeDistrictBoundarySeams(BlueprintIdSchema.parse(ctx.currDistrict), width, height);
+    ctx.street = applyBoundarySeamsToGrid(ctx.street, seams);
+  }
+
+  // West-to-East Avenue (including inner gate approach x = 1 and x = width - 2)
+  for (let x = 1; x <= width - 2; x++) {
     ctx.street = setTileCell(ctx.street, x, cy, openTransit);
   }
 
   // North Transit Corridor
   if (ctx.compass.north) {
-    for (let y = 2; y <= cy - 1; y++) {
+    for (let y = 1; y <= cy - 1; y++) {
       ctx.street = setTileCell(ctx.street, cx, y, openTransit);
     }
   }
 
   // South Transit Corridor
   if (ctx.compass.south) {
-    for (let y = cy + 1; y <= height - 3; y++) {
+    for (let y = cy + 1; y <= height - 2; y++) {
       ctx.street = setTileCell(ctx.street, cx, y, openTransit);
     }
   }

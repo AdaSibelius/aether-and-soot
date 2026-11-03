@@ -21,12 +21,9 @@ export interface DistrictBoundarySeams {
   readonly west: readonly EdgeSeamSegment[];
 }
 
-const RING_FALLBACK: Readonly<Record<string, { west: string; east: string }>> = {
-  district_spitalfields_soot_works: { west: 'district_fleet_ditch_undercroft', east: 'district_belgravia_brass_spires' },
-  district_fleet_ditch_undercroft: { west: 'district_whitechapel_ward', east: 'district_spitalfields_soot_works' },
-  district_whitechapel_ward: { west: 'district_fleet_ditch_undercroft', east: 'district_limehouse_docks' },
-  district_limehouse_docks: { west: 'district_whitechapel_ward', east: 'district_belgravia_brass_spires' },
-  district_belgravia_brass_spires: { west: 'district_limehouse_docks', east: 'district_spitalfields_soot_works' },
+const RING_FALLBACK: Readonly<Record<string, { west?: string; east?: string }>> = {
+  district_fleet_ditch_undercroft: { west: 'district_limehouse_docks' },
+  district_limehouse_docks: { east: 'district_fleet_ditch_undercroft' },
 };
 
 function findPlanarNeighbor(districtId: string, dCol: number, dRow: number): BlueprintId | undefined {

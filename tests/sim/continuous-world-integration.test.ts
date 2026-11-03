@@ -12,6 +12,7 @@ import { computeDistrictBoundarySeams } from '../../src/sim/spatial/district-bou
 import { generateVictorianDistrict } from '../../src/sim/spatial/generator.js';
 import { setTileCell } from '../../src/sim/spatial/grid.js';
 import { runSpatialAnomalyAudit } from '../../src/sim/spatial/spatial-anomaly-detector.js';
+import { runDistrictSurveyAudit } from '../../src/sim/spatial/spatial-anomaly-district.js';
 import { applySpatialSelfCorrection } from '../../src/sim/spatial/spatial-self-corrector.js';
 import {
   formatSurveySheetMarkdown,
@@ -175,5 +176,23 @@ describe('Milestone 4: Continuous World, Survey Sheets & Token Audit E2E Integra
     const table = formatLedgerSummaryTable(summary);
     expect(table).toContain('# Local LLM Inference Ledger & Token Audit');
     expect(table).toContain('Estimated Cloud Cost');
+  });
+
+  it('guarantees zero sealed edges, unreciprocated seams, or orphan doors across all 5 districts', () => {
+    const districts = [
+      'district_spitalfields_soot_works',
+      'district_fleet_ditch_undercroft',
+      'district_whitechapel_ward',
+      'district_limehouse_docks',
+      'district_belgravia_brass_spires',
+    ] as const;
+
+    for (const id of districts) {
+      const districtId = BlueprintIdSchema.parse(id);
+      const world = createInitialWorld({ seed: 1, width: 48, height: 36, currentDistrictId: districtId });
+      const { state, landmarks } = generateVictorianDistrict(world);
+      const anomalies = runDistrictSurveyAudit(state.strata.STREET!, districtId, landmarks.streetManhole);
+      expect(anomalies).toEqual([]);
+    }
   });
 });

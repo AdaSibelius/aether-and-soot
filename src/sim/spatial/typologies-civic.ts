@@ -52,7 +52,7 @@ export function generateCivicTypologies(
   grid = carveCorridor(grid, { x: apothDoor.x, y: apothDoor.y + 1 }, { x: apothDoor.x, y: centerY }, 'COBBLESTONE_FLOOR');
 
   // Solid COUNTER_BARRIER separating RECEPTION from BACKROOM with side-door trespass gating
-  for (let cx = 34; cx <= 40; cx++) {
+  for (let cx = 34; cx <= 42; cx++) {
     grid = setTileCell(grid, cx, 8, (c) => ({ ...c, terrainType: 'COUNTER_BARRIER', blocksMovement: true, blocksSight: false, interiorZone: 'RECEPTION' }));
   }
   grid = setTileCell(grid, 41, 8, (c) => ({ ...c, terrainType: 'WOODEN_DOOR_CLOSED', blocksMovement: true, blocksSight: true, interiorZone: 'STORAGE' }));

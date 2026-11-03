@@ -79,8 +79,10 @@ export function carveMultiRoomBuilding(
     interiorZone: 'RECEPTION',
   }));
 
-  // 4. Place internal partition doors connecting rooms
+  // 4. Place internal partition doors connecting rooms. A door is only meaningful where a partition wall survived the
+  // room carve; where adjacent rooms abut with no wall the space is open-plan and a door would float in open floor.
   for (const door of spec.interiorDoors) {
+    if (!getTileCell(grid, door.x, door.y)?.blocksMovement) continue;
     grid = setTileCell(grid, door.x, door.y, (c) => ({
       ...c,
       terrainType: 'WOODEN_DOOR_CLOSED',
