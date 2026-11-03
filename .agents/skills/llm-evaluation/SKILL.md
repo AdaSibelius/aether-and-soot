@@ -87,3 +87,23 @@ At the conclusion of every development phase:
    npm run sync:state
    ```
 3. Inspect `tests/artifacts/critic-audit.md` for whole-game emergence analysis and self-directed prescriptions.
+
+---
+
+## 6. Visual World Spatial Survey (`npm run survey:world`)
+
+To audit procedural world generation across all 5 districts without human manual inspection:
+```bash
+npm run survey:world -- --seeds 4 --out tests/artifacts/survey-sheets
+```
+- Runs the production `generateVictorianDistrict` pipeline across all 5 districts and N seeds.
+- Executes `runDistrictSurveyAudit` (`src/sim/spatial/spatial-anomaly-district.ts`) and `runSpatialAnomalyAudit` (`src/sim/spatial/spatial-anomaly-detector.ts`) to flag `SEALED_DISTRICT_EDGE`, `UNRECIPROCATED_SEAM`, `ORPHAN_DOOR`, `BLOCKED_DOORWAY`, `ORPHANED_FLOOR_POCKET`, and `WALL_COLLISION`.
+- Emits 6-layer *Fallout: New York*-style ASCII diagnostic sheets into `tests/artifacts/survey-sheets/`.
+
+---
+
+## 7. Local LLM Token & Cloud Cost Savings Ledger
+
+All local Ollama inference calls are logged in `tests/artifacts/inference-ledger.jsonl` and analyzed via `tests/scripts/local-llm-ledger.ts`:
+- `getInferenceLedgerSummary()` aggregates total calls, prompt/completion tokens, cache hit rates, and per-task breakdowns (`scout`, `testgen`, `critic`, `chronicler`, `split`, `playtest`, `content`).
+- `computeCloudSavings(promptTokens, completionTokens)` calculates exact cloud API cost avoidance (`$3.00 / 1M` input tokens, `$15.00 / 1M` output tokens).

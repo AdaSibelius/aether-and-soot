@@ -1,17 +1,18 @@
 # Aether & Soot (Victorian Steampunk 2D Roguelike)
 
-> **Autonomous AI Engineering Context**: This document serves as the comprehensive architectural and systemic dossier for *Aether & Soot*. It explains every implemented gameplay mechanic, the rationale behind architectural invariants, the reality of current scope and limitations, and a complete technical reference for AI agents and human developers alike.
+> **Autonomous AI Engineering Context**: This document serves as the comprehensive architectural and systemic dossier for *Aether & Soot*. It explains every implemented gameplay mechanic, the rationale behind architectural invariants, the reality of current scope and limitations, and a complete technical reference for AI agents and human developers alike. For the creative vision, world lore, player experience pillars, and design heuristics, read **[docs/DESIGN_INTENT.md](docs/DESIGN_INTENT.md)**.
 
 ---
 
 ## 1. Executive Summary & Vision
 
-*Aether & Soot* is a deterministic, 2D turn-based Victorian Steampunk roguelike set in an alternate 1888 subterranean London. The game combines the deep anatomical conditions, systemic material interactions, and survival mechanics of ***Cataclysm: Dark Days Ahead (CDDA)*** with the evocative CRT scanline shaders, glyph-based art direction, and tactile modal window ergonomics of ***Caves of Qud***.
+*Aether & Soot* is a deterministic, 2D turn-based Victorian Steampunk roguelike set in an alternate 1888 subterranean London. The game combines the deep anatomical conditions, declarative building templates, systemic material interactions, and survival mechanics of ***Cataclysm: Dark Days Ahead (CDDA)*** with the evocative CRT scanline shaders, Oxidized Iron diegetic instrumentation, and tactile modal window ergonomics of ***Caves of Qud***.
 
-The player navigates an urban sprawl stratified into three vertical planes:
+The player navigates an urban sprawl stratified into four vertical planes:
 1. **The Spire** (`SPIRE`): Elevated brass catwalks, steam towers, high-society conservatories, and Clockwork Guild workshops.
-2. **The Cobblestone Street** (`STREET`): Ground-level industrial wards, sovereign storefronts, public houses, and smog-choked alleys.
-3. **The Undercroft** (`UNDERCROFT`): Brick sewer corridors, sluice vaults, cartel smuggling dens, and hazardous gas pockets.
+2. **The Cobblestone Street** (`STREET`): Ground-level industrial wards, CDDA-style urban parcels, sovereign storefronts, public houses, and smog-choked alleys connected by open district border seams.
+3. **The Undercroft** (`UNDERCROFT`): Brick sewer corridors, sluice vaults, cartel smuggling dens, subterranean pneumatic monorails, and hazardous gas pockets.
+4. **The Catacombs** (`CATACOMBS`): Deep chalk delve tiers (`depthLevel 1..N`) and pre-Victorian clockwork vaults beneath the Undercroft.
 
 ---
 
@@ -72,7 +73,7 @@ flowchart TD
 
 ### Why Headless Core / Presentation Shell Separation Exists
 - **Zero Browser Dependencies in Core (`src/sim/` and `src/schemas/`)**: No imports from `pixi.js`, `preact`, `window`, `document`, or DOM globals are permitted.
-- **Sub-Second Test Execution**: 80 test suites (416 tests) covering 5-district procgen, cellular automata, ballistics, stealth acoustics, NPC diurnal shifts, trap physics, and diegetic canvas UI run in **<5s** in Node.js without spinning up headless browser overhead.
+- **Sub-Second Test Execution**: 129 test suites (677 tests) covering 5-district procgen, CDDA building templates, continuous border seams, cellular automata, ballistics, stealth acoustics, NPC diurnal shifts, trap physics, and diegetic canvas UI run in Node.js without spinning up headless browser overhead.
 - **Strict Unidirectional Mutability**: The presentation shell (`src/client/`) only holds `Readonly<WorldState>`. State mutations can only happen by dispatching a validated `GameCommand` to `dispatchCommand()`.
 
 ### Why Deterministic PRNG & Flat Relational ECS Are Non-Negotiable
@@ -172,17 +173,20 @@ flowchart TD
 - **Equipped Gear Drop & Salvage Stat Fix**: Dropping or salvaging wielded weapons or worn armor automatically unequips them first, cleanly reversing `meleeDamageBonus`, `armorBonus`, and `storageVolumeBonusMl` without leaving ghost stat bonuses.
 - **Manuals & Knowledge**: Schematic Manuals found in libraries or bookshelves permanently unlock high-tier recipes when read.
 
-### 3.10. Procedural World Generation & District Biomes
+### 3.10. Procedural World Generation, CDDA Building Templates & Continuous District Seams
 - **5 Overworld Districts**:
-  1. `spitalfields_works`: Industrial foundry district with heavy boilers, smog, and Ironmongers' workshops.
-  2. `fleet_ditch`: Canal slums with high sewage, black-market fixers, and Undercroft Syndicate outposts.
-  3. `belgravia_spires`: High-society spires with Clockwork Guild laboratories and Constabulary checkpoints.
-  4. `whitechapel_ward`: Quarantined hospital ward with chirurgeons, operating tables, and medical caches.
-  5. `limehouse_docks`: Fog-shrouded riverfront with cargo crates, fuel barges, and maritime smuggling.
-- **Multi-Room Strata Dungeons (`48x36`)**:
-  - `UNDERCROFT`: Carved subterranean sewer mazes with sluice corridors, brick chambers, Syndicate dens, and steam vents.
-  - `SPIRE`: Elevated brass catwalk networks connecting tower platforms across open abyss drops.
-- **District Transit & Caching**: Stepping on a `DISTRICT_GATE` (`Ω`) transitions the player across districts. Visited districts are preserved in `state.savedDistricts` with atmospheric decay and shift-anchor catch-up.
+  1. `district_spitalfields_soot_works`: Industrial foundry district with Bessemer converter halls, heavy boilers, smog, and Ironmongers' workshops.
+  2. `district_fleet_ditch_undercroft`: Canal slums with pawnshops, black-market fixers, and Undercroft Syndicate outposts.
+  3. `district_belgravia_brass_spires`: High-society spires with Clockwork Guild salons and Constabulary toll checkpoints.
+  4. `district_whitechapel_ward`: Quarantined hospital ward with hierarchical CDDA urban blocks, chirurgeons, operating tables, and medical caches.
+  5. `district_limehouse_docks`: Fog-shrouded riverfront with bonded warehouses, timber piers, canal sluices, and maritime smuggling.
+- **CDDA-Style Declarative Building Templates & Multi-Room Zoning**:
+  - Buildings are instantiated from ASCII legend templates (`src/sim/spatial/building-templates.ts`, `building-templates-expanded.ts`) and multi-room floorplans (`interior-zoning.ts`) with typed interior zones (`RECEPTION`, `WORKSHOP`, `VAULT`, `SURGICAL_BAY`, `STORAGE`, `DORMITORY`, `PLATFORM`, `TICKET_BOOTH`).
+- **Continuous District Border Seams & Lookahead Projection**:
+  - District perimeters feature reciprocated open border seams (`OPEN_STREET`, `CANAL_BRIDGE`, `VIADUCT_ARCH`, `TOLL_ARCH`) computed by `computeDistrictBoundarySeams` and carved into the street grid via `applyBoundarySeamsToGrid`.
+  - Approaching an open border projects a live `0.65`-alpha lookahead of the neighboring district (`resolveContinuousLookaheadCell`), and stepping across the border translates coordinates seamlessly (`continuousTransitSystem`) while keeping active companions at the player's side (`COMPANION_TRANSIT_PRESERVED`).
+- **Fallout: New York 6-Layer Spatial Survey & Self-Healing Worldgen (`npm run survey:world`)**:
+  - Every generated district is audited against `runDistrictSurveyAudit` and `runSpatialAnomalyAudit` (`SEALED_DISTRICT_EDGE = 0`, `UNRECIPROCATED_SEAM = 0`, `ORPHAN_DOOR = 0`, `BLOCKED_DOORWAY = 0`), with 6-layer ASCII survey sheets emitted to `tests/artifacts/survey-sheets/`.
 
 ---
 
@@ -192,13 +196,13 @@ To provide complete transparency for future AI agents and contributors, here is 
 
 | System | Current Implementation Reality | Current Scope Limitations |
 | :--- | :--- | :--- |
-| **World Persistence** | Active district simulated live in memory. Inactive districts are cached in `state.savedDistricts` and execute deterministic delta catch-up (gas decay, scheduled NPC anchor snapping) upon transit. | Catch-up is analytical; off-screen districts do not simulate full turn-by-turn combat while the player is away. |
-| **NPC AI & Ecology** | NPCs feature role-based AI, 4-quadrant diurnal shift schedules (work/rest), self-medication, medical triage pathfinding, sound investigation, and merchant pedestal restocking. | NPCs do not yet migrate between different districts independently. |
-| **Combat & Sensory Stealth** | Full 8-octant shadowcasting FOV, particulate smog/steam LOS attenuation, ocular blindness clamping, acoustic decibel propagation, targeted limb combat, knockback, and deployable traps. | No directional cone facing mechanics or lighting levels beyond line-of-sight and smog opacity. |
-| **Physics & Destruction** | Structural soot brick walls can be breached into rubble piles via concussive forces. Actors knocked into Spire abyss chasms plunge down to the Street stratum with fall trauma. | Wood/metal furniture is currently destroyed or looted rather than splintered into physical physics debris. |
-| **Grounded Trade** | Merchants own physical storefront pedestal entities. Prices react dynamically to supply shocks, and shopkeepers restock pedestals during active work shifts. | Autonomous non-player citizens do not yet barter or buy items off pedestals. |
-| **ProcGen** | Seed-deterministic layout carving with pre-fab building archetypes, openable doors, interactive furniture, and stratum dungeons. | World layout is generated per district on initial entry; there is no continuous seamless world streaming without gate transitions. |
-| **Presentation Shell** | PixiJS v8 Canvas rendering, custom GLSL CRT scanline shader, Preact tactical HUD modals, and full keyboard routing. | No WebAudio sound effects or musical soundtrack currently wired to client triggers. |
+| **World Persistence & Continuity** | Active district simulated live in memory with seamless edge-seam transit (`continuousTransitSystem`), companion preservation, and cross-border lookahead projection. Inactive districts are cached in `state.savedDistricts` and execute deterministic delta catch-up upon re-entry. | Catch-up is analytical; off-screen districts do not simulate full turn-by-turn combat while the player is away. |
+| **NPC AI & Ecology** | NPCs feature role-based AI, 4-quadrant diurnal shift schedules (work/rest), self-medication, medical triage pathfinding, sound investigation, witness crime reporting, and merchant pedestal restocking. | Non-companion NPCs do not yet migrate between different districts independently. |
+| **Combat & Sensory Stealth** | Full 8-octant shadowcasting FOV, particulate smog/steam LOS attenuation, gaslight illumination radius, ocular blindness clamping, acoustic decibel propagation, postures (`STANDING`, `CROUCHED`, `BRACED`), targeted limb combat, knockback, and deployable traps. | No directional cone facing mechanics; NPCs perceive in 360° within their effective sight/hearing radius. |
+| **Physics & Destruction** | Structural soot brick walls can be breached into rubble piles via concussive forces. Actors knocked into Spire abyss chasms plunge down to the Street stratum with fall trauma. Surface liquids (`BLOOD`, `WHALE_OIL`, `NITRIC_ACID`, `SLUICE_SLUDGE`) ignite or corrode. | Wood/metal furniture is destroyed, pried, or looted rather than splintered into multi-tile shrapnel. |
+| **Grounded Trade** | Merchants own physical storefront pedestal entities. Prices react dynamically to supply shocks and faction turf tariffs, and shopkeepers restock pedestals during active work shifts. | Autonomous non-player citizens do not yet barter or buy items off pedestals. |
+| **ProcGen & Visual Survey** | 8-stage seed-deterministic pipeline with CDDA building templates, hierarchical urban parcels (`48x36` and `64x48`), reciprocated border seams, and automated 6-layer spatial anomaly auditing (`npm run survey:world`). | Building interiors are single-story per stratum; verticality within a building uses stratum portals (`UNDERCROFT` / `STREET` / `SPIRE`). |
+| **Presentation Shell** | PixiJS v8 Canvas rendering, 3-mode presentation switcher (`ASCII`, `ENHANCED_GLYPHS`, `TILESET` via `[F2]`), Oxidized Iron palette, 4-pass GLSL CRT/gaslight shader, procedural WebAudio synth (`src/client/audio/`), and Preact/Canvas HUD modals. | Graphical `TILESET` mode uses procedurally synthesized 16×16 pixel-art sprites rather than external PNG sprite sheets. |
 
 ---
 
@@ -221,6 +225,7 @@ To provide complete transparency for future AI agents and contributors, here is 
 | **World Atlas** | `Shift + W` | Open 5-district Overworld Atlas |
 | **Dialogue** | `T` | Talk to adjacent NPC (contracts, companions, surgery) |
 | **New Character** | `N` | Open Character Creation modal (choose profession & scenario) |
+| **Presentation Mode** | `F2` | Cycle visual presentation mode (`ASCII` -> `ENHANCED_GLYPHS` -> `TILESET`) |
 | **System Menu** | `Esc` | Open Save/Load/Seed menu (or dismiss open modal / look mode) |
 
 ---
@@ -234,9 +239,14 @@ npm run verify
 ```
 
 1. **`npm run typecheck`**: Strict TypeScript verification (`noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`).
-2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all source files.
+2. **`npm run check:boundaries`**: Enforces strict Core/Shell isolation (no DOM or non-deterministic PRNG tokens in `src/sim/`) and enforces the 300-line modularity ceiling across all 453 source/test files.
 3. **`npm run validate:data`**: Validates all declarative JSON blueprints in `data/` against Zod schemas.
-4. **`npm run test:sim`**: Executes all 80 headless deterministic test suites (416 tests).
+4. **`npm run test:sim`**: Executes all 129 headless deterministic test suites (677 tests).
+
+For changes touching `src/sim/spatial/` (worldgen, building templates, or district boundaries), also run the 6-layer spatial anomaly survey:
+```bash
+npm run survey:world -- --seeds 4 --out tests/artifacts/survey-sheets
+```
 
 ---
 
@@ -301,10 +311,11 @@ To keep context windows lean and prevent architectural drift, contributors and a
 
 | Role / Persona | Focus Domain | Key Documentation & Guidelines | Primary Tools & Commands |
 | :--- | :--- | :--- | :--- |
-| **Executive AI Agent** (Antigravity / Argon) | Full-stack orchestration, ECS core, client projection, schema updates | `AGENTS.md`, `ARCHITECTURE.md`, `STATE.md`, `.agents/rules/` | `npm run verify`, `npm run hermes:critic`, `npm run sync:state` |
+| **Executive AI Agent** (Antigravity / Argon) | Full-stack orchestration, ECS core, client projection, schema updates | `AGENTS.md`, `ARCHITECTURE.md`, `docs/DESIGN_INTENT.md`, `STATE.md`, `.agents/rules/` | `npm run verify`, `npm run survey:world`, `npm run hermes:critic`, `npm run sync:state` |
 | **Local Model Worker** (Ollama Tiers 1–3) | Bulk blueprints, test scaffolding, AST file splitting, playtesting | `.agents/skills/hermes-tooling/SKILL.md`, `.agents/skills/content-generation/` | `npm run hermes:scout`, `npm run hermes:testgen`, `npm run generate:content` |
-| **Human System Architect** | Balance evaluation, roadmap gating, design pillar arbitration | `ARCHITECTURE.md`, `ROADMAP.md`, `tests/artifacts/` | `npm run playtest`, `npm run build && npm run preview` |
-| **Procedural Lore Designer** | Markov dialogue, district flavor, bark corpora, item lore | `.agents/rules/lore-procgen.md`, `data/dialogue/`, `data/districts/` | `npm run generate:content`, `npm run hermes:chronicler` |
+| **Worldgen & Spatial Architect** | CDDA building templates, urban parcels, continuous seams, survey sheets | `.agents/skills/worldgen-survey/SKILL.md`, `docs/DESIGN_INTENT.md` | `npm run survey:world`, `npm run test:sim` |
+| **Human System Architect** | Balance evaluation, roadmap gating, design pillar arbitration | `docs/DESIGN_INTENT.md`, `ARCHITECTURE.md`, `ROADMAP.md`, `tests/artifacts/` | `npm run playtest`, `npm run build && npm run preview` |
+| **Procedural Lore Designer** | Markov dialogue, district flavor, bark corpora, item lore | `.agents/rules/lore-procgen.md`, `docs/DESIGN_INTENT.md`, `data/corpora/` | `npm run generate:content`, `npm run hermes:chronicler` |
 
 ---
 
@@ -312,12 +323,13 @@ To keep context windows lean and prevent architectural drift, contributors and a
 
 | Metric / Dimension | Current Value | Verification Gate / Validator |
 | :--- | :--- | :--- |
-| **Deterministic Unit Test Suites** | 80 suites (416 tests passing, 0 failures) | `npm run test:sim` (`vitest run`) |
+| **Deterministic Unit Test Suites** | 129 suites (677 tests passing, 0 failures) | `npm run test:sim` (`vitest run`) |
 | **TypeScript Typecheck** | 0 errors (`strict: true`, `noUncheckedIndexedAccess: true`) | `npm run typecheck` (`tsc --noEmit`) |
-| **Architectural Boundaries** | 303 source files checked (0 violations, hard 300-line cap) | `npm run check:boundaries` |
-| **Agent Governance Health** | 100% PASS (3 progressive disclosure rules, pre-tool hooks) | `npm run check:governance` |
+| **Architectural Boundaries** | 453 source/test files checked (0 violations, hard 300-line cap) | `npm run check:boundaries` |
+| **World Spatial Survey Audit** | 0 anomalies across all 5 districts (`SEALED_DISTRICT_EDGE = 0`, `ORPHAN_DOOR = 0`) | `npm run survey:world` |
+| **Agent Governance Health** | 100% PASS (3 progressive disclosure rules, pre-tool hooks, 9 skills) | `npm run check:governance` |
 | **Vision Critic UI Score** | 98/100 (100% modal pass, 0 atlas leaks, 0 collisions) | `npm run hermes:vision:mock` |
-| **Declarative JSON Blueprints** | 43 blueprints across 5 districts, 9 recipes, 5 prosthetics | `npm run validate:data` |
-| **Target Viewport Resolution** | 88×36 character cells (centered district projection) | `src/client/projection/frame-adapter.ts` |
-| **Tactical Modal Screens** | 6 diegetic modals (Satchel, Anatomy, Workbench, Exchange, Atlas, Codex) | `src/client/canvas-ui/modal-buffer-router.ts` |
+| **Declarative JSON Blueprints** | 50+ blueprints across 5 districts, 9 recipes, 5 prosthetics, 7 corpora | `npm run validate:data` |
+| **Target Viewport Resolution** | 88×36 character cells (3-mode `ASCII` / `ENHANCED_GLYPHS` / `TILESET`) | `src/client/projection/frame-adapter.ts` |
+| **Tactical Modal Screens** | 7 diegetic modals (Satchel, Anatomy, Workbench, Exchange, Atlas, Codex, Embark) | `src/client/canvas-ui/modal-buffer-router.ts` |
 

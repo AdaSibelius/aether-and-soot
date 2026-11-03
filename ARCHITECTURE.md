@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — AI-Optimized System Map (Aether & Soot)
 
-> **PURPOSE FOR AI AGENTS**: Read this file BEFORE planning or writing code. It defines the exact file locations, data contracts, state-mutation pipeline, and architectural invariants of *Aether & Soot*. Do not invent parallel stores, event buses, or untyped helpers.
+> **PURPOSE FOR AI AGENTS**: Read this file BEFORE planning or writing code. It defines the exact file locations, data contracts, state-mutation pipeline, and architectural invariants of *Aether & Soot*. For world, setting, player experience pillars, and design heuristics, read [docs/DESIGN_INTENT.md](./docs/DESIGN_INTENT.md). Do not invent parallel stores, event buses, or untyped helpers.
 
 ---
 
@@ -97,22 +97,33 @@ Use this lookup table to locate existing logic before writing any code.
 | `src/schemas/events.schema.ts` | `SimEventSchema` discriminated union (108 event variants emitted by systems and formatted in `EventFormatter.ts` / `HudLayout.tsx`) |
 
 ### B. Headless Simulation Core (`src/sim/`)
-The headless simulation core comprises **12 core engine/infrastructure files** in `src/sim/core/` (`engine.ts`, `action-resolver.ts`, `command-router.ts`, `simulation-pipeline.ts`, `invariants.ts`, `scheduler.ts`, `rng.ts`, `world.ts`, `world-factory.ts`, `world-migration.ts`, `spatial-actions.ts`, `command-resolution.ts`), **63 pure domain systems** in `src/sim/systems/`, **6 procgen/spatial files** in `src/sim/spatial/`, and **1 catalog loader** in `src/sim/data/`.
+The headless simulation core comprises **12 core engine/infrastructure files** in `src/sim/core/` (`engine.ts`, `action-resolver.ts`, `command-router.ts`, `simulation-pipeline.ts`, `invariants.ts`, `scheduler.ts`, `rng.ts`, `world.ts`, `world-factory.ts`, `world-migration.ts`, `spatial-actions.ts`, `command-resolution.ts`), **65 pure domain systems** in `src/sim/systems/`, **45 procgen/spatial/survey files** in `src/sim/spatial/`, and **2 catalog loaders** in `src/sim/data/`.
 
 | File | Current Lines | Exports & Responsibility |
-| :--- | :--- | :--- |
+| :--- | :---: | :--- |
 | `src/sim/core/rng.ts` | 76 | `SeededRNG` (`nextUint32`, `nextFloat`, `nextInt`, `getState`), `RNGStateSchema` |
-| `src/sim/core/world.ts` | 232 | `WorldStateSchema`, `createInitialWorld`, `serializeWorld`, `deserializeWorld` |
+| `src/sim/core/world.ts` | 190 | `WorldStateSchema`, `createInitialWorld`, `serializeWorld`, `deserializeWorld` |
 | `src/sim/core/scheduler.ts` | 66 | `STANDARD_ACTION_AP` (100), `MACRO_TICK_INTERVAL` (100), `advanceTurnSchedule` |
 | `src/sim/core/engine.ts` | 105 | `dispatchCommand(currentState, rawCommand)` — central command router |
-| `src/sim/spatial/grid.ts` | 128 | `TileCellSchema`, `StratumGridSchema`, `createStratumGrid`, `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, `findBlockingEntityAtPoint` |
+| `src/sim/spatial/grid.ts` | 150 | `TileCellSchema`, `StratumGridSchema`, `createStratumGrid`, `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, `findBlockingEntityAtPoint` |
 | `src/sim/spatial/portals.ts` | 14 | `findPortalAtPoint(entities, point)` |
 | `src/sim/spatial/fov.ts` | 141 | `computeVisibleTiles(grid, originX, originY, radius)`, `isPointVisible`, `pointKey` |
-| `src/sim/spatial/district-layout.ts` | 139 | `buildSolidStratumGrid`, `carveRoom`, `carveCorridor`, `carveBuildingWithDoor` |
-| `src/sim/spatial/generator.ts` | 222 | `generateVictorianDistrict(state)`, `hasWalkablePath(grid, start, goal)` |
-| `src/sim/spatial/catacombs.ts` | 209 | Procedural infinite delve chalk catacombs & relic clockwork vault generation |
-| `src/sim/spatial/strata-dungeons.ts` | 224 | Undercroft sewers and Spire catwalks layout generation |
+| `src/sim/spatial/generator.ts` | 162 | `generateVictorianDistrict(state)` — 8-stage district orchestrator, `hasWalkablePath(grid, start, goal)` |
+| `src/sim/spatial/district-pipeline.ts` | 185 | Stages 1–5 district pipeline (thoroughfare skeletization, plot zoning, CDDA urban blocks, typologies) |
+| `src/sim/spatial/district-pipeline-late.ts` | 169 | Stages 6–8 district pipeline (multi-stratum dungeons, border seam application, connectivity & orphan door sanitization) |
+| `src/sim/spatial/district-boundaries.ts` | 191 | `computeDistrictBoundarySeams`, `applyBoundarySeamsToGrid`, `isEdgeSeamTraversable`, `getEdgeNeighbor` |
+| `src/sim/spatial/building-templates.ts` | 217 | CDDA-style ASCII building templates (`BUILDING_TEMPLATES`, `getBuildingTemplate`) |
+| `src/sim/spatial/building-templates-expanded.ts` | 206 | District-tailored CDDA templates (*Bessemer Foundry*, *Dockside Warehouse*, *Clockwork Salon*) |
+| `src/sim/spatial/template-instantiator.ts` | 173 | `instantiateBuildingTemplate` — stamps ASCII templates, doors, interior zones, furniture & loot |
+| `src/sim/spatial/urban-parcels.ts` | 189 | `subdivideProceduralParcels` — hierarchical block & parcel subdivision for `48x36` and `64x48` districts |
+| `src/sim/spatial/spatial-survey-sheet.ts` | 196 | `generateSpatialSurveySheet`, `formatSurveySheetMarkdown` — *Fallout: New York* 6-layer diagnostic sheets |
+| `src/sim/spatial/spatial-anomaly-detector.ts` | 195 | `runSpatialAnomalyAudit` — detects blocked doorways, unreachable rooms, severed thoroughfares |
+| `src/sim/spatial/spatial-anomaly-district.ts` | 216 | `runDistrictSurveyAudit`, `detectSealedDistrictEdges`, `detectUnreciprocatedSeams`, `detectOrphanDoors`, `sanitizeOrphanDoors` |
+| `src/sim/spatial/spatial-self-corrector.ts` | 216 | `applySpatialSelfCorrection`, `clearDoorwayObstacles`, `flipOrRelocateDoorway`, `stitchDisconnectedPathways` |
+| `src/sim/spatial/catacombs.ts` | 228 | Procedural infinite delve chalk catacombs & relic clockwork vault generation |
+| `src/sim/spatial/strata-dungeons.ts` | 228 | Undercroft sewers and Spire catwalks layout generation |
 | `src/sim/data/item-catalog.ts` | 156 | `ITEM_CATALOG`, `PROSTHETIC_CATALOG`, `COMMODITY_CATALOG`, `RECIPE_CATALOG`, `getItemBlueprint`, `getRecipeBlueprint`, `createItemEntity`, `createEntityFromBlueprint` |
+| `src/sim/systems/continuous-transit.system.ts` | 196 | `continuousTransitSystem` — seamless coordinate translation & companion preservation across open district borders |
 | `src/sim/systems/inventory-utils.ts` | 126 | `getCarryProfile`, `computeCarriedVolumeMl`, `isInstalledOnActor`, `findMergeableStack`, `allocateSplitId`, `createInventoryFailureResult`, `MAX_OVERLOAD_RATIO` |
 | `src/sim/systems/inventory.system.ts` | 243 | `resolvePickupItem`, `resolveDropItem`, `resolveUseItem` |
 | `src/sim/systems/item-spawner.ts` | 71 | `spawnDistrictItems` — deterministic seeded ground-item scatterer |
@@ -140,7 +151,11 @@ The presentation shell comprises **62 files across 7 subdirectories** (`audio/`,
 | File | Exports & Responsibility |
 | :--- | :--- |
 | `src/client/projection/frame-adapter.ts` | `projectWorldToVisualFrame(state, focusActorId, baseFovRadius)` -> `VisualGridFrame` |
+| `src/client/projection/continuous-projection.ts` | `resolveContinuousLookaheadCell` — projects neighboring district cells across open border seams (`0.65` alpha) |
 | `src/client/renderer/glyph-stage.ts` | `GlyphStageRenderer` — PixiJS v8 canvas renderer with dual-color glyph pulsing and steam overlay |
+| `src/client/renderer/oxidized-iron-palette.ts` | `OXIDIZED_IRON_PALETTE`, `checkWcagContrastRatio` — high-contrast Victorian metallic color tokens |
+| `src/client/renderer/presentation-mode-store.ts` | `PresentationMode` (`ASCII` \| `ENHANCED_GLYPHS` \| `TILESET`) state & `[F2]` mode switcher |
+| `src/client/renderer/tileset-atlas.ts` | `TILESET_SPRITE_DEFINITIONS`, `resolveCellLayeredSprites` — 3-layer graphical tile compositing |
 | `src/client/renderer/crt-filter.ts` | `createCrtPostFilter()` — GLSL scanlines, chromatic aberration, and vignette filter |
 | `src/client/ui/EventFormatter.ts` | `formatEventMessage(ev: SimEvent)` — pure chronicler formatting all 34 SimEvent variants |
 | `src/client/ui/HudLayout.tsx` | Main Preact sidebar with 5-tab drawer navigation (`TELEMETRY`, `INVENTORY`, `SURGERY`, `WORKBENCH`, `EXCHANGE`) |
@@ -192,6 +207,8 @@ Located in `tests/scripts/`, this suite exercises end-to-end emergence by drivin
 | `tests/scripts/hermes-chronicler.ts` | 191 | Exhaustive `SimEvent` chronicler synchronizing events with `EventFormatter.ts` (`npm run hermes:chronicler`). |
 | `tests/scripts/hermes-split.ts` | 272 | AST-guided modularity ceiling splitter for near-cap files >= 240 lines (`npm run hermes:split`). |
 | `tests/scripts/hermes-critic.ts` | 239 | Whole-game emergence & architectural audit engine generating P1/P2/P3 prescriptions and handoff prompts (`npm run hermes:critic`). |
+| `tests/scripts/survey-world.ts` | 76 | Multi-district, multi-seed 6-layer spatial survey & anomaly auditor (`npm run survey:world`). |
+| `tests/scripts/local-llm-ledger.ts` | 183 | Local LLM inference token & cloud API cost-avoidance ledger (`getInferenceLedgerSummary`, `computeCloudSavings`). |
 | `tests/scripts/update-state.ts` | 78 | State synchronizer embedding recent commits, next roadmap priority, critic prescriptions, and prompt handoff into `STATE.md` (`npm run sync:state`). |
 | `tests/sim/playtester-harness.test.ts` | — | Unit tests verifying that action payloads serialize and resolve into valid simulation commands. |
 | `tests/sim/hermes-content.test.ts` | — | Unit tests verifying CLI parsing, mock content generation, and blueprint schema validation. |

@@ -42,10 +42,10 @@ Implement domain logic as a pure headless function:
 - **PRNG & Determinism**: Use the hydrated `SeededRNG` instance from `state.rngState` or `createInitialWorld`. Never call `Math.random()` or `Date.now()`.
 - **Spatial Lookups**: Reuse `findEntitiesAtPoint`, `getTileCell`, `setTileCell`, and `isWithinBounds` from `src/sim/spatial/grid.ts`. Do not write bespoke coordinate loops.
 
-### 3. Wire Engine Command Router (`src/sim/core/engine.ts`)
-Add a `case '<COMMAND_TYPE>':` branch to `dispatchCommand()`:
-- Validate and route the command payload to your pure system function.
-- Return the updated state, accumulated events, and `apSpent`.
+### 3. Wire Engine Command Router (`src/sim/core/command-router.ts` & `src/sim/core/action-resolver.ts`)
+`dispatchCommand()` in `src/sim/core/engine.ts` delegates execution through `resolveAction()` (`src/sim/core/action-resolver.ts`):
+- Spatial actions (`MOVE_STEP`, `USE_PORTAL`, `WAIT_TURN`) are routed via `src/sim/core/spatial-actions.ts`.
+- All other domain commands are dispatched through `routeDomainCommand()` in `src/sim/core/command-router.ts`. Add a `case '<COMMAND_TYPE>':` branch in `src/sim/core/command-router.ts` and return the updated state, accumulated events, and `apSpent`.
 
 ### 4. Chronicle & Event Formatting (`src/client/ui/EventFormatter.ts`)
 Map the new `SimEvent` variant to an atmospheric Victorian narrative entry:

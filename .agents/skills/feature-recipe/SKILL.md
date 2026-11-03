@@ -39,10 +39,10 @@ Follow this sequence for any new gameplay command, physical interaction, or syst
 - **Determinism**: Use the passed world's hydrated `SeededRNG` (`rng.nextInt()`, `rng.nextFloat()`). Never use `Math.random()` or `Date.now()`.
 - **Spatial Lookups**: Always use `isWithinBounds`, `getTileCell`, `findEntitiesAtPoint`, and `findBlockingEntityAtPoint` from `src/sim/spatial/grid.ts`.
 
-### Step 3: Wire into Engine Dispatcher (`src/sim/core/engine.ts`)
-- Add a `case '<COMMAND_TYPE>':` branch to `dispatchCommand()`.
-- Pass validated command payloads to your pure system function.
-- Return the updated state, events, and `apSpent`.
+### Step 3: Wire into Engine Dispatcher (`src/sim/core/command-router.ts` & `src/sim/core/action-resolver.ts`)
+- `dispatchCommand()` in `src/sim/core/engine.ts` delegates to `resolveAction()` in `src/sim/core/action-resolver.ts`.
+- Add a `case '<COMMAND_TYPE>':` branch to `routeDomainCommand()` in `src/sim/core/command-router.ts` (or `src/sim/core/spatial-actions.ts` for spatial movement/portal actions).
+- Pass validated command payloads to your pure system function and return the updated state, events, and `apSpent`.
 
 ### Step 4: Chronicle Synchronization (`src/client/ui/EventFormatter.ts`)
 - Format every new `SimEvent` variant into atmospheric Victorian narrative prose.

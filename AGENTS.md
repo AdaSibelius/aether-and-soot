@@ -1,14 +1,15 @@
 # AGENTS.md — Foundational AI Engineering Rulebook (Aether & Soot)
 
-> **SYSTEM DIRECTIVE**: You are modifying *Aether & Soot*, a deterministic Victorian Steampunk roguelike engineered for autonomous AI workflows. Every rule in this document is enforced by automated verification scripts (`npm run verify`). Read [ARCHITECTURE.md](./ARCHITECTURE.md) before making any changes.
+> **SYSTEM DIRECTIVE**: You are modifying *Aether & Soot*, a deterministic Victorian Steampunk roguelike engineered for autonomous AI workflows. Every rule in this document is enforced by automated verification scripts (`npm run verify`). Read [ARCHITECTURE.md](./ARCHITECTURE.md) and [docs/DESIGN_INTENT.md](./docs/DESIGN_INTENT.md) before making any changes.
 
 ---
 
 ## 1. Mandatory Pre-Flight Protocol (Execute Before Writing Code)
 
 ### Rule 1.1: The Anti-Duplication Search Rule
-Before creating any new type, helper function, component, or system, you **MUST** inspect [ARCHITECTURE.md](./ARCHITECTURE.md) and [docs/architecture-map.md](./docs/architecture-map.md), and search the existing codebase (`grep` / file view) to verify it does not already exist:
+Before creating any new type, helper function, component, or system, you **MUST** inspect [ARCHITECTURE.md](./ARCHITECTURE.md), [docs/DESIGN_INTENT.md](./docs/DESIGN_INTENT.md), and [docs/architecture-map.md](./docs/architecture-map.md), and search the existing codebase (`grep` / file view) to verify it does not already exist:
 - **Spatial & Grid Lookups**: Do NOT write custom coordinate math or entity loops. Use `isWithinBounds`, `getTileCell`, `setTileCell`, `findEntitiesAtPoint`, and `findBlockingEntityAtPoint` from `src/sim/spatial/grid.ts`, or `findPortalAtPoint` from `src/sim/spatial/portals.ts`.
+- **Worldgen, Border Seams & Spatial Survey**: Use `computeDistrictBoundarySeams` and `applyBoundarySeamsToGrid` from `src/sim/spatial/district-boundaries.ts`, `instantiateBuildingTemplate` from `src/sim/spatial/template-instantiator.ts`, and `runDistrictSurveyAudit` / `sanitizeOrphanDoors` from `src/sim/spatial/spatial-anomaly-district.ts`.
 - **Line-of-Sight & Pathfinding**: Use `computeVisibleTiles` / `isPointVisible` from `src/sim/spatial/fov.ts` and `hasWalkablePath` from `src/sim/spatial/generator.ts`.
 - **Randomness**: Do NOT create new PRNG classes or call non-deterministic browser PRNGs. Use the `SeededRNG` instance hydrated in `src/sim/core/engine.ts` (`rng.nextInt(min, max)`, `rng.nextFloat()`, `rng.nextUint32()`).
 - **Schemas & IDs**: Reuse branded schemas (`EntityIdSchema`, `BlueprintIdSchema`, `StratumIdSchema`, `LimbSlotIdSchema`, `FactionIdSchema`, `CommodityIdSchema`) from `src/schemas/primitives.schema.ts`.
@@ -61,10 +62,11 @@ At the end of every phase (after `npm run verify`), run `npm run hermes:critic` 
 
 > **PROCEDURAL SKILLS**: Detailed step-by-step procedures are defined in discrete Antigravity skills:
 > - **Simulation Features**: [.agents/skills/sim-feature/SKILL.md](./.agents/skills/sim-feature/SKILL.md)
+> - **Worldgen, Templates & Spatial Survey**: [.agents/skills/worldgen-survey/SKILL.md](./.agents/skills/worldgen-survey/SKILL.md)
 > - **Bug Investigation & Diagnostics**: [.agents/skills/bug-investigation/SKILL.md](./.agents/skills/bug-investigation/SKILL.md)
 > - **Content Generation**: [.agents/skills/content-generation/SKILL.md](./.agents/skills/content-generation/SKILL.md)
 > - **LLM Evaluation & Playtesting**: [.agents/skills/llm-evaluation/SKILL.md](./.agents/skills/llm-evaluation/SKILL.md)
-> Consult [docs/architecture-map.md](./docs/architecture-map.md) for live module telemetry and line counts.
+> Consult [docs/DESIGN_INTENT.md](./docs/DESIGN_INTENT.md) for setting/gameplay pillars and [docs/architecture-map.md](./docs/architecture-map.md) for live module telemetry and line counts.
 
 ### Rule 2.1: Strict Headless Separation (`src/sim/` vs `src/client/`)
 - Files inside `src/sim/` and `src/schemas/` **MUST NEVER** import from `src/client/`, `pixi.js`, `preact`, or reference browser globals (`window`, `document`, `requestAnimationFrame`, `HTMLCanvasElement`).
